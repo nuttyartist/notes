@@ -1,0 +1,11 @@
+# Build dirs and files #
+########################
+Notes.pro.user
+build-Notes-*
+bin*
+
+# OS generated files #
+######################
+.DS_Store*
+ehthumbs.db
+Thumbs.db

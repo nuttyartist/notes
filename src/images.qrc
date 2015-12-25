@@ -1,0 +1,18 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/close_button.gif</file>
+        <file>images/green.png</file>
+        <file>images/green2.png</file>
+        <file>images/greenPressed.png</file>
+        <file>images/magnifying_glass.png</file>
+        <file>images/new_note_icon.png</file>
+        <file>images/red.png</file>
+        <file>images/red2.png</file>
+        <file>images/redPressed.png</file>
+        <file>images/textSideBackground.png</file>
+        <file>images/trash_can.png</file>
+        <file>images/yellow.png</file>
+        <file>images/yellow2.png</file>
+        <file>images/yellowPressed.png</file>
+    </qresource>
+</RCC>

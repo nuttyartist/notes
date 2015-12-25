@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=0.8
+Type=Application
+Terminal=false
+StartupNotify=true
+Name=Notes
+Comment=Write down your thoughts
+Categories=Utility;Application;
+Exec=/usr/bin/Notes
+Icon=/usr/share/pixmaps/notes_icon.png
