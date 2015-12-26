@@ -265,12 +265,12 @@ color: rgb(132, 132, 132);
     </property>
     <property name="icon">
      <iconset resource="images.qrc">
-      <normaloff>:/images/new_note_icon.png</normaloff>:/images/new_note_icon.png</iconset>
+      <normaloff>:/images/newNote.png</normaloff>:/images/newNote.png</iconset>
     </property>
     <property name="iconSize">
      <size>
-      <width>25</width>
-      <height>25</height>
+      <width>16</width>
+      <height>16</height>
      </size>
     </property>
    </widget>
@@ -288,12 +288,12 @@ color: rgb(132, 132, 132);
     </property>
     <property name="icon">
      <iconset resource="images.qrc">
-      <normaloff>:/images/trash_can.png</normaloff>:/images/trash_can.png</iconset>
+      <normaloff>:/images/trashCan.png</normaloff>:/images/trashCan.png</iconset>
     </property>
     <property name="iconSize">
      <size>
-      <width>17</width>
-      <height>17</height>
+      <width>14</width>
+      <height>18</height>
      </size>
     </property>
    </widget>

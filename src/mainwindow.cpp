@@ -191,7 +191,7 @@ void MainWindow::CreateClearButton ()
 {
     clearButton = new QToolButton(ui->lineEdit);
 
-    QPixmap pixmap(":/images/close_button.gif");
+    QPixmap pixmap(":/images/closeButton.gif");
     clearButton->setIcon(QIcon(pixmap));
     clearButton->setIconSize(QSize(pixmap.size().width()-5, pixmap.size().height()-5));
     clearButton->setCursor(Qt::ArrowCursor);
@@ -211,7 +211,7 @@ void MainWindow::CreateMagnifyingGlassIcon ()
 {
     QToolButton *searchButton = new QToolButton(ui->lineEdit);
 
-    QPixmap newPixmap(":/images/magnifying_glass.png");
+    QPixmap newPixmap(":/images/magnifyingGlass.png");
     searchButton->setIcon(QIcon(newPixmap));
     QSize searchSize(25, 25);
     searchButton->move(-1, -1);
@@ -1445,7 +1445,14 @@ void MainWindow::QuitApplication ()
 */
 void MainWindow::on_greenMaximizeButton_pressed ()
 {
-    ui->greenMaximizeButton->setIcon(QIcon(":/images/greenPressed.png"));
+    if(this->windowState() == Qt::WindowFullScreen)
+    {
+        ui->greenMaximizeButton->setIcon(QIcon(":/images/greenInPressed.png"));
+    }
+    else
+    {
+        ui->greenMaximizeButton->setIcon(QIcon(":/images/greenPressed.png"));
+    }
 }
 
 /**
@@ -1669,9 +1676,16 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
         // set new icons to show their function
         if(object == ui->redCloseButton || object == ui->yellowMinimizeButton || object == ui->greenMaximizeButton)
         {
-            ui->redCloseButton->setIcon(QIcon(":/images/red2.png"));
-            ui->yellowMinimizeButton->setIcon(QIcon(":/images/yellow2.png"));
-            ui->greenMaximizeButton->setIcon(QIcon(":/images/green2.png"));
+            ui->redCloseButton->setIcon(QIcon(":/images/redHovered.png"));
+            ui->yellowMinimizeButton->setIcon(QIcon(":/images/yellowHovered.png"));
+            if(this->windowState() == Qt::WindowFullScreen)
+            {
+                ui->greenMaximizeButton->setIcon(QIcon(":/images/greenInHovered.png"));
+            }
+            else
+            {
+                ui->greenMaximizeButton->setIcon(QIcon(":/images/greenHovered.png"));
+            }
         }
 
         // When hovering upon note with the mouse, highlight it
