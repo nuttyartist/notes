@@ -135,9 +135,9 @@ void MainWindow::SetUpNewNoteButtonAndTrahButton ()
 {
     #ifdef __APPLE__
         ui->newNoteButton->setGeometry(ui->newNoteButton->x(), ui->newNoteButton->y(), 50, 32);
-        ui->newNoteButton->setIconSize(QSize(24, 24));
+        ui->newNoteButton->setIconSize(QSize(16, 16));
         ui->trashButton->setGeometry(676, ui->trashButton->y(), 50, 32);
-        ui->trashButton->setIconSize(QSize(16, 16));
+        ui->trashButton->setIconSize(QSize(14, 18));
     #endif
 }
 /**
@@ -290,7 +290,7 @@ void MainWindow::SetUpTextEdit ()
     #elif _WIN32
         ui->textEdit->setFont(QFont("Arial", 11));
     #elif __APPLE__
-        ui->textEdit->setFont(QFont("Helvetica", 11));
+        ui->textEdit->setFont(QFont("Helvetica", 15));
     #else
         #error "We don't support that version yet..."
     #endif
