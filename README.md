@@ -10,6 +10,6 @@ This is where you come into play. Be part of making Notes better.
 
 You can find more info about Notes and how to download it here: <a href="http://get-notes.com" target="_blank">get-notes.com</a>
 
-# Information for Conributers
+# Information for Contributors
 
-We're making things simple. You can find all you need on the website: <a href="http://get-notes.com" target="_blank">get-notes.com</a> in the 'Contribute' page.
+We're making things simple. You can find all you need on the <a href="http://www.get-notes.com">website</a> on the <a href="http://www.get-notes.com/#!contribute/cve1">Contribute</a> page.
