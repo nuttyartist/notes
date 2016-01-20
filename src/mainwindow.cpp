@@ -1,8 +1,8 @@
-/*********************************************************************************************
-* Mozila License
-* Just a meantime project to see the ability of qt, the framework that my OS might be based on
-* And for those linux users that beleive in the power of notes
-*********************************************************************************************/
+/**************************************************************************************
+* We believe in the power of notes to help us record ideas and thoughts.
+* We want people to have an easy, beautiful and simple way of doing that.
+* And so we have Notes.
+***************************************************************************************/
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
