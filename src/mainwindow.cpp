@@ -31,6 +31,8 @@ MainWindow::MainWindow (QWidget *parent) :
 
     SetUpLine();
 
+    SetUpFrame ();
+
     SetUpTitleBarButtons();
 
     CreateClearButton();
@@ -91,7 +93,6 @@ void MainWindow::SetUpMainWindow ()
     #else
         #error "We don't support that version yet..."
     #endif
-    this->setMinimumSize(520,136);
 
     QPalette Pal(palette());
     Pal.setColor(QPalette::Background, Qt::white);
@@ -164,8 +165,19 @@ void MainWindow::SetUpEditorDateLabel()
 */
 void MainWindow::SetUpLine ()
 {
-    ui->line->setFrameShape(QFrame::VLine);
     ui->line->setStyleSheet("border: 1px solid rgb(221, 221, 221)");
+    ui->line_2->setStyleSheet("border: 1px solid rgb(221, 221, 221)");
+    ui->line_3->setStyleSheet("border: 1px solid rgb(221, 221, 221)");
+}
+
+/**
+* Set up a frame above textEdit and behind the other widgets for a unifed background in thet editor section
+*/
+void MainWindow::SetUpFrame ()
+{
+    frame = new QFrame(this);
+    frame->setStyleSheet("QFrame { background-image: url(:/images/textSideBackground.png); border: none;}");
+    frame->lower();
 }
 
 /**
@@ -182,6 +194,7 @@ void MainWindow::SetUpTitleBarButtons ()
     ui->redCloseButton->installEventFilter(this);
     ui->yellowMinimizeButton->installEventFilter(this);
     ui->greenMaximizeButton->installEventFilter(this);
+
 }
 
 /**
@@ -586,14 +599,14 @@ MainWindow::noteData* MainWindow::AddNote (QString noteName, bool isLoadingOrNew
     newNote->titleLabel->setStyleSheet("QLabel { color : black; }");
     newNote->titleLabel->resize(ui->lineEdit->width()-1, 0);
     newNote->titleLabel->setFixedHeight(titleLabelFont.pixelSize() + addToTitleLabelHeight); // + So there would be room for letters like g,y etc..
-    newNote->titleLabel->move(ui->lineEdit->geometry().x(), distanceToTitleLabel);
+    newNote->titleLabel->move(ui->horizontalSpacer_leftLineEdit->sizeHint().width(), distanceToTitleLabel);
     newNote->dateLabel->setFont(dateLabelFont);
     newNote->dateLabel->setFixedWidth(ui->scrollArea->width());
     newNote->dateLabel->setFixedHeight(dateLabelFont.pixelSize() + addToDateLabelHeight); // + So there would be room for letters like g,y etc..
-    newNote->dateLabel->move(ui->lineEdit->geometry().x(), newNote->titleLabel->height() + distanceBetweenEverything*2);
+    newNote->dateLabel->move(ui->horizontalSpacer_leftLineEdit->sizeHint().width(), newNote->titleLabel->height() + distanceBetweenEverything*2);
     newNote->dateLabel->setStyleSheet("QLabel { color : rgb(132, 132, 132); }");
     newNote->seperateLine->setFrameShape(QFrame::HLine);
-    newNote->seperateLine->setGeometry(ui->lineEdit->geometry().x(), newNote->titleLabel->height() + newNote->dateLabel->height() + distanceBetweenEverything*3, ui->lineEdit->width()-1, 1);
+    newNote->seperateLine->setGeometry(ui->horizontalSpacer_leftLineEdit->sizeHint().width(), newNote->titleLabel->height() + newNote->dateLabel->height() + distanceBetweenEverything*3, ui->lineEdit->width()-1, 1);
     newNote->seperateLine->setStyleSheet("QFrame { color : rgb(221, 221, 221); }");
     newNote->button->setGeometry(0, 0, ui->scrollArea->width(), newNote->titleLabel->height() + newNote->dateLabel->height() + newNote->seperateLine->height() + distanceBetweenEverything*3);
     newNote->button->raise();
@@ -806,7 +819,6 @@ void MainWindow::note_buttuon_pressed ()
             ui->textEdit->verticalScrollBar()->setValue(tempScrollBarPosition);
             QString noteDate = notesDatabase->value(currentSelectedNote->noteName + "/dateEdited", "Error").toString();
             ui->editorDateLabel->setText(GetNoteDateEditor(noteDate));
-            ui->editorDateLabel->adjustSize();
             ui->textEdit->blockSignals(false);
         }
     }
@@ -908,7 +920,6 @@ void MainWindow::on_textEdit_textChanged ()
         notesDatabase->setValue(currentSelectedNote->noteName + "/dateEdited", noteDate);
         currentSelectedNote->dateLabel->setText(GetNoteDate(noteDate));
         ui->editorDateLabel->setText(GetNoteDateEditor(noteDate));
-        ui->editorDateLabel->adjustSize();
 
         //notesDatabase->sync(); // We may want to remove that
 
@@ -1194,7 +1205,6 @@ void MainWindow::Create_new_note ()
 
         ui->scrollArea->verticalScrollBar()->setValue(ui->scrollArea->verticalScrollBar()->minimum());
         ui->editorDateLabel->setText(GetNoteDateEditor(notesDatabase->value(noteName + "/dateEdited", "Error").toString()));
-        ui->editorDateLabel->adjustSize();
         ui->textEdit->blockSignals(true);
         ui->textEdit->clear();
         ui->textEdit->setFocus();
@@ -1657,12 +1667,8 @@ void MainWindow::mouseDoubleClickEvent (QMouseEvent *e)
 */
 void MainWindow::resizeEvent (QResizeEvent *)
 {
-    ui->scrollArea->setGeometry(ui->scrollArea->x(), ui->scrollArea->y(), ui->scrollArea->width(), ui->centralWidget->height() - scrollAreaOffset);
-    ui->textEdit->setGeometry(ui->textEdit->x(), ui->textEdit->y(), ui->centralWidget->width() - textEditOffset1, ui->centralWidget->height() - textEditOffset2);
-    ui->trashButton->setGeometry(ui->centralWidget->width()-trashButtonOffset, ui->trashButton->y(), ui->trashButton->width(), ui->trashButton->height());
-    ui->editorDateLabel->setGeometry((ui->trashButton->x() + ui->newNoteButton->x() + ui->newNoteButton->width()) / 2 - ui->editorDateLabel->width() / 2, ui->editorDateLabel->y(), ui->editorDateLabel->width(), ui->editorDateLabel->height());
-    ui->line->resize(1, ui->centralWidget->geometry().bottom());
-    ui->frame->resize(ui->textEdit->width(), ui->frame->height());
+    frame->move(ui->scrollArea->width()+ui->line->width(), 0);
+    frame->resize(ui->centralWidget->width()-ui->scrollArea->width()-ui->line->width(), ui->redCloseButton->height()+ui->newNoteButton->height()+ui->verticalSpacer_upLineEdit->sizeHint().height()+ui->verticalSpacer_upScrollArea->sizeHint().height()+ui->line_3->height());
 }
 
 /**

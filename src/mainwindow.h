@@ -40,6 +40,7 @@ private slots:
     void SetUpNewNoteButtonAndTrahButton();
     void SetUpEditorDateLabel();
     void SetUpLine ();
+    void SetUpFrame ();
     void SetUpTitleBarButtons ();
     void CreateClearButton ();
     void CreateMagnifyingGlassIcon ();
@@ -149,6 +150,7 @@ private:
 
     QVBoxLayout *lay;
     QToolButton *clearButton;
+    QFrame *frame;
 
     noteData *currentSelectedNote;
     noteData *currentHoveredNote;
