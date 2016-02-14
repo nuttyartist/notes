@@ -151,7 +151,7 @@
         </property>
         <property name="sizeHint" stdset="0">
          <size>
-          <width>2</width>
+          <width>3</width>
           <height>20</height>
          </size>
         </property>
@@ -167,14 +167,14 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>20</width>
-          <height>20</height>
+          <width>15</width>
+          <height>15</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>20</width>
-          <height>20</height>
+          <width>15</width>
+          <height>15</height>
          </size>
         </property>
         <property name="focusPolicy">
@@ -196,6 +196,22 @@
        </widget>
       </item>
       <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Minimum</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>6</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
        <widget class="QPushButton" name="yellowMinimizeButton">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -205,14 +221,14 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>20</width>
-          <height>20</height>
+          <width>15</width>
+          <height>15</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>20</width>
-          <height>20</height>
+          <width>15</width>
+          <height>15</height>
          </size>
         </property>
         <property name="focusPolicy">
@@ -234,6 +250,22 @@
        </widget>
       </item>
       <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Minimum</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>6</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
        <widget class="QPushButton" name="greenMaximizeButton">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -243,14 +275,14 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>20</width>
-          <height>20</height>
+          <width>15</width>
+          <height>15</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>20</width>
-          <height>20</height>
+          <width>15</width>
+          <height>15</height>
          </size>
         </property>
         <property name="focusPolicy">
