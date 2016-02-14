@@ -1668,7 +1668,7 @@ void MainWindow::mouseDoubleClickEvent (QMouseEvent *e)
 void MainWindow::resizeEvent (QResizeEvent *)
 {
     frame->move(ui->scrollArea->width()+ui->line->width(), 0);
-    frame->resize(ui->centralWidget->width()-ui->scrollArea->width()-ui->line->width(), ui->redCloseButton->height()+ui->newNoteButton->height()+ui->verticalSpacer_upLineEdit->sizeHint().height()+ui->verticalSpacer_upScrollArea->sizeHint().height()+ui->line_3->height());
+    frame->resize(ui->centralWidget->width()-ui->scrollArea->width()-ui->line->width(), ui->horizontalSpacer_rightTrafficLightButtons1->sizeHint().height()+ui->newNoteButton->height()+ui->verticalSpacer_upLineEdit->sizeHint().height()+ui->verticalSpacer_upScrollArea->sizeHint().height()+ui->line_3->height());
 }
 
 /**

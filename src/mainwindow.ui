@@ -196,7 +196,7 @@
        </widget>
       </item>
       <item>
-       <spacer name="horizontalSpacer">
+       <spacer name="horizontalSpacer_rightRedTrafficLightButton">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
@@ -250,7 +250,7 @@
        </widget>
       </item>
       <item>
-       <spacer name="horizontalSpacer_2">
+       <spacer name="horizontalSpacer_rightYellowTrafficLightButton">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
@@ -313,7 +313,7 @@
         </property>
         <property name="sizeHint" stdset="0">
          <size>
-          <width>150</width>
+          <width>152</width>
           <height>20</height>
          </size>
         </property>
