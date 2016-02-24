@@ -39,6 +39,7 @@ private slots:
     void SetUpKeyboardShortcuts ();
     void SetUpNewNoteButtonAndTrahButton();
     void SetUpEditorDateLabel();
+    void SetUpSplitter();
     void SetUpLine ();
     void SetUpFrame ();
     void SetUpTitleBarButtons ();
@@ -49,10 +50,9 @@ private slots:
     void SetUpTextEdit ();
     void InitializeVariables();
     void InitializeSettingsDatabase();
-    void SetUpDatabase ();
+    void SetUpDatabases ();
     void SetLayoutForScrollArea ();
-    void SetUpOffsets ();
-    void RestoreGeometry();
+    void RestoreStates();
     QString GetFirstLine (QString str);
     QString GetElidedText (QString str, QFontMetrics labelFontMetrics, int size);
     QString GetFirstLineAndElide (noteData *note);
@@ -108,6 +108,8 @@ private slots:
     bool IsClickingButton (QPoint mousePos, QPushButton* button);
     void mouseDoubleClickEvent (QMouseEvent *e);
     void resizeEvent (QResizeEvent *);
+    bool IsSpacerInsideLayout(QSpacerItem *spacer, QVBoxLayout *layout);
+    void ResizeRestWhenSplitterMove(int pos, int index);
     bool eventFilter (QObject *object, QEvent *event);
 
 private:
@@ -160,13 +162,9 @@ private:
     noteData *tempNote;
     bool isTemp;
 
-    int  m_nMouseClick_X_Coordinate;
-    int  m_nMouseClick_Y_Coordinate;
+    int m_nMouseClick_X_Coordinate;
+    int m_nMouseClick_Y_Coordinate;
     bool canMoveWindow;
-    int scrollAreaOffset;
-    int textEditOffset1;
-    int textEditOffset2;
-    int trashButtonOffset;
 
     bool focusBreaker;
     int textEditLeftPadding;

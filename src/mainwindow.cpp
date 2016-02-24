@@ -29,6 +29,8 @@ MainWindow::MainWindow (QWidget *parent) :
 
     SetUpEditorDateLabel();
 
+    SetUpSplitter();
+
     SetUpLine();
 
     SetUpFrame ();
@@ -47,11 +49,9 @@ MainWindow::MainWindow (QWidget *parent) :
 
     InitializeVariables();
 
-    SetUpDatabase();
+    SetUpDatabases();
 
-    SetUpOffsets();
-
-    RestoreGeometry();
+    RestoreStates();
 
     SetLayoutForScrollArea();
 
@@ -161,13 +161,21 @@ void MainWindow::SetUpEditorDateLabel()
 }
 
 /**
+* Set up the splitter that control the size of the scrollArea and the textEdit
+*/
+void MainWindow::SetUpSplitter()
+{
+    ui->splitter->setStretchFactor(1, 1);
+    ui->splitter->setStretchFactor(2, 0);
+    connect(ui->splitter, SIGNAL(splitterMoved(int,int)), SLOT(ResizeRestWhenSplitterMove(int, int)));
+}
+
+/**
 * Set up the vertical line that seperate between the scrollArea to the textEdit
 */
 void MainWindow::SetUpLine ()
 {
     ui->line->setStyleSheet("border: 1px solid rgb(221, 221, 221)");
-    ui->line_2->setStyleSheet("border: 1px solid rgb(221, 221, 221)");
-    ui->line_3->setStyleSheet("border: 1px solid rgb(221, 221, 221)");
 }
 
 /**
@@ -210,9 +218,7 @@ void MainWindow::CreateClearButton ()
     clearButton->setCursor(Qt::ArrowCursor);
     clearButton->setStyleSheet("QToolButton { border: none; padding: 0px; }");
     clearButton->hide();
-    QSize sz = clearButton->sizeHint();
-    int frameWidth = ui->lineEdit->style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
-    clearButton->move(ui->lineEdit->rect().right() - frameWidth - sz.width(), (ui->lineEdit->rect().bottom() + 1 - sz.height())/2);
+    clearButton->move( ui->lineEdit->rect().right() - clearButton->sizeHint().width()-1, 3);
 
     connect(clearButton, SIGNAL(clicked()), this, SLOT(ClearButtonClicked()));
 }
@@ -340,9 +346,19 @@ void MainWindow::InitializeSettingsDatabase()
         settingsDatabase->setValue("defaultWindowHeight", 341);
     }
 
-    if(settingsDatabase->value("geometry", "NULL") == "NULL")
+    if(settingsDatabase->value("windowGeometry", "NULL") == "NULL")
     {
-        settingsDatabase->setValue("geometry", saveGeometry());
+        settingsDatabase->setValue("windowGeometry", saveGeometry());
+    }
+
+    if(settingsDatabase->value("splitterSizes", "NULL") == "NULL")
+    {
+        settingsDatabase->setValue("splitterSizes", ui->splitter->saveState());
+    }
+
+    if(settingsDatabase->value("clearButtonGeometry", "NULL") == "NULL")
+    {
+        settingsDatabase->setValue("clearButtonGeometry", clearButton->saveGeometry());
     }
 }
 
@@ -361,7 +377,7 @@ void MainWindow::InitializeSettingsDatabase()
 * Windows: C:\Users\user\AppData\Roaming\Awesomeness
 * Mac OS X:
 */
-void MainWindow::SetUpDatabase ()
+void MainWindow::SetUpDatabases ()
 {
     notesDatabase = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Awesomeness", "Notes");
     notesDatabase->setFallbacksEnabled(false);
@@ -386,15 +402,31 @@ void MainWindow::SetUpDatabase ()
 
     notesDatabase->sync();
     trashDatabase->sync();
+    settingsDatabase->sync();
 }
 
 /**
-* Restore the latest data of the position (x, y) and size of the window (width, height)
-* from database
+* Restore the latest sates (if there are any) of the window and the splitter from the settings database
 */
-void MainWindow::RestoreGeometry()
+void MainWindow::RestoreStates()
 {
-    this->restoreGeometry(settingsDatabase->value("geometry").toByteArray());
+    this->restoreGeometry(settingsDatabase->value("windowGeometry").toByteArray());
+
+    ui->splitter->restoreState(settingsDatabase->value("splitterSizes").toByteArray());
+
+    clearButton->restoreGeometry(settingsDatabase->value("clearButtonGeometry").toByteArray());
+    clearButton->setGeometry(clearButton->x(), 3, clearButton->width(), clearButton->height());
+
+    // If scrollArea is collapsed
+    if(ui->splitter->sizes().at(0) == 0)
+    {
+        ui->verticalLayout_scrollArea->removeItem(ui->horizontalLayout_scrollArea_2);
+        ui->verticalLayout_textEdit->insertLayout(0, ui->horizontalLayout_scrollArea_2, 0);
+
+        ui->verticalLayout_scrollArea->removeItem(ui->verticalSpacer_upLineEdit);
+        ui->verticalLayout_textEdit->insertItem(0, ui->verticalSpacer_upLineEdit);
+        ui->verticalSpacer_upEditorDateLabel->changeSize(20, 5);
+    }
 }
 
 /**
@@ -410,17 +442,6 @@ void MainWindow::SetLayoutForScrollArea ()
     lay->setContentsMargins(0,0,0,0);
 
     ui->scrollAreaWidgetContents->setLayout(lay);
-}
-
-/**
-* Saves The offset of some widgets for resizing
-*/
-void MainWindow::SetUpOffsets ()
-{
-    scrollAreaOffset = MainWindow::height() - ui->scrollArea->height();
-    textEditOffset1 = MainWindow::width() - ui->textEdit->width();
-    textEditOffset2 = MainWindow::height() - ui->textEdit->height();
-    trashButtonOffset = MainWindow::width() - ui->trashButton->x();
 }
 
 /**
@@ -601,7 +622,7 @@ MainWindow::noteData* MainWindow::AddNote (QString noteName, bool isLoadingOrNew
     newNote->titleLabel->setFixedHeight(titleLabelFont.pixelSize() + addToTitleLabelHeight); // + So there would be room for letters like g,y etc..
     newNote->titleLabel->move(ui->horizontalSpacer_leftLineEdit->sizeHint().width(), distanceToTitleLabel);
     newNote->dateLabel->setFont(dateLabelFont);
-    newNote->dateLabel->setFixedWidth(ui->scrollArea->width());
+    newNote->dateLabel->resize(ui->scrollArea->width(), newNote->dateLabel->height());
     newNote->dateLabel->setFixedHeight(dateLabelFont.pixelSize() + addToDateLabelHeight); // + So there would be room for letters like g,y etc..
     newNote->dateLabel->move(ui->horizontalSpacer_leftLineEdit->sizeHint().width(), newNote->titleLabel->height() + distanceBetweenEverything*2);
     newNote->dateLabel->setStyleSheet("QLabel { color : rgb(132, 132, 132); }");
@@ -613,7 +634,7 @@ MainWindow::noteData* MainWindow::AddNote (QString noteName, bool isLoadingOrNew
     newNote->button->setStyleSheet("QPushButton { background-color: rgba(254, 206, 9, 0) }");
     newNote->button->setFlat(true);
     newNote->button->setFocusPolicy(Qt::NoFocus);
-    newNote->fakeContainer->setFixedSize(ui->scrollArea->width(), newNote->titleLabel->height() + newNote->dateLabel->height() + newNote->seperateLine->height() + distanceBetweenEverything*3);
+    newNote->fakeContainer->setFixedHeight(newNote->titleLabel->height() + newNote->dateLabel->height() + newNote->seperateLine->height() + distanceBetweenEverything*3);
     newNote->fakeContainer->setFlat(true);
     newNote->fakeContainer->setStyleSheet("QGroupBox { border: none; }");
     newNote->containerBox->resize(ui->scrollArea->width(), newNote->titleLabel->height() + newNote->dateLabel->height() + newNote->seperateLine->height() + distanceBetweenEverything*3);
@@ -1082,6 +1103,8 @@ void MainWindow::on_lineEdit_textChanged (const QString &arg1)
         }
         //visibleNotesList = allNotesList; not working
 
+        ScrollAreaScrollBarRangeChange(0, ui->scrollArea->verticalScrollBar()->maximum());
+
         bool found = GoToAndSelectNote(tempSelectedNoteBeforeSearchingName);
 
         if(!found)
@@ -1534,6 +1557,8 @@ void MainWindow::ScrollAreaScrollBarRangeChange (int, int verticalScrollBarRange
                 visibleNotesList.at(i)->titleLabel->resize(ui->lineEdit->width()- 11, 0);
                 visibleNotesList.at(i)->seperateLine->resize(ui->lineEdit->width()- 11, 1);
                 visibleNotesList.at(i)->titleLabel->setText(GetFirstLineAndElide(visibleNotesList.at(i)));
+                visibleNotesList.at(i)->containerBox->resize(ui->scrollArea->width(), visibleNotesList.at(i)->titleLabel->height() + visibleNotesList.at(i)->dateLabel->height() + visibleNotesList.at(i)->seperateLine->height() + 4*3);
+                visibleNotesList.at(i)->button->setGeometry(0, 0, ui->scrollArea->width(), visibleNotesList.at(i)->titleLabel->height() + visibleNotesList.at(i)->dateLabel->height() + visibleNotesList.at(i)->seperateLine->height() + 4*3);
             }
         }
     }
@@ -1546,6 +1571,8 @@ void MainWindow::ScrollAreaScrollBarRangeChange (int, int verticalScrollBarRange
                 visibleNotesList.at(i)->titleLabel->resize(ui->lineEdit->width()-1, 0);
                 visibleNotesList.at(i)->seperateLine->resize(ui->lineEdit->width()-1, 1);
                 visibleNotesList.at(i)->titleLabel->setText(GetFirstLineAndElide(visibleNotesList.at(i)));
+                visibleNotesList.at(i)->containerBox->resize(ui->scrollArea->width(), visibleNotesList.at(i)->titleLabel->height() + visibleNotesList.at(i)->dateLabel->height() + visibleNotesList.at(i)->seperateLine->height() + 4*3);
+                visibleNotesList.at(i)->button->setGeometry(0, 0, ui->scrollArea->width(), visibleNotesList.at(i)->titleLabel->height() + visibleNotesList.at(i)->dateLabel->height() + visibleNotesList.at(i)->seperateLine->height() + 4*3);
             }
         }
     }
@@ -1589,8 +1616,13 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
     if(windowState() != Qt::WindowFullScreen && windowState() != Qt::WindowMaximized)
     {
-        settingsDatabase->setValue("geometry", saveGeometry());
+        settingsDatabase->setValue("windowGeometry", saveGeometry());
     }
+
+    settingsDatabase->setValue("splitterSizes", ui->splitter->saveState());
+
+    settingsDatabase->setValue("clearButtonGeometry", clearButton->saveGeometry());
+
     QWidget::closeEvent(event);
 }
 
@@ -1667,8 +1699,77 @@ void MainWindow::mouseDoubleClickEvent (QMouseEvent *e)
 */
 void MainWindow::resizeEvent (QResizeEvent *)
 {
-    frame->move(ui->scrollArea->width()+ui->line->width(), 0);
-    frame->resize(ui->centralWidget->width()-ui->scrollArea->width()-ui->line->width(), ui->horizontalSpacer_rightTrafficLightButtons1->sizeHint().height()+ui->newNoteButton->height()+ui->verticalSpacer_upLineEdit->sizeHint().height()+ui->verticalSpacer_upScrollArea->sizeHint().height()+ui->line_3->height());
+    // If scrollArea is collapsed
+    if(ui->splitter->sizes().at(0) == 0)
+    {
+        frame->resize(ui->centralWidget->width(), ui->verticalSpacer_upEditorDateLabel->sizeHint().height() + ui->newNoteButton->height() + ui->verticalSpacer_upTextEdit->sizeHint().height() + ui->horizontalSpacer_rightTrafficLightButtons1->sizeHint().height() + ui->verticalSpacer_upLineEdit->sizeHint().height());
+        frame->move(ui->scrollArea->x(), 0);
+    }
+    else
+    {
+        frame->resize(ui->centralWidget->width()-ui->scrollArea->width()-ui->line->width(), ui->verticalSpacer_upEditorDateLabel->sizeHint().height() + ui->newNoteButton->height() + ui->verticalSpacer_upTextEdit->sizeHint().height());
+        frame->move(ui->scrollArea->width()+ui->line->width(), 0);
+    }
+}
+
+/**
+* return true if the given spacer item is inside the given layout, else retuen false
+*/
+bool MainWindow::IsSpacerInsideLayout(QSpacerItem *spacer, QVBoxLayout *layout)
+{
+    for(int i = 0; i < layout->count(); i++)
+    {
+        if(layout->itemAt(i)->spacerItem() == spacer)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+* Takes care for resizing the widgets that aren't inside a layout: frame, clearButton, and note buttons
+* when the splitter is moving
+*/
+void MainWindow::ResizeRestWhenSplitterMove(int pos, int index)
+{
+    QCoreApplication::processEvents();
+
+    if(index == 1 && pos == 0)
+    {
+        frame->resize(ui->centralWidget->width(), ui->verticalSpacer_upEditorDateLabel->sizeHint().height() + ui->newNoteButton->height() + ui->verticalSpacer_upTextEdit->sizeHint().height() + ui->horizontalSpacer_rightTrafficLightButtons1->sizeHint().height() + ui->verticalSpacer_upLineEdit->sizeHint().height());
+        frame->move(ui->scrollArea->x(), 0);
+
+        ui->verticalLayout_scrollArea->removeItem(ui->horizontalLayout_scrollArea_2);
+        ui->verticalLayout_textEdit->insertLayout(0, ui->horizontalLayout_scrollArea_2, 0);
+
+        if(!IsSpacerInsideLayout(ui->verticalSpacer_upLineEdit, ui->verticalLayout_textEdit))
+        {
+            ui->verticalLayout_scrollArea->removeItem(ui->verticalSpacer_upLineEdit);
+            ui->verticalLayout_textEdit->insertItem(0, ui->verticalSpacer_upLineEdit);
+            ui->verticalSpacer_upEditorDateLabel->changeSize(20, 5);
+        }
+    }
+    else
+    {
+        frame->resize(ui->centralWidget->width()-ui->scrollArea->width()-ui->line->width(), ui->verticalSpacer_upEditorDateLabel->sizeHint().height() + ui->newNoteButton->height() + ui->verticalSpacer_upTextEdit->sizeHint().height());
+        frame->move(ui->scrollArea->width()+ui->line->width(), 0);
+
+        ui->verticalLayout_textEdit->removeItem(ui->horizontalLayout_scrollArea_2);
+        ui->verticalLayout_scrollArea->insertLayout(0, ui->horizontalLayout_scrollArea_2, 0);
+
+        if(!IsSpacerInsideLayout(ui->verticalSpacer_upLineEdit, ui->verticalLayout_scrollArea))
+        {
+            ui->verticalLayout_textEdit->removeItem(ui->verticalSpacer_upLineEdit);
+            ui->verticalLayout_scrollArea->insertItem(0, ui->verticalSpacer_upLineEdit);
+            ui->verticalSpacer_upEditorDateLabel->changeSize(20, 25);
+        }
+    }
+
+    clearButton->move( ui->lineEdit->rect().right() - clearButton->sizeHint().width()-1, 3);
+
+    ScrollAreaScrollBarRangeChange(0, ui->scrollArea->verticalScrollBar()->maximum());
 }
 
 /**
