@@ -60,11 +60,6 @@ MainWindow::MainWindow (QWidget *parent) :
     SelectFirstNote();
 
     CreateNewNoteIfEmpty();
-
-    if(allNotesList.empty())
-    {
-        Create_new_note();
-    }
 }
 
 void MainWindow::paintEvent(QPaintEvent *e)
@@ -746,9 +741,9 @@ void MainWindow::SelectFirstNote ()
 */
 void MainWindow::CreateNewNoteIfEmpty ()
 {
-    if(!visibleNotesList.empty())
+    if(allNotesList.empty())
     {
-        visibleNotesList.back()->button->pressed();
+        Create_new_note();
     }
 }
 
