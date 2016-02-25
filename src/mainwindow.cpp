@@ -58,6 +58,13 @@ MainWindow::MainWindow (QWidget *parent) :
     LoadNotes();
 
     SelectFirstNote();
+
+    CreateNewNoteIfEmpty();
+
+    if(allNotesList.empty())
+    {
+        Create_new_note();
+    }
 }
 
 void MainWindow::paintEvent(QPaintEvent *e)
@@ -724,6 +731,28 @@ void MainWindow::LoadNotes ()
 }
 
 /**
+* Select the first note in the notes list
+*/
+void MainWindow::SelectFirstNote ()
+{
+    if(!visibleNotesList.empty())
+    {
+        visibleNotesList.back()->button->pressed();
+    }
+}
+
+/**
+* create a new note if there are no notes
+*/
+void MainWindow::CreateNewNoteIfEmpty ()
+{
+    if(!visibleNotesList.empty())
+    {
+        visibleNotesList.back()->button->pressed();
+    }
+}
+
+/**
 * Create a new note when clicking the 'new note' button
 */
 void MainWindow::on_newNoteButton_clicked()
@@ -842,17 +871,6 @@ void MainWindow::note_buttuon_pressed ()
             ui->editorDateLabel->setText(GetNoteDateEditor(noteDate));
             ui->textEdit->blockSignals(false);
         }
-    }
-}
-
-/**
-* Select the first note in the notes list
-*/
-void MainWindow::SelectFirstNote ()
-{
-    if(!visibleNotesList.empty())
-    {
-        visibleNotesList.back()->button->pressed();
     }
 }
 

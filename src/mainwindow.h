@@ -62,13 +62,14 @@ private slots:
     noteData* AddNote (QString noteName, bool isLoadingOrNew);
     void SortNotesList (QStringList &stringNotesList);
     void LoadNotes ();
+    void SelectFirstNote ();
+    void CreateNewNoteIfEmpty();
     void on_newNoteButton_clicked();
     void on_trashButton_clicked();
     void UnhighlightNote (noteData* note);
     void HighlightNote (noteData* note, QString rgbStringColor);
     QPropertyAnimation* GetAnimationForDeletion (noteData* note);
     void note_buttuon_pressed ();
-    void SelectFirstNote ();
     void ClearButtonClicked ();
     void DeleteNoteFromDataBase (noteData *note);
     void DeleteNoteFromVisual (noteData *note);
