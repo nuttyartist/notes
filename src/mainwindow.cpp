@@ -9,6 +9,7 @@
 #include <QScrollBar>
 #include <stdio.h>
 #include <QShortcut>
+#include <QTextStream>
 
 #define FIRST_LINE_MAX 80
 
@@ -451,36 +452,16 @@ void MainWindow::SetLayoutForScrollArea ()
 * If the string contain no text, return "New Note"
 * TODO: We might make it more efficient by not loading the entire string into the memory
 */
-QString MainWindow::GetFirstLine (QString str)
+QString MainWindow::GetFirstLine (const QString& str)
 {
     if(str.simplified().isEmpty())
     {
         return "New Note";
     }
 
-    int indexToStart = 0;
-    for(int i = 0; i < str.length(); i++)
-    {
-        if(str.at(i) != '\n' && str.at(i) != '\r')
-        {
-            indexToStart = i;
-            break;
-        }
-    }
-
-    int indexToFinish = FIRST_LINE_MAX;
-    for(int i = indexToStart; i < str.length(); i++)
-    {
-        if(str.at(i) == '\n' || str.at(i) == '\r')
-        {
-            indexToFinish = i;
-            break;
-        }
-    }
-
-    QString firstLine = str.mid(indexToStart, indexToFinish-indexToStart);
-
-    return firstLine;
+    QString text = str.trimmed();
+    QTextStream ts(&text);
+    return std::move(ts.readLine(FIRST_LINE_MAX));
 }
 
 /**

@@ -53,7 +53,7 @@ private slots:
     void SetUpDatabases ();
     void SetLayoutForScrollArea ();
     void RestoreStates();
-    QString GetFirstLine (QString str);
+    QString GetFirstLine (const QString &str);
     QString GetElidedText (QString str, QFontMetrics labelFontMetrics, int size);
     QString GetFirstLineAndElide (noteData *note);
     QDateTime GetQDateTime (QString date);
