@@ -17,6 +17,7 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QSettings>
+#include "notedata.h"
 
 namespace Ui {
 class MainWindow;
@@ -29,9 +30,6 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-
-private:
-    struct noteData;
 
 private slots:
     void paintEvent(QPaintEvent *e);
@@ -55,27 +53,27 @@ private slots:
     void RestoreStates();
     QString GetFirstLine (const QString &str);
     QString GetElidedText (QString str, QFontMetrics labelFontMetrics, int size);
-    QString GetFirstLineAndElide (noteData *note);
+    QString GetFirstLineAndElide (NoteData *note);
     QDateTime GetQDateTime (QString date);
     QString GetNoteDateEditor (QString dateEdited);
     QString GetNoteDate (QString dateEdited);
-    noteData* AddNote (QString noteName, bool isLoadingOrNew);
+    NoteData* AddNote (QString noteName, bool isLoadingOrNew);
     void SortNotesList (QStringList &stringNotesList);
     void LoadNotes ();
     void SelectFirstNote ();
     void CreateNewNoteIfEmpty();
     void on_newNoteButton_clicked();
     void on_trashButton_clicked();
-    void UnhighlightNote (noteData* note);
-    void HighlightNote (noteData* note, QString rgbStringColor);
-    QPropertyAnimation* GetAnimationForDeletion (noteData* note);
+    void UnhighlightNote (NoteData* note);
+    void HighlightNote (NoteData* note, QString rgbStringColor);
+    QPropertyAnimation* GetAnimationForDeletion (NoteData* note);
     void note_buttuon_pressed ();
     void ClearButtonClicked ();
-    void DeleteNoteFromDataBase (noteData *note);
-    void DeleteNoteFromVisual (noteData *note);
+    void DeleteNoteFromDataBase (NoteData *note);
+    void DeleteNoteFromVisual (NoteData *note);
     void on_textEdit_textChanged ();
     bool IsFound (QString keyword, QString content);
-    void SimpleUnhighlightNote (noteData* note);
+    void SimpleUnhighlightNote (NoteData* note);
     void ClearAllNotesFromVisual ();
     bool GoToAndSelectNote (QString noteName);
     void on_lineEdit_textChanged (const QString &arg1);
@@ -133,34 +131,19 @@ private:
     };
     QList<noteDataForSorting> notesDataForSorting;
 
-    struct noteData
-    {
-        QString noteName;
-        QGroupBox *fakeContainer;
-        QGroupBox *containerBox;
-        QPushButton* button;
-        QLabel *titleLabel;
-        QLabel *dateLabel;
-        QFrame *seperateLine;
-        int scrollBarPosistion;
-        ~noteData()
-        {
-            delete fakeContainer;
-        }
-    };
-    std::vector<noteData*> allNotesList; // All the notes stored in the database
-    std::vector<noteData*> visibleNotesList; // Notes currently displayed inside scrollArea
+    std::vector<NoteData*> allNotesList; // All the notes stored in the database
+    std::vector<NoteData*> visibleNotesList; // Notes currently displayed inside scrollArea
 
     QVBoxLayout *lay;
     QToolButton *clearButton;
     QFrame *frame;
 
-    noteData *currentSelectedNote;
-    noteData *currentHoveredNote;
+    NoteData *currentSelectedNote;
+    NoteData *currentHoveredNote;
     QString noteOnTopInTheLayoutName;
     QString tempSelectedNoteBeforeSearchingName;
     int currentVerticalScrollAreaRange;
-    noteData *tempNote;
+    NoteData *tempNote;
     bool isTemp;
 
     int m_nMouseClick_X_Coordinate;

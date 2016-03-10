@@ -87,15 +87,15 @@ MainWindow::~MainWindow ()
 */
 void MainWindow::SetUpMainWindow ()
 {
-    #ifdef Q_OS_LINUX
-        this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
-    #elif _WIN32
-        this->setWindowFlags(Qt::CustomizeWindowHint);
-    #elif __APPLE__
-        this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
-    #else
-        #error "We don't support that version yet..."
-    #endif
+#ifdef Q_OS_LINUX
+    this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+#elif _WIN32
+    this->setWindowFlags(Qt::CustomizeWindowHint);
+#elif __APPLE__
+    this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+#else
+#error "We don't support that version yet..."
+#endif
 
     QPalette Pal(palette());
     Pal.setColor(QPalette::Background, Qt::white);
@@ -137,12 +137,12 @@ void MainWindow::SetUpKeyboardShortcuts ()
 */
 void MainWindow::SetUpNewNoteButtonAndTrahButton ()
 {
-    #ifdef __APPLE__
-        ui->newNoteButton->setGeometry(ui->newNoteButton->x(), ui->newNoteButton->y(), 50, 32);
-        ui->newNoteButton->setIconSize(QSize(16, 16));
-        ui->trashButton->setGeometry(676, ui->trashButton->y(), 50, 32);
-        ui->trashButton->setIconSize(QSize(14, 18));
-    #endif
+#ifdef __APPLE__
+    ui->newNoteButton->setGeometry(ui->newNoteButton->x(), ui->newNoteButton->y(), 50, 32);
+    ui->newNoteButton->setIconSize(QSize(16, 16));
+    ui->trashButton->setGeometry(676, ui->trashButton->y(), 50, 32);
+    ui->trashButton->setIconSize(QSize(14, 18));
+#endif
 }
 /**
 * This is what happens when you build cross-platform apps,
@@ -155,12 +155,12 @@ void MainWindow::SetUpNewNoteButtonAndTrahButton ()
 void MainWindow::SetUpEditorDateLabel()
 {
     // There is a problem with Helvetica here so we usa Arial, someone sguggestion?
-    #ifdef __APPLE__
-        QFont editorDateLabelFont(QFont("Arial", 12));
-        editorDateLabelFont.setBold(true);
-        ui->editorDateLabel->setFont(editorDateLabelFont);
-        ui->editorDateLabel->setGeometry(ui->editorDateLabel->x(), ui->editorDateLabel->y() + 4, ui->editorDateLabel->width(), ui->editorDateLabel->height());
-    #endif
+#ifdef __APPLE__
+    QFont editorDateLabelFont(QFont("Arial", 12));
+    editorDateLabelFont.setBold(true);
+    ui->editorDateLabel->setFont(editorDateLabelFont);
+    ui->editorDateLabel->setGeometry(ui->editorDateLabel->x(), ui->editorDateLabel->y() + 4, ui->editorDateLabel->width(), ui->editorDateLabel->height());
+#endif
 }
 
 /**
@@ -248,9 +248,9 @@ void MainWindow::CreateMagnifyingGlassIcon ()
 void MainWindow::SetUpLineEdit ()
 {
     // There is a problem with Helvetica here so we usa Arial, someone sguggestion?
-    #ifdef __APPLE__
-        ui->lineEdit->setFont(QFont("Arial", 12));
-    #endif
+#ifdef __APPLE__
+    ui->lineEdit->setFont(QFont("Arial", 12));
+#endif
 
     int frameWidth = ui->lineEdit->style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
     ui->lineEdit->setStyleSheet(QString("QLineEdit { padding-right: %1px; padding-left: 19px } ") // border-radius: 3px; border: 1px solid rgb(173, 169, 165);
@@ -265,9 +265,9 @@ void MainWindow::SetUpLineEdit ()
 */
 void MainWindow::SetUpScrollArea ()
 {
-    #ifdef __APPLE__
-        ui->scrollArea->setGeometry(ui->scrollArea->x() + 1, ui->scrollArea->y(), ui->scrollArea->width() - 1, ui->scrollArea->height());
-    #endif
+#ifdef __APPLE__
+    ui->scrollArea->setGeometry(ui->scrollArea->x() + 1, ui->scrollArea->y(), ui->scrollArea->width() - 1, ui->scrollArea->height());
+#endif
 
     ui->scrollArea->setStyleSheet("QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } QScrollBar:handle:vertical:pressed { background: rgb(149, 149, 149); } * { background-color: rgb(255, 255, 255);  } QScrollBar:vertical {border: none; width: 8px; } QScrollBar::handle:vertical { border-radius: 2.5px; background: rgb(188, 188, 188); min-height: 20px; }  QScrollBar::add-line:vertical { height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  QScrollBar::sub-line:vertical { height: 0px; subcontrol-position: top; subcontrol-origin: margin; }");
     ui->scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -288,15 +288,15 @@ void MainWindow::SetUpTextEdit ()
 {
     //? ui->textEdit->setTextColor(QColor::fromRgb(25, 25, 25));
 
-    #ifdef Q_OS_LINUX
-        textEditLeftPadding = 5;
-    #elif _WIN32
-        textEditLeftPadding = 5;
-    #elif __APPLE__
-        textEditLeftPadding = 18;
-    #else
-        #error "We don't support that version yet..."
-    #endif
+#ifdef Q_OS_LINUX
+    textEditLeftPadding = 5;
+#elif _WIN32
+    textEditLeftPadding = 5;
+#elif __APPLE__
+    textEditLeftPadding = 18;
+#else
+#error "We don't support that version yet..."
+#endif
 
     ui->textEdit->setStyleSheet(QString("QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } QScrollBar:handle:vertical:pressed { background: rgb(149, 149, 149); } QTextEdit { background-image: url(:/images/textSideBackground.png); padding-left: %1px; padding-right: %2px; } QScrollBar:vertical { border: none; width: 8px; } QScrollBar::handle:vertical { border-radius: 2.5px; background: rgb(188, 188, 188); min-height: 20px; }  QScrollBar::add-line:vertical { height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  QScrollBar::sub-line:vertical { height: 0px; subcontrol-position: top; subcontrol-origin: margin; }")
                                 .arg(QString::number(ui->newNoteButton->width() - textEditLeftPadding), "27"));
@@ -307,15 +307,15 @@ void MainWindow::SetUpTextEdit ()
     connect(ui->textEdit->verticalScrollBar(), SIGNAL(rangeChanged(int,int)), this, SLOT(TextEditScrollBarRangeChange(int,int)));
     connect(ui->textEdit->verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(TextEditScrollBarValueChange(int)));
 
-    #ifdef Q_OS_LINUX
-        ui->textEdit->setFont(QFont("Liberation Sans", 11));
-    #elif _WIN32
-        ui->textEdit->setFont(QFont("Arial", 11));
-    #elif __APPLE__
-        ui->textEdit->setFont(QFont("Helvetica", 15));
-    #else
-        #error "We don't support that version yet..."
-    #endif
+#ifdef Q_OS_LINUX
+    ui->textEdit->setFont(QFont("Liberation Sans", 11));
+#elif _WIN32
+    ui->textEdit->setFont(QFont("Arial", 11));
+#elif __APPLE__
+    ui->textEdit->setFont(QFont("Helvetica", 15));
+#else
+#error "We don't support that version yet..."
+#endif
 }
 
 /**
@@ -437,14 +437,12 @@ void MainWindow::RestoreStates()
 */
 void MainWindow::SetLayoutForScrollArea ()
 {
-    lay = new QVBoxLayout();
+    lay = ui->verticalLayout_scrollArea_2;
 
     lay->addStretch();
     lay->setSpacing(0);
     lay->setMargin(0);
     lay->setContentsMargins(0,0,0,0);
-
-    ui->scrollAreaWidgetContents->setLayout(lay);
 }
 
 /**
@@ -483,14 +481,14 @@ QString MainWindow::GetElidedText (QString str, QFontMetrics labelFontMetrics, i
 /**
 * Get a note's noteData and return its first line after eliding it.
 */
-QString MainWindow::GetFirstLineAndElide (noteData* note)
+QString MainWindow::GetFirstLineAndElide (NoteData *note)
 {
     // We can improve more if we could load right from the Hard Drive database only one line and not the whole text
-    QString text = notesDatabase->value(note->noteName + "/content", "Error").toString();
+    QString text = notesDatabase->value(note->m_noteName + "/content", "Error").toString();
 
     QString firstLine = GetFirstLine(text);
 
-    firstLine = GetElidedText(firstLine, note->titleLabel->fontMetrics(), note->titleLabel->width());
+    firstLine = GetElidedText(firstLine, note->m_titleLabel->fontMetrics(), note->m_titleLabel->width());
 
     return firstLine;
 }
@@ -545,90 +543,9 @@ QString MainWindow::GetNoteDate (QString dateEdited)
 * Determine if it's loading an existing note or creating a new note and present it accordingly
 * Return a pointer to the new note
 */
-MainWindow::noteData* MainWindow::AddNote (QString noteName, bool isLoadingOrNew)
+NoteData *MainWindow::AddNote(QString noteName, bool isLoadingOrNew)
 {
-    #ifdef Q_OS_LINUX
-        QFont titleLabelFont("Liberation Sans");
-        QFont dateLabelFont("Liberation Sans");
-    #elif _WIN32
-        QFont titleLabelFont("Arial");
-        QFont dateLabelFont("Arial");
-    #elif __APPLE__
-        QFont titleLabelFont("Helvetica");
-        QFont dateLabelFont("Helvetica");
-    #else
-        #error "We don't support that version yet..."
-    #endif
-    titleLabelFont.setBold(true);
-    titleLabelFont.setPixelSize(13);
-    dateLabelFont.setPixelSize(11);
-
-    noteData* newNote = new noteData;
-    newNote->noteName = noteName;
-    newNote->fakeContainer = new QGroupBox();
-    newNote->containerBox = new QGroupBox(newNote->fakeContainer);
-    newNote->button = new QPushButton("", newNote->containerBox);
-    newNote->titleLabel = new QLabel("", newNote->containerBox);
-    newNote->dateLabel = new QLabel("", newNote->containerBox);
-    newNote->seperateLine = new QFrame(newNote->containerBox);
-    newNote->scrollBarPosistion = 0;
-
-    newNote->button->setObjectName("button");
-    newNote->seperateLine->setObjectName("seperateLine");
-
-    visibleNotesList.push_back(newNote);
-
-    // On windows +2 is not enough room so we do it os specific
-    // Maybe it's because of the way windows render its fonts
-    #ifdef Q_OS_LINUX
-        const double distanceBetweenEverything = 4;
-        int addToTitleLabelHeight = 2;
-        int addToDateLabelHeight = 0;
-        int distanceToTitleLabel = distanceBetweenEverything;
-    #elif _WIN32
-        const double distanceBetweenEverything = 3.5;
-        int addToTitleLabelHeight = 3;
-        int addToDateLabelHeight = 1;
-        int distanceToTitleLabel = 4;
-    #elif __APPLE__
-        const double distanceBetweenEverything = 4;
-        int addToTitleLabelHeight = 2;
-        int addToDateLabelHeight = 0;
-        int distanceToTitleLabel = distanceBetweenEverything;
-    #else
-        #error "We don't support that version yet..."
-    #endif
-
-    newNote->titleLabel->setFont(titleLabelFont);
-    newNote->titleLabel->setStyleSheet("QLabel { color : black; }");
-    newNote->titleLabel->resize(ui->lineEdit->width()-1, 0);
-    newNote->titleLabel->setFixedHeight(titleLabelFont.pixelSize() + addToTitleLabelHeight); // + So there would be room for letters like g,y etc..
-    newNote->titleLabel->move(ui->horizontalSpacer_leftLineEdit->sizeHint().width(), distanceToTitleLabel);
-    newNote->dateLabel->setFont(dateLabelFont);
-    newNote->dateLabel->resize(ui->scrollArea->width(), newNote->dateLabel->height());
-    newNote->dateLabel->setFixedHeight(dateLabelFont.pixelSize() + addToDateLabelHeight); // + So there would be room for letters like g,y etc..
-    newNote->dateLabel->move(ui->horizontalSpacer_leftLineEdit->sizeHint().width(), newNote->titleLabel->height() + distanceBetweenEverything*2);
-    newNote->dateLabel->setStyleSheet("QLabel { color : rgb(132, 132, 132); }");
-    newNote->seperateLine->setFrameShape(QFrame::HLine);
-    newNote->seperateLine->setGeometry(ui->horizontalSpacer_leftLineEdit->sizeHint().width(), newNote->titleLabel->height() + newNote->dateLabel->height() + distanceBetweenEverything*3, ui->lineEdit->width()-1, 1);
-    newNote->seperateLine->setStyleSheet("QFrame { color : rgb(221, 221, 221); }");
-    newNote->button->setGeometry(0, 0, ui->scrollArea->width(), newNote->titleLabel->height() + newNote->dateLabel->height() + newNote->seperateLine->height() + distanceBetweenEverything*3);
-    newNote->button->raise();
-    newNote->button->setStyleSheet("QPushButton { background-color: rgba(254, 206, 9, 0) }");
-    newNote->button->setFlat(true);
-    newNote->button->setFocusPolicy(Qt::NoFocus);
-    newNote->fakeContainer->setFixedHeight(newNote->titleLabel->height() + newNote->dateLabel->height() + newNote->seperateLine->height() + distanceBetweenEverything*3);
-    newNote->fakeContainer->setFlat(true);
-    newNote->fakeContainer->setStyleSheet("QGroupBox { border: none; }");
-    newNote->containerBox->resize(ui->scrollArea->width(), newNote->titleLabel->height() + newNote->dateLabel->height() + newNote->seperateLine->height() + distanceBetweenEverything*3);
-    newNote->containerBox->installEventFilter(this);
-
-    if(currentVerticalScrollAreaRange > 0)
-    {
-        newNote->titleLabel->resize(ui->lineEdit->width() - 11, 0);
-        newNote->seperateLine->resize(ui->lineEdit->width() - 11, 1);
-    }
-
+    NoteData* newNote = new NoteData(noteName, this);
     QString noteFirstLine;
     // isLoadingOrNew - > true = Loading a note from database
     // isLoadingOrNew - > false = Creating a new note
@@ -643,12 +560,13 @@ MainWindow::noteData* MainWindow::AddNote (QString noteName, bool isLoadingOrNew
 
     QString noteDate = GetNoteDate(notesDatabase->value(noteName + "/dateEdited", "Error").toString());
 
-    newNote->titleLabel->setText(noteFirstLine);
-    newNote->dateLabel->setText(noteDate);
+    newNote->m_titleLabel->setText(noteFirstLine);
+    newNote->m_dateLabel->setText(noteDate);
+    visibleNotesList.push_back(newNote);
 
-    connect(newNote->button, SIGNAL(pressed()), this, SLOT(note_buttuon_pressed()));
+    connect(newNote->m_button, SIGNAL(pressed()), this, SLOT(note_buttuon_pressed()));
 
-    lay->insertWidget(0, newNote->fakeContainer, 0, Qt::AlignTop);
+    lay->insertWidget(0, newNote, 0, Qt::AlignTop);
 
     return newNote;
 }
@@ -690,12 +608,22 @@ void MainWindow::LoadNotes ()
     SortNotesList(stringNotesList);
 
     QString noteName;
-    noteData* newNote;
+    NoteData* newNote;
     for(int i = 0; i < notesDataForSorting.length(); i++)
     {
         noteName = notesDataForSorting.at(i).noteName;
 
         newNote = AddNote(noteName, true);
+        visibleNotesList.push_back(newNote);
+
+        QString noteFirstLine = GetFirstLineAndElide(newNote);
+        QString noteDate = GetNoteDate(notesDatabase->value(noteName + "/dateEdited", "Error").toString());
+
+        newNote->m_titleLabel->setText(noteFirstLine);
+        newNote->m_dateLabel->setText(noteDate);
+
+        connect(newNote->m_button, SIGNAL(pressed()), this, SLOT(note_buttuon_pressed()));
+
 
         allNotesList.push_back(newNote);
     }
@@ -713,7 +641,7 @@ void MainWindow::SelectFirstNote ()
 {
     if(!visibleNotesList.empty())
     {
-        visibleNotesList.back()->button->pressed();
+        visibleNotesList.back()->m_button->pressed();
     }
 }
 
@@ -747,56 +675,57 @@ void MainWindow::on_trashButton_clicked()
 /**
 * Unhighlight the given note
 */
-void MainWindow::UnhighlightNote (noteData* note)
+void MainWindow::UnhighlightNote (NoteData* note)
 {
     for(unsigned int i = 0; i < visibleNotesList.size() - 1; i++)
     {
         if(visibleNotesList.at(i) == note)
         {
-            visibleNotesList.at(i + 1)->seperateLine->show();
+            visibleNotesList.at(i + 1)->m_seperateLine->show();
             break;
         }
     }
-    note->seperateLine->show();
+    note->m_seperateLine->show();
 
-    note->containerBox->setStyleSheet("");
-    note->titleLabel->setStyleSheet("QLabel { color: black; }");
-    note->dateLabel->setStyleSheet("QLabel { color: rgb(132, 132, 132); }");
+    note->m_containerBox->setStyleSheet("");
+    note->m_titleLabel->setStyleSheet("QLabel { color: black; }");
+    note->m_dateLabel->setStyleSheet("QLabel { color: rgb(132, 132, 132); }");
 }
 
 /**
 * Highlight the given note
 */
-void MainWindow::HighlightNote (noteData* note, QString rgbStringColor)
+void MainWindow::HighlightNote (NoteData* note, QString rgbStringColor)
 {
     for(unsigned int i = 0; i < visibleNotesList.size() - 1; i++)
     {
         if(visibleNotesList.at(i) == note)
         {
-            visibleNotesList.at(i + 1)->seperateLine->hide();
+            visibleNotesList.at(i + 1)->m_seperateLine->hide();
             break;
         }
     }
-    note->seperateLine->hide();
+    note->m_seperateLine->hide();
 
-    note->containerBox->setStyleSheet(QString(".QGroupBox { background-color: %1; }").arg(rgbStringColor));
-    note->titleLabel->setStyleSheet(QString("QLabel { background-color: %1; color: black; }").arg(rgbStringColor));
-    note->dateLabel->setStyleSheet(QString("QLabel { background-color: %1; color: rgb(132, 132, 132); }").arg(rgbStringColor));
+    note->m_containerBox->setStyleSheet(QString(".QGroupBox { background-color: %1; }").arg(rgbStringColor));
+    note->m_titleLabel->setStyleSheet(QString("QLabel { background-color: %1; color: black; }").arg(rgbStringColor));
+    note->m_dateLabel->setStyleSheet(QString("QLabel { background-color: %1; color: rgb(132, 132, 132); }").arg(rgbStringColor));
 }
+
 
 /**
 * Get a note and return it's animation property for deletion
 */
-QPropertyAnimation* MainWindow::GetAnimationForDeletion (noteData* note)
+QPropertyAnimation* MainWindow::GetAnimationForDeletion (NoteData *note)
 {
-    int tempY = note->fakeContainer->y();
+    int tempY = note->m_fakeContainer->y();
 
-    QPropertyAnimation* animation = new QPropertyAnimation(note->fakeContainer, "geometry");
+    QPropertyAnimation* animation = new QPropertyAnimation(note->m_fakeContainer, "geometry");
     animation->setEasingCurve(QEasingCurve::InOutQuad);
     animation->setDuration(330);
-    QRect geo = note->fakeContainer->geometry();
+    QRect geo = note->m_fakeContainer->geometry();
     animation->setStartValue(geo);
-    geo.setY(tempY - note->fakeContainer->height()*2);
+    geo.setY(tempY - note->m_fakeContainer->height()*2);
     animation->setEndValue(geo);
 
     return animation;
@@ -815,7 +744,7 @@ void MainWindow::note_buttuon_pressed ()
 {
     for(unsigned int i = 0; i < visibleNotesList.size(); i++)
     {
-        if(QObject::sender() == visibleNotesList.at(i)->button)
+        if(QObject::sender() == visibleNotesList.at(i)->m_button)
         {
             if(currentSelectedNote != 0 && currentSelectedNote != tempNote)
             {
@@ -840,10 +769,10 @@ void MainWindow::note_buttuon_pressed ()
             HighlightNote(currentSelectedNote, "rgb(254, 206, 9)");
 
             ui->textEdit->blockSignals(true);
-            int tempScrollBarPosition = currentSelectedNote->scrollBarPosistion;
-            ui->textEdit->setText(notesDatabase->value(currentSelectedNote->noteName + "/content", "Error").toString());
+            int tempScrollBarPosition = currentSelectedNote->m_scrollBarPosition;
+            ui->textEdit->setText(notesDatabase->value(currentSelectedNote->m_noteName + "/content", "Error").toString());
             ui->textEdit->verticalScrollBar()->setValue(tempScrollBarPosition);
-            QString noteDate = notesDatabase->value(currentSelectedNote->noteName + "/dateEdited", "Error").toString();
+            QString noteDate = notesDatabase->value(currentSelectedNote->m_noteName + "/dateEdited", "Error").toString();
             ui->editorDateLabel->setText(GetNoteDateEditor(noteDate));
             ui->textEdit->blockSignals(false);
         }
@@ -862,11 +791,11 @@ void MainWindow::ClearButtonClicked ()
 /**
 * Delete a given note from the database
 */
-void MainWindow::DeleteNoteFromDataBase (noteData* note)
+void MainWindow::DeleteNoteFromDataBase (NoteData *note)
 {
     for(unsigned int i = 0; i < allNotesList.size(); i++)
     {
-        if(allNotesList.at(i)->noteName == note->noteName)
+        if(allNotesList.at(i)->m_noteName == note->m_noteName)
         {
             allNotesList.erase(allNotesList.begin() + i);
         }
@@ -877,17 +806,17 @@ void MainWindow::DeleteNoteFromDataBase (noteData* note)
     trashDatabase->setValue("notesCounter", counter);
 
     QString noteName = QString("noteID_%1").arg(counter);
-    trashDatabase->setValue(noteName + "/content",  notesDatabase->value(note->noteName + "/content", "Error"));
+    trashDatabase->setValue(noteName + "/content",  notesDatabase->value(note->m_noteName + "/content", "Error"));
 
-    QString dateDBCreated = notesDatabase->value(note->noteName + "/dateEdited", "Error").toString();
-    QString dateDBEdited = notesDatabase->value(note->noteName + "/dateEdited", "Error").toString();
+    QString dateDBCreated = notesDatabase->value(note->m_noteName + "/dateEdited", "Error").toString();
+    QString dateDBEdited = notesDatabase->value(note->m_noteName + "/dateEdited", "Error").toString();
     QString noteDate = QDateTime::currentDateTime().toString(Qt::ISODate);
 
     trashDatabase->setValue(noteName + "/dateCreated", dateDBCreated);
     trashDatabase->setValue(noteName + "/dateEdited", dateDBEdited);
     trashDatabase->setValue(noteName + "/dateTrashed", noteDate);
 
-    notesDatabase->remove(note->noteName);
+    notesDatabase->remove(note->m_noteName);
 
     notesDatabase->sync();
     trashDatabase->sync();
@@ -896,7 +825,7 @@ void MainWindow::DeleteNoteFromDataBase (noteData* note)
 /**
 * Remove a given note from the interface
 */
-void MainWindow::DeleteNoteFromVisual (noteData* note)
+void MainWindow::DeleteNoteFromVisual (NoteData *note)
 {
     // Make the seperateLine of the note above it visible
     for(unsigned int i = 0; i < visibleNotesList.size(); i++)
@@ -905,14 +834,14 @@ void MainWindow::DeleteNoteFromVisual (noteData* note)
         {
             if(i != visibleNotesList.size() - 1)
             {
-                visibleNotesList.at(i + 1)->seperateLine->show();
+                visibleNotesList.at(i + 1)->m_seperateLine->show();
             }
             visibleNotesList.erase(visibleNotesList.begin() + i);
             break;
         }
     }
 
-    lay->removeWidget(note->fakeContainer);
+    lay->removeWidget(note->m_fakeContainer);
     delete note;
 }
 
@@ -926,27 +855,27 @@ void MainWindow::DeleteNoteFromVisual (noteData* note)
 void MainWindow::on_textEdit_textChanged ()
 {
     //if(text has really changed)
-    if(currentSelectedNote != 0 && ui->textEdit->toPlainText() != notesDatabase->value(currentSelectedNote->noteName + "/content", "Error"))
+    if(currentSelectedNote != 0 && ui->textEdit->toPlainText() != notesDatabase->value(currentSelectedNote->m_noteName + "/content", "Error"))
     {
-        notesDatabase->setValue(currentSelectedNote->noteName + "/content", ui->textEdit->toPlainText());
+        notesDatabase->setValue(currentSelectedNote->m_noteName + "/content", ui->textEdit->toPlainText());
 
-        currentSelectedNote->titleLabel->setText(GetFirstLineAndElide(currentSelectedNote));
+        currentSelectedNote->m_titleLabel->setText(GetFirstLineAndElide(currentSelectedNote));
         QString noteDate = QDateTime::currentDateTime().toString(Qt::ISODate);
-        notesDatabase->setValue(currentSelectedNote->noteName + "/dateEdited", noteDate);
-        currentSelectedNote->dateLabel->setText(GetNoteDate(noteDate));
+        notesDatabase->setValue(currentSelectedNote->m_noteName + "/dateEdited", noteDate);
+        currentSelectedNote->m_dateLabel->setText(GetNoteDate(noteDate));
         ui->editorDateLabel->setText(GetNoteDateEditor(noteDate));
 
         //notesDatabase->sync(); // We may want to remove that
 
-        if(currentSelectedNote->noteName != noteOnTopInTheLayoutName)
+        if(currentSelectedNote->m_noteName != noteOnTopInTheLayoutName)
         {
-            noteOnTopInTheLayoutName = currentSelectedNote->noteName;
+            noteOnTopInTheLayoutName = currentSelectedNote->m_noteName;
 
-            int tempY = currentSelectedNote->fakeContainer->y();
+            int tempY = currentSelectedNote->m_fakeContainer->y();
             tempY = (tempY > 330) ? 330 : tempY;
-            QString noteName = currentSelectedNote->noteName;
+            QString noteName = currentSelectedNote->m_noteName;
 
-            noteData* tempNoteToRemove = currentSelectedNote;
+            NoteData* tempNoteToRemove = currentSelectedNote;
             DeleteNoteFromVisual(currentSelectedNote);
 
             currentSelectedNote = AddNote(noteName, true);
@@ -965,11 +894,11 @@ void MainWindow::on_textEdit_textChanged ()
 
             ui->scrollArea->verticalScrollBar()->setValue(ui->scrollArea->verticalScrollBar()->minimum());
 
-            QPropertyAnimation *animation = new QPropertyAnimation(currentSelectedNote->containerBox, "geometry");
+            QPropertyAnimation *animation = new QPropertyAnimation(currentSelectedNote->m_containerBox, "geometry");
             animation->setEasingCurve(QEasingCurve::OutQuint);
             animation->setDuration(330);
-            currentSelectedNote->containerBox->setGeometry(currentSelectedNote->containerBox->x(), tempY, currentSelectedNote->containerBox->width(), currentSelectedNote->containerBox->height());
-            QRect geo = currentSelectedNote->fakeContainer->geometry();
+            currentSelectedNote->m_containerBox->setGeometry(currentSelectedNote->m_containerBox->x(), tempY, currentSelectedNote->m_containerBox->width(), currentSelectedNote->m_containerBox->height());
+            QRect geo = currentSelectedNote->m_fakeContainer->geometry();
             geo.setY(tempY);
             animation->setStartValue(geo);
             geo.setY(0);
@@ -978,7 +907,7 @@ void MainWindow::on_textEdit_textChanged ()
         }
     }
 
-    if(isTemp && !notesDatabase->value(tempNote->noteName + "/content", "Error").toString().isEmpty())
+    if(isTemp && !notesDatabase->value(tempNote->m_noteName + "/content", "Error").toString().isEmpty())
     {
         tempNote = 0;
         isTemp = false;
@@ -996,12 +925,12 @@ bool MainWindow::IsFound (QString keyword, QString content)
 /**
 * Unhighlight the given note without modifing other notes
 */
-void MainWindow::SimpleUnhighlightNote (noteData* note)
+void MainWindow::SimpleUnhighlightNote (NoteData *note)
 {
-    note->seperateLine->show();
-    note->containerBox->setStyleSheet("");
-    note->titleLabel->setStyleSheet("QLabel { color: black; }");
-    note->dateLabel->setStyleSheet("QLabel { color: rgb(132, 132, 132); }");
+    note->m_seperateLine->show();
+    //note->m_containerBox->setStyleSheet("");
+    //note->m_titleLabel->setStyleSheet("QLabel { color: black; }");
+    //note->m_dateLabel->setStyleSheet("QLabel { color: rgb(132, 132, 132); }");
 }
 
 /**
@@ -1009,11 +938,11 @@ void MainWindow::SimpleUnhighlightNote (noteData* note)
 */
 void MainWindow::ClearAllNotesFromVisual ()
 {
-    noteData *note;
+    NoteData *note;
     for(unsigned int i = 0; i < visibleNotesList.size(); i++)
     {
         note = visibleNotesList.at(i);
-        note->fakeContainer->hide();
+        note->m_fakeContainer->hide();
         SimpleUnhighlightNote(note);
     }
 
@@ -1036,11 +965,11 @@ bool MainWindow::GoToAndSelectNote (QString noteName)
 
     for(unsigned int i = 0; i < visibleNotesList.size(); i++)
     {
-        if(visibleNotesList.at(i)->noteName == noteName)
+        if(visibleNotesList.at(i)->m_noteName == noteName)
         {
             found = true;
-            visibleNotesList.at(i)->button->pressed();
-            unsigned int noteSize = visibleNotesList.at(i)->fakeContainer->height();
+            visibleNotesList.at(i)->m_button->pressed();
+            unsigned int noteSize = visibleNotesList.at(i)->m_fakeContainer->height();
             ui->scrollArea->verticalScrollBar()->setValue((visibleNotesList.size()-1 - i) * noteSize);
         }
     }
@@ -1074,7 +1003,7 @@ void MainWindow::on_lineEdit_textChanged (const QString &arg1)
 
     if(tempSelectedNoteBeforeSearchingName.isEmpty() && currentSelectedNote != 0)
     {
-        tempSelectedNoteBeforeSearchingName = currentSelectedNote->noteName;
+        tempSelectedNoteBeforeSearchingName = currentSelectedNote->m_noteName;
     }
 
     /*for(unsigned int i = 0; i < visibleNotesList.size(); i++)
@@ -1091,7 +1020,7 @@ void MainWindow::on_lineEdit_textChanged (const QString &arg1)
         //UpdateAllNotesList();
         for(unsigned int i = 0; i < allNotesList.size(); i++)
         {
-            allNotesList.at(i)->fakeContainer->show();
+            allNotesList.at(i)->m_fakeContainer->show();
             visibleNotesList.push_back(allNotesList.at(i)); // Do we need to change the
             // strucuture from std::vector to Qlist so we could copy the list more efficiently?
         }
@@ -1118,10 +1047,10 @@ void MainWindow::on_lineEdit_textChanged (const QString &arg1)
         QString noteName;
         for(unsigned int i = 0; i < allNotesList.size(); i++)
         {
-            noteName = allNotesList.at(i)->noteName;
+            noteName = allNotesList.at(i)->m_noteName;
             if(IsFound(arg1, notesDatabase->value(noteName + "/content", "Error").toString()))
             {
-                allNotesList.at(i)->fakeContainer->show();
+                allNotesList.at(i)->m_fakeContainer->show();
                 visibleNotesList.push_back(allNotesList.at(i));
             }
         }
@@ -1171,13 +1100,13 @@ QString MainWindow::CreateNewNoteInDatabase ()
 */
 void MainWindow::NewNoteAnimation ()
 {
-    int tempY = currentSelectedNote->fakeContainer->y() - currentSelectedNote->fakeContainer->height() * 2;
+    int tempY = currentSelectedNote->m_fakeContainer->y() - currentSelectedNote->m_fakeContainer->height() * 2;
 
-    QPropertyAnimation *animation = new QPropertyAnimation(currentSelectedNote->fakeContainer, "geometry");
+    QPropertyAnimation *animation = new QPropertyAnimation(currentSelectedNote->m_fakeContainer, "geometry");
     animation->setEasingCurve(QEasingCurve::InOutQuad);
     animation->setDuration(330);
 
-    QRect geo = currentSelectedNote->fakeContainer->geometry();
+    QRect geo = currentSelectedNote->m_fakeContainer->geometry();
     geo.setY(tempY);
     animation->setStartValue(geo);
     geo.setY(0);
@@ -1272,11 +1201,11 @@ void MainWindow::DeleteSelectedNoteFromVisual ()
     {
         if(tempNotePlaceInLayout == 0)
         {
-            visibleNotesList.at(tempNotePlaceInLayout)->button->pressed();
+            visibleNotesList.at(tempNotePlaceInLayout)->m_button->pressed();
         }
         else
         {
-            visibleNotesList.at(tempNotePlaceInLayout - 1)->button->pressed();
+            visibleNotesList.at(tempNotePlaceInLayout - 1)->m_button->pressed();
         }
     }
 }
@@ -1305,7 +1234,7 @@ void MainWindow::DeleteSelectedNote ()
 {
     if(currentSelectedNote != 0)
     {
-        if(tempNote != 0 && currentSelectedNote->noteName == tempNote->noteName)
+        if(tempNote != 0 && currentSelectedNote->m_noteName == tempNote->m_noteName)
         {
             tempNote = 0;
             isTemp = false;
@@ -1366,16 +1295,16 @@ void MainWindow::SelectNoteUp ()
 
         for(unsigned int i = 0; i < visibleNotesList.size() - 1; i++)
         {
-            if(visibleNotesList.at(i)->fakeContainer  == currentSelectedNote->fakeContainer)
+            if(visibleNotesList.at(i)->m_fakeContainer  == currentSelectedNote->m_fakeContainer)
             {
-                unsigned int noteSize = currentSelectedNote->fakeContainer->height();
+                unsigned int noteSize = currentSelectedNote->m_fakeContainer->height();
 
                 if((visibleNotesList.size() - i - 1) * noteSize < ui->scrollArea->verticalScrollBar()->value() + noteSize)
                 {
                     ui->scrollArea->verticalScrollBar()->setValue(ui->scrollArea->verticalScrollBar()->value() - noteSize);
                 }
 
-                visibleNotesList.at(i + 1)->button->pressed();
+                visibleNotesList.at(i + 1)->m_button->pressed();
                 break;
             }
         }
@@ -1396,16 +1325,16 @@ void MainWindow::SelectNoteDown ()
 
         for(unsigned int i = 1; i < visibleNotesList.size(); i++)
         {
-            if(visibleNotesList.at(i)->fakeContainer  == currentSelectedNote->fakeContainer)
+            if(visibleNotesList.at(i)->m_fakeContainer  == currentSelectedNote->m_fakeContainer)
             {
-                unsigned int noteSize = currentSelectedNote->fakeContainer->height();
+                unsigned int noteSize = currentSelectedNote->m_fakeContainer->height();
 
                 if((visibleNotesList.size() - i - 1) * noteSize > ui->scrollArea->verticalScrollBar()->value() + ui->scrollArea->height() - noteSize * 2)
                 {
                     ui->scrollArea->verticalScrollBar()->setValue(ui->scrollArea->verticalScrollBar()->value() + noteSize);
                 }
 
-                visibleNotesList.at(i - 1)->button->pressed();
+                visibleNotesList.at(i - 1)->m_button->pressed();
                 break;
             }
         }
@@ -1539,37 +1468,37 @@ void MainWindow::on_redCloseButton_clicked()
 */
 void MainWindow::ScrollAreaScrollBarRangeChange (int, int verticalScrollBarRange)
 {
-    currentVerticalScrollAreaRange = verticalScrollBarRange;
+    //    currentVerticalScrollAreaRange = verticalScrollBarRange;
 
-    // We need this because this function isn't executed before AddNote
-    if(verticalScrollBarRange > 0)
-    {
-        for(unsigned int i = 0; i < visibleNotesList.size(); i++)
-        {
-            if(visibleNotesList.at(i)->titleLabel->width() != ui->lineEdit->width()- 11)
-            {
-                visibleNotesList.at(i)->titleLabel->resize(ui->lineEdit->width()- 11, 0);
-                visibleNotesList.at(i)->seperateLine->resize(ui->lineEdit->width()- 11, 1);
-                visibleNotesList.at(i)->titleLabel->setText(GetFirstLineAndElide(visibleNotesList.at(i)));
-                visibleNotesList.at(i)->containerBox->resize(ui->scrollArea->width(), visibleNotesList.at(i)->titleLabel->height() + visibleNotesList.at(i)->dateLabel->height() + visibleNotesList.at(i)->seperateLine->height() + 4*3);
-                visibleNotesList.at(i)->button->setGeometry(0, 0, ui->scrollArea->width(), visibleNotesList.at(i)->titleLabel->height() + visibleNotesList.at(i)->dateLabel->height() + visibleNotesList.at(i)->seperateLine->height() + 4*3);
-            }
-        }
-    }
-    else
-    {
-        for(unsigned int i = 0; i < visibleNotesList.size(); i++)
-        {
-            if(visibleNotesList.at(i)->titleLabel->width() != ui->lineEdit->width()-1)
-            {
-                visibleNotesList.at(i)->titleLabel->resize(ui->lineEdit->width()-1, 0);
-                visibleNotesList.at(i)->seperateLine->resize(ui->lineEdit->width()-1, 1);
-                visibleNotesList.at(i)->titleLabel->setText(GetFirstLineAndElide(visibleNotesList.at(i)));
-                visibleNotesList.at(i)->containerBox->resize(ui->scrollArea->width(), visibleNotesList.at(i)->titleLabel->height() + visibleNotesList.at(i)->dateLabel->height() + visibleNotesList.at(i)->seperateLine->height() + 4*3);
-                visibleNotesList.at(i)->button->setGeometry(0, 0, ui->scrollArea->width(), visibleNotesList.at(i)->titleLabel->height() + visibleNotesList.at(i)->dateLabel->height() + visibleNotesList.at(i)->seperateLine->height() + 4*3);
-            }
-        }
-    }
+    //    // We need this because this function isn't executed before AddNote
+    //    if(verticalScrollBarRange > 0)
+    //    {
+    //        for(unsigned int i = 0; i < visibleNotesList.size(); i++)
+    //        {
+    //            if(visibleNotesList.at(i)->m_titleLabel->width() != ui->lineEdit->width()- 11)
+    //            {
+    //                visibleNotesList.at(i)->m_titleLabel->resize(ui->lineEdit->width()- 11, 0);
+    //                visibleNotesList.at(i)->m_seperateLine->resize(ui->lineEdit->width()- 11, 1);
+    //                visibleNotesList.at(i)->m_titleLabel->setText(GetFirstLineAndElide(visibleNotesList.at(i)));
+    //                visibleNotesList.at(i)->m_containerBox->resize(ui->scrollArea->width(), visibleNotesList.at(i)->m_titleLabel->height() + visibleNotesList.at(i)->m_dateLabel->height() + visibleNotesList.at(i)->m_seperateLine->height() + 4*3);
+    //                visibleNotesList.at(i)->m_button->setGeometry(0, 0, ui->scrollArea->width(), visibleNotesList.at(i)->m_titleLabel->height() + visibleNotesList.at(i)->m_dateLabel->height() + visibleNotesList.at(i)->m_seperateLine->height() + 4*3);
+    //            }
+    //        }
+    //    }
+    //    else
+    //    {
+    //        for(unsigned int i = 0; i < visibleNotesList.size(); i++)
+    //        {
+    //            if(visibleNotesList.at(i)->m_titleLabel->width() != ui->lineEdit->width()-1)
+    //            {
+    //                visibleNotesList.at(i)->m_titleLabel->resize(ui->lineEdit->width()-1, 0);
+    //                visibleNotesList.at(i)->m_seperateLine->resize(ui->lineEdit->width()-1, 1);
+    //                visibleNotesList.at(i)->m_titleLabel->setText(GetFirstLineAndElide(visibleNotesList.at(i)));
+    //                visibleNotesList.at(i)->m_containerBox->resize(ui->scrollArea->width(), visibleNotesList.at(i)->m_titleLabel->height() + visibleNotesList.at(i)->m_dateLabel->height() + visibleNotesList.at(i)->m_seperateLine->height() + 4*3);
+    //                visibleNotesList.at(i)->m_button->setGeometry(0, 0, ui->scrollArea->width(), visibleNotesList.at(i)->m_titleLabel->height() + visibleNotesList.at(i)->m_dateLabel->height() + visibleNotesList.at(i)->m_seperateLine->height() + 4*3);
+    //            }
+    //        }
+    //    }
 }
 
 /**
@@ -1602,7 +1531,7 @@ void MainWindow::TextEditScrollBarValueChange (int verticalScrollBarValue)
 {
     if(currentSelectedNote != 0)
     {
-        currentSelectedNote->scrollBarPosistion = verticalScrollBarValue;
+        currentSelectedNote->m_scrollBarPosition = verticalScrollBarValue;
     }
 }
 
@@ -1693,17 +1622,17 @@ void MainWindow::mouseDoubleClickEvent (QMouseEvent *e)
 */
 void MainWindow::resizeEvent (QResizeEvent *)
 {
-    // If scrollArea is collapsed
-    if(ui->splitter->sizes().at(0) == 0)
-    {
-        frame->resize(ui->centralWidget->width(), ui->verticalSpacer_upEditorDateLabel->sizeHint().height() + ui->newNoteButton->height() + ui->verticalSpacer_upTextEdit->sizeHint().height() + ui->horizontalSpacer_rightTrafficLightButtons1->sizeHint().height() + ui->verticalSpacer_upLineEdit->sizeHint().height());
-        frame->move(ui->scrollArea->x(), 0);
-    }
-    else
-    {
-        frame->resize(ui->centralWidget->width()-ui->scrollArea->width()-ui->line->width(), ui->verticalSpacer_upEditorDateLabel->sizeHint().height() + ui->newNoteButton->height() + ui->verticalSpacer_upTextEdit->sizeHint().height());
-        frame->move(ui->scrollArea->width()+ui->line->width(), 0);
-    }
+    //    // If scrollArea is collapsed
+    //    if(ui->splitter->sizes().at(0) == 0)
+    //    {
+    //        frame->resize(ui->centralWidget->width(), ui->verticalSpacer_upEditorDateLabel->sizeHint().height() + ui->newNoteButton->height() + ui->verticalSpacer_upTextEdit->sizeHint().height() + ui->horizontalSpacer_rightTrafficLightButtons1->sizeHint().height() + ui->verticalSpacer_upLineEdit->sizeHint().height());
+    //        frame->move(ui->scrollArea->x(), 0);
+    //    }
+    //    else
+    //    {
+    //        frame->resize(ui->centralWidget->width()-ui->scrollArea->width()-ui->line->width(), ui->verticalSpacer_upEditorDateLabel->sizeHint().height() + ui->newNoteButton->height() + ui->verticalSpacer_upTextEdit->sizeHint().height());
+    //        frame->move(ui->scrollArea->width()+ui->line->width(), 0);
+    //    }
 }
 
 /**
@@ -1730,40 +1659,40 @@ void MainWindow::ResizeRestWhenSplitterMove(int pos, int index)
 {
     QCoreApplication::processEvents();
 
-    if(index == 1 && pos == 0)
-    {
-        frame->resize(ui->centralWidget->width(), ui->verticalSpacer_upEditorDateLabel->sizeHint().height() + ui->newNoteButton->height() + ui->verticalSpacer_upTextEdit->sizeHint().height() + ui->horizontalSpacer_rightTrafficLightButtons1->sizeHint().height() + ui->verticalSpacer_upLineEdit->sizeHint().height());
-        frame->move(ui->scrollArea->x(), 0);
+    //    if(index == 1 && pos == 0)
+    //    {
+    //        frame->resize(ui->centralWidget->width(), ui->verticalSpacer_upEditorDateLabel->sizeHint().height() + ui->newNoteButton->height() + ui->verticalSpacer_upTextEdit->sizeHint().height() + ui->horizontalSpacer_rightTrafficLightButtons1->sizeHint().height() + ui->verticalSpacer_upLineEdit->sizeHint().height());
+    //        frame->move(ui->scrollArea->x(), 0);
 
-        ui->verticalLayout_scrollArea->removeItem(ui->horizontalLayout_scrollArea_2);
-        ui->verticalLayout_textEdit->insertLayout(0, ui->horizontalLayout_scrollArea_2, 0);
+    //        ui->verticalLayout_scrollArea->removeItem(ui->horizontalLayout_scrollArea_2);
+    //        ui->verticalLayout_textEdit->insertLayout(0, ui->horizontalLayout_scrollArea_2, 0);
 
-        if(!IsSpacerInsideLayout(ui->verticalSpacer_upLineEdit, ui->verticalLayout_textEdit))
-        {
-            ui->verticalLayout_scrollArea->removeItem(ui->verticalSpacer_upLineEdit);
-            ui->verticalLayout_textEdit->insertItem(0, ui->verticalSpacer_upLineEdit);
-            ui->verticalSpacer_upEditorDateLabel->changeSize(20, 5);
-        }
-    }
-    else
-    {
-        frame->resize(ui->centralWidget->width()-ui->scrollArea->width()-ui->line->width(), ui->verticalSpacer_upEditorDateLabel->sizeHint().height() + ui->newNoteButton->height() + ui->verticalSpacer_upTextEdit->sizeHint().height());
-        frame->move(ui->scrollArea->width()+ui->line->width(), 0);
+    //        if(!IsSpacerInsideLayout(ui->verticalSpacer_upLineEdit, ui->verticalLayout_textEdit))
+    //        {
+    //            ui->verticalLayout_scrollArea->removeItem(ui->verticalSpacer_upLineEdit);
+    //            ui->verticalLayout_textEdit->insertItem(0, ui->verticalSpacer_upLineEdit);
+    //            ui->verticalSpacer_upEditorDateLabel->changeSize(20, 5);
+    //        }
+    //    }
+    //    else
+    //    {
+    //        frame->resize(ui->centralWidget->width()-ui->scrollArea->width()-ui->line->width(), ui->verticalSpacer_upEditorDateLabel->sizeHint().height() + ui->newNoteButton->height() + ui->verticalSpacer_upTextEdit->sizeHint().height());
+    //        frame->move(ui->scrollArea->width()+ui->line->width(), 0);
 
-        ui->verticalLayout_textEdit->removeItem(ui->horizontalLayout_scrollArea_2);
-        ui->verticalLayout_scrollArea->insertLayout(0, ui->horizontalLayout_scrollArea_2, 0);
+    //        ui->verticalLayout_textEdit->removeItem(ui->horizontalLayout_scrollArea_2);
+    //        ui->verticalLayout_scrollArea->insertLayout(0, ui->horizontalLayout_scrollArea_2, 0);
 
-        if(!IsSpacerInsideLayout(ui->verticalSpacer_upLineEdit, ui->verticalLayout_scrollArea))
-        {
-            ui->verticalLayout_textEdit->removeItem(ui->verticalSpacer_upLineEdit);
-            ui->verticalLayout_scrollArea->insertItem(0, ui->verticalSpacer_upLineEdit);
-            ui->verticalSpacer_upEditorDateLabel->changeSize(20, 25);
-        }
-    }
+    //        if(!IsSpacerInsideLayout(ui->verticalSpacer_upLineEdit, ui->verticalLayout_scrollArea))
+    //        {
+    //            ui->verticalLayout_textEdit->removeItem(ui->verticalSpacer_upLineEdit);
+    //            ui->verticalLayout_scrollArea->insertItem(0, ui->verticalSpacer_upLineEdit);
+    //            ui->verticalSpacer_upEditorDateLabel->changeSize(20, 25);
+    //        }
+    //    }
 
-    clearButton->move( ui->lineEdit->rect().right() - clearButton->sizeHint().width()-1, 3);
+    //    clearButton->move( ui->lineEdit->rect().right() - clearButton->sizeHint().width()-1, 3);
 
-    ScrollAreaScrollBarRangeChange(0, ui->scrollArea->verticalScrollBar()->maximum());
+    //    ScrollAreaScrollBarRangeChange(0, ui->scrollArea->verticalScrollBar()->maximum());
 }
 
 /**
@@ -1796,7 +1725,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
 
             for(unsigned int i = 0; i < visibleNotesList.size(); i++)
             {
-                if(visibleNotesList.at(i)->containerBox == containerBox)
+                if(visibleNotesList.at(i)->m_containerBox == containerBox)
                 {
                     if((currentSelectedNote != 0 && visibleNotesList.at(i) != currentSelectedNote) || currentSelectedNote == 0)
                     {
@@ -1842,7 +1771,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
         {
             QGroupBox *containerBox = qobject_cast<QGroupBox *>(object);
 
-            if(currentHoveredNote != 0 && currentHoveredNote->containerBox == containerBox)
+            if(currentHoveredNote != 0 && currentHoveredNote->m_containerBox == containerBox)
             {
                 if((currentSelectedNote != 0 && currentHoveredNote != currentSelectedNote) || currentSelectedNote == 0)
                 {
@@ -1852,19 +1781,19 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
                         {
                             if((i > 0 && visibleNotesList.at(i - 1) != currentSelectedNote) || i == 0)
                             {
-                                currentHoveredNote->seperateLine->show();
+                                currentHoveredNote->m_seperateLine->show();
                             }
 
                             if(i < visibleNotesList.size() - 1 && visibleNotesList.at(i + 1) != currentSelectedNote)
                             {
-                                visibleNotesList.at(i + 1)->seperateLine->show();
+                                visibleNotesList.at(i + 1)->m_seperateLine->show();
                             }
                         }
                     }
 
-                    currentHoveredNote->containerBox->setStyleSheet("");
-                    currentHoveredNote->titleLabel->setStyleSheet("QLabel { color: black; }");
-                    currentHoveredNote->dateLabel->setStyleSheet("QLabel { color: rgb(132, 132, 132); }");
+                    //currentHoveredNote->m_containerBox->setStyleSheet("");
+                    //currentHoveredNote->m_titleLabel->setStyleSheet("QLabel { color: black; }");
+                    //currentHoveredNote->m_dateLabel->setStyleSheet("QLabel { color: rgb(132, 132, 132); }");
                 }
             }
         }
@@ -1903,7 +1832,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
             // reload all the notes and go and select that note
             if(!focusBreaker && !ui->lineEdit->text().isEmpty() && currentSelectedNote != 0)
             {
-                QString tempName = currentSelectedNote->noteName;
+                QString tempName = currentSelectedNote->m_noteName;
 
                 ui->lineEdit->clear();
 
