@@ -167,7 +167,7 @@ void MainWindow::SetUpLine ()
 void MainWindow::SetUpFrame ()
 {
     frame = new QFrame(this);
-    frame->setStyleSheet("QFrame { background-image: url(:/images/textSideBackground.png); border: none;}");
+    frame->setStyleSheet("QFrame { background-image: url(:images/textSideBackground.png); border: none;}");
     frame->lower();
 }
 
@@ -195,7 +195,7 @@ void MainWindow::CreateClearButton ()
 {
     m_clearButton = new QToolButton(ui->lineEdit);
 
-    QPixmap pixmap(":/images/closeButton.gif");
+    QPixmap pixmap(":images/closeButton.gif");
     m_clearButton->setIcon(QIcon(pixmap));
     m_clearButton->setIconSize(QSize(pixmap.size().width()-5, pixmap.size().height()-5));
     m_clearButton->setCursor(Qt::ArrowCursor);
@@ -213,7 +213,7 @@ void MainWindow::CreateMagnifyingGlassIcon ()
 {
     QToolButton *searchButton = new QToolButton(ui->lineEdit);
 
-    QPixmap newPixmap(":/images/magnifyingGlass.png");
+    QPixmap newPixmap(":images/magnifyingGlass.png");
     searchButton->setIcon(QIcon(newPixmap));
     QSize searchSize(25, 25);
     searchButton->move(-1, -1);
@@ -1285,9 +1285,9 @@ void MainWindow::QuitApplication ()
 void MainWindow::on_greenMaximizeButton_pressed ()
 {
     if(this->windowState() == Qt::WindowFullScreen){
-        ui->greenMaximizeButton->setIcon(QIcon(":/images/greenInPressed.png"));
+        ui->greenMaximizeButton->setIcon(QIcon(":images/greenInPressed.png"));
     }else{
-        ui->greenMaximizeButton->setIcon(QIcon(":/images/greenPressed.png"));
+        ui->greenMaximizeButton->setIcon(QIcon(":images/greenPressed.png"));
     }
 }
 
@@ -1296,7 +1296,7 @@ void MainWindow::on_greenMaximizeButton_pressed ()
 */
 void MainWindow::on_yellowMinimizeButton_pressed ()
 {
-    ui->yellowMinimizeButton->setIcon(QIcon(":/images/yellowPressed.png"));
+    ui->yellowMinimizeButton->setIcon(QIcon(":images/yellowPressed.png"));
 }
 
 /**
@@ -1304,7 +1304,7 @@ void MainWindow::on_yellowMinimizeButton_pressed ()
 */
 void MainWindow::on_redCloseButton_pressed ()
 {
-    ui->redCloseButton->setIcon(QIcon(":/images/redPressed.png"));
+    ui->redCloseButton->setIcon(QIcon(":images/redPressed.png"));
 }
 
 /**
@@ -1312,7 +1312,7 @@ void MainWindow::on_redCloseButton_pressed ()
 */
 void MainWindow::on_greenMaximizeButton_clicked()
 {
-    ui->greenMaximizeButton->setIcon(QIcon(":/images/green.png"));
+    ui->greenMaximizeButton->setIcon(QIcon(":images/green.png"));
 
     FullscreenWindow();
 }
@@ -1322,7 +1322,7 @@ void MainWindow::on_greenMaximizeButton_clicked()
 */
 void MainWindow::on_yellowMinimizeButton_clicked()
 {
-    ui->yellowMinimizeButton->setIcon(QIcon(":/images/yellow.png"));
+    ui->yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
 
     MinimizeWindow();
 }
@@ -1333,7 +1333,7 @@ void MainWindow::on_yellowMinimizeButton_clicked()
 */
 void MainWindow::on_redCloseButton_clicked()
 {
-    ui->redCloseButton->setIcon(QIcon(":/images/red.png"));
+    ui->redCloseButton->setIcon(QIcon(":images/red.png"));
 
     QuitApplication();
 }
@@ -1393,7 +1393,7 @@ void MainWindow::TextEditScrollBarRangeChange (int, int verticalScrollBarRange)
     //    if(verticalScrollBarRange > 0){
     //        QString styleSheet =  QString("QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
     //                                      "QScrollBar:handle:vertical:pressed { background: rgb(149, 149, 149); } "
-    //                                      "QTextEdit { background-image: url(:/images/textSideBackground.png); padding-left: %1px; padding-right: %2px; } "
+    //                                      "QTextEdit { background-image: url(:images/textSideBackground.png); padding-left: %1px; padding-right: %2px; } "
     //                                      "QScrollBar:vertical { border: none; width: 8px; } "
     //                                      "QScrollBar::handle:vertical { border-radius: 2.5px; background: rgb(188, 188, 188); min-height: 20px; }  "
     //                                      "QScrollBar::add-line:vertical { height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
@@ -1404,7 +1404,7 @@ void MainWindow::TextEditScrollBarRangeChange (int, int verticalScrollBarRange)
     //    }else{
     //        QString styleSheet = QString("QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
     //                                     "QScrollBar:handle:vertical:pressed { background: rgb(149, 149, 149); } "
-    //                                     "QTextEdit { background-image: url(:/images/textSideBackground.png); padding-left: %1px; padding-right: %2px; } "
+    //                                     "QTextEdit { background-image: url(:images/textSideBackground.png); padding-left: %1px; padding-right: %2px; } "
     //                                     "QScrollBar:vertical { border: none; width: 8px; } "
     //                                     "QScrollBar::handle:vertical { border-radius: 2.5px; background: rgb(188, 188, 188); min-height: 20px; }  "
     //                                     "QScrollBar::add-line:vertical { height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
@@ -1583,12 +1583,12 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
         // When hovering one of the traffic light buttons (red, yellow, green),
         // set new icons to show their function
         if(object == ui->redCloseButton || object == ui->yellowMinimizeButton || object == ui->greenMaximizeButton){
-            ui->redCloseButton->setIcon(QIcon(":/images/redHovered.png"));
-            ui->yellowMinimizeButton->setIcon(QIcon(":/images/yellowHovered.png"));
+            ui->redCloseButton->setIcon(QIcon(":images/redHovered.png"));
+            ui->yellowMinimizeButton->setIcon(QIcon(":images/yellowHovered.png"));
             if(this->windowState() == Qt::WindowFullScreen){
-                ui->greenMaximizeButton->setIcon(QIcon(":/images/greenInHovered.png"));
+                ui->greenMaximizeButton->setIcon(QIcon(":images/greenInHovered.png"));
             }else{
-                ui->greenMaximizeButton->setIcon(QIcon(":/images/greenHovered.png"));
+                ui->greenMaximizeButton->setIcon(QIcon(":images/greenHovered.png"));
             }
         }
 
@@ -1609,9 +1609,9 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
     if(event->type() == QEvent::Leave){
         // When not hivering, change back the icons of the traffic lights to their default icon
         if(object == ui->redCloseButton || object == ui->yellowMinimizeButton || object == ui->greenMaximizeButton){
-            ui->redCloseButton->setIcon(QIcon(":/images/red.png"));
-            ui->yellowMinimizeButton->setIcon(QIcon(":/images/yellow.png"));
-            ui->greenMaximizeButton->setIcon(QIcon(":/images/green.png"));
+            ui->redCloseButton->setIcon(QIcon(":images/red.png"));
+            ui->yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
+            ui->greenMaximizeButton->setIcon(QIcon(":images/green.png"));
         }
 
         // When getting out of a highlighted note, unghighlight it
