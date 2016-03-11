@@ -58,6 +58,7 @@ private slots:
     QString GetNoteDateEditor (QString dateEdited);
     QString GetNoteDate (QString dateEdited);
     NoteData* AddNote (QString noteName, bool isLoadingOrNew);
+    void showNoteInEditor(NoteData* note);
     void SortNotesList (QStringList &stringNotesList);
     void LoadNotes ();
     void SelectFirstNote ();
@@ -67,7 +68,7 @@ private slots:
     void UnhighlightNote (NoteData* note);
     void HighlightNote (NoteData* note, QString rgbStringColor);
     QPropertyAnimation* GetAnimationForDeletion (NoteData* note);
-    void note_buttuon_pressed ();
+    void onNoteClicked ();
     void ClearButtonClicked ();
     void DeleteNoteFromDataBase (NoteData* note);
     void DeleteNoteFromVisual (NoteData* note);

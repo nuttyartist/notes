@@ -532,11 +532,22 @@ NoteData *MainWindow::AddNote(QString noteName, bool isLoadingOrNew)
     newNote->m_dateLabel->setText(noteDate);
     m_visibleNotesList.push_back(newNote);
 
-    connect(newNote->m_button, SIGNAL(pressed()), this, SLOT(note_buttuon_pressed()));
+    connect(newNote, SIGNAL(clicked()), this, SLOT(onNoteClicked()));
 
     m_lay->insertWidget(0, newNote, 0, Qt::AlignTop);
 
     return newNote;
+}
+
+void MainWindow::showNoteInEditor(NoteData *note)
+{
+    ui->textEdit->blockSignals(true);
+    ui->textEdit->setText(m_notesDatabase->value(note->m_noteName + "/content", "Error").toString());
+    QString noteDate = m_notesDatabase->value(note->m_noteName + "/dateEdited", "Error").toString();
+    ui->editorDateLabel->setText(GetNoteDateEditor(noteDate));
+    int tempScrollBarPosition = note->m_scrollBarPosition;
+    ui->textEdit->verticalScrollBar()->setValue(tempScrollBarPosition);
+    ui->textEdit->blockSignals(false);
 }
 
 /**
@@ -588,7 +599,7 @@ void MainWindow::LoadNotes ()
         newNote->m_titleLabel->setText(noteFirstLine);
         newNote->m_dateLabel->setText(noteDate);
 
-        connect(newNote->m_button, SIGNAL(pressed()), this, SLOT(note_buttuon_pressed()));
+        connect(newNote, SIGNAL(clicked()), this, SLOT(onNoteClicked()));
 
         m_allNotesList.push_back(newNote);
     }
@@ -602,8 +613,11 @@ void MainWindow::LoadNotes ()
 */
 void MainWindow::SelectFirstNote ()
 {
-    if(!m_visibleNotesList.empty())
-        m_visibleNotesList.back()->m_button->pressed();
+    if(!m_visibleNotesList.empty()){
+        m_currentSelectedNote = m_visibleNotesList.back();
+        HighlightNote(m_currentSelectedNote, "rgb(254, 206, 9)");
+        showNoteInEditor(m_currentSelectedNote);
+    }
 }
 
 /**
@@ -695,34 +709,25 @@ QPropertyAnimation* MainWindow::GetAnimationForDeletion (NoteData *note)
 * Set editorDateLabel text to the the selected note date
 * And restore the scrollBar position if it changed before.
 */
-void MainWindow::note_buttuon_pressed ()
+void MainWindow::onNoteClicked ()
 {
-    for(unsigned int i = 0; i < m_visibleNotesList.size(); i++){
-        if(QObject::sender() == m_visibleNotesList.at(i)->m_button){
-            if(m_currentSelectedNote != 0 && m_currentSelectedNote != m_tempNote)
-                UnhighlightNote(m_currentSelectedNote);
+    if(sender() != 0){
+        if(m_currentSelectedNote != 0 && m_currentSelectedNote != m_tempNote)
+            UnhighlightNote(m_currentSelectedNote);
 
-            m_currentSelectedNote = m_visibleNotesList.at(i);
+        NoteData* note = qobject_cast<NoteData *>(sender());
+        m_currentSelectedNote = note;
 
-            if(m_tempNote != 0 && m_currentSelectedNote != m_tempNote){
-                QPropertyAnimation* animation = GetAnimationForDeletion(m_tempNote);
+        if(m_tempNote != 0 && m_currentSelectedNote != m_tempNote){
+            QPropertyAnimation* animation = GetAnimationForDeletion(m_tempNote);
 
-                connect(animation, SIGNAL(finished()), this, SLOT(DeleteTempNoteFromVisual()));
-                animation->start();
-                DeleteNoteFromDataBase(m_tempNote);
-                m_currentSelectedNote = m_visibleNotesList.at(i);
-            }
-
-            HighlightNote(m_currentSelectedNote, "rgb(254, 206, 9)");
-
-            ui->textEdit->blockSignals(true);
-            int tempScrollBarPosition = m_currentSelectedNote->m_scrollBarPosition;
-            ui->textEdit->setText(m_notesDatabase->value(m_currentSelectedNote->m_noteName + "/content", "Error").toString());
-            ui->textEdit->verticalScrollBar()->setValue(tempScrollBarPosition);
-            QString noteDate = m_notesDatabase->value(m_currentSelectedNote->m_noteName + "/dateEdited", "Error").toString();
-            ui->editorDateLabel->setText(GetNoteDateEditor(noteDate));
-            ui->textEdit->blockSignals(false);
+            connect(animation, SIGNAL(finished()), this, SLOT(DeleteTempNoteFromVisual()));
+            animation->start();
+            DeleteNoteFromDataBase(m_tempNote);
         }
+
+        HighlightNote(m_currentSelectedNote, "rgb(254, 206, 9)");
+        showNoteInEditor(m_currentSelectedNote);
     }
 }
 
