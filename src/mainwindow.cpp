@@ -262,9 +262,6 @@ void MainWindow::SetUpScrollArea ()
     ui->scrollArea->setStyleSheet(styleSheet);
     ui->scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-    //ui->scrollArea->installEventFilter(this);
-    //ui->scrollArea->verticalScrollBar()->installEventFilter(this);
-
     connect(ui->scrollArea->verticalScrollBar(), SIGNAL(rangeChanged(int,int)), this, SLOT(ScrollAreaScrollBarRangeChange(int,int)));
 }
 
@@ -536,9 +533,11 @@ NoteData *MainWindow::AddNote(QString noteName, bool isLoadingOrNew)
     newNote->m_dateLabel->setText(noteDate);
     m_visibleNotesList.push_back(newNote);
 
+    m_lay->insertWidget(0, newNote, 0, Qt::AlignTop);
+
+    newNote->installEventFilter(this);
     connect(newNote, SIGNAL(clicked()), this, SLOT(onNoteClicked()));
 
-    m_lay->insertWidget(0, newNote, 0, Qt::AlignTop);
 
     return newNote;
 }
@@ -595,15 +594,6 @@ void MainWindow::LoadNotes ()
         noteName = m_notesDataForSorting.at(i).m_noteName;
 
         newNote = AddNote(noteName, true);
-        m_visibleNotesList.push_back(newNote);
-
-        QString noteFirstLine = GetFirstLineAndElide(newNote);
-        QString noteDate = GetNoteDate(m_notesDatabase->value(noteName + "/dateEdited", "Error").toString());
-
-        newNote->m_titleLabel->setText(noteFirstLine);
-        newNote->m_dateLabel->setText(noteDate);
-
-        connect(newNote, SIGNAL(clicked()), this, SLOT(onNoteClicked()));
 
         m_allNotesList.push_back(newNote);
     }
@@ -660,7 +650,7 @@ void MainWindow::UnhighlightNote (NoteData* note)
             break;
         }
     }
-    note->m_seperateLine->show();
+    //note->m_seperateLine->show();
 
     note->m_containerBox->setStyleSheet("");
     note->m_titleLabel->setStyleSheet("QLabel { color: black; }");
@@ -672,13 +662,13 @@ void MainWindow::UnhighlightNote (NoteData* note)
 */
 void MainWindow::HighlightNote (NoteData* note, QString rgbStringColor)
 {
-    for(unsigned int i = 0; i < m_visibleNotesList.size() - 1; i++){
-        if(m_visibleNotesList.at(i) == note){
-            m_visibleNotesList.at(i + 1)->m_seperateLine->hide();
-            break;
-        }
-    }
-    note->m_seperateLine->hide();
+    //    for(unsigned int i = 0; i < m_visibleNotesList.size() - 1; i++){
+    //        if(m_visibleNotesList.at(i) == note){
+    //            m_visibleNotesList.at(i + 1)->m_seperateLine->hide();
+    //            break;
+    //        }
+    //    }
+    //note->m_seperateLine->hide();
 
     note->m_containerBox->setStyleSheet(QString(".QGroupBox { background-color: %1; }").arg(rgbStringColor));
     note->m_titleLabel->setStyleSheet(QString("QLabel { background-color: %1; color: black; }").arg(rgbStringColor));
@@ -1603,19 +1593,10 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
         }
 
         // When hovering upon note with the mouse, highlight it
-        if(QString(object->metaObject()->className()) == "QGroupBox"){
-            QGroupBox *containerBox = qobject_cast<QGroupBox *>(object);
-
-            for(unsigned int i = 0; i < m_visibleNotesList.size(); i++){
-                if(m_visibleNotesList.at(i)->m_containerBox == containerBox){
-                    if((m_currentSelectedNote != 0 && m_visibleNotesList.at(i) != m_currentSelectedNote) || m_currentSelectedNote == 0){
-                        m_currentHoveredNote = m_visibleNotesList.at(i);
-                        HighlightNote(m_currentHoveredNote, "rgb(207, 207, 207)");
-                    }
-
-                    break;
-                }
-            }
+        if(QString(object->metaObject()->className()) == "NoteData"){
+            m_currentHoveredNote = qobject_cast<NoteData *>(object);
+            if((m_currentSelectedNote != 0 && m_currentHoveredNote != m_currentSelectedNote) || m_currentSelectedNote == 0)
+                HighlightNote(m_currentHoveredNote, "rgb(207, 207, 207)");
         }
 
         // When hovering upon textEdit's scrollBar, show its border
@@ -1634,25 +1615,13 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
         }
 
         // When getting out of a highlighted note, unghighlight it
-        if(QString(object->metaObject()->className()) == "QGroupBox"){
-            QGroupBox *containerBox = qobject_cast<QGroupBox *>(object);
+        if(QString(object->metaObject()->className()) == "NoteData"){
+            NoteData* note = qobject_cast<NoteData *>(object);
 
-            if(m_currentHoveredNote != 0 && m_currentHoveredNote->m_containerBox == containerBox){
+            if(m_currentHoveredNote != 0 && m_currentHoveredNote == note){
                 if((m_currentSelectedNote != 0 && m_currentHoveredNote != m_currentSelectedNote) || m_currentSelectedNote == 0){
-                    for(unsigned int i = 0; i < m_visibleNotesList.size(); i++){
-                        if(m_visibleNotesList.at(i) == m_currentHoveredNote){
-                            if((i > 0 && m_visibleNotesList.at(i - 1) != m_currentSelectedNote) || i == 0)
-                                m_currentHoveredNote->m_seperateLine->show();
 
-                            if(i < m_visibleNotesList.size() - 1 && m_visibleNotesList.at(i + 1) != m_currentSelectedNote)
-                                m_visibleNotesList.at(i + 1)->m_seperateLine->show();
-
-                        }
-                    }
-
-                    //currentHoveredNote->m_containerBox->setStyleSheet("");
-                    //currentHoveredNote->m_titleLabel->setStyleSheet("QLabel { color: black; }");
-                    //currentHoveredNote->m_dateLabel->setStyleSheet("QLabel { color: rgb(132, 132, 132); }");
+                    UnhighlightNote(m_currentHoveredNote);
                 }
             }
         }
