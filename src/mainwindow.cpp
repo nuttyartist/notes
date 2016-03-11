@@ -21,26 +21,26 @@ MainWindow::MainWindow (QWidget *parent) :
     ui (new Ui::MainWindow)
 {
     ui->setupUi(this);
-    SetUpMainWindow();
-    SetUpKeyboardShortcuts();
-    SetUpNewNoteButtonAndTrahButton();
-    SetUpEditorDateLabel();
-    SetUpSplitter();
-    SetUpLine();
-    SetUpFrame ();
-    SetUpTitleBarButtons();
-    CreateClearButton();
-    CreateMagnifyingGlassIcon();
-    SetUpLineEdit();
-    SetUpScrollArea();
-    SetUpTextEdit();
-    InitializeVariables();
-    SetUpDatabases();
-    RestoreStates();
-    SetLayoutForScrollArea();
-    LoadNotes();
-    SelectFirstNote();
-    CreateNewNoteIfEmpty();
+    setUpMainWindow();
+    setUpKeyboardShortcuts();
+    setUpNewNoteButtonAndTrahButton();
+    setUpEditorDateLabel();
+    setUpSplitter();
+    setUpLine();
+    setUpFrame ();
+    setUpTitleBarButtons();
+    createClearButton();
+    createMagnifyingGlassIcon();
+    setUpLineEdit();
+    setUpScrollArea();
+    setUpTextEdit();
+    initializeVariables();
+    setUpDatabases();
+    restoreStates();
+    setLayoutForScrollArea();
+    loadNotes();
+    selectFirstNote();
+    createNewNoteIfEmpty();
 }
 
 void MainWindow::paintEvent(QPaintEvent *e)
@@ -65,7 +65,7 @@ MainWindow::~MainWindow ()
 * Setting up main window prefrences like frameless window and the minimum size of the window
 * Setting the window background color to be white
 */
-void MainWindow::SetUpMainWindow ()
+void MainWindow::setUpMainWindow ()
 {
 #ifdef Q_OS_LINUX
     this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
@@ -89,22 +89,22 @@ void MainWindow::SetUpMainWindow ()
 /**
 * Setting up the keyboard shortcuts
 */
-void MainWindow::SetUpKeyboardShortcuts ()
+void MainWindow::setUpKeyboardShortcuts ()
 {
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_N), this, SLOT(Create_new_note()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Delete), this, SLOT(DeleteSelectedNote()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_N), this, SLOT(createNewNote()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Delete), this, SLOT(deleteSelectedNote()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_F), ui->lineEdit, SLOT(setFocus()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_E), ui->lineEdit, SLOT(clear()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_L), this, SLOT(SetFocusOnScrollArea()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Down), this, SLOT(SelectNoteDown()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Up), this, SLOT(SelectNoteUp()));
-    new QShortcut(QKeySequence(Qt::Key_Down), this, SLOT(SelectNoteDown()));
-    new QShortcut(QKeySequence(Qt::Key_Up), this, SLOT(SelectNoteUp()));
-    new QShortcut(QKeySequence(Qt::Key_Enter), this, SLOT(SetFocusOnText()));
-    new QShortcut(QKeySequence(Qt::Key_Return), this, SLOT(SetFocusOnText()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_F), this, SLOT(FullscreenWindow()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_L), this, SLOT(MaximizeWindow()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_M), this, SLOT(MinimizeWindow()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_L), this, SLOT(setFocusOnScrollArea()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Down), this, SLOT(selectNoteDown()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Up), this, SLOT(selectNoteUp()));
+    new QShortcut(QKeySequence(Qt::Key_Down), this, SLOT(selectNoteDown()));
+    new QShortcut(QKeySequence(Qt::Key_Up), this, SLOT(selectNoteUp()));
+    new QShortcut(QKeySequence(Qt::Key_Enter), this, SLOT(setFocusOnText()));
+    new QShortcut(QKeySequence(Qt::Key_Return), this, SLOT(setFocusOnText()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_F), this, SLOT(fullscreenWindow()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_L), this, SLOT(maximizeWindow()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_M), this, SLOT(minimizeWindow()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q), this, SLOT(QuitApplication()));
 }
 
@@ -115,7 +115,7 @@ void MainWindow::SetUpKeyboardShortcuts ()
 * needs to be more than 50 and less than 34 respectively.
 * So some modifications needs to be done.
 */
-void MainWindow::SetUpNewNoteButtonAndTrahButton ()
+void MainWindow::setUpNewNoteButtonAndTrahButton ()
 {
 #ifdef __APPLE__
     ui->newNoteButton->setGeometry(ui->newNoteButton->x(), ui->newNoteButton->y(), 50, 32);
@@ -132,7 +132,7 @@ void MainWindow::SetUpNewNoteButtonAndTrahButton ()
 * a flawless and a delightful experience for are users,
 * and that's what matters the most.
 */
-void MainWindow::SetUpEditorDateLabel()
+void MainWindow::setUpEditorDateLabel()
 {
     // There is a problem with Helvetica here so we usa Arial, someone sguggestion?
 #ifdef __APPLE__
@@ -146,17 +146,17 @@ void MainWindow::SetUpEditorDateLabel()
 /**
 * Set up the splitter that control the size of the scrollArea and the textEdit
 */
-void MainWindow::SetUpSplitter()
+void MainWindow::setUpSplitter()
 {
     ui->splitter->setStretchFactor(1, 1);
     ui->splitter->setStretchFactor(2, 0);
-    connect(ui->splitter, SIGNAL(splitterMoved(int,int)), SLOT(ResizeRestWhenSplitterMove(int, int)));
+    connect(ui->splitter, SIGNAL(splitterMoved(int,int)), SLOT(resizeRestWhenSplitterMove(int, int)));
 }
 
 /**
 * Set up the vertical line that seperate between the scrollArea to the textEdit
 */
-void MainWindow::SetUpLine ()
+void MainWindow::setUpLine ()
 {
     ui->line->setStyleSheet("border: 1px solid rgb(221, 221, 221)");
 }
@@ -164,7 +164,7 @@ void MainWindow::SetUpLine ()
 /**
 * Set up a frame above textEdit and behind the other widgets for a unifed background in thet editor section
 */
-void MainWindow::SetUpFrame ()
+void MainWindow::setUpFrame ()
 {
     frame = new QFrame(this);
     frame->setStyleSheet("QFrame { background-image: url(:images/textSideBackground.png); border: none;}");
@@ -176,7 +176,7 @@ void MainWindow::SetUpFrame ()
 * Make only the buttons icon visible
 * And install this class event filter to them, to act when hovering on one of them
 */
-void MainWindow::SetUpTitleBarButtons ()
+void MainWindow::setUpTitleBarButtons ()
 {
     ui->redCloseButton->setStyleSheet("QPushButton { border: none; padding: 0px; }");
     ui->yellowMinimizeButton->setStyleSheet("QPushButton { border: none; padding: 0px; }");
@@ -191,7 +191,7 @@ void MainWindow::SetUpTitleBarButtons ()
 /**
 * Setting up the clear button in the search box (lineEdit)
 */
-void MainWindow::CreateClearButton ()
+void MainWindow::createClearButton ()
 {
     m_clearButton = new QToolButton(ui->lineEdit);
 
@@ -203,13 +203,13 @@ void MainWindow::CreateClearButton ()
     m_clearButton->hide();
     m_clearButton->move( ui->lineEdit->rect().right() - m_clearButton->sizeHint().width()-1, 3);
 
-    connect(m_clearButton, SIGNAL(clicked()), this, SLOT(ClearButtonClicked()));
+    connect(m_clearButton, SIGNAL(clicked()), this, SLOT(clearButtonClicked()));
 }
 
 /**
 * Setting up the magnifing glass icon in the search box (lineEdit)
 */
-void MainWindow::CreateMagnifyingGlassIcon ()
+void MainWindow::createMagnifyingGlassIcon ()
 {
     QToolButton *searchButton = new QToolButton(ui->lineEdit);
 
@@ -225,7 +225,7 @@ void MainWindow::CreateMagnifyingGlassIcon ()
 /**
 * Set the lineedit to start a bit to the right and end a bit to the left (pedding)
 */
-void MainWindow::SetUpLineEdit ()
+void MainWindow::setUpLineEdit ()
 {
     // There is a problem with Helvetica here so we usa Arial, someone sguggestion?
 #ifdef __APPLE__
@@ -243,7 +243,7 @@ void MainWindow::SetUpLineEdit ()
 * Disable the horizontal scrolling in scrollArea
 * And install this class event filter to act when scrollArea is out of focus and when hovering the scrollBar
 */
-void MainWindow::SetUpScrollArea ()
+void MainWindow::setUpScrollArea ()
 {
 #ifdef __APPLE__
     ui->scrollArea->setGeometry(ui->scrollArea->x() + 1, ui->scrollArea->y(), ui->scrollArea->width() - 1, ui->scrollArea->height());
@@ -262,7 +262,7 @@ void MainWindow::SetUpScrollArea ()
     ui->scrollArea->setStyleSheet(styleSheet);
     ui->scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-    connect(ui->scrollArea->verticalScrollBar(), SIGNAL(rangeChanged(int,int)), this, SLOT(ScrollAreaScrollBarRangeChange(int,int)));
+    connect(ui->scrollArea->verticalScrollBar(), SIGNAL(rangeChanged(int,int)), this, SLOT(scrollAreaScrollBarRangeChange(int,int)));
 }
 
 /**
@@ -271,7 +271,7 @@ void MainWindow::SetUpScrollArea ()
 * Make the textEdit pedding few pixels right and left, to compel with a beautiful proportional grid
 * And install this class event filter to act when scrollArea is out of focus and when hovering the scrollBar
 */
-void MainWindow::SetUpTextEdit ()
+void MainWindow::setUpTextEdit ()
 {
     //? ui->textEdit->setTextColor(QColor::fromRgb(25, 25, 25));
 
@@ -300,8 +300,8 @@ void MainWindow::SetUpTextEdit ()
     //ui->textEdit->installEventFilter(this);
     //ui->textEdit->verticalScrollBar()->installEventFilter(this);
 
-    connect(ui->textEdit->verticalScrollBar(), SIGNAL(rangeChanged(int,int)), this, SLOT(TextEditScrollBarRangeChange(int,int)));
-    connect(ui->textEdit->verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(TextEditScrollBarValueChange(int)));
+    connect(ui->textEdit->verticalScrollBar(), SIGNAL(rangeChanged(int,int)), this, SLOT(textEditScrollBarRangeChange(int,int)));
+    connect(ui->textEdit->verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(textEditScrollBarValueChange(int)));
 
 #ifdef Q_OS_LINUX
     ui->textEdit->setFont(QFont("Liberation Sans", 11));
@@ -317,7 +317,7 @@ void MainWindow::SetUpTextEdit ()
 /**
 * I don't know why i need to initialize them, but i have to (Aren't they already suppose to be a null and a false?)
 */
-void MainWindow::InitializeVariables ()
+void MainWindow::initializeVariables ()
 {
     m_currentSelectedNote = 0;
     m_currentHoveredNote = 0;
@@ -328,7 +328,7 @@ void MainWindow::InitializeVariables ()
     m_focusBreaker = false;
 }
 
-void MainWindow::InitializeSettingsDatabase()
+void MainWindow::initializeSettingsDatabase()
 {
     if(m_settingsDatabase->value("version", "NULL") == "NULL")
         m_settingsDatabase->setValue("version", "0.8.0");
@@ -365,7 +365,7 @@ void MainWindow::InitializeSettingsDatabase()
 * Windows: C:\Users\user\AppData\Roaming\Awesomeness
 * Mac OS X:
 */
-void MainWindow::SetUpDatabases ()
+void MainWindow::setUpDatabases ()
 {
     m_notesDatabase = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Awesomeness", "Notes", this);
     m_notesDatabase->setFallbacksEnabled(false);
@@ -382,7 +382,7 @@ void MainWindow::SetUpDatabases ()
     m_settingsDatabase = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Awesomeness", "Settings", this);
     m_settingsDatabase->setFallbacksEnabled(false);
 
-    InitializeSettingsDatabase();
+    initializeSettingsDatabase();
 
     m_notesDatabase->sync();
     m_trashDatabase->sync();
@@ -392,7 +392,7 @@ void MainWindow::SetUpDatabases ()
 /**
 * Restore the latest sates (if there are any) of the window and the splitter from the settings database
 */
-void MainWindow::RestoreStates()
+void MainWindow::restoreStates()
 {
     this->restoreGeometry(m_settingsDatabase->value("windowGeometry").toByteArray());
 
@@ -415,7 +415,7 @@ void MainWindow::RestoreStates()
 /**
 * The layout we use to store the list of notes (made by groupboxes, button, frame and labels) inside ScrollArea
 */
-void MainWindow::SetLayoutForScrollArea ()
+void MainWindow::setLayoutForScrollArea ()
 {
     m_lay = ui->verticalLayout_scrollArea_2;
 
@@ -430,7 +430,7 @@ void MainWindow::SetLayoutForScrollArea ()
 * If the string contain no text, return "New Note"
 * TODO: We might make it more efficient by not loading the entire string into the memory
 */
-QString MainWindow::GetFirstLine (const QString& str)
+QString MainWindow::getFirstLine (const QString& str)
 {
     if(str.simplified().isEmpty())
         return "New Note";
@@ -444,7 +444,7 @@ QString MainWindow::GetFirstLine (const QString& str)
 * Get a string 'str' and return it's short form with "..." if it is wider than the label present it (titleLabel)
 * Example: ("This string is really really long") -> "This string is rea..."
 */
-QString MainWindow::GetElidedText (QString str, QFontMetrics labelFontMetrics, int size)
+QString MainWindow::getElidedText (QString str, QFontMetrics labelFontMetrics, int size)
 {
     QString croppedText = labelFontMetrics.elidedText(str, Qt::ElideRight, size);
 
@@ -457,14 +457,14 @@ QString MainWindow::GetElidedText (QString str, QFontMetrics labelFontMetrics, i
 /**
 * Get a note's noteData and return its first line after eliding it.
 */
-QString MainWindow::GetFirstLineAndElide (NoteData *note)
+QString MainWindow::getFirstLineAndElide (NoteData *note)
 {
     // We can improve more if we could load right from the Hard Drive database only one line and not the whole text
     QString text = m_notesDatabase->value(note->m_noteName + "/content", "Error").toString();
 
-    QString firstLine = GetFirstLine(text);
+    QString firstLine = getFirstLine(text);
 
-    firstLine = GetElidedText(firstLine, note->m_titleLabel->fontMetrics(), note->m_titleLabel->width());
+    firstLine = getElidedText(firstLine, note->m_titleLabel->fontMetrics(), note->m_titleLabel->width());
 
     return firstLine;
 }
@@ -474,7 +474,7 @@ QString MainWindow::GetFirstLineAndElide (NoteData *note)
 * This function is not efficient
 * If QVariant would include toStdString() it might help, aka: notesDatabase->value().toStdString
 */
-QDateTime MainWindow::GetQDateTime (QString date)
+QDateTime MainWindow::getQDateTime (QString date)
 {
     return QDateTime::fromString(date, Qt::ISODate);
 }
@@ -482,9 +482,9 @@ QDateTime MainWindow::GetQDateTime (QString date)
 /**
 * Get the full date of the selected note from the database and return it as a string in form for editorDateLabel
 */
-QString MainWindow::GetNoteDateEditor (QString dateEdited)
+QString MainWindow::getNoteDateEditor (QString dateEdited)
 {
-    QDateTime dateTimeEdited(GetQDateTime(dateEdited));
+    QDateTime dateTimeEdited(getQDateTime(dateEdited));
     QLocale usLocale(QLocale("en_US"));
 
     return usLocale.toString(dateTimeEdited, "MMMM d, yyyy, h:mm A");
@@ -493,9 +493,9 @@ QString MainWindow::GetNoteDateEditor (QString dateEdited)
 /**
 * Get the full date of a note from database to present it in the right way in the notes list
 */
-QString MainWindow::GetNoteDate (QString dateEdited)
+QString MainWindow::getNoteDate (QString dateEdited)
 {
-    QDateTime dateTimeEdited(GetQDateTime(dateEdited));
+    QDateTime dateTimeEdited(getQDateTime(dateEdited));
     QLocale usLocale(QLocale("en_US"));
 
     if(dateTimeEdited.date() == QDate::currentDate()){
@@ -515,19 +515,19 @@ QString MainWindow::GetNoteDate (QString dateEdited)
 * Determine if it's loading an existing note or creating a new note and present it accordingly
 * Return a pointer to the new note
 */
-NoteData *MainWindow::AddNote(QString noteName, bool isLoadingOrNew)
+NoteData *MainWindow::addNote(QString noteName, bool isLoadingOrNew)
 {
     NoteData* newNote = new NoteData(noteName, this);
     QString noteFirstLine;
     // isLoadingOrNew - > true = Loading a note from database
     // isLoadingOrNew - > false = Creating a new note
     if(isLoadingOrNew){
-        noteFirstLine = GetFirstLineAndElide(newNote);
+        noteFirstLine = getFirstLineAndElide(newNote);
     }else{
         noteFirstLine = "New Note";
     }
 
-    QString noteDate = GetNoteDate(m_notesDatabase->value(noteName + "/dateEdited", "Error").toString());
+    QString noteDate = getNoteDate(m_notesDatabase->value(noteName + "/dateEdited", "Error").toString());
 
     newNote->m_titleLabel->setText(noteFirstLine);
     newNote->m_dateLabel->setText(noteDate);
@@ -547,7 +547,7 @@ void MainWindow::showNoteInEditor(NoteData *note)
     ui->textEdit->blockSignals(true);
     ui->textEdit->setText(m_notesDatabase->value(note->m_noteName + "/content", "Error").toString());
     QString noteDate = m_notesDatabase->value(note->m_noteName + "/dateEdited", "Error").toString();
-    ui->editorDateLabel->setText(GetNoteDateEditor(noteDate));
+    ui->editorDateLabel->setText(getNoteDateEditor(noteDate));
     int tempScrollBarPosition = note->m_scrollBarPosition;
     ui->textEdit->verticalScrollBar()->setValue(tempScrollBarPosition);
     ui->textEdit->blockSignals(false);
@@ -561,7 +561,7 @@ void MainWindow::showNoteInEditor(NoteData *note)
 * So the oldest note will be placed at the bottom of the scrollArea and newest one at the top
 * (adding notes from the vector happen left to right)
 */
-void MainWindow::SortNotesList (QStringList &stringNotesList)
+void MainWindow::sortNotesList (QStringList &stringNotesList)
 {
     m_notesDataForSorting.clear();
 
@@ -571,7 +571,7 @@ void MainWindow::SortNotesList (QStringList &stringNotesList)
         tempNoteDataForSorting.m_noteName = stringNotesList[i].split("/")[0];
 
         QString dateDB = m_notesDatabase->value(tempNoteDataForSorting.m_noteName + "/dateEdited", "Error").toString();
-        tempNoteDataForSorting.m_dateTime =  GetQDateTime(dateDB);
+        tempNoteDataForSorting.m_dateTime =  getQDateTime(dateDB);
 
         m_notesDataForSorting.push_back(tempNoteDataForSorting);
     }
@@ -582,18 +582,18 @@ void MainWindow::SortNotesList (QStringList &stringNotesList)
 /**
 * Load all the notes from database into the notes list (in scrollArea)
 */
-void MainWindow::LoadNotes ()
+void MainWindow::loadNotes ()
 {
     QStringList stringNotesList = m_notesDatabase->allKeys();
 
-    SortNotesList(stringNotesList);
+    sortNotesList(stringNotesList);
 
     QString noteName;
     NoteData* newNote;
     for(int i = 0; i < m_notesDataForSorting.length(); i++){
         noteName = m_notesDataForSorting.at(i).m_noteName;
 
-        newNote = AddNote(noteName, true);
+        newNote = addNote(noteName, true);
 
         m_allNotesList.push_back(newNote);
     }
@@ -605,11 +605,11 @@ void MainWindow::LoadNotes ()
 /**
 * Select the first note in the notes list
 */
-void MainWindow::SelectFirstNote ()
+void MainWindow::selectFirstNote ()
 {
     if(!m_visibleNotesList.empty()){
         m_currentSelectedNote = m_visibleNotesList.back();
-        HighlightNote(m_currentSelectedNote, "rgb(254, 206, 9)");
+        highlightNote(m_currentSelectedNote, "rgb(254, 206, 9)");
         showNoteInEditor(m_currentSelectedNote);
     }
 }
@@ -617,32 +617,32 @@ void MainWindow::SelectFirstNote ()
 /**
 * create a new note if there are no notes
 */
-void MainWindow::CreateNewNoteIfEmpty ()
+void MainWindow::createNewNoteIfEmpty ()
 {
     if(m_allNotesList.empty())
-        Create_new_note();
+        createNewNote();
 }
 
 /**
 * Create a new note when clicking the 'new note' button
 */
-void MainWindow::on_newNoteButton_clicked()
+void MainWindow::onNewNoteButtonClicked()
 {
-    Create_new_note();
+    createNewNote();
 }
 
 /**
 * Delete selected note when clicking the 'delete note' button
 */
-void MainWindow::on_trashButton_clicked()
+void MainWindow::onTrashButtonClicked()
 {
-    DeleteSelectedNote();
+    deleteSelectedNote();
 }
 
 /**
 * Unhighlight the given note
 */
-void MainWindow::UnhighlightNote (NoteData* note)
+void MainWindow::unhighlightNote (NoteData* note)
 {
     for(unsigned int i = 0; i < m_visibleNotesList.size() - 1; i++){
         if(m_visibleNotesList.at(i) == note){
@@ -660,7 +660,7 @@ void MainWindow::UnhighlightNote (NoteData* note)
 /**
 * Highlight the given note
 */
-void MainWindow::HighlightNote (NoteData* note, QString rgbStringColor)
+void MainWindow::highlightNote (NoteData* note, QString rgbStringColor)
 {
     //    for(unsigned int i = 0; i < m_visibleNotesList.size() - 1; i++){
     //        if(m_visibleNotesList.at(i) == note){
@@ -679,7 +679,7 @@ void MainWindow::HighlightNote (NoteData* note, QString rgbStringColor)
 /**
 * Get a note and return it's animation property for deletion
 */
-QPropertyAnimation* MainWindow::GetAnimationForDeletion (NoteData *note)
+QPropertyAnimation* MainWindow::getAnimationForDeletion (NoteData *note)
 {
     int tempY = note->m_fakeContainer->y();
 
@@ -707,20 +707,20 @@ void MainWindow::onNoteClicked ()
 {
     if(sender() != 0){
         if(m_currentSelectedNote != 0 && m_currentSelectedNote != m_tempNote)
-            UnhighlightNote(m_currentSelectedNote);
+            unhighlightNote(m_currentSelectedNote);
 
         NoteData* note = qobject_cast<NoteData *>(sender());
         m_currentSelectedNote = note;
 
         if(m_tempNote != 0 && m_currentSelectedNote != m_tempNote){
-            QPropertyAnimation* animation = GetAnimationForDeletion(m_tempNote);
+            QPropertyAnimation* animation = getAnimationForDeletion(m_tempNote);
 
-            connect(animation, SIGNAL(finished()), this, SLOT(DeleteTempNoteFromVisual()));
+            connect(animation, SIGNAL(finished()), this, SLOT(deleteTempNoteFromVisual()));
             animation->start();
-            DeleteNoteFromDataBase(m_tempNote);
+            deleteNoteFromDataBase(m_tempNote);
         }
 
-        HighlightNote(m_currentSelectedNote, "rgb(254, 206, 9)");
+        highlightNote(m_currentSelectedNote, "rgb(254, 206, 9)");
         showNoteInEditor(m_currentSelectedNote);
     }
 }
@@ -729,7 +729,7 @@ void MainWindow::onNoteClicked ()
 * When clearButton in the search box (lineEdit) is pressed,
 * clear the text in lineEdit and the date label in the editor.
 */
-void MainWindow::ClearButtonClicked ()
+void MainWindow::clearButtonClicked ()
 {
     ui->lineEdit->clear();
 }
@@ -737,7 +737,7 @@ void MainWindow::ClearButtonClicked ()
 /**
 * Delete a given note from the database
 */
-void MainWindow::DeleteNoteFromDataBase (NoteData *note)
+void MainWindow::deleteNoteFromDataBase (NoteData *note)
 {
     for(unsigned int i = 0; i < m_allNotesList.size(); i++){
         if(m_allNotesList.at(i)->m_noteName == note->m_noteName){
@@ -769,7 +769,7 @@ void MainWindow::DeleteNoteFromDataBase (NoteData *note)
 /**
 * Remove a given note from the interface
 */
-void MainWindow::DeleteNoteFromVisual (NoteData *note)
+void MainWindow::deleteNoteFromVisual (NoteData *note)
 {
     // Make the seperateLine of the note above it visible
     for(unsigned int i = 0; i < m_visibleNotesList.size(); i++){
@@ -793,17 +793,17 @@ void MainWindow::DeleteNoteFromVisual (NoteData *note)
 * If the text changed is of a new (empty) note, reset temp values
 * (We have those valuse to make sure to delete the note from database, if the program is closed and the new note is empty)
 */
-void MainWindow::on_textEdit_textChanged ()
+void MainWindow::onTextEditTextChanged ()
 {
     //if(text has really changed)
     if(m_currentSelectedNote != 0 && ui->textEdit->toPlainText() != m_notesDatabase->value(m_currentSelectedNote->m_noteName + "/content", "Error")){
         m_notesDatabase->setValue(m_currentSelectedNote->m_noteName + "/content", ui->textEdit->toPlainText());
 
-        m_currentSelectedNote->m_titleLabel->setText(GetFirstLineAndElide(m_currentSelectedNote));
+        m_currentSelectedNote->m_titleLabel->setText(getFirstLineAndElide(m_currentSelectedNote));
         QString noteDate = QDateTime::currentDateTime().toString(Qt::ISODate);
         m_notesDatabase->setValue(m_currentSelectedNote->m_noteName + "/dateEdited", noteDate);
-        m_currentSelectedNote->m_dateLabel->setText(GetNoteDate(noteDate));
-        ui->editorDateLabel->setText(GetNoteDateEditor(noteDate));
+        m_currentSelectedNote->m_dateLabel->setText(getNoteDate(noteDate));
+        ui->editorDateLabel->setText(getNoteDateEditor(noteDate));
 
         //notesDatabase->sync(); // We may want to remove that
 
@@ -815,9 +815,9 @@ void MainWindow::on_textEdit_textChanged ()
             QString noteName = m_currentSelectedNote->m_noteName;
 
             NoteData* tempNoteToRemove = m_currentSelectedNote;
-            DeleteNoteFromVisual(m_currentSelectedNote);
+            deleteNoteFromVisual(m_currentSelectedNote);
 
-            m_currentSelectedNote = AddNote(noteName, true);
+            m_currentSelectedNote = addNote(noteName, true);
             m_allNotesList.push_back(m_currentSelectedNote);
 
             for(unsigned int i = 0; i < m_allNotesList.size(); i++){
@@ -827,7 +827,7 @@ void MainWindow::on_textEdit_textChanged ()
                 }
             }
 
-            HighlightNote(m_currentSelectedNote, "rgb(255, 232, 82)");
+            highlightNote(m_currentSelectedNote, "rgb(255, 232, 82)");
 
             ui->scrollArea->verticalScrollBar()->setValue(ui->scrollArea->verticalScrollBar()->minimum());
 
@@ -853,7 +853,7 @@ void MainWindow::on_textEdit_textChanged ()
 /**
 * Return true if string 'keyword' is found in string 'content', else return false
 */
-bool MainWindow::IsFound (QString keyword, QString content)
+bool MainWindow::isFound (QString keyword, QString content)
 {
     return content.contains(keyword, Qt::CaseInsensitive);
 }
@@ -861,7 +861,7 @@ bool MainWindow::IsFound (QString keyword, QString content)
 /**
 * Unhighlight the given note without modifing other notes
 */
-void MainWindow::SimpleUnhighlightNote (NoteData *note)
+void MainWindow::simpleUnhighlightNote (NoteData *note)
 {
     note->m_seperateLine->show();
     //note->m_containerBox->setStyleSheet("");
@@ -872,13 +872,13 @@ void MainWindow::SimpleUnhighlightNote (NoteData *note)
 /**
 * Remove all the notes from the scrollArea
 */
-void MainWindow::ClearAllNotesFromVisual ()
+void MainWindow::clearAllNotesFromVisual ()
 {
     NoteData *note;
     for(unsigned int i = 0; i < m_visibleNotesList.size(); i++){
         note = m_visibleNotesList.at(i);
         note->m_fakeContainer->hide();
-        SimpleUnhighlightNote(note);
+        simpleUnhighlightNote(note);
     }
 
     m_visibleNotesList.clear();
@@ -890,7 +890,7 @@ void MainWindow::ClearAllNotesFromVisual ()
 * and set the scrollArea's scrollBar position to it
 * return true if the given note was found, else return false
 */
-bool MainWindow::GoToAndSelectNote (QString noteName)
+bool MainWindow::goToAndSelectNote (QString noteName)
 {
     // Is there a better way? (We are doing this because the value of the scrollBar won't change unitl all notes in GUI are loaded)
     QCoreApplication::processEvents();
@@ -924,11 +924,11 @@ bool MainWindow::GoToAndSelectNote (QString noteName)
 * If text is empty, reload all the notes from database
 * Else, load all the notes contain the string in lineEdit from database
 */
-void MainWindow::on_lineEdit_textChanged (const QString &arg1)
+void MainWindow::onLineEditTextChanged (const QString &arg1)
 {
     if(m_tempNote != 0){
-        DeleteNoteFromDataBase(m_tempNote);
-        DeleteNoteFromVisual(m_tempNote);
+        deleteNoteFromDataBase(m_tempNote);
+        deleteNoteFromVisual(m_tempNote);
         m_tempNote = 0;
         m_isTemp = false;
     }
@@ -940,7 +940,7 @@ void MainWindow::on_lineEdit_textChanged (const QString &arg1)
     {
         UnhighlightNote(visibleNotesList.at(i));
     }*/
-    ClearAllNotesFromVisual();
+    clearAllNotesFromVisual();
     //UpdateAllNotesList();
 
     if(arg1.isEmpty()){
@@ -954,12 +954,12 @@ void MainWindow::on_lineEdit_textChanged (const QString &arg1)
         }
         //visibleNotesList = allNotesList; not working
 
-        ScrollAreaScrollBarRangeChange(0, ui->scrollArea->verticalScrollBar()->maximum());
+        scrollAreaScrollBarRangeChange(0, ui->scrollArea->verticalScrollBar()->maximum());
 
-        bool found = GoToAndSelectNote(m_tempSelectedNoteBeforeSearchingName);
+        bool found = goToAndSelectNote(m_tempSelectedNoteBeforeSearchingName);
 
         if(!found)
-            SelectFirstNote();
+            selectFirstNote();
 
         m_tempSelectedNoteBeforeSearchingName.clear();
 
@@ -972,7 +972,7 @@ void MainWindow::on_lineEdit_textChanged (const QString &arg1)
         QString noteName;
         for(unsigned int i = 0; i < m_allNotesList.size(); i++){
             noteName = m_allNotesList.at(i)->m_noteName;
-            if(IsFound(arg1, m_notesDatabase->value(noteName + "/content", "Error").toString())){
+            if(isFound(arg1, m_notesDatabase->value(noteName + "/content", "Error").toString())){
                 m_allNotesList.at(i)->m_fakeContainer->show();
                 m_visibleNotesList.push_back(m_allNotesList.at(i));
             }
@@ -985,7 +985,7 @@ void MainWindow::on_lineEdit_textChanged (const QString &arg1)
             ui->textEdit->blockSignals(false);
         }
 
-        SelectFirstNote();
+        selectFirstNote();
 
         QCoreApplication::processEvents();
         QCoreApplication::processEvents();
@@ -995,7 +995,7 @@ void MainWindow::on_lineEdit_textChanged (const QString &arg1)
 /**
 * Create a new note in database
 */
-QString MainWindow::CreateNewNoteInDatabase ()
+QString MainWindow::createNewNoteInDatabase ()
 {
     int counter = m_notesDatabase->value("notesCounter").toInt() + 1;
     m_notesDatabase->setValue("notesCounter", counter);
@@ -1019,7 +1019,7 @@ QString MainWindow::CreateNewNoteInDatabase ()
 * Something wierd is going on at the start of the animation
 * Yet if you click again on the 'newNoteButton' everything is fine
 */
-void MainWindow::NewNoteAnimation ()
+void MainWindow::newNoteAnimation ()
 {
     int tempY = m_currentSelectedNote->m_fakeContainer->y() - m_currentSelectedNote->m_fakeContainer->height() * 2;
 
@@ -1048,26 +1048,26 @@ void MainWindow::NewNoteAnimation ()
 * Take care of a beautiful animation to give sense of forming
 * (We have a problem with that ^ look at the code for info)
 */
-void MainWindow::Create_new_note ()
+void MainWindow::createNewNote ()
 {
     if(!m_isTemp){
         if(!ui->lineEdit->text().isEmpty())
             ui->lineEdit->clear();
 
-        QString noteName = CreateNewNoteInDatabase();
-        m_tempNote = AddNote(noteName, false);
+        QString noteName = createNewNoteInDatabase();
+        m_tempNote = addNote(noteName, false);
         m_allNotesList.push_back(m_tempNote);
         m_noteOnTopInTheLayoutName = noteName;
         m_isTemp = true;
 
         if(m_currentSelectedNote != 0)
-            UnhighlightNote(m_currentSelectedNote);
+            unhighlightNote(m_currentSelectedNote);
 
         m_currentSelectedNote = m_tempNote;
-        HighlightNote(m_currentSelectedNote, "rgb(255, 235, 80)");
+        highlightNote(m_currentSelectedNote, "rgb(255, 235, 80)");
 
         ui->scrollArea->verticalScrollBar()->setValue(ui->scrollArea->verticalScrollBar()->minimum());
-        ui->editorDateLabel->setText(GetNoteDateEditor(m_notesDatabase->value(noteName + "/dateEdited", "Error").toString()));
+        ui->editorDateLabel->setText(getNoteDateEditor(m_notesDatabase->value(noteName + "/dateEdited", "Error").toString()));
         ui->textEdit->blockSignals(true);
         ui->textEdit->clear();
         ui->textEdit->setFocus();
@@ -1075,7 +1075,7 @@ void MainWindow::Create_new_note ()
 
         QCoreApplication::processEvents();
 
-        NewNoteAnimation();
+        newNoteAnimation();
 
     }else{
         ui->textEdit->blockSignals(true);
@@ -1083,7 +1083,7 @@ void MainWindow::Create_new_note ()
         ui->textEdit->blockSignals(false);
         ui->scrollArea->verticalScrollBar()->setValue(ui->scrollArea->verticalScrollBar()->minimum());
 
-        NewNoteAnimation();
+        newNoteAnimation();
     }
 }
 
@@ -1094,7 +1094,7 @@ void MainWindow::Create_new_note ()
 * If the last note is deleted, select the note above
 * else, select the note under it
 */
-void MainWindow::DeleteSelectedNoteFromVisual ()
+void MainWindow::deleteSelectedNoteFromVisual ()
 {
     unsigned int tempNotePlaceInLayout = 0;
     for(unsigned int i = 0; i < m_visibleNotesList.size(); i++){
@@ -1104,7 +1104,7 @@ void MainWindow::DeleteSelectedNoteFromVisual ()
         }
     }
 
-    DeleteNoteFromVisual(m_currentSelectedNote);
+    deleteNoteFromVisual(m_currentSelectedNote);
     m_currentSelectedNote = 0;
 
     ui->textEdit->blockSignals(true);
@@ -1123,9 +1123,9 @@ void MainWindow::DeleteSelectedNoteFromVisual ()
 /**
 * Delete the temporary note (a new note that was created but wasn't edited)
 */
-void MainWindow::DeleteTempNoteFromVisual ()
+void MainWindow::deleteTempNoteFromVisual ()
 {
-    DeleteNoteFromVisual(m_tempNote);
+    deleteNoteFromVisual(m_tempNote);
 
     m_tempNote = 0;
     m_isTemp = false;
@@ -1140,7 +1140,7 @@ void MainWindow::DeleteTempNoteFromVisual ()
 * If the note is temp and has not been edited, reset temp values
 * Activate animation
 */
-void MainWindow::DeleteSelectedNote ()
+void MainWindow::deleteSelectedNote ()
 {
     if(m_currentSelectedNote != 0){
         if(m_tempNote != 0 && m_currentSelectedNote->m_noteName == m_tempNote->m_noteName){
@@ -1148,14 +1148,14 @@ void MainWindow::DeleteSelectedNote ()
             m_isTemp = false;
         }
 
-        QPropertyAnimation *animation = GetAnimationForDeletion(m_currentSelectedNote);
+        QPropertyAnimation *animation = getAnimationForDeletion(m_currentSelectedNote);
 
         //Why can't Qt let pass data throught SLOT?
-        connect(animation, SIGNAL(finished()), this, SLOT(DeleteSelectedNoteFromVisual()));
+        connect(animation, SIGNAL(finished()), this, SLOT(deleteSelectedNoteFromVisual()));
 
         animation->start();
 
-        DeleteNoteFromDataBase(m_currentSelectedNote);
+        deleteNoteFromDataBase(m_currentSelectedNote);
 
         ui->textEdit->blockSignals(true);
         ui->editorDateLabel->clear();
@@ -1168,7 +1168,7 @@ void MainWindow::DeleteSelectedNote ()
 /**
 * Set focus on textEdit
 */
-void MainWindow::SetFocusOnText ()
+void MainWindow::setFocusOnText ()
 {
     if(m_currentSelectedNote != 0 && !ui->textEdit->hasFocus())
         ui->textEdit->setFocus();
@@ -1177,18 +1177,18 @@ void MainWindow::SetFocusOnText ()
 /**
 * Set focus on scrollArea and highlight the currentSelectedNote
 */
-void MainWindow::SetFocusOnScrollArea ()
+void MainWindow::setFocusOnScrollArea ()
 {
     ui->scrollArea->setFocus();
 
     if(m_currentSelectedNote != 0)
-        HighlightNote(m_currentSelectedNote, "rgb(254, 206, 9)");
+        highlightNote(m_currentSelectedNote, "rgb(254, 206, 9)");
 }
 
 /**
 * Select the note above the currentSelectedNote
 */
-void MainWindow::SelectNoteUp ()
+void MainWindow::selectNoteUp ()
 {
     if(m_currentSelectedNote != 0){
         if(!ui->scrollArea->hasFocus())
@@ -1211,7 +1211,7 @@ void MainWindow::SelectNoteUp ()
 /**
 * Select the note under the currentSelectedNote
 */
-void MainWindow::SelectNoteDown ()
+void MainWindow::selectNoteDown ()
 {
     if(m_currentSelectedNote != 0){
         if(!ui->scrollArea->hasFocus())
@@ -1234,7 +1234,7 @@ void MainWindow::SelectNoteDown ()
 /**
 * Switch to fullscreen mode
 */
-void MainWindow::FullscreenWindow ()
+void MainWindow::fullscreenWindow ()
 {
     if(this->windowState() == Qt::WindowFullScreen){
         this->setWindowState(Qt::WindowNoState);
@@ -1246,7 +1246,7 @@ void MainWindow::FullscreenWindow ()
 /**
 * Maximize the window
 */
-void MainWindow::MaximizeWindow ()
+void MainWindow::maximizeWindow ()
 {
     if(this->windowState() == Qt::WindowMaximized || this->windowState() == Qt::WindowFullScreen){
         this->setWindowState(Qt::WindowNoState);
@@ -1258,7 +1258,7 @@ void MainWindow::MaximizeWindow ()
 /**
 * Minimize the window
 */
-void MainWindow::MinimizeWindow ()
+void MainWindow::minimizeWindow ()
 {
     this->setWindowState(Qt::WindowMinimized);
     this->showNormal(); // I don't know why, but it's need to be here
@@ -1272,7 +1272,7 @@ void MainWindow::QuitApplication ()
 {
     if(m_tempNote != 0){
         ui->textEdit->blockSignals(true);
-        DeleteNoteFromDataBase(m_tempNote);
+        deleteNoteFromDataBase(m_tempNote);
     }
 
     //QApplication::quit();
@@ -1282,7 +1282,7 @@ void MainWindow::QuitApplication ()
 /**
 * When the green button is pressed set it's icon accordingly
 */
-void MainWindow::on_greenMaximizeButton_pressed ()
+void MainWindow::onGreenMaximizeButtonPressed ()
 {
     if(this->windowState() == Qt::WindowFullScreen){
         ui->greenMaximizeButton->setIcon(QIcon(":images/greenInPressed.png"));
@@ -1294,7 +1294,7 @@ void MainWindow::on_greenMaximizeButton_pressed ()
 /**
 * When the yellow button is pressed set it's icon accordingly
 */
-void MainWindow::on_yellowMinimizeButton_pressed ()
+void MainWindow::onYellowMinimizeButtonPressed ()
 {
     ui->yellowMinimizeButton->setIcon(QIcon(":images/yellowPressed.png"));
 }
@@ -1302,7 +1302,7 @@ void MainWindow::on_yellowMinimizeButton_pressed ()
 /**
 * When the red button is pressed set it's icon accordingly
 */
-void MainWindow::on_redCloseButton_pressed ()
+void MainWindow::onRedCloseButtonPressed ()
 {
     ui->redCloseButton->setIcon(QIcon(":images/redPressed.png"));
 }
@@ -1310,28 +1310,28 @@ void MainWindow::on_redCloseButton_pressed ()
 /**
 * When the green button is released the window goes fullscrren
 */
-void MainWindow::on_greenMaximizeButton_clicked()
+void MainWindow::onGreenMaximizeButtonClicked()
 {
     ui->greenMaximizeButton->setIcon(QIcon(":images/green.png"));
 
-    FullscreenWindow();
+    fullscreenWindow();
 }
 
 /**
 * When yellow button is released the window is minimized
 */
-void MainWindow::on_yellowMinimizeButton_clicked()
+void MainWindow::onYellowMinimizeButtonClicked()
 {
     ui->yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
 
-    MinimizeWindow();
+    minimizeWindow();
 }
 
 /**
 * When red button is released the window get closed
 * If a new note created but wasn't edited, delete it from the database
 */
-void MainWindow::on_redCloseButton_clicked()
+void MainWindow::onRedCloseButtonClicked()
 {
     ui->redCloseButton->setIcon(QIcon(":images/red.png"));
 
@@ -1346,7 +1346,7 @@ void MainWindow::on_redCloseButton_clicked()
 * We are doing this so the notes will look equaly clear in both situations
 * (when scrollBar is visible, and when not)
 */
-void MainWindow::ScrollAreaScrollBarRangeChange (int, int verticalScrollBarRange)
+void MainWindow::scrollAreaScrollBarRangeChange (int, int verticalScrollBarRange)
 {
     //    currentVerticalScrollAreaRange = verticalScrollBarRange;
 
@@ -1388,7 +1388,7 @@ void MainWindow::ScrollAreaScrollBarRangeChange (int, int verticalScrollBarRange
 * We are doing this so the text padding will be equal in both situations
 * (when scrollBar is visible, and when not)
 */
-void MainWindow::TextEditScrollBarRangeChange (int, int verticalScrollBarRange)
+void MainWindow::textEditScrollBarRangeChange (int, int verticalScrollBarRange)
 {
     //    if(verticalScrollBarRange > 0){
     //        QString styleSheet =  QString("QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
@@ -1419,7 +1419,7 @@ void MainWindow::TextEditScrollBarRangeChange (int, int verticalScrollBarRange)
 * Gets called to save the value of the scrollBar in the currentSelectedNote
 * for recovering the scrollBar position when browsing different notes
 */
-void MainWindow::TextEditScrollBarValueChange (int verticalScrollBarValue)
+void MainWindow::textEditScrollBarValueChange (int verticalScrollBarValue)
 {
     if(m_currentSelectedNote != 0)
         m_currentSelectedNote->m_scrollBarPosition = verticalScrollBarValue;
@@ -1475,7 +1475,7 @@ void MainWindow::mouseReleaseEvent (QMouseEvent *event)
     event->accept();
 }
 
-bool MainWindow::IsClickingButton (QPoint mousePos, QPushButton* button)
+bool MainWindow::isClickingButton (QPoint mousePos, QPushButton* button)
 {
     if(mousePos.y() > button->y() &&
             mousePos.y() < button->y() + button->height() &&
@@ -1492,9 +1492,9 @@ bool MainWindow::IsClickingButton (QPoint mousePos, QPushButton* button)
 void MainWindow::mouseDoubleClickEvent (QMouseEvent *e)
 {
     if(e->pos().y() < ui->textEdit->y() &&
-            !IsClickingButton(e->pos(), ui->newNoteButton) &&
-            !IsClickingButton(e->pos(), ui->trashButton))
-        MaximizeWindow();
+            !isClickingButton(e->pos(), ui->newNoteButton) &&
+            !isClickingButton(e->pos(), ui->trashButton))
+        maximizeWindow();
 
     e->accept();
 }
@@ -1520,7 +1520,7 @@ void MainWindow::resizeEvent (QResizeEvent *)
 /**
 * return true if the given spacer item is inside the given layout, else retuen false
 */
-bool MainWindow::IsSpacerInsideLayout(QSpacerItem *spacer, QVBoxLayout *layout)
+bool MainWindow::isSpacerInsideLayout(QSpacerItem *spacer, QVBoxLayout *layout)
 {
     for(int i = 0; i < layout->count(); i++){
         if(layout->itemAt(i)->spacerItem() == spacer)
@@ -1534,7 +1534,7 @@ bool MainWindow::IsSpacerInsideLayout(QSpacerItem *spacer, QVBoxLayout *layout)
 * Takes care for resizing the widgets that aren't inside a layout: frame, clearButton, and note buttons
 * when the splitter is moving
 */
-void MainWindow::ResizeRestWhenSplitterMove(int pos, int index)
+void MainWindow::resizeRestWhenSplitterMove(int pos, int index)
 {
     QCoreApplication::processEvents();
 
@@ -1596,7 +1596,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
         if(QString(object->metaObject()->className()) == "NoteData"){
             m_currentHoveredNote = qobject_cast<NoteData *>(object);
             if((m_currentSelectedNote != 0 && m_currentHoveredNote != m_currentSelectedNote) || m_currentSelectedNote == 0)
-                HighlightNote(m_currentHoveredNote, "rgb(207, 207, 207)");
+                highlightNote(m_currentHoveredNote, "rgb(207, 207, 207)");
         }
 
         // When hovering upon textEdit's scrollBar, show its border
@@ -1621,7 +1621,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
             if(m_currentHoveredNote != 0 && m_currentHoveredNote == note){
                 if((m_currentSelectedNote != 0 && m_currentHoveredNote != m_currentSelectedNote) || m_currentSelectedNote == 0){
 
-                    UnhighlightNote(m_currentHoveredNote);
+                    unhighlightNote(m_currentHoveredNote);
                 }
             }
         }
@@ -1640,7 +1640,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
         if(object == ui->textEdit){
             // If there are no notes, and the user click the textEdit, create a new note
             if(m_currentSelectedNote == 0)
-                Create_new_note();
+                createNewNote();
 
             // When clicking in a note's content while searching,
             // reload all the notes and go and select that note
@@ -1649,9 +1649,9 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
 
                 ui->lineEdit->clear();
 
-                GoToAndSelectNote(tempName);
+                goToAndSelectNote(tempName);
 
-                HighlightNote(m_currentSelectedNote, "rgb(255, 235, 80)");
+                highlightNote(m_currentSelectedNote, "rgb(255, 235, 80)");
             }
         }
     }
@@ -1660,7 +1660,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
         // If the scrollArea is out of focus change the highligted color of currentSelectedNote
         if(object == ui->scrollArea){
             if(m_currentSelectedNote != 0){
-                HighlightNote(m_currentSelectedNote, "rgb(255, 235, 80)");
+                highlightNote(m_currentSelectedNote, "rgb(255, 235, 80)");
             }
         }
     }
