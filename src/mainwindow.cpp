@@ -249,18 +249,21 @@ void MainWindow::SetUpScrollArea ()
     ui->scrollArea->setGeometry(ui->scrollArea->x() + 1, ui->scrollArea->y(), ui->scrollArea->width() - 1, ui->scrollArea->height());
 #endif
 
-    QString styleSheet = QString("QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
-                                 "QScrollBar:handle:vertical:pressed { background: rgb(149, 149, 149); } * { background-color: rgb(255, 255, 255);  } "
-                                 "QScrollBar:vertical {border: none; width: 8px; } "
-                                 "QScrollBar::handle:vertical { border-radius: 2.5px; background: rgb(188, 188, 188); min-height: 20px; }  "
+    QString styleSheet = QString("QScrollArea QWidget{background-color:white; color:black;} "
+                                 "QScrollBar {margin-right: 2px; background: transparent;} "
+                                 "QScrollBar:hover { background-color: rgb(217, 217, 217);}"
+                                 "QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
+                                 "QScrollBar:handle:vertical:pressed { background: rgb(149, 149, 149);}"
+                                 "QScrollBar:vertical { border: none; width: 10px; border-radius: 4px;} "
+                                 "QScrollBar::handle:vertical { border-radius: 4px; background: rgb(188, 188, 188); min-height: 20px; }  "
                                  "QScrollBar::add-line:vertical { height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
                                  "QScrollBar::sub-line:vertical { height: 0px; subcontrol-position: top; subcontrol-origin: margin; }");
 
     ui->scrollArea->setStyleSheet(styleSheet);
     ui->scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-    ui->scrollArea->installEventFilter(this);
-    ui->scrollArea->verticalScrollBar()->installEventFilter(this);
+    //ui->scrollArea->installEventFilter(this);
+    //ui->scrollArea->verticalScrollBar()->installEventFilter(this);
 
     connect(ui->scrollArea->verticalScrollBar(), SIGNAL(rangeChanged(int,int)), this, SLOT(ScrollAreaScrollBarRangeChange(int,int)));
 }
@@ -285,19 +288,20 @@ void MainWindow::SetUpTextEdit ()
 #error "We don't support that version yet..."
 #endif
 
-    QString styleSheet = QString(""
-                                 "QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
-                                 "QScrollBar:handle:vertical:pressed { background: rgb(149, 149, 149); } "
-                                 "QTextEdit { background-image: url(:/images/textSideBackground.png); padding-left: %1px; padding-right: %2px; } "
-                                 "QScrollBar:vertical { border: none; width: 8px; } "
-                                 "QScrollBar::handle:vertical { border-radius: 2.5px; background: rgb(188, 188, 188); min-height: 20px; }  "
-                                 "QScrollBar::add-line:vertical { height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
-                                 "QScrollBar::sub-line:vertical { height: 0px; subcontrol-position: top; subcontrol-origin: margin; }"
+    QString styleSheet = QString("QTextEdit {background-image: url(:images/textSideBackground.png); padding-left: %1px; padding-right: %2px; padding-bottom:2px;} "
+                                 "QScrollBar::handle:vertical:hover { background: rgb(170, 170, 171); } "
+                                 "QScrollBar::handle:vertical:pressed { background: rgb(149, 149, 149); } "
+                                 "QScrollBar::handle:vertical { border-radius: 4px; background: rgb(188, 188, 188); min-height: 20px; }  "
+                                 "QScrollBar::vertical {border-radius: 4px; width: 8px; color: rgba(255, 255, 255,0);} "
+                                 "QScrollBar {margin: 0; background: transparent;} "
+                                 "QScrollBar:hover { background-color: rgb(217, 217, 217);}"
+                                 "QScrollBar::add-line:vertical { width:0px; height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
+                                 "QScrollBar::sub-line:vertical { width:0px; height: 0px; subcontrol-position: top; subcontrol-origin: margin; }"
                                  ).arg(QString::number(ui->newNoteButton->width() - m_textEditLeftPadding), "27");
     ui->textEdit->setStyleSheet(styleSheet);
 
-    ui->textEdit->installEventFilter(this);
-    ui->textEdit->verticalScrollBar()->installEventFilter(this);
+    //ui->textEdit->installEventFilter(this);
+    //ui->textEdit->verticalScrollBar()->installEventFilter(this);
 
     connect(ui->textEdit->verticalScrollBar(), SIGNAL(rangeChanged(int,int)), this, SLOT(TextEditScrollBarRangeChange(int,int)));
     connect(ui->textEdit->verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(TextEditScrollBarValueChange(int)));
@@ -1396,28 +1400,28 @@ void MainWindow::ScrollAreaScrollBarRangeChange (int, int verticalScrollBarRange
 */
 void MainWindow::TextEditScrollBarRangeChange (int, int verticalScrollBarRange)
 {
-    if(verticalScrollBarRange > 0){
-        QString styleSheet =  QString("QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
-                                      "QScrollBar:handle:vertical:pressed { background: rgb(149, 149, 149); } "
-                                      "QTextEdit { background-image: url(:/images/textSideBackground.png); padding-left: %1px; padding-right: %2px; } "
-                                      "QScrollBar:vertical { border: none; width: 8px; } "
-                                      "QScrollBar::handle:vertical { border-radius: 2.5px; background: rgb(188, 188, 188); min-height: 20px; }  "
-                                      "QScrollBar::add-line:vertical { height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
-                                      "QScrollBar::sub-line:vertical { height: 0px; subcontrol-position: top; subcontrol-origin: margin; }"
-                                      ).arg(QString::number(ui->newNoteButton->width() - m_textEditLeftPadding), "19");
-        ui->textEdit->setStyleSheet(styleSheet);
+    //    if(verticalScrollBarRange > 0){
+    //        QString styleSheet =  QString("QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
+    //                                      "QScrollBar:handle:vertical:pressed { background: rgb(149, 149, 149); } "
+    //                                      "QTextEdit { background-image: url(:/images/textSideBackground.png); padding-left: %1px; padding-right: %2px; } "
+    //                                      "QScrollBar:vertical { border: none; width: 8px; } "
+    //                                      "QScrollBar::handle:vertical { border-radius: 2.5px; background: rgb(188, 188, 188); min-height: 20px; }  "
+    //                                      "QScrollBar::add-line:vertical { height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
+    //                                      "QScrollBar::sub-line:vertical { height: 0px; subcontrol-position: top; subcontrol-origin: margin; }"
+    //                                      ).arg(QString::number(ui->newNoteButton->width() - m_textEditLeftPadding), "19");
+    //        ui->textEdit->setStyleSheet(styleSheet);
 
-    }else{
-        QString styleSheet = QString("QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
-                                     "QScrollBar:handle:vertical:pressed { background: rgb(149, 149, 149); } "
-                                     "QTextEdit { background-image: url(:/images/textSideBackground.png); padding-left: %1px; padding-right: %2px; } "
-                                     "QScrollBar:vertical { border: none; width: 8px; } "
-                                     "QScrollBar::handle:vertical { border-radius: 2.5px; background: rgb(188, 188, 188); min-height: 20px; }  "
-                                     "QScrollBar::add-line:vertical { height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
-                                     "QScrollBar::sub-line:vertical { height: 0px; subcontrol-position: top; subcontrol-origin: margin; }"
-                                     ).arg(QString::number(ui->newNoteButton->width() - m_textEditLeftPadding), "27");
-        ui->textEdit->setStyleSheet(styleSheet);
-    }
+    //    }else{
+    //        QString styleSheet = QString("QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
+    //                                     "QScrollBar:handle:vertical:pressed { background: rgb(149, 149, 149); } "
+    //                                     "QTextEdit { background-image: url(:/images/textSideBackground.png); padding-left: %1px; padding-right: %2px; } "
+    //                                     "QScrollBar:vertical { border: none; width: 8px; } "
+    //                                     "QScrollBar::handle:vertical { border-radius: 2.5px; background: rgb(188, 188, 188); min-height: 20px; }  "
+    //                                     "QScrollBar::add-line:vertical { height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
+    //                                     "QScrollBar::sub-line:vertical { height: 0px; subcontrol-position: top; subcontrol-origin: margin; }"
+    //                                     ).arg(QString::number(ui->newNoteButton->width() - m_textEditLeftPadding), "27");
+    //        ui->textEdit->setStyleSheet(styleSheet);
+    //    }
 }
 
 /**
@@ -1614,31 +1618,8 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
             }
         }
 
-        // When hoovering upon scrollArea's scrollBar, show it's border
-        if(object == ui->scrollArea->verticalScrollBar()){
-            QString styleSheet = QString(""
-                                         "QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
-                                         "QScrollBar:handle:vertical:pressed { background: rgb(149, 149, 149); } * { background-color: rgb(255, 255, 255);  } "
-                                         "QScrollBar:vertical { background: rgb(218, 218, 218); border: 1px rgb(218, 218, 218); border-radius: 5px; width: 11px; } "
-                                         "QScrollBar::handle:vertical { border-radius: 5px; background: rgb(188, 188, 188); min-height: 20px; }  "
-                                         "QScrollBar::add-line:vertical { height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
-                                         "QScrollBar::sub-line:vertical { height: 0px; subcontrol-position: top; subcontrol-origin: margin; }");
-            ui->scrollArea->setStyleSheet(styleSheet);
-        }
-
-        // When hoovering upon textEdit's scrollBar, show it's border
+        // When hovering upon textEdit's scrollBar, show its border
         if(object == ui->textEdit->verticalScrollBar()){
-            QString styleSheet = QString(""
-                                         "QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
-                                         "QScrollBar:handle:vertical:pressed { background: rgb(149, 149, 149); } "
-                                         "QTextEdit { background-image: url(:/images/textSideBackground.png); padding-left: %1px; padding-right: %2px; } "
-                                         "QScrollBar:vertical { background: rgb(218, 218, 218); border: 1px rgb(218, 218, 218); border-radius: 5px; width: 11px; } "
-                                         "QScrollBar::handle:vertical { border-radius: 5px; background: rgb(188, 188, 188); min-height: 20px; }  "
-                                         "QScrollBar::add-line:vertical { height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
-                                         "QScrollBar::sub-line:vertical { height: 0px; subcontrol-position: top; subcontrol-origin: margin; }"
-                                         ).arg(QString::number(ui->newNoteButton->width() - m_textEditLeftPadding), "16");
-            ui->textEdit->setStyleSheet(styleSheet);
-
             if(!ui->lineEdit->text().isEmpty() && m_currentSelectedNote != 0)
                 m_focusBreaker = true;
         }
@@ -1676,30 +1657,8 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
             }
         }
 
-        // When note havering the scrollArea's scrollBar, change back to it's default style
-        if(object == ui->scrollArea->verticalScrollBar()){
-            QString styleSheet = QString(""
-                                         "QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
-                                         "QScrollBar:handle:vertical:pressed { background: rgb(149, 149, 149); } * { background-color: rgb(255, 255, 255);  } "
-                                         "QScrollBar:vertical { border: none; width: 8px; } QScrollBar::handle:vertical { border-radius: 2.5px; background: rgb(188, 188, 188); min-height: 20px; }  "
-                                         "QScrollBar::add-line:vertical { height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
-                                         "QScrollBar::sub-line:vertical { height: 0px; subcontrol-position: top; subcontrol-origin: margin; }");
-            ui->scrollArea->setStyleSheet(styleSheet);
-        }
-
-        // When note havering the textEdit's scrollBar, change back to it's default style
+        // When not hovering the textEdit's scrollBar, change back to its default style
         if(object == ui->textEdit->verticalScrollBar()){
-            QString styleSheet = QString(""
-                                         "QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
-                                         "QScrollBar:handle:vertical:pressed { background: rgb(149, 149, 149); } "
-                                         "QTextEdit { background-image: url(:/images/textSideBackground.png); padding-left: %1px; padding-right: %2px; } "
-                                         "QScrollBar:vertical { border: none; width: 8px; } "
-                                         "QScrollBar::handle:vertical { border-radius: 2.5px; background: rgb(188, 188, 188); min-height: 20px; }  "
-                                         "QScrollBar::add-line:vertical { height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
-                                         "QScrollBar::sub-line:vertical { height: 0px; subcontrol-position: top; subcontrol-origin: margin; }"
-                                         ).arg(QString::number(ui->newNoteButton->width() - m_textEditLeftPadding), "19");
-
-            ui->textEdit->setStyleSheet(styleSheet);
 
             m_focusBreaker = false;
             if(!ui->lineEdit->text().isEmpty() && m_currentSelectedNote != 0)
