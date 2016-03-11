@@ -14,6 +14,7 @@ NoteData::NoteData(const QString& noteName, QWidget *parent) :
 {
 
     setupWidget();
+    connect(m_button, SIGNAL(clicked(bool)), this, SLOT(onButtonClicked()));
 }
 
 NoteData::~NoteData()
@@ -117,4 +118,9 @@ void NoteData::setupWidget()
     vLayoutNote->addWidget(m_fakeContainer);
     this->setLayout(vLayoutNote);
 
+}
+
+void NoteData::onButtonClicked()
+{
+    emit clicked();
 }

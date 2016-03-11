@@ -1,6 +1,7 @@
 #ifndef NOTEDATA_H
 #define NOTEDATA_H
 
+#include <QObject>
 #include <QWidget>
 #include <QGroupBox>
 #include <QPushButton>
@@ -35,6 +36,11 @@ protected:
 private:
     void setupWidget();
 
+public slots:
+    void onButtonClicked();
+
+signals:
+    void clicked();
 
 };
 
