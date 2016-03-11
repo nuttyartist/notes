@@ -366,19 +366,19 @@ void MainWindow::InitializeSettingsDatabase()
 */
 void MainWindow::SetUpDatabases ()
 {
-    m_notesDatabase = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Awesomeness", "Notes");
+    m_notesDatabase = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Awesomeness", "Notes", this);
     m_notesDatabase->setFallbacksEnabled(false);
 
     if(m_notesDatabase->value("notesCounter", "NULL") == "NULL")
         m_notesDatabase->setValue("notesCounter", 0);
 
-    m_trashDatabase = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Awesomeness", "Trash");
+    m_trashDatabase = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Awesomeness", "Trash", this);
     m_trashDatabase->setFallbacksEnabled(false);
 
     if(m_trashDatabase->value("notesCounter", "NULL") == "NULL")
         m_trashDatabase->setValue("notesCounter", 0);
 
-    m_settingsDatabase = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Awesomeness", "Settings");
+    m_settingsDatabase = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Awesomeness", "Settings", this);
     m_settingsDatabase->setFallbacksEnabled(false);
 
     InitializeSettingsDatabase();
