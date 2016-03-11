@@ -67,7 +67,7 @@ void NoteData::setupWidget()
 #else
 #error "We don't support that version yet..."
 #endif
-    this->setFixedHeight(50);
+
     // title label
     m_titleLabel->setFont(titleLabelFont);
     m_titleLabel->setStyleSheet("QLabel { color : black; }");
