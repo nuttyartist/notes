@@ -127,7 +127,7 @@ private:
 private slots:
     void onNewNoteButtonClicked();
     void onTrashButtonClicked();
-    void onNoteClicked();
+    void onNotePressed();
     void onTextEditTextChanged();
     void onLineEditTextChanged(const QString& arg1);
     void onGreenMaximizeButtonPressed ();

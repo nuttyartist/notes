@@ -14,7 +14,7 @@ NoteData::NoteData(const QString& noteName, QWidget *parent) :
 {
 
     setupWidget();
-    connect(m_button, SIGNAL(clicked(bool)), this, SLOT(onButtonClicked()));
+    connect(m_button, SIGNAL(pressed()), this, SLOT(onButtonPressed()));
 }
 
 NoteData::~NoteData()
@@ -23,7 +23,7 @@ NoteData::~NoteData()
 
 void NoteData::resizeEvent(QResizeEvent *)
 {
-    m_button->setFixedWidth(this->width() - 18);
+    m_button->setFixedWidth(this->width());
 }
 
 void NoteData::setupWidget()
@@ -87,7 +87,7 @@ void NoteData::setupWidget()
     // button
     m_button->setGeometry(0, 0, this->width(), m_titleLabel->height() + m_dateLabel->height() + m_seperateLine->height() + distanceBetweenEverything*3);
     m_button->raise();
-    m_button->setStyleSheet("QPushButton { background-color: rgba(254, 206, 9, 0) }");
+    m_button->setStyleSheet("QPushButton{border: none; background-color: rgba(254, 206, 9, 0)}");
     m_button->setFlat(true);
     m_button->setFocusPolicy(Qt::NoFocus);
     // fake container
@@ -120,7 +120,7 @@ void NoteData::setupWidget()
 
 }
 
-void NoteData::onButtonClicked()
+void NoteData::onButtonPressed()
 {
-    emit clicked();
+    emit pressed();
 }

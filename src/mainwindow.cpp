@@ -558,7 +558,7 @@ NoteData *MainWindow::addNote(QString noteName, bool isLoadingOrNew)
     m_lay->insertWidget(0, newNote, 0, Qt::AlignTop);
 
     newNote->installEventFilter(this);
-    connect(newNote, SIGNAL(clicked()), this, SLOT(onNoteClicked()));
+    connect(newNote, SIGNAL(pressed()), this, SLOT(onNotePressed()));
 
 
     return newNote;
@@ -725,7 +725,7 @@ QPropertyAnimation* MainWindow::getAnimationForDeletion (NoteData *note)
 * Set editorDateLabel text to the the selected note date
 * And restore the scrollBar position if it changed before.
 */
-void MainWindow::onNoteClicked ()
+void MainWindow::onNotePressed ()
 {
     if(sender() != 0){
         if(m_currentSelectedNote != 0 && m_currentSelectedNote != m_tempNote)
@@ -744,6 +744,8 @@ void MainWindow::onNoteClicked ()
 
         highlightNote(m_currentSelectedNote, "rgb(254, 206, 9)");
         showNoteInEditor(m_currentSelectedNote);
+        m_currentSelectedNote->setFocus();
+
     }
 }
 
@@ -1669,10 +1671,9 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
 
     if(event->type() == QEvent::FocusOut){
         // If the scrollArea is out of focus change the highligted color of currentSelectedNote
-        if(object == ui->scrollArea){
-            if(m_currentSelectedNote != 0){
+        if(object == m_currentSelectedNote){
+            if(m_currentSelectedNote != 0)
                 highlightNote(m_currentSelectedNote, "rgb(255, 235, 80)");
-            }
         }
     }
 

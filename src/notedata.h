@@ -37,10 +37,10 @@ private:
     void setupWidget();
 
 public slots:
-    void onButtonClicked();
+    void onButtonPressed();
 
 signals:
-    void clicked();
+    void pressed();
 
 };
 
