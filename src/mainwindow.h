@@ -90,7 +90,6 @@ private:
     void createMagnifyingGlassIcon();
     void createNewNoteIfEmpty();
     QString createNewNoteInDatabase();
-    void deleteTempNoteFromVisual();
     void deleteNoteFromDataBase(NoteData* note);
     void deleteNoteFromVisual(NoteData* note);
     void newNoteAnimation();
@@ -140,6 +139,7 @@ private slots:
     void createNewNote();
     void deleteSelectedNote();
     void deleteSelectedNoteFromVisual();
+    void deleteTempNoteFromVisual();
     void setFocusOnScrollArea();
     void selectNoteDown();
     void selectNoteUp();
