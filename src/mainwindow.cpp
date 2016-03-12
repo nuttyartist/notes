@@ -21,21 +21,22 @@ MainWindow::MainWindow (QWidget *parent) :
     ui (new Ui::MainWindow)
 {
     ui->setupUi(this);
-    setUpMainWindow();
-    setUpKeyboardShortcuts();
-    setUpNewNoteButtonAndTrahButton();
-    setUpEditorDateLabel();
-    setUpSplitter();
-    setUpLine();
-    setUpFrame ();
-    setUpTitleBarButtons();
+    setupMainWindow();
+    setupSignalsSlots();
+    setupKeyboardShortcuts();
+    setupNewNoteButtonAndTrahButton();
+    setupEditorDateLabel();
+    setupSplitter();
+    setupLine();
+    setupFrame ();
+    setupTitleBarButtons();
     createClearButton();
     createMagnifyingGlassIcon();
-    setUpLineEdit();
-    setUpScrollArea();
-    setUpTextEdit();
+    setupLineEdit();
+    setupScrollArea();
+    setupTextEdit();
     initializeVariables();
-    setUpDatabases();
+    setupDatabases();
     restoreStates();
     setLayoutForScrollArea();
     loadNotes();
@@ -65,7 +66,7 @@ MainWindow::~MainWindow ()
 * Setting up main window prefrences like frameless window and the minimum size of the window
 * Setting the window background color to be white
 */
-void MainWindow::setUpMainWindow ()
+void MainWindow::setupMainWindow ()
 {
 #ifdef Q_OS_LINUX
     this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
@@ -89,7 +90,7 @@ void MainWindow::setUpMainWindow ()
 /**
 * Setting up the keyboard shortcuts
 */
-void MainWindow::setUpKeyboardShortcuts ()
+void MainWindow::setupKeyboardShortcuts ()
 {
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_N), this, SLOT(createNewNote()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Delete), this, SLOT(deleteSelectedNote()));
@@ -115,7 +116,7 @@ void MainWindow::setUpKeyboardShortcuts ()
 * needs to be more than 50 and less than 34 respectively.
 * So some modifications needs to be done.
 */
-void MainWindow::setUpNewNoteButtonAndTrahButton ()
+void MainWindow::setupNewNoteButtonAndTrahButton ()
 {
 #ifdef __APPLE__
     ui->newNoteButton->setGeometry(ui->newNoteButton->x(), ui->newNoteButton->y(), 50, 32);
@@ -132,7 +133,7 @@ void MainWindow::setUpNewNoteButtonAndTrahButton ()
 * a flawless and a delightful experience for are users,
 * and that's what matters the most.
 */
-void MainWindow::setUpEditorDateLabel()
+void MainWindow::setupEditorDateLabel()
 {
     // There is a problem with Helvetica here so we usa Arial, someone sguggestion?
 #ifdef __APPLE__
@@ -146,7 +147,7 @@ void MainWindow::setUpEditorDateLabel()
 /**
 * Set up the splitter that control the size of the scrollArea and the textEdit
 */
-void MainWindow::setUpSplitter()
+void MainWindow::setupSplitter()
 {
     ui->splitter->setStretchFactor(1, 1);
     ui->splitter->setStretchFactor(2, 0);
@@ -156,7 +157,7 @@ void MainWindow::setUpSplitter()
 /**
 * Set up the vertical line that seperate between the scrollArea to the textEdit
 */
-void MainWindow::setUpLine ()
+void MainWindow::setupLine ()
 {
     ui->line->setStyleSheet("border: 1px solid rgb(221, 221, 221)");
 }
@@ -164,7 +165,7 @@ void MainWindow::setUpLine ()
 /**
 * Set up a frame above textEdit and behind the other widgets for a unifed background in thet editor section
 */
-void MainWindow::setUpFrame ()
+void MainWindow::setupFrame ()
 {
     frame = new QFrame(this);
     frame->setStyleSheet("QFrame { background-image: url(:images/textSideBackground.png); border: none;}");
@@ -176,7 +177,7 @@ void MainWindow::setUpFrame ()
 * Make only the buttons icon visible
 * And install this class event filter to them, to act when hovering on one of them
 */
-void MainWindow::setUpTitleBarButtons ()
+void MainWindow::setupTitleBarButtons ()
 {
     ui->redCloseButton->setStyleSheet("QPushButton { border: none; padding: 0px; }");
     ui->yellowMinimizeButton->setStyleSheet("QPushButton { border: none; padding: 0px; }");
@@ -186,6 +187,27 @@ void MainWindow::setUpTitleBarButtons ()
     ui->yellowMinimizeButton->installEventFilter(this);
     ui->greenMaximizeButton->installEventFilter(this);
 
+}
+
+void MainWindow::setupSignalsSlots()
+{
+    // green button
+    connect(ui->greenMaximizeButton, SIGNAL(pressed()), this, SLOT(onGreenMaximizeButtonPressed()));
+    connect(ui->greenMaximizeButton, SIGNAL(clicked()), this, SLOT(onGreenMaximizeButtonClicked()));
+    // red button
+    connect(ui->redCloseButton, SIGNAL(pressed()), this, SLOT(onRedCloseButtonPressed()));
+    connect(ui->redCloseButton, SIGNAL(clicked()), this, SLOT(onRedCloseButtonClicked()));
+    // yellow button
+    connect(ui->yellowMinimizeButton, SIGNAL(pressed()), this, SLOT(onYellowMinimizeButtonPressed()));
+    connect(ui->yellowMinimizeButton, SIGNAL(clicked()), this, SLOT(onYellowMinimizeButtonClicked()));
+    // new note button
+    connect(ui->newNoteButton, SIGNAL(clicked(bool)), this, SLOT(onNewNoteButtonClicked()));
+    // delete note button
+    connect(ui->trashButton, SIGNAL(clicked(bool)), this, SLOT(onTrashButtonClicked()));
+    // text edit text changed
+    connect(ui->textEdit, SIGNAL(textChanged()), this, SLOT(onTextEditTextChanged()));
+    // line edit text changed
+    connect(ui->lineEdit, SIGNAL(textChanged(QString)), this, SLOT(onLineEditTextChanged(QString)));
 }
 
 /**
@@ -225,7 +247,7 @@ void MainWindow::createMagnifyingGlassIcon ()
 /**
 * Set the lineedit to start a bit to the right and end a bit to the left (pedding)
 */
-void MainWindow::setUpLineEdit ()
+void MainWindow::setupLineEdit ()
 {
     // There is a problem with Helvetica here so we usa Arial, someone sguggestion?
 #ifdef __APPLE__
@@ -243,7 +265,7 @@ void MainWindow::setUpLineEdit ()
 * Disable the horizontal scrolling in scrollArea
 * And install this class event filter to act when scrollArea is out of focus and when hovering the scrollBar
 */
-void MainWindow::setUpScrollArea ()
+void MainWindow::setupScrollArea ()
 {
 #ifdef __APPLE__
     ui->scrollArea->setGeometry(ui->scrollArea->x() + 1, ui->scrollArea->y(), ui->scrollArea->width() - 1, ui->scrollArea->height());
@@ -271,7 +293,7 @@ void MainWindow::setUpScrollArea ()
 * Make the textEdit pedding few pixels right and left, to compel with a beautiful proportional grid
 * And install this class event filter to act when scrollArea is out of focus and when hovering the scrollBar
 */
-void MainWindow::setUpTextEdit ()
+void MainWindow::setupTextEdit ()
 {
     //? ui->textEdit->setTextColor(QColor::fromRgb(25, 25, 25));
 
@@ -297,8 +319,8 @@ void MainWindow::setUpTextEdit ()
                                  ).arg(QString::number(ui->newNoteButton->width() - m_textEditLeftPadding), "27");
     ui->textEdit->setStyleSheet(styleSheet);
 
-    //ui->textEdit->installEventFilter(this);
-    //ui->textEdit->verticalScrollBar()->installEventFilter(this);
+    ui->textEdit->installEventFilter(this);
+    ui->textEdit->verticalScrollBar()->installEventFilter(this);
 
     connect(ui->textEdit->verticalScrollBar(), SIGNAL(rangeChanged(int,int)), this, SLOT(textEditScrollBarRangeChange(int,int)));
     connect(ui->textEdit->verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(textEditScrollBarValueChange(int)));
@@ -365,7 +387,7 @@ void MainWindow::initializeSettingsDatabase()
 * Windows: C:\Users\user\AppData\Roaming\Awesomeness
 * Mac OS X:
 */
-void MainWindow::setUpDatabases ()
+void MainWindow::setupDatabases ()
 {
     m_notesDatabase = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Awesomeness", "Notes", this);
     m_notesDatabase->setFallbacksEnabled(false);
@@ -644,12 +666,12 @@ void MainWindow::onTrashButtonClicked()
 */
 void MainWindow::unhighlightNote (NoteData* note)
 {
-    for(unsigned int i = 0; i < m_visibleNotesList.size() - 1; i++){
-        if(m_visibleNotesList.at(i) == note){
-            m_visibleNotesList.at(i + 1)->m_seperateLine->show();
-            break;
-        }
-    }
+//    for(unsigned int i = 0; i < m_visibleNotesList.size() - 1; i++){
+//        if(m_visibleNotesList.at(i) == note){
+//            m_visibleNotesList.at(i + 1)->m_seperateLine->show();
+//            break;
+//        }
+//    }
     //note->m_seperateLine->show();
 
     note->m_containerBox->setStyleSheet("");
@@ -771,18 +793,8 @@ void MainWindow::deleteNoteFromDataBase (NoteData *note)
 */
 void MainWindow::deleteNoteFromVisual (NoteData *note)
 {
-    // Make the seperateLine of the note above it visible
-    for(unsigned int i = 0; i < m_visibleNotesList.size(); i++){
-        if(m_visibleNotesList.at(i) == note){
-            if(i != m_visibleNotesList.size() - 1)
-                m_visibleNotesList.at(i + 1)->m_seperateLine->show();
-
-            m_visibleNotesList.erase(m_visibleNotesList.begin() + i);
-            break;
-        }
-    }
-
-    m_lay->removeWidget(note->m_fakeContainer);
+    m_visibleNotesList.removeOne(note);
+    m_lay->removeWidget(note);
     delete note;
 }
 
@@ -810,37 +822,42 @@ void MainWindow::onTextEditTextChanged ()
         if(m_currentSelectedNote->m_noteName != m_noteOnTopInTheLayoutName){
             m_noteOnTopInTheLayoutName = m_currentSelectedNote->m_noteName;
 
-            int tempY = m_currentSelectedNote->m_fakeContainer->y();
-            tempY = (tempY > 330) ? 330 : tempY;
-            QString noteName = m_currentSelectedNote->m_noteName;
+            int tempHeight = m_currentSelectedNote->height();
 
-            NoteData* tempNoteToRemove = m_currentSelectedNote;
-            deleteNoteFromVisual(m_currentSelectedNote);
+            // Animation for removing
+            QPropertyAnimation *removeAnimation = new QPropertyAnimation(m_currentSelectedNote, "geometry");
+            removeAnimation->setEasingCurve(QEasingCurve::OutQuint);
+            removeAnimation->setDuration(165);
+            QRect removeGeo = m_currentSelectedNote->geometry();
+            removeAnimation->setStartValue(removeGeo);
+            removeGeo.setHeight(0);
+            removeAnimation->setEndValue(removeGeo);
 
-            m_currentSelectedNote = addNote(noteName, true);
-            m_allNotesList.push_back(m_currentSelectedNote);
+            // animation for inserting
+            QPropertyAnimation *insertAnimation = new QPropertyAnimation(m_currentSelectedNote, "geometry");
+            insertAnimation->setEasingCurve(QEasingCurve::OutQuint);
+            insertAnimation->setDuration(165);
+            QRect insertGeo = m_currentSelectedNote->geometry();
+            insertGeo.setHeight(0);
+            insertGeo.setY(0);
+            insertAnimation->setStartValue(insertGeo);
+            insertGeo.setHeight(tempHeight);
+            insertAnimation->setEndValue(insertGeo);
 
-            for(unsigned int i = 0; i < m_allNotesList.size(); i++){
-                if(tempNoteToRemove == m_allNotesList.at(i)){
-                    m_allNotesList.erase(m_allNotesList.begin() + i);
-                    break;
-                }
-            }
+            // start the inserting animation after removing annimation finishes
+            connect(removeAnimation, &QPropertyAnimation::finished, this, [this, insertAnimation](){
+                // scroll to top
+                int scrollBarMinValue = ui->scrollArea->verticalScrollBar()->minimum();
+                ui->scrollArea->verticalScrollBar()->setValue(scrollBarMinValue);
+                // move the current selected note to the top
+                m_lay->removeWidget(m_currentSelectedNote);
+                m_lay->insertWidget(0,m_currentSelectedNote);
 
-            highlightNote(m_currentSelectedNote, "rgb(255, 232, 82)");
+                insertAnimation->start(QAbstractAnimation::DeleteWhenStopped);
+            });
 
-            ui->scrollArea->verticalScrollBar()->setValue(ui->scrollArea->verticalScrollBar()->minimum());
-
-            QPropertyAnimation *animation = new QPropertyAnimation(m_currentSelectedNote->m_containerBox, "geometry");
-            animation->setEasingCurve(QEasingCurve::OutQuint);
-            animation->setDuration(330);
-            m_currentSelectedNote->m_containerBox->setGeometry(m_currentSelectedNote->m_containerBox->x(), tempY, m_currentSelectedNote->m_containerBox->width(), m_currentSelectedNote->m_containerBox->height());
-            QRect geo = m_currentSelectedNote->m_fakeContainer->geometry();
-            geo.setY(tempY);
-            animation->setStartValue(geo);
-            geo.setY(0);
-            animation->setEndValue(geo);
-            animation->start();
+            // start the remove animation
+            removeAnimation->start(QAbstractAnimation::DeleteWhenStopped);
         }
     }
 
@@ -1096,13 +1113,8 @@ void MainWindow::createNewNote ()
 */
 void MainWindow::deleteSelectedNoteFromVisual ()
 {
-    unsigned int tempNotePlaceInLayout = 0;
-    for(unsigned int i = 0; i < m_visibleNotesList.size(); i++){
-        if(m_visibleNotesList.at(i) == m_currentSelectedNote){
-            tempNotePlaceInLayout = i;
-            break;
-        }
-    }
+
+   int tempNotePlaceInLayout = m_visibleNotesList.indexOf(m_currentSelectedNote);
 
     deleteNoteFromVisual(m_currentSelectedNote);
     m_currentSelectedNote = 0;
@@ -1112,11 +1124,10 @@ void MainWindow::deleteSelectedNoteFromVisual ()
     ui->textEdit->blockSignals(false);
 
     if(m_visibleNotesList.size() > 0){
-        if(tempNotePlaceInLayout == 0){
-            m_visibleNotesList.at(tempNotePlaceInLayout)->m_button->pressed();
-        }else{
-            m_visibleNotesList.at(tempNotePlaceInLayout - 1)->m_button->pressed();
-        }
+        m_currentSelectedNote = tempNotePlaceInLayout == 0 ? m_visibleNotesList.at(tempNotePlaceInLayout)
+                                                           : m_visibleNotesList.at(tempNotePlaceInLayout-1);
+        highlightNote(m_currentSelectedNote, "rgb(254, 206, 9)");
+        showNoteInEditor(m_currentSelectedNote);
     }
 }
 
