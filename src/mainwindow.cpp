@@ -78,10 +78,10 @@ void MainWindow::setupMainWindow ()
 #error "We don't support that version yet..."
 #endif
 
-    QPalette Pal(palette());
-    Pal.setColor(QPalette::Background, Qt::white);
+    QPalette pal(palette());
+    pal.setColor(QPalette::Background, Qt::white);
     this->setAutoFillBackground(true);
-    this->setPalette(Pal);
+    this->setPalette(pal);
 
     ui->newNoteButton->setToolTip("Create New Note");
     ui->trashButton->setToolTip("Delete Selected Note");
