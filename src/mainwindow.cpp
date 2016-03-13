@@ -18,7 +18,13 @@
 */
 MainWindow::MainWindow (QWidget *parent) :
     QMainWindow (parent),
-    ui (new Ui::MainWindow)
+    ui (new Ui::MainWindow),
+    m_tempSelectedNoteBeforeSearching(0),
+    m_currentSelectedNote(0),
+    m_currentHoveredNote(0),
+    m_tempNote(0),
+    frame(0),
+    m_lay(0)
 {
     ui->setupUi(this);
     setupMainWindow();
@@ -214,17 +220,17 @@ void MainWindow::setupSignalsSlots()
 */
 void MainWindow::createClearButton ()
 {
-    m_clearButton = new QToolButton(ui->lineEdit);
+//    m_clearButton = new QToolButton(ui->lineEdit);
 
-    QPixmap pixmap(":images/closeButton.gif");
-    m_clearButton->setIcon(QIcon(pixmap));
-    m_clearButton->setIconSize(QSize(pixmap.size().width()-5, pixmap.size().height()-5));
-    m_clearButton->setCursor(Qt::ArrowCursor);
-    m_clearButton->setStyleSheet("QToolButton { border: none; padding: 0px; }");
-    m_clearButton->hide();
-    m_clearButton->move( ui->lineEdit->rect().right() - m_clearButton->sizeHint().width()-1, 3);
+//    QPixmap pixmap(":images/closeButton.gif");
+//    m_clearButton->setIcon(QIcon(pixmap));
+//    m_clearButton->setIconSize(QSize(pixmap.size().width()-5, pixmap.size().height()-5));
+//    m_clearButton->setCursor(Qt::ArrowCursor);
+//    m_clearButton->setStyleSheet("QToolButton { border: none; padding: 0px; }");
+//    m_clearButton->hide();
+//    m_clearButton->move( ui->lineEdit->rect().right() - m_clearButton->sizeHint().width()-1, 3);
 
-    connect(m_clearButton, SIGNAL(clicked()), this, SLOT(clearButtonClicked()));
+//    connect(m_clearButton, SIGNAL(clicked()), this, SLOT(clearButtonClicked()));
 }
 
 /**
@@ -255,7 +261,7 @@ void MainWindow::setupLineEdit ()
 
     int frameWidth = ui->lineEdit->style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
     ui->lineEdit->setStyleSheet(QString("QLineEdit { padding-right: %1px; padding-left: 19px } ") // border-radius: 3px; border: 1px solid rgb(173, 169, 165);
-                                .arg(m_clearButton->sizeHint().width() + frameWidth + 1));
+                                .arg(/*m_clearButton->sizeHint().width() +*/ frameWidth + 1));
 }
 
 /**
@@ -366,8 +372,8 @@ void MainWindow::initializeSettingsDatabase()
     if(m_settingsDatabase->value("splitterSizes", "NULL") == "NULL")
         m_settingsDatabase->setValue("splitterSizes", ui->splitter->saveState());
 
-    if(m_settingsDatabase->value("clearButtonGeometry", "NULL") == "NULL")
-        m_settingsDatabase->setValue("clearButtonGeometry", m_clearButton->saveGeometry());
+//    if(m_settingsDatabase->value("clearButtonGeometry", "NULL") == "NULL")
+//        m_settingsDatabase->setValue("clearButtonGeometry", m_clearButton->saveGeometry());
 
 }
 
@@ -419,8 +425,8 @@ void MainWindow::restoreStates()
 
     ui->splitter->restoreState(m_settingsDatabase->value("splitterSizes").toByteArray());
 
-    m_clearButton->restoreGeometry(m_settingsDatabase->value("clearButtonGeometry").toByteArray());
-    m_clearButton->setGeometry(m_clearButton->x(), 3, m_clearButton->width(), m_clearButton->height());
+//    m_clearButton->restoreGeometry(m_settingsDatabase->value("clearButtonGeometry").toByteArray());
+//    m_clearButton->setGeometry(m_clearButton->x(), 3, m_clearButton->width(), m_clearButton->height());
 
     // If scrollArea is collapsed
     if(ui->splitter->sizes().at(0) == 0){
@@ -849,10 +855,11 @@ void MainWindow::onTextEditTextChanged ()
                 // scroll to top
                 int scrollBarMinValue = ui->scrollArea->verticalScrollBar()->minimum();
                 ui->scrollArea->verticalScrollBar()->setValue(scrollBarMinValue);
-                // move the current selected note to the top
+                // move the current selected note to the top (m_allNotesList: top = back)
                 m_lay->removeWidget(m_currentSelectedNote);
                 m_lay->insertWidget(0,m_currentSelectedNote);
-
+                m_allNotesList.move(m_allNotesList.indexOf(m_currentSelectedNote), m_allNotesList.count()-1);
+                // start insert animation
                 insertAnimation->start(QAbstractAnimation::DeleteWhenStopped);
             });
 
@@ -881,9 +888,9 @@ bool MainWindow::isFound (QString keyword, QString content)
 void MainWindow::simpleUnhighlightNote (NoteData *note)
 {
     note->m_seperateLine->show();
-    //note->m_containerBox->setStyleSheet("");
-    //note->m_titleLabel->setStyleSheet("QLabel { color: black; }");
-    //note->m_dateLabel->setStyleSheet("QLabel { color: rgb(132, 132, 132); }");
+    note->m_containerBox->setStyleSheet("");
+    note->m_titleLabel->setStyleSheet("QLabel { color: black; }");
+    note->m_dateLabel->setStyleSheet("QLabel { color: rgb(132, 132, 132); }");
 }
 
 /**
@@ -891,11 +898,9 @@ void MainWindow::simpleUnhighlightNote (NoteData *note)
 */
 void MainWindow::clearAllNotesFromVisual ()
 {
-    NoteData *note;
-    for(unsigned int i = 0; i < m_visibleNotesList.size(); i++){
-        note = m_visibleNotesList.at(i);
-        note->m_fakeContainer->hide();
+    foreach (NoteData *note, m_visibleNotesList) {
         simpleUnhighlightNote(note);
+        note->hide();
     }
 
     m_visibleNotesList.clear();
@@ -907,21 +912,19 @@ void MainWindow::clearAllNotesFromVisual ()
 * and set the scrollArea's scrollBar position to it
 * return true if the given note was found, else return false
 */
-bool MainWindow::goToAndSelectNote (QString noteName)
+bool MainWindow::goToAndSelectNote (NoteData* note)
 {
     // Is there a better way? (We are doing this because the value of the scrollBar won't change unitl all notes in GUI are loaded)
-    QCoreApplication::processEvents();
-    QCoreApplication::processEvents();
+    QCoreApplication::processEvents(QEventLoop::AllEvents);
 
     bool found = false;
 
-    for(unsigned int i = 0; i < m_visibleNotesList.size(); i++){
-        if(m_visibleNotesList.at(i)->m_noteName == noteName){
-            found = true;
-            m_visibleNotesList.at(i)->m_button->pressed();
-            unsigned int noteSize = m_visibleNotesList.at(i)->m_fakeContainer->height();
-            ui->scrollArea->verticalScrollBar()->setValue((m_visibleNotesList.size()-1 - i) * noteSize);
-        }
+    int noteIndex = m_visibleNotesList.indexOf(note);
+    if(noteIndex != -1){
+        found = true;
+        note->pressed();
+        unsigned int noteSize = note->height();
+        ui->scrollArea->verticalScrollBar()->setValue((m_visibleNotesList.size()-1 - noteIndex) * noteSize);
     }
 
     return found;
@@ -943,6 +946,7 @@ bool MainWindow::goToAndSelectNote (QString noteName)
 */
 void MainWindow::onLineEditTextChanged (const QString &arg1)
 {
+
     if(m_tempNote != 0){
         deleteNoteFromDataBase(m_tempNote);
         deleteNoteFromVisual(m_tempNote);
@@ -950,48 +954,41 @@ void MainWindow::onLineEditTextChanged (const QString &arg1)
         m_isTemp = false;
     }
 
-    if(m_tempSelectedNoteBeforeSearchingName.isEmpty() && m_currentSelectedNote != 0)
-        m_tempSelectedNoteBeforeSearchingName = m_currentSelectedNote->m_noteName;
+    if(m_currentSelectedNote != 0)
+        m_tempSelectedNoteBeforeSearching = m_currentSelectedNote;
 
-    /*for(unsigned int i = 0; i < visibleNotesList.size(); i++)
-    {
-        UnhighlightNote(visibleNotesList.at(i));
-    }*/
     clearAllNotesFromVisual();
-    //UpdateAllNotesList();
 
     if(arg1.isEmpty()){
-        m_clearButton->setVisible(false);
+        //m_clearButton->setVisible(false);
 
         //UpdateAllNotesList();
-        for(unsigned int i = 0; i < m_allNotesList.size(); i++){
-            m_allNotesList.at(i)->m_fakeContainer->show();
-            m_visibleNotesList.push_back(m_allNotesList.at(i)); // Do we need to change the
-            // strucuture from std::vector to Qlist so we could copy the list more efficiently?
+        foreach(NoteData* note, m_allNotesList){
+            note->show();
+            m_visibleNotesList.push_back(note);
         }
-        //visibleNotesList = allNotesList; not working
 
         scrollAreaScrollBarRangeChange(0, ui->scrollArea->verticalScrollBar()->maximum());
 
-        bool found = goToAndSelectNote(m_tempSelectedNoteBeforeSearchingName);
+        bool found = goToAndSelectNote(m_tempSelectedNoteBeforeSearching);
 
         if(!found)
             selectFirstNote();
 
-        m_tempSelectedNoteBeforeSearchingName.clear();
+        m_tempSelectedNoteBeforeSearching = 0;
 
     }else{
-        m_clearButton->setVisible(true);
+        //m_clearButton->setVisible(true);
 
         ui->scrollArea->verticalScrollBar()->setValue(ui->scrollArea->verticalScrollBar()->minimum());
 
         //UpdateAllNotesList();
         QString noteName;
-        for(unsigned int i = 0; i < m_allNotesList.size(); i++){
-            noteName = m_allNotesList.at(i)->m_noteName;
+        foreach (NoteData *note, m_allNotesList) {
+            noteName = note->m_noteName;
             if(isFound(arg1, m_notesDatabase->value(noteName + "/content", "Error").toString())){
-                m_allNotesList.at(i)->m_fakeContainer->show();
-                m_visibleNotesList.push_back(m_allNotesList.at(i));
+                note->show();
+                m_visibleNotesList.push_back(note);
             }
         }
 
@@ -1004,8 +1001,7 @@ void MainWindow::onLineEditTextChanged (const QString &arg1)
 
         selectFirstNote();
 
-        QCoreApplication::processEvents();
-        QCoreApplication::processEvents();
+        QCoreApplication::processEvents(QEventLoop::AllEvents);
     }
 }
 
@@ -1442,7 +1438,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         m_settingsDatabase->setValue("windowGeometry", saveGeometry());
 
     m_settingsDatabase->setValue("splitterSizes", ui->splitter->saveState());
-    m_settingsDatabase->setValue("clearButtonGeometry", m_clearButton->saveGeometry());
+    //m_settingsDatabase->setValue("clearButtonGeometry", m_clearButton->saveGeometry());
 
     QWidget::closeEvent(event);
 }
@@ -1658,19 +1654,22 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
     if(event->type() == QEvent::FocusIn){
         if(object == ui->textEdit){
             // If there are no notes, and the user click the textEdit, create a new note
-            if(m_currentSelectedNote == 0)
+            if(m_currentSelectedNote == 0){
                 createNewNote();
+            }else{
+                highlightNote(m_currentSelectedNote, "rgb(255, 235, 80)");
+            }
+
 
             // When clicking in a note's content while searching,
             // reload all the notes and go and select that note
             if(!m_focusBreaker && !ui->lineEdit->text().isEmpty() && m_currentSelectedNote != 0){
-                QString tempName = m_currentSelectedNote->m_noteName;
-
                 ui->lineEdit->clear();
 
-                goToAndSelectNote(tempName);
+                goToAndSelectNote(m_currentSelectedNote);
 
                 highlightNote(m_currentSelectedNote, "rgb(255, 235, 80)");
+                ui->textEdit->setFocus();
             }
         }
     }

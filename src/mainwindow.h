@@ -55,14 +55,14 @@ private:
     QList<NoteData*> m_visibleNotesList; // Notes currently displayed inside scrollArea
 
     QVBoxLayout* m_lay;
-    QToolButton* m_clearButton;
+    //QToolButton* m_clearButton;
     QFrame* frame;
 
     NoteData* m_tempNote;
     NoteData* m_currentSelectedNote;
     NoteData* m_currentHoveredNote;
     QString m_noteOnTopInTheLayoutName;
-    QString m_tempSelectedNoteBeforeSearchingName;
+    NoteData* m_tempSelectedNoteBeforeSearching;
     int m_currentVerticalScrollAreaRange;
     int m_nMouseClick_X_Coordinate;
     int m_nMouseClick_Y_Coordinate;
@@ -111,7 +111,7 @@ private:
     void unhighlightNote(NoteData* note);
     void highlightNote(NoteData* note, QString rgbStringColor);
     void clearAllNotesFromVisual();
-    bool goToAndSelectNote(QString noteName);
+    bool goToAndSelectNote(NoteData *note);
     bool isFound(QString keyword, QString content);
     bool isClickingButton(QPoint mousePos, QPushButton* button);
     bool isSpacerInsideLayout(QSpacerItem *spacer, QVBoxLayout* layout);
