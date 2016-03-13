@@ -97,7 +97,7 @@ private:
     void restoreStates();
     QString getFirstLine(const QString& str);
     QString getElidedText(QString str, QFontMetrics labelFontMetrics, int size);
-    QString getFirstLineAndElide (NoteData* note);
+    QPair<QString, QString> getFirstLineAndElide(NoteData* note);
     QString getNoteDateEditor (QString dateEdited);
     QString getNoteDate(QString dateEdited);
     NoteData* addNote(QString noteName, bool isLoadingOrNew);
@@ -125,6 +125,7 @@ private:
     void resizeEvent(QResizeEvent *);
 
 private slots:
+    void InitData();
     void onNewNoteButtonClicked();
     void onTrashButtonClicked();
     void onNotePressed();

@@ -39,9 +39,8 @@ MainWindow::MainWindow (QWidget *parent) :
     setupDatabases();
     restoreStates();
     setLayoutForScrollArea();
-    loadNotes();
-    selectFirstNote();
-    createNewNoteIfEmpty();
+
+    QTimer::singleShot(200,this, SLOT(InitData()));
 }
 
 void MainWindow::paintEvent(QPaintEvent *e)
@@ -151,7 +150,7 @@ void MainWindow::setupSplitter()
 {
     ui->splitter->setStretchFactor(1, 1);
     ui->splitter->setStretchFactor(2, 0);
-    connect(ui->splitter, SIGNAL(splitterMoved(int,int)), SLOT(resizeRestWhenSplitterMove(int, int)));
+    //connect(ui->splitter, SIGNAL(splitterMoved(int,int)), SLOT(resizeRestWhenSplitterMove(int, int)));
 }
 
 /**
@@ -479,16 +478,16 @@ QString MainWindow::getElidedText (QString str, QFontMetrics labelFontMetrics, i
 /**
 * Get a note's noteData and return its first line after eliding it.
 */
-QString MainWindow::getFirstLineAndElide (NoteData *note)
+QPair<QString, QString> MainWindow::getFirstLineAndElide(NoteData *note)
 {
     // We can improve more if we could load right from the Hard Drive database only one line and not the whole text
     QString text = m_notesDatabase->value(note->m_noteName + "/content", "Error").toString();
 
     QString firstLine = getFirstLine(text);
 
-    firstLine = getElidedText(firstLine, note->m_titleLabel->fontMetrics(), note->m_titleLabel->width());
+    QString firstLineElided = getElidedText(firstLine, note->m_titleLabel->fontMetrics(), ui->splitter->sizes().first()-20);
 
-    return firstLine;
+    return std::move(QPair<QString, QString>(firstLine, firstLineElided));
 }
 
 /**
@@ -536,30 +535,26 @@ QString MainWindow::getNoteDate (QString dateEdited)
 * Add a note from database or create a new note, into the notes list (in scrollArea)
 * Determine if it's loading an existing note or creating a new note and present it accordingly
 * Return a pointer to the new note
+* isLoadingOrNew - > true = Loading a note from database
+* isLoadingOrNew - > false = Creating a new note
 */
 NoteData *MainWindow::addNote(QString noteName, bool isLoadingOrNew)
 {
     NoteData* newNote = new NoteData(noteName, this);
-    QString noteFirstLine;
-    // isLoadingOrNew - > true = Loading a note from database
-    // isLoadingOrNew - > false = Creating a new note
-    if(isLoadingOrNew){
-        noteFirstLine = getFirstLineAndElide(newNote);
-    }else{
-        noteFirstLine = "New Note";
-    }
-
-    QString noteDate = getNoteDate(m_notesDatabase->value(noteName + "/dateEdited", "Error").toString());
-
-    newNote->m_titleLabel->setText(noteFirstLine);
-    newNote->m_dateLabel->setText(noteDate);
-    m_visibleNotesList.push_back(newNote);
-
     m_lay->insertWidget(0, newNote, 0, Qt::AlignTop);
 
-    newNote->installEventFilter(this);
-    connect(newNote, SIGNAL(pressed()), this, SLOT(onNotePressed()));
+    auto firstLineAndElide = isLoadingOrNew ? getFirstLineAndElide(newNote) : QPair<QString, QString>("New Note","New Note");
+    QString noteDate = getNoteDate(m_notesDatabase->value(noteName + "/dateEdited", "Error").toString());
+    newNote->m_fullTitle = firstLineAndElide.first;
+    newNote->m_titleLabel->setText(firstLineAndElide.second);
+    newNote->m_dateLabel->setText(noteDate);
 
+    m_visibleNotesList.push_back(newNote);
+
+    newNote->installEventFilter(this);
+
+    connect(newNote, SIGNAL(pressed()), this, SLOT(onNotePressed()));
+    connect(ui->splitter, SIGNAL(splitterMoved(int,int)),newNote, SLOT(onParentSizeChanged()));
 
     return newNote;
 }
@@ -813,7 +808,10 @@ void MainWindow::onTextEditTextChanged ()
     if(m_currentSelectedNote != 0 && ui->textEdit->toPlainText() != m_notesDatabase->value(m_currentSelectedNote->m_noteName + "/content", "Error")){
         m_notesDatabase->setValue(m_currentSelectedNote->m_noteName + "/content", ui->textEdit->toPlainText());
 
-        m_currentSelectedNote->m_titleLabel->setText(getFirstLineAndElide(m_currentSelectedNote));
+        auto firstLineAndElide = getFirstLineAndElide(m_currentSelectedNote);
+        m_currentSelectedNote->m_fullTitle = firstLineAndElide.first;
+        m_currentSelectedNote->m_titleLabel->setText(firstLineAndElide.second);
+
         QString noteDate = QDateTime::currentDateTime().toString(Qt::ISODate);
         m_notesDatabase->setValue(m_currentSelectedNote->m_noteName + "/dateEdited", noteDate);
         m_currentSelectedNote->m_dateLabel->setText(getNoteDate(noteDate));
@@ -1517,6 +1515,7 @@ void MainWindow::mouseDoubleClickEvent (QMouseEvent *e)
 */
 void MainWindow::resizeEvent (QResizeEvent *)
 {
+
     //    // If scrollArea is collapsed
     //    if(ui->splitter->sizes().at(0) == 0)
     //    {
@@ -1528,6 +1527,13 @@ void MainWindow::resizeEvent (QResizeEvent *)
     //        frame->resize(ui->centralWidget->width()-ui->scrollArea->width()-ui->line->width(), ui->verticalSpacer_upEditorDateLabel->sizeHint().height() + ui->newNoteButton->height() + ui->verticalSpacer_upTextEdit->sizeHint().height());
     //        frame->move(ui->scrollArea->width()+ui->line->width(), 0);
     //    }
+}
+
+void MainWindow::InitData()
+{
+    loadNotes();
+    selectFirstNote();
+    createNewNoteIfEmpty();
 }
 
 /**
