@@ -479,7 +479,7 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>343</width>
+               <width>214</width>
                <height>274</height>
               </rect>
              </property>
@@ -551,12 +551,21 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="layoutWidget">
+      <widget class="QFrame" name="frame">
        <layout class="QVBoxLayout" name="verticalLayout_textEdit">
         <property name="spacing">
          <number>0</number>
         </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
         <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
          <number>0</number>
         </property>
         <item>

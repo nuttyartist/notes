@@ -56,7 +56,7 @@ private:
 
     QVBoxLayout* m_lay;
     //QToolButton* m_clearButton;
-    QFrame* frame;
+    //QFrame* frame;
 
     NoteData* m_tempNote;
     NoteData* m_currentSelectedNote;

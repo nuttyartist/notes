@@ -23,7 +23,7 @@ MainWindow::MainWindow (QWidget *parent) :
     m_currentSelectedNote(0),
     m_currentHoveredNote(0),
     m_tempNote(0),
-    frame(0),
+    //frame(0),
     m_lay(0)
 {
     ui->setupUi(this);
@@ -172,9 +172,8 @@ void MainWindow::setupLine ()
 */
 void MainWindow::setupFrame ()
 {
-    frame = new QFrame(this);
-    frame->setStyleSheet("QFrame { background-image: url(:images/textSideBackground.png); border: none;}");
-    frame->lower();
+    ui->frame->setStyleSheet("QFrame { background-image: url(:images/textSideBackground.png); border: none;}");
+
 }
 
 /**
