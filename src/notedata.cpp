@@ -1,5 +1,7 @@
 #include "notedata.h"
 #include <QVBoxLayout>
+#include <QDebug>
+#include <QSplitter>
 
 NoteData::NoteData(const QString& noteName, QWidget *parent) :
     QWidget(parent),
@@ -70,7 +72,7 @@ void NoteData::setupWidget()
 
     // title label
     m_titleLabel->setFont(titleLabelFont);
-    m_titleLabel->setStyleSheet("QLabel { color : black; }");
+    m_titleLabel->setStyleSheet("QLabel {color : black; }");
     m_titleLabel->resize(this->width() - 1, 0);
     m_titleLabel->setFixedHeight(titleLabelFont.pixelSize() + addToTitleLabelHeight); // + So there would be room for letters like g,y etc..
     m_titleLabel->move(0, distanceToTitleLabel);
@@ -117,10 +119,19 @@ void NoteData::setupWidget()
     vLayoutNote->setSpacing(0);
     vLayoutNote->addWidget(m_fakeContainer);
     this->setLayout(vLayoutNote);
-
 }
 
 void NoteData::onButtonPressed()
 {
     emit pressed();
+}
+
+void NoteData::onParentSizeChanged()
+{
+    QSplitter *splitter = qobject_cast<QSplitter*>(sender());
+    int parentWidth = splitter->sizes().at(0);
+    QFontMetrics metrics(m_titleLabel->font());
+    QString elidedText = metrics.elidedText(m_fullTitle, Qt::ElideRight, parentWidth-20);
+    m_titleLabel->setText(elidedText);
+
 }

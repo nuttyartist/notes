@@ -17,9 +17,8 @@ public:
     explicit NoteData(const QString& noteName, QWidget *parent = 0);
     ~NoteData();
 
-    QString m_text;
     QString m_noteName;
-    QString m_title;
+    QString m_fullTitle;
     QDateTime m_dateTime;
     QGroupBox* m_fakeContainer;
     QGroupBox* m_containerBox;
@@ -38,6 +37,7 @@ private:
 
 public slots:
     void onButtonPressed();
+    void onParentSizeChanged();
 
 signals:
     void pressed();
