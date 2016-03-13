@@ -61,8 +61,8 @@ private:
     NoteData* m_tempNote;
     NoteData* m_currentSelectedNote;
     NoteData* m_currentHoveredNote;
-    QString m_noteOnTopInTheLayoutName;
     NoteData* m_tempSelectedNoteBeforeSearching;
+    QString m_noteOnTopInTheLayoutName;
     int m_currentVerticalScrollAreaRange;
     int m_nMouseClick_X_Coordinate;
     int m_nMouseClick_Y_Coordinate;
@@ -122,7 +122,6 @@ private:
     void mouseReleaseEvent(QMouseEvent* event);
     void mouseDoubleClickEvent(QMouseEvent* e);
     bool eventFilter(QObject* object, QEvent* event);
-    void resizeEvent(QResizeEvent *);
 
 private slots:
     void InitData();
@@ -149,10 +148,7 @@ private slots:
     void maximizeWindow();
     void minimizeWindow();
     void QuitApplication();
-    void resizeRestWhenSplitterMove(int pos, int index);
     void clearButtonClicked();
-    void scrollAreaScrollBarRangeChange(int, int verticalScrollBarRange);
-    void textEditScrollBarRangeChange(int, int verticalScrollBarRange);
     void textEditScrollBarValueChange(int verticalScrollBarValue);
 };
 

@@ -19,12 +19,11 @@
 MainWindow::MainWindow (QWidget *parent) :
     QMainWindow (parent),
     ui (new Ui::MainWindow),
-    m_tempSelectedNoteBeforeSearching(0),
+    m_lay(0),
+    m_tempNote(0),
     m_currentSelectedNote(0),
     m_currentHoveredNote(0),
-    m_tempNote(0),
-    //frame(0),
-    m_lay(0)
+    m_tempSelectedNoteBeforeSearching(0)
 {
     ui->setupUi(this);
     setupMainWindow();
@@ -36,7 +35,6 @@ MainWindow::MainWindow (QWidget *parent) :
     setupLine();
     setupFrame ();
     setupTitleBarButtons();
-    createClearButton();
     createMagnifyingGlassIcon();
     setupLineEdit();
     setupScrollArea();
@@ -156,7 +154,6 @@ void MainWindow::setupSplitter()
 {
     ui->splitter->setStretchFactor(1, 1);
     ui->splitter->setStretchFactor(2, 0);
-    //connect(ui->splitter, SIGNAL(splitterMoved(int,int)), SLOT(resizeRestWhenSplitterMove(int, int)));
 }
 
 /**
@@ -215,24 +212,6 @@ void MainWindow::setupSignalsSlots()
 }
 
 /**
-* Setting up the clear button in the search box (lineEdit)
-*/
-void MainWindow::createClearButton ()
-{
-//    m_clearButton = new QToolButton(ui->lineEdit);
-
-//    QPixmap pixmap(":images/closeButton.gif");
-//    m_clearButton->setIcon(QIcon(pixmap));
-//    m_clearButton->setIconSize(QSize(pixmap.size().width()-5, pixmap.size().height()-5));
-//    m_clearButton->setCursor(Qt::ArrowCursor);
-//    m_clearButton->setStyleSheet("QToolButton { border: none; padding: 0px; }");
-//    m_clearButton->hide();
-//    m_clearButton->move( ui->lineEdit->rect().right() - m_clearButton->sizeHint().width()-1, 3);
-
-//    connect(m_clearButton, SIGNAL(clicked()), this, SLOT(clearButtonClicked()));
-}
-
-/**
 * Setting up the magnifing glass icon in the search box (lineEdit)
 */
 void MainWindow::createMagnifyingGlassIcon ()
@@ -260,7 +239,7 @@ void MainWindow::setupLineEdit ()
 
     int frameWidth = ui->lineEdit->style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
     ui->lineEdit->setStyleSheet(QString("QLineEdit { padding-right: %1px; padding-left: 19px } ") // border-radius: 3px; border: 1px solid rgb(173, 169, 165);
-                                .arg(/*m_clearButton->sizeHint().width() +*/ frameWidth + 1));
+                                .arg(frameWidth + 1));
 }
 
 /**
@@ -287,8 +266,6 @@ void MainWindow::setupScrollArea ()
 
     ui->scrollArea->setStyleSheet(styleSheet);
     ui->scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
-    connect(ui->scrollArea->verticalScrollBar(), SIGNAL(rangeChanged(int,int)), this, SLOT(scrollAreaScrollBarRangeChange(int,int)));
 }
 
 /**
@@ -326,7 +303,6 @@ void MainWindow::setupTextEdit ()
     ui->textEdit->installEventFilter(this);
     ui->textEdit->verticalScrollBar()->installEventFilter(this);
 
-    connect(ui->textEdit->verticalScrollBar(), SIGNAL(rangeChanged(int,int)), this, SLOT(textEditScrollBarRangeChange(int,int)));
     connect(ui->textEdit->verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(textEditScrollBarValueChange(int)));
 
 #ifdef Q_OS_LINUX
@@ -370,10 +346,6 @@ void MainWindow::initializeSettingsDatabase()
 
     if(m_settingsDatabase->value("splitterSizes", "NULL") == "NULL")
         m_settingsDatabase->setValue("splitterSizes", ui->splitter->saveState());
-
-//    if(m_settingsDatabase->value("clearButtonGeometry", "NULL") == "NULL")
-//        m_settingsDatabase->setValue("clearButtonGeometry", m_clearButton->saveGeometry());
-
 }
 
 /**
@@ -423,9 +395,6 @@ void MainWindow::restoreStates()
     this->restoreGeometry(m_settingsDatabase->value("windowGeometry").toByteArray());
 
     ui->splitter->restoreState(m_settingsDatabase->value("splitterSizes").toByteArray());
-
-//    m_clearButton->restoreGeometry(m_settingsDatabase->value("clearButtonGeometry").toByteArray());
-//    m_clearButton->setGeometry(m_clearButton->x(), 3, m_clearButton->width(), m_clearButton->height());
 
     // If scrollArea is collapsed
     if(ui->splitter->sizes().at(0) == 0){
@@ -666,14 +635,6 @@ void MainWindow::onTrashButtonClicked()
 */
 void MainWindow::unhighlightNote (NoteData* note)
 {
-//    for(unsigned int i = 0; i < m_visibleNotesList.size() - 1; i++){
-//        if(m_visibleNotesList.at(i) == note){
-//            m_visibleNotesList.at(i + 1)->m_seperateLine->show();
-//            break;
-//        }
-//    }
-    //note->m_seperateLine->show();
-
     note->m_containerBox->setStyleSheet("");
     note->m_titleLabel->setStyleSheet("QLabel { color: black; }");
     note->m_dateLabel->setStyleSheet("QLabel { color: rgb(132, 132, 132); }");
@@ -684,14 +645,6 @@ void MainWindow::unhighlightNote (NoteData* note)
 */
 void MainWindow::highlightNote (NoteData* note, QString rgbStringColor)
 {
-    //    for(unsigned int i = 0; i < m_visibleNotesList.size() - 1; i++){
-    //        if(m_visibleNotesList.at(i) == note){
-    //            m_visibleNotesList.at(i + 1)->m_seperateLine->hide();
-    //            break;
-    //        }
-    //    }
-    //note->m_seperateLine->hide();
-
     note->m_containerBox->setStyleSheet(QString(".QGroupBox { background-color: %1; }").arg(rgbStringColor));
     note->m_titleLabel->setStyleSheet(QString("QLabel { background-color: %1; color: black; }").arg(rgbStringColor));
     note->m_dateLabel->setStyleSheet(QString("QLabel { background-color: %1; color: rgb(132, 132, 132); }").arg(rgbStringColor));
@@ -929,11 +882,6 @@ bool MainWindow::goToAndSelectNote (NoteData* note)
     return found;
 }
 
-/*void MainWindow::UpdateAllNotesList ()
-{
-
-}*/
-
 /**
 * When text on lineEdit change:
 * If there is a temp note "New Note" while searching, we delete it
@@ -959,15 +907,11 @@ void MainWindow::onLineEditTextChanged (const QString &arg1)
     clearAllNotesFromVisual();
 
     if(arg1.isEmpty()){
-        //m_clearButton->setVisible(false);
 
-        //UpdateAllNotesList();
         foreach(NoteData* note, m_allNotesList){
             note->show();
             m_visibleNotesList.push_back(note);
         }
-
-        scrollAreaScrollBarRangeChange(0, ui->scrollArea->verticalScrollBar()->maximum());
 
         bool found = goToAndSelectNote(m_tempSelectedNoteBeforeSearching);
 
@@ -977,11 +921,9 @@ void MainWindow::onLineEditTextChanged (const QString &arg1)
         m_tempSelectedNoteBeforeSearching = 0;
 
     }else{
-        //m_clearButton->setVisible(true);
 
         ui->scrollArea->verticalScrollBar()->setValue(ui->scrollArea->verticalScrollBar()->minimum());
 
-        //UpdateAllNotesList();
         QString noteName;
         foreach (NoteData *note, m_allNotesList) {
             noteName = note->m_noteName;
@@ -1344,82 +1286,6 @@ void MainWindow::onRedCloseButtonClicked()
     QuitApplication();
 }
 
-
-/**
-* Get called everytime the scrollArea's scrollBar range change
-* If the scrollBar is showing we decrease the width of the note
-* Else, we return it to it's default width
-* We are doing this so the notes will look equaly clear in both situations
-* (when scrollBar is visible, and when not)
-*/
-void MainWindow::scrollAreaScrollBarRangeChange (int, int verticalScrollBarRange)
-{
-    //    currentVerticalScrollAreaRange = verticalScrollBarRange;
-
-    //    // We need this because this function isn't executed before AddNote
-    //    if(verticalScrollBarRange > 0)
-    //    {
-    //        for(unsigned int i = 0; i < visibleNotesList.size(); i++)
-    //        {
-    //            if(visibleNotesList.at(i)->m_titleLabel->width() != ui->lineEdit->width()- 11)
-    //            {
-    //                visibleNotesList.at(i)->m_titleLabel->resize(ui->lineEdit->width()- 11, 0);
-    //                visibleNotesList.at(i)->m_seperateLine->resize(ui->lineEdit->width()- 11, 1);
-    //                visibleNotesList.at(i)->m_titleLabel->setText(GetFirstLineAndElide(visibleNotesList.at(i)));
-    //                visibleNotesList.at(i)->m_containerBox->resize(ui->scrollArea->width(), visibleNotesList.at(i)->m_titleLabel->height() + visibleNotesList.at(i)->m_dateLabel->height() + visibleNotesList.at(i)->m_seperateLine->height() + 4*3);
-    //                visibleNotesList.at(i)->m_button->setGeometry(0, 0, ui->scrollArea->width(), visibleNotesList.at(i)->m_titleLabel->height() + visibleNotesList.at(i)->m_dateLabel->height() + visibleNotesList.at(i)->m_seperateLine->height() + 4*3);
-    //            }
-    //        }
-    //    }
-    //    else
-    //    {
-    //        for(unsigned int i = 0; i < visibleNotesList.size(); i++)
-    //        {
-    //            if(visibleNotesList.at(i)->m_titleLabel->width() != ui->lineEdit->width()-1)
-    //            {
-    //                visibleNotesList.at(i)->m_titleLabel->resize(ui->lineEdit->width()-1, 0);
-    //                visibleNotesList.at(i)->m_seperateLine->resize(ui->lineEdit->width()-1, 1);
-    //                visibleNotesList.at(i)->m_titleLabel->setText(GetFirstLineAndElide(visibleNotesList.at(i)));
-    //                visibleNotesList.at(i)->m_containerBox->resize(ui->scrollArea->width(), visibleNotesList.at(i)->m_titleLabel->height() + visibleNotesList.at(i)->m_dateLabel->height() + visibleNotesList.at(i)->m_seperateLine->height() + 4*3);
-    //                visibleNotesList.at(i)->m_button->setGeometry(0, 0, ui->scrollArea->width(), visibleNotesList.at(i)->m_titleLabel->height() + visibleNotesList.at(i)->m_dateLabel->height() + visibleNotesList.at(i)->m_seperateLine->height() + 4*3);
-    //            }
-    //        }
-    //    }
-}
-
-/**
-* Get called everytime the textEdit's scrollBar range change
-* If the scrollBar is showing change the padding of textEdit
-* Else, we return it to it's default padding
-* We are doing this so the text padding will be equal in both situations
-* (when scrollBar is visible, and when not)
-*/
-void MainWindow::textEditScrollBarRangeChange (int, int verticalScrollBarRange)
-{
-    //    if(verticalScrollBarRange > 0){
-    //        QString styleSheet =  QString("QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
-    //                                      "QScrollBar:handle:vertical:pressed { background: rgb(149, 149, 149); } "
-    //                                      "QTextEdit { background-image: url(:images/textSideBackground.png); padding-left: %1px; padding-right: %2px; } "
-    //                                      "QScrollBar:vertical { border: none; width: 8px; } "
-    //                                      "QScrollBar::handle:vertical { border-radius: 2.5px; background: rgb(188, 188, 188); min-height: 20px; }  "
-    //                                      "QScrollBar::add-line:vertical { height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
-    //                                      "QScrollBar::sub-line:vertical { height: 0px; subcontrol-position: top; subcontrol-origin: margin; }"
-    //                                      ).arg(QString::number(ui->newNoteButton->width() - m_textEditLeftPadding), "19");
-    //        ui->textEdit->setStyleSheet(styleSheet);
-
-    //    }else{
-    //        QString styleSheet = QString("QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
-    //                                     "QScrollBar:handle:vertical:pressed { background: rgb(149, 149, 149); } "
-    //                                     "QTextEdit { background-image: url(:images/textSideBackground.png); padding-left: %1px; padding-right: %2px; } "
-    //                                     "QScrollBar:vertical { border: none; width: 8px; } "
-    //                                     "QScrollBar::handle:vertical { border-radius: 2.5px; background: rgb(188, 188, 188); min-height: 20px; }  "
-    //                                     "QScrollBar::add-line:vertical { height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
-    //                                     "QScrollBar::sub-line:vertical { height: 0px; subcontrol-position: top; subcontrol-origin: margin; }"
-    //                                     ).arg(QString::number(ui->newNoteButton->width() - m_textEditLeftPadding), "27");
-    //        ui->textEdit->setStyleSheet(styleSheet);
-    //    }
-}
-
 /**
 * Get called everytime the textEdit's scrollBar value change
 * Gets called to save the value of the scrollBar in the currentSelectedNote
@@ -1437,7 +1303,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
         m_settingsDatabase->setValue("windowGeometry", saveGeometry());
 
     m_settingsDatabase->setValue("splitterSizes", ui->splitter->saveState());
-    //m_settingsDatabase->setValue("clearButtonGeometry", m_clearButton->saveGeometry());
 
     QWidget::closeEvent(event);
 }
@@ -1505,25 +1370,6 @@ void MainWindow::mouseDoubleClickEvent (QMouseEvent *e)
     e->accept();
 }
 
-/**
-* When the window is resizing some widgets size adjust accordingly
-*/
-void MainWindow::resizeEvent (QResizeEvent *)
-{
-
-    //    // If scrollArea is collapsed
-    //    if(ui->splitter->sizes().at(0) == 0)
-    //    {
-    //        frame->resize(ui->centralWidget->width(), ui->verticalSpacer_upEditorDateLabel->sizeHint().height() + ui->newNoteButton->height() + ui->verticalSpacer_upTextEdit->sizeHint().height() + ui->horizontalSpacer_rightTrafficLightButtons1->sizeHint().height() + ui->verticalSpacer_upLineEdit->sizeHint().height());
-    //        frame->move(ui->scrollArea->x(), 0);
-    //    }
-    //    else
-    //    {
-    //        frame->resize(ui->centralWidget->width()-ui->scrollArea->width()-ui->line->width(), ui->verticalSpacer_upEditorDateLabel->sizeHint().height() + ui->newNoteButton->height() + ui->verticalSpacer_upTextEdit->sizeHint().height());
-    //        frame->move(ui->scrollArea->width()+ui->line->width(), 0);
-    //    }
-}
-
 void MainWindow::InitData()
 {
     loadNotes();
@@ -1542,50 +1388,6 @@ bool MainWindow::isSpacerInsideLayout(QSpacerItem *spacer, QVBoxLayout *layout)
     }
 
     return false;
-}
-
-/**
-* Takes care for resizing the widgets that aren't inside a layout: frame, clearButton, and note buttons
-* when the splitter is moving
-*/
-void MainWindow::resizeRestWhenSplitterMove(int pos, int index)
-{
-    QCoreApplication::processEvents();
-
-    //    if(index == 1 && pos == 0)
-    //    {
-    //        frame->resize(ui->centralWidget->width(), ui->verticalSpacer_upEditorDateLabel->sizeHint().height() + ui->newNoteButton->height() + ui->verticalSpacer_upTextEdit->sizeHint().height() + ui->horizontalSpacer_rightTrafficLightButtons1->sizeHint().height() + ui->verticalSpacer_upLineEdit->sizeHint().height());
-    //        frame->move(ui->scrollArea->x(), 0);
-
-    //        ui->verticalLayout_scrollArea->removeItem(ui->horizontalLayout_scrollArea_2);
-    //        ui->verticalLayout_textEdit->insertLayout(0, ui->horizontalLayout_scrollArea_2, 0);
-
-    //        if(!IsSpacerInsideLayout(ui->verticalSpacer_upLineEdit, ui->verticalLayout_textEdit))
-    //        {
-    //            ui->verticalLayout_scrollArea->removeItem(ui->verticalSpacer_upLineEdit);
-    //            ui->verticalLayout_textEdit->insertItem(0, ui->verticalSpacer_upLineEdit);
-    //            ui->verticalSpacer_upEditorDateLabel->changeSize(20, 5);
-    //        }
-    //    }
-    //    else
-    //    {
-    //        frame->resize(ui->centralWidget->width()-ui->scrollArea->width()-ui->line->width(), ui->verticalSpacer_upEditorDateLabel->sizeHint().height() + ui->newNoteButton->height() + ui->verticalSpacer_upTextEdit->sizeHint().height());
-    //        frame->move(ui->scrollArea->width()+ui->line->width(), 0);
-
-    //        ui->verticalLayout_textEdit->removeItem(ui->horizontalLayout_scrollArea_2);
-    //        ui->verticalLayout_scrollArea->insertLayout(0, ui->horizontalLayout_scrollArea_2, 0);
-
-    //        if(!IsSpacerInsideLayout(ui->verticalSpacer_upLineEdit, ui->verticalLayout_scrollArea))
-    //        {
-    //            ui->verticalLayout_textEdit->removeItem(ui->verticalSpacer_upLineEdit);
-    //            ui->verticalLayout_scrollArea->insertItem(0, ui->verticalSpacer_upLineEdit);
-    //            ui->verticalSpacer_upEditorDateLabel->changeSize(20, 25);
-    //        }
-    //    }
-
-    //    clearButton->move( ui->lineEdit->rect().right() - clearButton->sizeHint().width()-1, 3);
-
-    //    ScrollAreaScrollBarRangeChange(0, ui->scrollArea->verticalScrollBar()->maximum());
 }
 
 /**
