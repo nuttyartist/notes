@@ -114,7 +114,6 @@ private:
     bool goToAndSelectNote(NoteData *note);
     bool isFound(QString keyword, QString content);
     bool isClickingButton(QPoint mousePos, QPushButton* button);
-    bool isSpacerInsideLayout(QSpacerItem *spacer, QVBoxLayout* layout);
     void paintEvent(QPaintEvent* e);
     void closeEvent(QCloseEvent* event);
     void mousePressEvent(QMouseEvent* event);
@@ -148,7 +147,6 @@ private slots:
     void maximizeWindow();
     void minimizeWindow();
     void QuitApplication();
-    void clearButtonClicked();
     void textEditScrollBarValueChange(int verticalScrollBarValue);
 };
 

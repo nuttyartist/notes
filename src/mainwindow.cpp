@@ -556,13 +556,14 @@ void MainWindow::sortNotesList (QStringList &stringNotesList)
 {
     m_notesDataForSorting.clear();
 
-    for(int i = 0; i < stringNotesList.length() - 1; i += 3){
+    auto it = stringNotesList.begin();
+    for(; it != stringNotesList.end()-1; it += 3){
         noteDataForSorting tempNoteDataForSorting;
 
-        tempNoteDataForSorting.m_noteName = stringNotesList[i].split("/")[0];
+        tempNoteDataForSorting.m_noteName = it->split("/")[0];
 
         QString dateDB = m_notesDatabase->value(tempNoteDataForSorting.m_noteName + "/dateEdited", "Error").toString();
-        tempNoteDataForSorting.m_dateTime =  getQDateTime(dateDB);
+        tempNoteDataForSorting.m_dateTime = getQDateTime(dateDB);
 
         m_notesDataForSorting.push_back(tempNoteDataForSorting);
     }
@@ -579,13 +580,9 @@ void MainWindow::loadNotes ()
 
     sortNotesList(stringNotesList);
 
-    QString noteName;
-    NoteData* newNote;
-    for(int i = 0; i < m_notesDataForSorting.length(); i++){
-        noteName = m_notesDataForSorting.at(i).m_noteName;
-
-        newNote = addNote(noteName, true);
-
+    foreach (noteDataForSorting sortedNote, m_notesDataForSorting) {
+        QString noteName = sortedNote.m_noteName;
+        NoteData* newNote = addNote(noteName, true);
         m_allNotesList.push_back(newNote);
     }
 
@@ -703,24 +700,11 @@ void MainWindow::onNotePressed ()
 }
 
 /**
-* When clearButton in the search box (lineEdit) is pressed,
-* clear the text in lineEdit and the date label in the editor.
-*/
-void MainWindow::clearButtonClicked ()
-{
-    ui->lineEdit->clear();
-}
-
-/**
 * Delete a given note from the database
 */
 void MainWindow::deleteNoteFromDataBase (NoteData *note)
 {
-    for(unsigned int i = 0; i < m_allNotesList.size(); i++){
-        if(m_allNotesList.at(i)->m_noteName == note->m_noteName){
-            m_allNotesList.erase(m_allNotesList.begin() + i);
-        }
-    }
+    m_allNotesList.removeOne(note);
 
     // Putting the deleted note in trash
     int counter = m_trashDatabase->value("notesCounter").toInt() + 1;
@@ -914,7 +898,6 @@ void MainWindow::onLineEditTextChanged (const QString &arg1)
         }
 
         bool found = goToAndSelectNote(m_tempSelectedNoteBeforeSearching);
-
         if(!found)
             selectFirstNote();
 
@@ -1051,7 +1034,7 @@ void MainWindow::createNewNote ()
 void MainWindow::deleteSelectedNoteFromVisual ()
 {
 
-   int tempNotePlaceInLayout = m_visibleNotesList.indexOf(m_currentSelectedNote);
+    int tempNotePlaceInLayout = m_visibleNotesList.indexOf(m_currentSelectedNote);
 
     deleteNoteFromVisual(m_currentSelectedNote);
     m_currentSelectedNote = 0;
@@ -1139,19 +1122,16 @@ void MainWindow::setFocusOnScrollArea ()
 void MainWindow::selectNoteUp ()
 {
     if(m_currentSelectedNote != 0){
-        if(!ui->scrollArea->hasFocus())
-            ui->scrollArea->setFocus();
+        int currNoteIndex = m_visibleNotesList.indexOf(m_currentSelectedNote);
+        if(currNoteIndex < m_visibleNotesList.size()-1){
+            unsigned int noteSize = m_currentSelectedNote->height();
 
-        for(unsigned int i = 0; i < m_visibleNotesList.size() - 1; i++){
-            if(m_visibleNotesList.at(i)->m_fakeContainer  == m_currentSelectedNote->m_fakeContainer){
-                unsigned int noteSize = m_currentSelectedNote->m_fakeContainer->height();
-
-                if((m_visibleNotesList.size() - i - 1) * noteSize < ui->scrollArea->verticalScrollBar()->value() + noteSize)
-                    ui->scrollArea->verticalScrollBar()->setValue(ui->scrollArea->verticalScrollBar()->value() - noteSize);
-
-                m_visibleNotesList.at(i + 1)->m_button->pressed();
-                break;
+            if((m_visibleNotesList.size() - currNoteIndex - 1) * noteSize < ui->scrollArea->verticalScrollBar()->value() + noteSize){
+                int scrollbarNewValue = ui->scrollArea->verticalScrollBar()->value() - noteSize;
+                ui->scrollArea->verticalScrollBar()->setValue(scrollbarNewValue);
             }
+
+            m_visibleNotesList.at(currNoteIndex + 1)->pressed();
         }
     }
 }
@@ -1162,19 +1142,16 @@ void MainWindow::selectNoteUp ()
 void MainWindow::selectNoteDown ()
 {
     if(m_currentSelectedNote != 0){
-        if(!ui->scrollArea->hasFocus())
-            ui->scrollArea->setFocus();
+        int currNoteIndex = m_visibleNotesList.indexOf(m_currentSelectedNote);
+        if(currNoteIndex > 0){
+            unsigned int noteSize = m_currentSelectedNote->height();
 
-        for(unsigned int i = 1; i < m_visibleNotesList.size(); i++){
-            if(m_visibleNotesList.at(i)->m_fakeContainer  == m_currentSelectedNote->m_fakeContainer){
-                unsigned int noteSize = m_currentSelectedNote->m_fakeContainer->height();
-
-                if((m_visibleNotesList.size() - i - 1) * noteSize > ui->scrollArea->verticalScrollBar()->value() + ui->scrollArea->height() - noteSize * 2)
-                    ui->scrollArea->verticalScrollBar()->setValue(ui->scrollArea->verticalScrollBar()->value() + noteSize);
-
-                m_visibleNotesList.at(i - 1)->m_button->pressed();
-                break;
+            if((m_visibleNotesList.size() - currNoteIndex - 1) * noteSize > ui->scrollArea->verticalScrollBar()->value() + ui->scrollArea->height() - noteSize * 2){
+                int scrollbarNewValue = ui->scrollArea->verticalScrollBar()->value() + noteSize;
+                ui->scrollArea->verticalScrollBar()->setValue(scrollbarNewValue);
             }
+
+            m_visibleNotesList.at(currNoteIndex - 1)->pressed();
         }
     }
 }
@@ -1375,19 +1352,6 @@ void MainWindow::InitData()
     loadNotes();
     selectFirstNote();
     createNewNoteIfEmpty();
-}
-
-/**
-* return true if the given spacer item is inside the given layout, else retuen false
-*/
-bool MainWindow::isSpacerInsideLayout(QSpacerItem *spacer, QVBoxLayout *layout)
-{
-    for(int i = 0; i < layout->count(); i++){
-        if(layout->itemAt(i)->spacerItem() == spacer)
-            return true;
-    }
-
-    return false;
 }
 
 /**
