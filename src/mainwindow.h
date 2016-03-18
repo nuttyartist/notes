@@ -17,6 +17,7 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QSettings>
+#include "notedata.h"
 
 namespace Ui {
 class MainWindow;
@@ -30,145 +31,108 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+protected:
+    void paintEvent(QPaintEvent* e) Q_DECL_OVERRIDE;
+    void closeEvent(QCloseEvent* event) Q_DECL_OVERRIDE;
+    void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+    void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+    void mouseReleaseEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+    void mouseDoubleClickEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+    void leaveEvent(QEvent*) Q_DECL_OVERRIDE;
+    void resizeWindow(QMouseEvent* event);
+    bool eventFilter(QObject* object, QEvent* event) Q_DECL_OVERRIDE;
+
 private:
-    struct noteData;
+
+    Ui::MainWindow* ui;
+
+    QSettings* m_notesDatabase;
+    QSettings* m_trashDatabase;
+    QSettings* m_settingsDatabase;
+    QList<NoteData*> m_allNotesList; // All the notes stored in the database
+    QList<NoteData*> m_visibleNotesList; // Notes currently displayed inside scrollArea
+    QVBoxLayout* m_noteWidgetsContainer;
+
+    NoteData* m_tempNote;
+    NoteData* m_currentSelectedNote;
+    NoteData* m_currentHoveredNote;
+    NoteData* m_tempSelectedNoteBeforeSearching;
+    NoteData* m_noteOnTopInTheLayout;
+    int m_currentVerticalScrollAreaRange;
+    int m_mousePressX;
+    int m_mousePressY;
+    int m_textEditLeftPadding;
+    bool m_canBeResized;
+    bool m_resizeHorzTop;
+    bool m_resizeHorzBottom;
+    bool m_resizeVertRight;
+    bool m_resizeVertLeft;
+    bool m_canMoveWindow;
+    bool m_focusBreaker;
+    bool m_isTemp;
+
+    void setupMainWindow();
+    void setupKeyboardShortcuts();
+    void setupNewNoteButtonAndTrahButton();
+    void setupEditorDateLabel();
+    void setupSplitter();
+    void setupLine();
+    void setupRightFrame();
+    void setupTitleBarButtons();
+    void setupSignalsSlots();
+    void setupLineEdit();
+    void setupScrollArea();
+    void setupTextEdit();
+    void setupDatabases();
+    void initializeSettingsDatabase();
+    void createClearButton();
+    void createMagnifyingGlassIcon();
+    void createNewNoteIfEmpty();
+    QString createNewNoteInDatabase();
+    void deleteNoteFromDataBase(NoteData* note);
+    void setLayoutForScrollArea();
+    void restoreStates();
+    QString getFirstLine(const QString& str);
+    QString getNoteDateEditor (QString dateEdited);
+    NoteData* generateNote(QString noteName, bool isLoadingOrNew);
+    QDateTime getQDateTime(QString date);
+    QPropertyAnimation* getAnimationForDeletion(NoteData* note);
+    void showNoteInEditor(NoteData* note);
+    void sortNotesList(QStringList &stringNotesList);
+    void loadNotes();
+    void saveCurrentNoteToDB();
+    void selectFirstNote();
+    void clearAllNotesFromVisual();
+    bool goToAndSelectNote(NoteData *note);
+    QPropertyAnimation* createAnimation(NoteData* note, const QPair<int, int> &start, const QPair<int, int> &end, int duration);
+    void moveNoteToTop();
+    void moveNoteToTopWithAnimation();
 
 private slots:
-    void paintEvent(QPaintEvent *e);
-    void SetUpMainWindow ();
-    void SetUpKeyboardShortcuts ();
-    void SetUpNewNoteButtonAndTrahButton();
-    void SetUpEditorDateLabel();
-    void SetUpSplitter();
-    void SetUpLine ();
-    void SetUpFrame ();
-    void SetUpTitleBarButtons ();
-    void CreateClearButton ();
-    void CreateMagnifyingGlassIcon ();
-    void SetUpLineEdit ();
-    void SetUpScrollArea ();
-    void SetUpTextEdit ();
-    void InitializeVariables();
-    void InitializeSettingsDatabase();
-    void SetUpDatabases ();
-    void SetLayoutForScrollArea ();
-    void RestoreStates();
-    QString GetFirstLine (QString str);
-    QString GetElidedText (QString str, QFontMetrics labelFontMetrics, int size);
-    QString GetFirstLineAndElide (noteData *note);
-    QDateTime GetQDateTime (QString date);
-    QString GetNoteDateEditor (QString dateEdited);
-    QString GetNoteDate (QString dateEdited);
-    noteData* AddNote (QString noteName, bool isLoadingOrNew);
-    void SortNotesList (QStringList &stringNotesList);
-    void LoadNotes ();
-    void SelectFirstNote ();
-    void CreateNewNoteIfEmpty();
-    void on_newNoteButton_clicked();
-    void on_trashButton_clicked();
-    void UnhighlightNote (noteData* note);
-    void HighlightNote (noteData* note, QString rgbStringColor);
-    QPropertyAnimation* GetAnimationForDeletion (noteData* note);
-    void note_buttuon_pressed ();
-    void ClearButtonClicked ();
-    void DeleteNoteFromDataBase (noteData *note);
-    void DeleteNoteFromVisual (noteData *note);
-    void on_textEdit_textChanged ();
-    bool IsFound (QString keyword, QString content);
-    void SimpleUnhighlightNote (noteData* note);
-    void ClearAllNotesFromVisual ();
-    bool GoToAndSelectNote (QString noteName);
-    void on_lineEdit_textChanged (const QString &arg1);
-    QString CreateNewNoteInDatabase ();
-    void NewNoteAnimation ();
-    void Create_new_note ();
-    void DeleteSelectedNoteFromVisual ();
-    void DeleteTempNoteFromVisual ();
-    void DeleteSelectedNote ();
-    void SetFocusOnText ();
-    void SetFocusOnScrollArea ();
-    void SelectNoteUp ();
-    void SelectNoteDown ();
-    void FullscreenWindow ();
-    void MaximizeWindow ();
-    void MinimizeWindow ();
-    void QuitApplication ();
-    void on_greenMaximizeButton_pressed ();
-    void on_yellowMinimizeButton_pressed ();
-    void on_redCloseButton_pressed ();
-    void on_greenMaximizeButton_clicked();
-    void on_yellowMinimizeButton_clicked();
-    void on_redCloseButton_clicked();
-    void ScrollAreaScrollBarRangeChange (int, int verticalScrollBarRange);
-    void TextEditScrollBarRangeChange (int, int verticalScrollBarRange);
-    void TextEditScrollBarValueChange (int verticalScrollBarValue);
-    void closeEvent(QCloseEvent *event);
-    void mousePressEvent (QMouseEvent* event);
-    void mouseMoveEvent (QMouseEvent* event);
-    void mouseReleaseEvent (QMouseEvent* event);
-    bool IsClickingButton (QPoint mousePos, QPushButton* button);
-    void mouseDoubleClickEvent (QMouseEvent *e);
-    void resizeEvent (QResizeEvent *);
-    bool IsSpacerInsideLayout(QSpacerItem *spacer, QVBoxLayout *layout);
-    void ResizeRestWhenSplitterMove(int pos, int index);
-    bool eventFilter (QObject *object, QEvent *event);
-
-private:
-
-    Ui::MainWindow *ui;
-
-    QSettings* notesDatabase;
-    QSettings* trashDatabase;
-    QSettings* settingsDatabase;
-
-    struct noteDataForSorting
-    {
-        QString noteName;
-        QDateTime dateTime;
-
-        bool operator <(const noteDataForSorting& noteToCompare) const
-        {
-            return this->dateTime < noteToCompare.dateTime;
-        }
-    };
-    QList<noteDataForSorting> notesDataForSorting;
-
-    struct noteData
-    {
-        QString noteName;
-        QGroupBox *fakeContainer;
-        QGroupBox *containerBox;
-        QPushButton* button;
-        QLabel *titleLabel;
-        QLabel *dateLabel;
-        QFrame *seperateLine;
-        int scrollBarPosistion;
-        ~noteData()
-        {
-            delete fakeContainer;
-        }
-    };
-    std::vector<noteData*> allNotesList; // All the notes stored in the database
-    std::vector<noteData*> visibleNotesList; // Notes currently displayed inside scrollArea
-
-    QVBoxLayout *lay;
-    QToolButton *clearButton;
-    QFrame *frame;
-
-    noteData *currentSelectedNote;
-    noteData *currentHoveredNote;
-    QString noteOnTopInTheLayoutName;
-    QString tempSelectedNoteBeforeSearchingName;
-    int currentVerticalScrollAreaRange;
-    noteData *tempNote;
-    bool isTemp;
-
-    int m_nMouseClick_X_Coordinate;
-    int m_nMouseClick_Y_Coordinate;
-    bool canMoveWindow;
-
-    bool focusBreaker;
-    int textEditLeftPadding;
+    void InitData();
+    void onNewNoteButtonClicked();
+    void onTrashButtonClicked();
+    void onNotePressed();
+    void onTextEditTextChanged();
+    void onLineEditTextChanged(const QString& keyword);
+    void onGreenMaximizeButtonPressed ();
+    void onYellowMinimizeButtonPressed ();
+    void onRedCloseButtonPressed ();
+    void onGreenMaximizeButtonClicked();
+    void onYellowMinimizeButtonClicked();
+    void onRedCloseButtonClicked();
+    void createNewNote();
+    void deleteNote(NoteData *note, bool isFromUser=true);
+    void deleteNoteWithAnimation(NoteData *note, bool isFromUser=true);
+    void deleteSelectedNote();
+    void setFocusOnCurrentNote();
+    void selectNoteDown();
+    void selectNoteUp();
+    void setFocusOnText();
+    void fullscreenWindow();
+    void maximizeWindow();
+    void minimizeWindow();
+    void QuitApplication();
 };
 
 #endif // MAINWINDOW_H
