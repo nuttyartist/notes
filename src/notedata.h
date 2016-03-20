@@ -47,7 +47,7 @@ protected:
 
 private:
     void setupWidget();
-    void setBackgroundColor(QColor color);
+    void setContainerStyle(QColor color, bool doShowSeparator);
     void elideTitle();
     QString parseDateTime(QDateTime dateTimeEdited);
 

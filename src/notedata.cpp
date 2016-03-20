@@ -13,7 +13,7 @@ NoteData::NoteData(const QString& noteName, QWidget *parent) :
     m_focusColor(qRgb(254, 206, 9)),
     m_unfocusColor(qRgb(255, 235, 80)),
     m_enterColor(qRgb(207, 207, 207)),
-    m_defaultColor(qRgb(255, 255, 255)),
+    m_defaultColor(Qt::white),
     m_frameContainer(new QFrame(this)),
     m_button(new QPushButton("", m_frameContainer)),
     m_titleLabel(new QLabel("", m_frameContainer)),
@@ -42,28 +42,28 @@ void NoteData::resizeEvent(QResizeEvent *)
 
 void NoteData::focusInEvent(QFocusEvent *)
 {
-    setBackgroundColor(m_focusColor);
+    setContainerStyle(m_focusColor, false);
 }
 
 void NoteData::focusOutEvent(QFocusEvent *)
 {
     if(m_isSelected){
-        setBackgroundColor(m_unfocusColor);
+        setContainerStyle(m_unfocusColor, false);
     }else{
-        setBackgroundColor(m_defaultColor);
+        setContainerStyle(m_defaultColor,true);
     }
 }
 
 void NoteData::enterEvent(QEvent *)
 {
     if(!m_isSelected)
-        setBackgroundColor(m_enterColor);
+        setContainerStyle(m_enterColor,false);
 }
 
 void NoteData::leaveEvent(QEvent *)
 {
     if(!m_isSelected)
-        setBackgroundColor(m_defaultColor);
+        setContainerStyle(m_defaultColor, true);
 }
 
 void NoteData::setupWidget()
@@ -175,14 +175,20 @@ void NoteData::setupWidget()
     this->setStyleSheet(ss);
 }
 
-void NoteData::setBackgroundColor(QColor color)
+void NoteData::setContainerStyle(QColor color, bool doShowSeparator)
 {
+    QString backgroundColorName = color.name();
+    QString serparatorColorName = doShowSeparator? QColor(qRgb(221, 221, 221)).name()
+                                                 : backgroundColorName;
     QString ss = QString("#container{"
                          "  border: none; "
-                         "  border-bottom:1px solid rgb(221, 221, 221); "
-                         "  background-color: %1; margin:0"
+                         "  border-bottom:1px solid %1;"
+                         "  background-color: %2; "
                          "}"
-                         ).arg(color.name());
+                         )
+            .arg(serparatorColorName)
+            .arg(backgroundColorName);
+
     m_frameContainer->setStyleSheet(ss);
 }
 
@@ -271,8 +277,8 @@ bool NoteData::isSelected() const
 void NoteData::setSelected(bool isSelected)
 {
     m_isSelected = isSelected;
-    isSelected ? setBackgroundColor(m_focusColor)
-               : setBackgroundColor(m_defaultColor);
+    isSelected ? setContainerStyle(m_focusColor, false)
+               : setContainerStyle(m_defaultColor, true);
 }
 
 void NoteData::setSelectedWithFocus(bool isSelected, bool focus)
@@ -280,9 +286,9 @@ void NoteData::setSelectedWithFocus(bool isSelected, bool focus)
     m_isSelected = isSelected;
     if(m_isSelected){
         focus ? setFocus()
-              : setBackgroundColor(m_unfocusColor);
+              : setContainerStyle(m_unfocusColor, false);
     }else{
-        setBackgroundColor(m_defaultColor);
+        setContainerStyle(m_defaultColor, true);
     }
 }
 
