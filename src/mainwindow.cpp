@@ -116,7 +116,7 @@ void MainWindow::setupMainWindow ()
 */
 void MainWindow::setupKeyboardShortcuts ()
 {
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_N), this, SLOT(createNewNote()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_N), this, SLOT(createNewNoteWithAnimation()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Delete), this, SLOT(deleteSelectedNote()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_F), ui->lineEdit, SLOT(setFocus()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_E), ui->lineEdit, SLOT(clear()));
@@ -585,7 +585,7 @@ void MainWindow::selectFirstNote ()
         m_currentSelectedNote != Q_NULLPTR ? m_currentSelectedNote->setSelected(false) : void();
         m_currentSelectedNote = m_visibleNotesList.back();
         m_currentSelectedNote->setSelected(true);
-        showNoteInEditor(m_currentSelectedNote);
+        this->showNoteInEditor(m_currentSelectedNote);
     }
 }
 
@@ -596,7 +596,7 @@ void MainWindow::selectFirstNote ()
 void MainWindow::createNewNoteIfEmpty ()
 {
     if(m_allNotesList.empty())
-        createNewNote();
+        this->createNewNoteWithAnimation();
 }
 
 /**
@@ -605,7 +605,7 @@ void MainWindow::createNewNoteIfEmpty ()
 */
 void MainWindow::onNewNoteButtonClicked()
 {
-    createNewNote();
+    this->createNewNoteWithAnimation();
 }
 
 /**
@@ -614,7 +614,7 @@ void MainWindow::onNewNoteButtonClicked()
 */
 void MainWindow::onTrashButtonClicked()
 {
-    deleteSelectedNote();
+    this->deleteSelectedNote();
 }
 
 /**
@@ -847,6 +847,7 @@ void MainWindow::createNewNote ()
 
         m_visibleNotesList.push_back(m_tempNote);
         m_allNotesList.push_back(m_tempNote);
+
         m_noteWidgetsContainer->insertWidget(0, m_tempNote, 0, Qt::AlignTop);
 
         if(m_currentSelectedNote != Q_NULLPTR){
@@ -874,6 +875,24 @@ void MainWindow::createNewNote ()
 
     int scVal = ui->scrollArea->verticalScrollBar()->minimum();
     ui->scrollArea->verticalScrollBar()->setValue(scVal);
+}
+
+void MainWindow::createNewNoteWithAnimation()
+{
+    this->createNewNote();
+
+    int noteHeight = m_tempNote->height();
+    m_tempNote->setFixedHeight(0);
+
+    QPair<int, int> start = QPair<int,int>(0,0);
+    QPair<int, int> end = QPair<int,int>(0,noteHeight);
+    QPropertyAnimation *animation = createAnimation(m_tempNote,start,end,190);
+
+    connect(animation, &QPropertyAnimation::valueChanged, this, [&,noteHeight](QVariant v){
+        m_tempNote->update();
+        m_tempNote->setFixedHeight(v.toRect().height());
+    });
+    animation->start();
 }
 
 /**
@@ -940,8 +959,12 @@ void MainWindow::deleteNoteWithAnimation(NoteData *note, bool isFromUser)
     if(note != Q_NULLPTR){
         // animate the deletion
         auto start = QPair<int, int>(note->y(),note->height());
-        auto end = QPair<int, int>(note->y()-note->height(),note->height());
-        QPropertyAnimation* animation = createAnimation(note, start, end, 150);
+        auto end = QPair<int, int>(note->y(),0);
+        QPropertyAnimation* animation = createAnimation(note, start, end, 190);
+
+        connect(animation, &QPropertyAnimation::valueChanged, [this, note, isFromUser](QVariant v){
+            note->setFixedHeight(v.toRect().height());
+        });
 
         connect(animation, &QPropertyAnimation::finished, [this, note, isFromUser](){
             deleteNote(note, isFromUser);
@@ -1435,7 +1458,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
         if(object == ui->textEdit){
 
             if(m_visibleNotesList.isEmpty()){
-                createNewNote();
+                this->createNewNoteWithAnimation();
             }else if(m_currentSelectedNote != Q_NULLPTR){
                 m_currentSelectedNote->setSelectedWithFocus(true, false);
             }

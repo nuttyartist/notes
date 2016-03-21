@@ -122,6 +122,7 @@ private slots:
     void onYellowMinimizeButtonClicked();
     void onRedCloseButtonClicked();
     void createNewNote();
+    void createNewNoteWithAnimation();
     void deleteNote(NoteData *note, bool isFromUser=true);
     void deleteNoteWithAnimation(NoteData *note, bool isFromUser=true);
     void deleteSelectedNote();
