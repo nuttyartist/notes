@@ -670,7 +670,7 @@ void MainWindow::onNotePressed ()
 
         m_currentSelectedNote = pressedNote;
 
-        m_currentSelectedNote->setSelected(true);
+        m_currentSelectedNote->setSelectedWithFocus(true,true);
         showNoteInEditor(m_currentSelectedNote);
     }
 }
@@ -1057,7 +1057,7 @@ void MainWindow::selectNoteDown ()
         if(currNoteIndex > 0){
             NoteData* aboveNote = m_visibleNotesList.at(currNoteIndex-1);
             ui->scrollArea->ensureWidgetVisible(aboveNote);
-            m_visibleNotesList.at(currNoteIndex - 1)->pressed();
+            aboveNote->pressed();
         }
     }
 }
