@@ -42,28 +42,28 @@ void NoteData::resizeEvent(QResizeEvent *)
 
 void NoteData::focusInEvent(QFocusEvent *)
 {
-    setContainerStyle(m_focusColor, false);
+    updateStyleSheet(m_focusColor, false);
 }
 
 void NoteData::focusOutEvent(QFocusEvent *)
 {
     if(m_isSelected){
-        setContainerStyle(m_unfocusColor, false);
+        updateStyleSheet(m_unfocusColor, false);
     }else{
-        setContainerStyle(m_defaultColor,true);
+        updateStyleSheet(m_defaultColor,true);
     }
 }
 
 void NoteData::enterEvent(QEvent *)
 {
     if(!m_isSelected)
-        setContainerStyle(m_enterColor,false);
+        updateStyleSheet(m_enterColor,false);
 }
 
 void NoteData::leaveEvent(QEvent *)
 {
     if(!m_isSelected)
-        setContainerStyle(m_defaultColor, true);
+        updateStyleSheet(m_defaultColor, true);
 }
 
 void NoteData::setupWidget()
@@ -153,51 +153,60 @@ void NoteData::setupWidget()
 
     QString ss = "#container { "
                  "  border: none; "
-                 "  border-bottom:1px solid rgb(221, 221, 221); "
                  "  background-color: white"
                  "}"
                  "#titleLabel{"
-                 "  margin-left:9px;"
+                 "  margin-left:8px;"
+                 "  padding:0px;"
                  "  background-color:transparent;"
                  "  color: black"
                  "}"
                  "#dateLabel{"
-                 "  margin-left:9px;"
+                 "  padding:0px;"
+                 "  margin-left:7px;"
                  "  color: rgb(132, 132, 132);"
                  "  background-color:transparent;"
                  "}"
                  "#button{"
                  "  border: none; "
+                 "  border-bottom:1px solid rgb(221, 221, 221); "
                  "  outline: none;"
                  "  background-color: transparent;"
+                 "  margin-left : 10px"
                  "}";
 
     this->setStyleSheet(ss);
 }
 
-void NoteData::setContainerStyle(QColor color, bool doShowSeparator)
+void NoteData::updateStyleSheet(QColor color, bool doShowSeparator)
 {
     QString backgroundColorName = color.name();
     QString serparatorColorName = doShowSeparator? QColor(qRgb(221, 221, 221)).name()
                                                  : backgroundColorName;
-    QString ss = QString("#container{"
-                         "  border: none; "
-                         "  border-bottom:1px solid %1;"
-                         "  background-color: %2; "
-                         "}"
-                         )
-            .arg(serparatorColorName)
-            .arg(backgroundColorName);
+    QString ssContainer = QString("#container{"
+                                  "  border: none; "
+                                  "  background-color: %1; "
+                                  "}"
+                                  ).arg(backgroundColorName);
 
-    m_frameContainer->setStyleSheet(ss);
+    m_frameContainer->setStyleSheet(ssContainer);
+
+    QString ssButton = QString("#button{"
+                               "  border: none; "
+                               "  border-bottom:1px solid %1; "
+                               "  outline: none;"
+                               "  background-color: transparent;"
+                               "  margin-left : 10px"
+                               "}").arg(serparatorColorName);
+    m_button->setStyleSheet(ssButton);
 }
 
 void NoteData::elideTitle()
 {
     QFontMetrics fontMetrics = m_titleLabel->fontMetrics();
     QString elidedText = fontMetrics.elidedText(m_fullTitle,
-                                            Qt::ElideRight,
-                                            this->width()-25);
+                                                Qt::ElideRight,
+                                                this->width()-25);
     m_titleLabel->setText(elidedText);
 }
 
@@ -277,8 +286,8 @@ bool NoteData::isSelected() const
 void NoteData::setSelected(bool isSelected)
 {
     m_isSelected = isSelected;
-    isSelected ? setContainerStyle(m_focusColor, false)
-               : setContainerStyle(m_defaultColor, true);
+    isSelected ? updateStyleSheet(m_focusColor, false)
+               : updateStyleSheet(m_defaultColor, true);
 }
 
 void NoteData::setSelectedWithFocus(bool isSelected, bool focus)
@@ -286,9 +295,9 @@ void NoteData::setSelectedWithFocus(bool isSelected, bool focus)
     m_isSelected = isSelected;
     if(m_isSelected){
         focus ? setFocus()
-              : setContainerStyle(m_unfocusColor, false);
+              : updateStyleSheet(m_unfocusColor, false);
     }else{
-        setContainerStyle(m_defaultColor, true);
+        updateStyleSheet(m_defaultColor, true);
     }
 }
 
