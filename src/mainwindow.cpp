@@ -19,7 +19,11 @@
 MainWindow::MainWindow (QWidget *parent) :
     QMainWindow (parent),
     ui (new Ui::MainWindow),
+    m_notesDatabase(Q_NULLPTR),
+    m_trashDatabase(Q_NULLPTR),
+    m_settingsDatabase(Q_NULLPTR),
     m_noteWidgetsContainer(Q_NULLPTR),
+    m_clearButton(Q_NULLPTR),
     m_tempNote(Q_NULLPTR),
     m_currentSelectedNote(Q_NULLPTR),
     m_currentHoveredNote(Q_NULLPTR),
@@ -44,7 +48,6 @@ MainWindow::MainWindow (QWidget *parent) :
     setupLine();
     setupRightFrame ();
     setupTitleBarButtons();
-    createMagnifyingGlassIcon();
     setupLineEdit();
     setupScrollArea();
     setupTextEdit();
@@ -251,23 +254,6 @@ void MainWindow::setupSignalsSlots()
 
 /**
 * @brief
-* Setting up the magnifing glass icon in the search box (lineEdit)
-*/
-void MainWindow::createMagnifyingGlassIcon ()
-{
-    QToolButton *searchButton = new QToolButton(ui->lineEdit);
-
-    QPixmap newPixmap(":images/magnifyingGlass.png");
-    searchButton->setIcon(QIcon(newPixmap));
-    QSize searchSize(25, 25);
-    searchButton->move(-1, -1);
-    searchButton->setIconSize(searchSize);
-    searchButton->setCursor(Qt::ArrowCursor);
-    searchButton->setStyleSheet("QToolButton { border: none; padding: 0px; }");
-}
-
-/**
-* @brief
 * Set the lineedit to start a bit to the right and end a bit to the left (pedding)
 */
 void MainWindow::setupLineEdit ()
@@ -277,14 +263,51 @@ void MainWindow::setupLineEdit ()
     ui->lineEdit->setFont(QFont("Arial", 12));
 #endif
 
+    QLineEdit* lineEdit = ui->lineEdit;
+
     int frameWidth = ui->lineEdit->style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
     QString ss = QString("QLineEdit{ "
                          "  padding-right: %1px; "
-                         "  padding-left: 19px "
+                         "  padding-left: 20px;"
+                         "  padding-right: 19px;"
                          "} "
+                         "QToolButton { "
+                         "  border: none; "
+                         "  padding: 0px;"
+                         "}"
                          ).arg(frameWidth + 1);
 
-    ui->lineEdit->setStyleSheet(ss);
+    lineEdit->setStyleSheet(ss);
+
+    // clear button
+    m_clearButton = new QToolButton(lineEdit);
+    QPixmap pixmap(":images/closeButton.gif");
+    m_clearButton->setIcon(QIcon(pixmap));
+    QSize clearSize(15, 15);
+    m_clearButton->setIconSize(clearSize);
+    m_clearButton->setCursor(Qt::ArrowCursor);
+    m_clearButton->hide();
+
+    connect(m_clearButton, &QToolButton::clicked, this, [&, lineEdit](){
+        m_clearButton->hide();
+        lineEdit->clear();
+    });
+
+    // search button
+    QToolButton *searchButton = new QToolButton(lineEdit);
+    QPixmap newPixmap(":images/magnifyingGlass.png");
+    searchButton->setIcon(QIcon(newPixmap));
+    QSize searchSize(24, 25);
+    searchButton->setIconSize(searchSize);
+    searchButton->setCursor(Qt::ArrowCursor);
+
+    // layout
+    QBoxLayout* layout = new QBoxLayout(QBoxLayout::RightToLeft, lineEdit);
+    layout->setContentsMargins(0,0,3,0);
+    layout->addWidget(m_clearButton);
+    layout->addStretch();
+    layout->addWidget(searchButton);
+    lineEdit->setLayout(layout);
 }
 
 /**
@@ -785,8 +808,11 @@ void MainWindow::onLineEditTextChanged (const QString &keyword)
             selectFirstNote();
         ui->lineEdit->setFocus();
         m_tempSelectedNoteBeforeSearching = Q_NULLPTR;
+        m_clearButton->hide();
 
     }else{
+        m_clearButton->show();
+
         int scVal = ui->scrollArea->verticalScrollBar()->minimum();
         ui->scrollArea->verticalScrollBar()->setValue(scVal);
 

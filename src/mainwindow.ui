@@ -419,7 +419,7 @@
                <enum>Qt::LogicalMoveStyle</enum>
               </property>
               <property name="clearButtonEnabled">
-               <bool>true</bool>
+               <bool>false</bool>
               </property>
              </widget>
             </item>
@@ -497,7 +497,7 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>434</width>
+               <width>344</width>
                <height>276</height>
               </rect>
              </property>

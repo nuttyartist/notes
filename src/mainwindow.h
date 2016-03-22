@@ -52,6 +52,7 @@ private:
     QList<NoteData*> m_allNotesList; // All the notes stored in the database
     QList<NoteData*> m_visibleNotesList; // Notes currently displayed inside scrollArea
     QVBoxLayout* m_noteWidgetsContainer;
+    QToolButton* m_clearButton;
 
     NoteData* m_tempNote;
     NoteData* m_currentSelectedNote;
@@ -85,8 +86,6 @@ private:
     void setupTextEdit();
     void setupDatabases();
     void initializeSettingsDatabase();
-    void createClearButton();
-    void createMagnifyingGlassIcon();
     void createNewNoteIfEmpty();
     QString createNewNoteInDatabase();
     void deleteNoteFromDataBase(NoteData* note);
