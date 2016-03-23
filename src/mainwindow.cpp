@@ -19,11 +19,15 @@
 MainWindow::MainWindow (QWidget *parent) :
     QMainWindow (parent),
     ui (new Ui::MainWindow),
+    m_notesDatabase(Q_NULLPTR),
+    m_trashDatabase(Q_NULLPTR),
+    m_settingsDatabase(Q_NULLPTR),
     m_noteWidgetsContainer(Q_NULLPTR),
+    m_clearButton(Q_NULLPTR),
     m_tempNote(Q_NULLPTR),
     m_currentSelectedNote(Q_NULLPTR),
     m_currentHoveredNote(Q_NULLPTR),
-    m_tempSelectedNoteBeforeSearching(Q_NULLPTR),
+    m_selectedNoteBeforeSearching(Q_NULLPTR),
     m_noteOnTopInTheLayout(Q_NULLPTR),
     m_canBeResized(false),
     m_resizeHorzTop(false),
@@ -44,7 +48,6 @@ MainWindow::MainWindow (QWidget *parent) :
     setupLine();
     setupRightFrame ();
     setupTitleBarButtons();
-    createMagnifyingGlassIcon();
     setupLineEdit();
     setupScrollArea();
     setupTextEdit();
@@ -116,7 +119,7 @@ void MainWindow::setupMainWindow ()
 */
 void MainWindow::setupKeyboardShortcuts ()
 {
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_N), this, SLOT(createNewNote()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_N), this, SLOT(createNewNoteWithAnimation()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Delete), this, SLOT(deleteSelectedNote()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_F), ui->lineEdit, SLOT(setFocus()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_E), ui->lineEdit, SLOT(clear()));
@@ -251,23 +254,6 @@ void MainWindow::setupSignalsSlots()
 
 /**
 * @brief
-* Setting up the magnifing glass icon in the search box (lineEdit)
-*/
-void MainWindow::createMagnifyingGlassIcon ()
-{
-    QToolButton *searchButton = new QToolButton(ui->lineEdit);
-
-    QPixmap newPixmap(":images/magnifyingGlass.png");
-    searchButton->setIcon(QIcon(newPixmap));
-    QSize searchSize(25, 25);
-    searchButton->move(-1, -1);
-    searchButton->setIconSize(searchSize);
-    searchButton->setCursor(Qt::ArrowCursor);
-    searchButton->setStyleSheet("QToolButton { border: none; padding: 0px; }");
-}
-
-/**
-* @brief
 * Set the lineedit to start a bit to the right and end a bit to the left (pedding)
 */
 void MainWindow::setupLineEdit ()
@@ -277,14 +263,52 @@ void MainWindow::setupLineEdit ()
     ui->lineEdit->setFont(QFont("Arial", 12));
 #endif
 
+    QLineEdit* lineEdit = ui->lineEdit;
+
     int frameWidth = ui->lineEdit->style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
     QString ss = QString("QLineEdit{ "
                          "  padding-right: %1px; "
-                         "  padding-left: 19px "
+                         "  padding-left: 20px;"
+                         "  padding-right: 19px;"
                          "} "
+                         "QToolButton { "
+                         "  border: none; "
+                         "  padding: 0px;"
+                         "}"
                          ).arg(frameWidth + 1);
 
-    ui->lineEdit->setStyleSheet(ss);
+    lineEdit->setStyleSheet(ss);
+
+    // clear button
+    m_clearButton = new QToolButton(lineEdit);
+    QPixmap pixmap(":images/closeButton.gif");
+    m_clearButton->setIcon(QIcon(pixmap));
+    QSize clearSize(15, 15);
+    m_clearButton->setIconSize(clearSize);
+    m_clearButton->setCursor(Qt::ArrowCursor);
+    m_clearButton->hide();
+
+    connect(m_clearButton, &QToolButton::clicked, this, [&, lineEdit](){
+        m_clearButton->hide();
+        lineEdit->clear();
+        ui->textEdit->setFocus();
+    });
+
+    // search button
+    QToolButton *searchButton = new QToolButton(lineEdit);
+    QPixmap newPixmap(":images/magnifyingGlass.png");
+    searchButton->setIcon(QIcon(newPixmap));
+    QSize searchSize(24, 25);
+    searchButton->setIconSize(searchSize);
+    searchButton->setCursor(Qt::ArrowCursor);
+
+    // layout
+    QBoxLayout* layout = new QBoxLayout(QBoxLayout::RightToLeft, lineEdit);
+    layout->setContentsMargins(0,0,3,0);
+    layout->addWidget(m_clearButton);
+    layout->addStretch();
+    layout->addWidget(searchButton);
+    lineEdit->setLayout(layout);
 }
 
 /**
@@ -585,7 +609,7 @@ void MainWindow::selectFirstNote ()
         m_currentSelectedNote != Q_NULLPTR ? m_currentSelectedNote->setSelected(false) : void();
         m_currentSelectedNote = m_visibleNotesList.back();
         m_currentSelectedNote->setSelected(true);
-        showNoteInEditor(m_currentSelectedNote);
+        this->showNoteInEditor(m_currentSelectedNote);
     }
 }
 
@@ -596,7 +620,7 @@ void MainWindow::selectFirstNote ()
 void MainWindow::createNewNoteIfEmpty ()
 {
     if(m_allNotesList.empty())
-        createNewNote();
+        this->createNewNoteWithAnimation();
 }
 
 /**
@@ -605,7 +629,7 @@ void MainWindow::createNewNoteIfEmpty ()
 */
 void MainWindow::onNewNoteButtonClicked()
 {
-    createNewNote();
+    this->createNewNoteWithAnimation();
 }
 
 /**
@@ -614,7 +638,7 @@ void MainWindow::onNewNoteButtonClicked()
 */
 void MainWindow::onTrashButtonClicked()
 {
-    deleteSelectedNote();
+    this->deleteSelectedNote();
 }
 
 /**
@@ -630,25 +654,7 @@ void MainWindow::onNotePressed ()
     if(sender() != Q_NULLPTR){
         NoteData* pressedNote = qobject_cast<NoteData *>(sender());
 
-        if(m_currentSelectedNote != Q_NULLPTR && pressedNote != m_currentSelectedNote)
-            m_currentSelectedNote->setSelected(false);
-
-        if(m_tempNote == Q_NULLPTR && m_currentSelectedNote != Q_NULLPTR)
-            m_currentSelectedNote->setScrollBarPosition(ui->textEdit->verticalScrollBar()->value());
-
-        if(m_tempNote != Q_NULLPTR && pressedNote != m_tempNote){
-            deleteNoteWithAnimation(m_tempNote,false);
-        }else if(m_tempNote == Q_NULLPTR
-                 && m_currentSelectedNote != Q_NULLPTR
-                 && pressedNote != m_currentSelectedNote
-                 && m_currentSelectedNote->isModified()){
-            saveCurrentNoteToDB();
-        }
-
-        m_currentSelectedNote = pressedNote;
-
-        m_currentSelectedNote->setSelected(true);
-        showNoteInEditor(m_currentSelectedNote);
+        selectNote(pressedNote);
     }
 }
 
@@ -744,10 +750,9 @@ bool MainWindow::goToAndSelectNote (NoteData* note)
     int noteIndex = m_visibleNotesList.indexOf(note);
     if(noteIndex != -1){
         found = true;
-        note->pressed();
-        int noteSz = note->height();
-        int sbVal = (m_visibleNotesList.size()-1 - noteIndex) * noteSz;
-        ui->scrollArea->verticalScrollBar()->setValue(sbVal);
+        selectNote(note);
+        qApp->processEvents(); // wait till the events processed
+        ui->scrollArea->ensureWidgetVisible(note);
     }
 
     return found;
@@ -767,45 +772,17 @@ void MainWindow::onLineEditTextChanged (const QString &keyword)
 
     if(m_tempNote != Q_NULLPTR){
         deleteNoteWithAnimation(m_tempNote, false);
-    }else if(m_currentSelectedNote != Q_NULLPTR){
-        m_tempSelectedNoteBeforeSearching = m_currentSelectedNote;
+    }else if(m_selectedNoteBeforeSearching == Q_NULLPTR
+             && m_currentSelectedNote != Q_NULLPTR){
+
+        m_selectedNoteBeforeSearching = m_currentSelectedNote;
     }
 
-    clearAllNotesFromVisual();
-
     if(keyword.isEmpty()){
-
-        foreach(NoteData* note, m_allNotesList){
-            note->show();
-            m_visibleNotesList.push_back(note);
-        }
-
-        bool found = goToAndSelectNote(m_tempSelectedNoteBeforeSearching);
-        if(!found)
-            selectFirstNote();
-        ui->lineEdit->setFocus();
-        m_tempSelectedNoteBeforeSearching = Q_NULLPTR;
+        clearSearch(m_selectedNoteBeforeSearching);
 
     }else{
-        int scVal = ui->scrollArea->verticalScrollBar()->minimum();
-        ui->scrollArea->verticalScrollBar()->setValue(scVal);
-
-        if(m_visibleNotesList.empty()){
-            ui->textEdit->blockSignals(true);
-            ui->textEdit->clear();
-            ui->editorDateLabel->clear();
-            ui->textEdit->blockSignals(false);
-        }
-
-        foreach (NoteData *note, m_allNotesList) {
-            bool isFound = note->text().contains(keyword, Qt::CaseInsensitive);
-            if(isFound){
-                note->show();
-                m_visibleNotesList.push_back(note);
-            }
-        }
-
-        selectFirstNote();
+        findNotesContain(keyword);
     }
 }
 
@@ -847,6 +824,7 @@ void MainWindow::createNewNote ()
 
         m_visibleNotesList.push_back(m_tempNote);
         m_allNotesList.push_back(m_tempNote);
+
         m_noteWidgetsContainer->insertWidget(0, m_tempNote, 0, Qt::AlignTop);
 
         if(m_currentSelectedNote != Q_NULLPTR){
@@ -874,6 +852,24 @@ void MainWindow::createNewNote ()
 
     int scVal = ui->scrollArea->verticalScrollBar()->minimum();
     ui->scrollArea->verticalScrollBar()->setValue(scVal);
+}
+
+void MainWindow::createNewNoteWithAnimation()
+{
+    this->createNewNote();
+
+    int noteHeight = m_tempNote->height();
+    m_tempNote->setFixedHeight(0);
+
+    QPair<int, int> start = QPair<int,int>(0,0);
+    QPair<int, int> end = QPair<int,int>(0,noteHeight);
+    QPropertyAnimation *animation = createAnimation(m_tempNote,start,end,190);
+
+    connect(animation, &QPropertyAnimation::valueChanged, this, [&,noteHeight](QVariant v){
+        m_tempNote->update();
+        m_tempNote->setFixedHeight(v.toRect().height());
+    });
+    animation->start();
 }
 
 /**
@@ -940,8 +936,12 @@ void MainWindow::deleteNoteWithAnimation(NoteData *note, bool isFromUser)
     if(note != Q_NULLPTR){
         // animate the deletion
         auto start = QPair<int, int>(note->y(),note->height());
-        auto end = QPair<int, int>(note->y()-note->height(),note->height());
-        QPropertyAnimation* animation = createAnimation(note, start, end, 150);
+        auto end = QPair<int, int>(note->y(),0);
+        QPropertyAnimation* animation = createAnimation(note, start, end, 190);
+
+        connect(animation, &QPropertyAnimation::valueChanged, [this, note, isFromUser](QVariant v){
+            note->setFixedHeight(v.toRect().height());
+        });
 
         connect(animation, &QPropertyAnimation::finished, [this, note, isFromUser](){
             deleteNote(note, isFromUser);
@@ -992,7 +992,7 @@ void MainWindow::selectNoteUp ()
         if(currNoteIndex < m_visibleNotesList.size()-1){
             NoteData* aboveNote = m_visibleNotesList.at(currNoteIndex+1);
             ui->scrollArea->ensureWidgetVisible(aboveNote);
-            m_visibleNotesList.at(currNoteIndex + 1)->pressed();
+            selectNote(aboveNote);
         }
     }
 }
@@ -1008,7 +1008,7 @@ void MainWindow::selectNoteDown ()
         if(currNoteIndex > 0){
             NoteData* aboveNote = m_visibleNotesList.at(currNoteIndex-1);
             ui->scrollArea->ensureWidgetVisible(aboveNote);
-            m_visibleNotesList.at(currNoteIndex - 1)->pressed();
+            selectNote(aboveNote);
         }
     }
 }
@@ -1332,6 +1332,72 @@ void MainWindow::moveNoteToTopWithAnimation()
     rmAnimation->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
+void MainWindow::clearSearch(NoteData* previousNote)
+{
+    clearAllNotesFromVisual();
+
+    foreach(NoteData* note, m_allNotesList){
+        note->show();
+        m_visibleNotesList.push_back(note);
+    }
+
+    bool found = goToAndSelectNote(previousNote);
+    if(!found)
+        selectFirstNote();
+    ui->lineEdit->setFocus();
+    m_selectedNoteBeforeSearching = Q_NULLPTR;
+    m_clearButton->hide();
+}
+
+void MainWindow::findNotesContain(const QString& keyword)
+{
+    clearAllNotesFromVisual();
+    m_clearButton->show();
+
+    int scVal = ui->scrollArea->verticalScrollBar()->minimum();
+    ui->scrollArea->verticalScrollBar()->setValue(scVal);
+
+    if(m_visibleNotesList.empty()){
+        ui->textEdit->blockSignals(true);
+        ui->textEdit->clear();
+        ui->editorDateLabel->clear();
+        ui->textEdit->blockSignals(false);
+    }
+
+    foreach (NoteData *note, m_allNotesList) {
+        bool isFound = note->text().contains(keyword, Qt::CaseInsensitive);
+        if(isFound){
+            note->show();
+            m_visibleNotesList.push_back(note);
+        }
+    }
+
+    selectFirstNote();
+}
+
+void MainWindow::selectNote(NoteData *note)
+{
+    if(m_currentSelectedNote != Q_NULLPTR && note != m_currentSelectedNote)
+        m_currentSelectedNote->setSelected(false);
+
+    if(m_tempNote == Q_NULLPTR && m_currentSelectedNote != Q_NULLPTR)
+        m_currentSelectedNote->setScrollBarPosition(ui->textEdit->verticalScrollBar()->value());
+
+    if(m_tempNote != Q_NULLPTR && note != m_tempNote){
+        deleteNoteWithAnimation(m_tempNote,false);
+    }else if(m_tempNote == Q_NULLPTR
+             && m_currentSelectedNote != Q_NULLPTR
+             && note != m_currentSelectedNote
+             && m_currentSelectedNote->isModified()){
+
+        saveCurrentNoteToDB();
+    }
+
+    m_currentSelectedNote = note;
+    m_currentSelectedNote->setSelectedWithFocus(true,true);
+    showNoteInEditor(m_currentSelectedNote);
+}
+
 /**
 * @brief
 * When the blank area at the top of window is double-clicked the window get maximized
@@ -1435,7 +1501,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
         if(object == ui->textEdit){
 
             if(m_visibleNotesList.isEmpty()){
-                createNewNote();
+                this->createNewNoteWithAnimation();
             }else if(m_currentSelectedNote != Q_NULLPTR){
                 m_currentSelectedNote->setSelectedWithFocus(true, false);
             }
@@ -1446,8 +1512,10 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
                     && !ui->lineEdit->text().isEmpty()
                     && m_currentSelectedNote != Q_NULLPTR){
 
+                ui->lineEdit->blockSignals(true);
                 ui->lineEdit->clear();
-                goToAndSelectNote(m_currentSelectedNote);
+                ui->lineEdit->blockSignals(false);
+                clearSearch(m_currentSelectedNote);
                 ui->textEdit->setFocus();
             }
         }

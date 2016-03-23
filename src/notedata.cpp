@@ -13,7 +13,7 @@ NoteData::NoteData(const QString& noteName, QWidget *parent) :
     m_focusColor(qRgb(254, 206, 9)),
     m_unfocusColor(qRgb(255, 235, 80)),
     m_enterColor(qRgb(207, 207, 207)),
-    m_defaultColor(qRgb(255, 255, 255)),
+    m_defaultColor(Qt::white),
     m_frameContainer(new QFrame(this)),
     m_button(new QPushButton("", m_frameContainer)),
     m_titleLabel(new QLabel("", m_frameContainer)),
@@ -42,28 +42,28 @@ void NoteData::resizeEvent(QResizeEvent *)
 
 void NoteData::focusInEvent(QFocusEvent *)
 {
-    setBackgroundColor(m_focusColor);
+    updateStyleSheet(m_focusColor, false);
 }
 
 void NoteData::focusOutEvent(QFocusEvent *)
 {
     if(m_isSelected){
-        setBackgroundColor(m_unfocusColor);
+        updateStyleSheet(m_unfocusColor, false);
     }else{
-        setBackgroundColor(m_defaultColor);
+        updateStyleSheet(m_defaultColor,true);
     }
 }
 
 void NoteData::enterEvent(QEvent *)
 {
     if(!m_isSelected)
-        setBackgroundColor(m_enterColor);
+        updateStyleSheet(m_enterColor,false);
 }
 
 void NoteData::leaveEvent(QEvent *)
 {
     if(!m_isSelected)
-        setBackgroundColor(m_defaultColor);
+        updateStyleSheet(m_defaultColor, true);
 }
 
 void NoteData::setupWidget()
@@ -153,45 +153,60 @@ void NoteData::setupWidget()
 
     QString ss = "#container { "
                  "  border: none; "
-                 "  border-bottom:1px solid rgb(221, 221, 221); "
                  "  background-color: white"
                  "}"
                  "#titleLabel{"
-                 "  margin-left:9px;"
+                 "  margin-left:8px;"
+                 "  padding:0px;"
                  "  background-color:transparent;"
                  "  color: black"
                  "}"
                  "#dateLabel{"
-                 "  margin-left:9px;"
+                 "  padding:0px;"
+                 "  margin-left:7px;"
                  "  color: rgb(132, 132, 132);"
                  "  background-color:transparent;"
                  "}"
                  "#button{"
                  "  border: none; "
+                 "  border-bottom:1px solid rgb(221, 221, 221); "
                  "  outline: none;"
                  "  background-color: transparent;"
+                 "  margin-left : 10px"
                  "}";
 
     this->setStyleSheet(ss);
 }
 
-void NoteData::setBackgroundColor(QColor color)
+void NoteData::updateStyleSheet(QColor color, bool doShowSeparator)
 {
-    QString ss = QString("#container{"
-                         "  border: none; "
-                         "  border-bottom:1px solid rgb(221, 221, 221); "
-                         "  background-color: %1; margin:0"
-                         "}"
-                         ).arg(color.name());
-    m_frameContainer->setStyleSheet(ss);
+    QString backgroundColorName = color.name();
+    QString serparatorColorName = doShowSeparator? QColor(qRgb(221, 221, 221)).name()
+                                                 : backgroundColorName;
+    QString ssContainer = QString("#container{"
+                                  "  border: none; "
+                                  "  background-color: %1; "
+                                  "}"
+                                  ).arg(backgroundColorName);
+
+    m_frameContainer->setStyleSheet(ssContainer);
+
+    QString ssButton = QString("#button{"
+                               "  border: none; "
+                               "  border-bottom:1px solid %1; "
+                               "  outline: none;"
+                               "  background-color: transparent;"
+                               "  margin-left : 10px"
+                               "}").arg(serparatorColorName);
+    m_button->setStyleSheet(ssButton);
 }
 
 void NoteData::elideTitle()
 {
     QFontMetrics fontMetrics = m_titleLabel->fontMetrics();
     QString elidedText = fontMetrics.elidedText(m_fullTitle,
-                                            Qt::ElideRight,
-                                            this->width()-25);
+                                                Qt::ElideRight,
+                                                this->width()-25);
     m_titleLabel->setText(elidedText);
 }
 
@@ -271,8 +286,8 @@ bool NoteData::isSelected() const
 void NoteData::setSelected(bool isSelected)
 {
     m_isSelected = isSelected;
-    isSelected ? setBackgroundColor(m_focusColor)
-               : setBackgroundColor(m_defaultColor);
+    isSelected ? updateStyleSheet(m_focusColor, false)
+               : updateStyleSheet(m_defaultColor, true);
 }
 
 void NoteData::setSelectedWithFocus(bool isSelected, bool focus)
@@ -280,9 +295,9 @@ void NoteData::setSelectedWithFocus(bool isSelected, bool focus)
     m_isSelected = isSelected;
     if(m_isSelected){
         focus ? setFocus()
-              : setBackgroundColor(m_unfocusColor);
+              : updateStyleSheet(m_unfocusColor, false);
     }else{
-        setBackgroundColor(m_defaultColor);
+        updateStyleSheet(m_defaultColor, true);
     }
 }
 
