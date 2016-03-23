@@ -57,7 +57,7 @@ private:
     NoteData* m_tempNote;
     NoteData* m_currentSelectedNote;
     NoteData* m_currentHoveredNote;
-    NoteData* m_tempSelectedNoteBeforeSearching;
+    NoteData* m_selectedNoteBeforeSearching;
     NoteData* m_noteOnTopInTheLayout;
     int m_currentVerticalScrollAreaRange;
     int m_mousePressX;
@@ -106,6 +106,9 @@ private:
     QPropertyAnimation* createAnimation(NoteData* note, const QPair<int, int> &start, const QPair<int, int> &end, int duration);
     void moveNoteToTop();
     void moveNoteToTopWithAnimation();
+    void clearSearch(NoteData *previousNote);
+    void findNotesContain(const QString &keyword);
+    void selectNote(NoteData* note);
 
 private slots:
     void InitData();
