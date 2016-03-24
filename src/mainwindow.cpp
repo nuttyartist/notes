@@ -709,7 +709,6 @@ void MainWindow::onTextEditTextChanged ()
         // update time
         m_currentSelectedNote->setDateTime(QDateTime::currentDateTime());
         QString noteDate = m_currentSelectedNote->dateTime().toString(Qt::ISODate);
-        // m_currentSelectedNote->m_dateLabel->setText(getNoteDate(m_currentSelectedNote->m_dateTime));
         ui->editorDateLabel->setText(getNoteDateEditor(noteDate));
 
         if(m_currentSelectedNote != m_noteOnTopInTheLayout)
@@ -1311,7 +1310,7 @@ void MainWindow::moveNoteToTopWithAnimation()
     QPropertyAnimation *rmAnimation = createAnimation(m_currentSelectedNote,
                                                       rmStart,
                                                       rmEnd,
-                                                      60);
+                                                      90);
 
     // animation for inserting
     auto insStart = QPair<int,int>(tempHeight, 0);
@@ -1319,13 +1318,25 @@ void MainWindow::moveNoteToTopWithAnimation()
     QPropertyAnimation *insAnimation = createAnimation(m_currentSelectedNote,
                                                        insStart,
                                                        insEnd,
-                                                       60);
+                                                       90);
 
     // start the inserting animation after removing annimation finishes
     connect(rmAnimation, &QPropertyAnimation::finished, this, [this, insAnimation](){
+        // move the note widget to the top in the background side
         moveNoteToTop();
+
+        // apply the new height when the value of the animation property changes
+        connect(insAnimation, &QPropertyAnimation::valueChanged, this, [this](QVariant value){
+            m_currentSelectedNote->setFixedHeight(value.toRect().height());
+        });
+
         // start the insert animation
         insAnimation->start(QAbstractAnimation::DeleteWhenStopped);
+    });
+
+    // apply the new height when the value of the animation property changes
+    connect(rmAnimation, &QPropertyAnimation::valueChanged, this, [this](QVariant value){
+        m_currentSelectedNote->setFixedHeight(value.toRect().height());
     });
 
     // start the remove animation
