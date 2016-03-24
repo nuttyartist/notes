@@ -991,7 +991,7 @@ void MainWindow::selectNoteUp ()
         int currNoteIndex = m_visibleNotesList.indexOf(m_currentSelectedNote);
         if(currNoteIndex < m_visibleNotesList.size()-1){
             NoteData* aboveNote = m_visibleNotesList.at(currNoteIndex+1);
-            ui->scrollArea->ensureWidgetVisible(aboveNote);
+            ui->scrollArea->ensureWidgetVisible(aboveNote, 38, 0);
             selectNote(aboveNote);
         }
     }
@@ -1007,7 +1007,7 @@ void MainWindow::selectNoteDown ()
         int currNoteIndex = m_visibleNotesList.indexOf(m_currentSelectedNote);
         if(currNoteIndex > 0){
             NoteData* aboveNote = m_visibleNotesList.at(currNoteIndex-1);
-            ui->scrollArea->ensureWidgetVisible(aboveNote);
+            ui->scrollArea->ensureWidgetVisible(aboveNote, 38, 0);
             selectNote(aboveNote);
         }
     }
