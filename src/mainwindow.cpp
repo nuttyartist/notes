@@ -247,7 +247,7 @@ void MainWindow::setupSignalsSlots()
     // delete note button
     connect(ui->trashButton, SIGNAL(clicked(bool)), this, SLOT(onTrashButtonClicked()));
     // text edit text changed
-    connect(ui->textEdit, SIGNAL(textChanged()), this, SLOT(onTextEditTextChanged()));
+    connect(ui->textEdit, SIGNAL(textChanged()), this, SLOT(onTextEditTextChanged()),Qt::QueuedConnection);
     // line edit text changed
     connect(ui->lineEdit, SIGNAL(textChanged(QString)), this, SLOT(onLineEditTextChanged(QString)));
 }
@@ -857,18 +857,17 @@ void MainWindow::createNewNoteWithAnimation()
 {
     this->createNewNote();
 
-    int noteHeight = m_tempNote->height();
-    m_tempNote->setFixedHeight(0);
+    int noteHeight = m_currentSelectedNote->height();
+    m_currentSelectedNote->setFixedHeight(0);
 
     QPair<int, int> start = QPair<int,int>(0,0);
     QPair<int, int> end = QPair<int,int>(0,noteHeight);
-    QPropertyAnimation *animation = createAnimation(m_tempNote,start,end,190);
+    QPropertyAnimation *animation = createAnimation(m_currentSelectedNote,start,end,90);
 
     connect(animation, &QPropertyAnimation::valueChanged, this, [&,noteHeight](QVariant v){
-        m_tempNote->update();
-        m_tempNote->setFixedHeight(v.toRect().height());
+        m_currentSelectedNote->setFixedHeight(v.toRect().height());
     });
-    animation->start();
+    animation->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
 /**
