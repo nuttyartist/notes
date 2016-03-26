@@ -14,6 +14,7 @@ NoteData::NoteData(const QString& noteName, QWidget *parent) :
     m_unfocusColor(qRgb(255, 235, 80)),
     m_enterColor(qRgb(207, 207, 207)),
     m_defaultColor(Qt::white),
+    m_backgroundColor(Qt::white),
     m_frameContainer(new QFrame(this)),
     m_button(new QPushButton("", m_frameContainer)),
     m_titleLabel(new QLabel("", m_frameContainer)),
@@ -34,6 +35,20 @@ void NoteData::setTitle(QString& title)
     elideTitle();
 }
 
+void NoteData::showSeparator(bool doShow)
+{
+    QString serparatorColorName = doShow ? QColor(qRgb(221, 221, 221)).name()
+                                         : m_backgroundColor.name();
+    QString ssButton = QString("#button{"
+                               "  border: none; "
+                               "  border-bottom:1px solid %1; "
+                               "  outline: none;"
+                               "  background-color: transparent;"
+                               "  margin-left : 10px"
+                               "}").arg(serparatorColorName);
+    m_button->setStyleSheet(ssButton);
+}
+
 void NoteData::resizeEvent(QResizeEvent *)
 {
     m_button->setFixedWidth(this->width());
@@ -43,6 +58,7 @@ void NoteData::resizeEvent(QResizeEvent *)
 void NoteData::focusInEvent(QFocusEvent *)
 {
     updateStyleSheet(m_focusColor, false);
+    emit focusedIn();
 }
 
 void NoteData::focusOutEvent(QFocusEvent *)
@@ -52,18 +68,23 @@ void NoteData::focusOutEvent(QFocusEvent *)
     }else{
         updateStyleSheet(m_defaultColor,true);
     }
+    emit focusedOut();
 }
 
 void NoteData::enterEvent(QEvent *)
 {
     if(!m_isSelected)
         updateStyleSheet(m_enterColor,false);
+
+    emit hoverEntered();
 }
 
 void NoteData::leaveEvent(QEvent *)
 {
     if(!m_isSelected)
         updateStyleSheet(m_defaultColor, true);
+
+    emit hoverLeft();
 }
 
 void NoteData::setupWidget()
@@ -150,7 +171,6 @@ void NoteData::setupWidget()
     vLayoutNote->addWidget(m_frameContainer);
     this->setLayout(vLayoutNote);
 
-
     QString ss = "#container { "
                  "  border: none; "
                  "  background-color: white"
@@ -180,25 +200,16 @@ void NoteData::setupWidget()
 
 void NoteData::updateStyleSheet(QColor color, bool doShowSeparator)
 {
-    QString backgroundColorName = color.name();
-    QString serparatorColorName = doShowSeparator? QColor(qRgb(221, 221, 221)).name()
-                                                 : backgroundColorName;
+    m_backgroundColor = color;
     QString ssContainer = QString("#container{"
                                   "  border: none; "
                                   "  background-color: %1; "
                                   "}"
-                                  ).arg(backgroundColorName);
+                                  ).arg(m_backgroundColor.name());
 
     m_frameContainer->setStyleSheet(ssContainer);
 
-    QString ssButton = QString("#button{"
-                               "  border: none; "
-                               "  border-bottom:1px solid %1; "
-                               "  outline: none;"
-                               "  background-color: transparent;"
-                               "  margin-left : 10px"
-                               "}").arg(serparatorColorName);
-    m_button->setStyleSheet(ssButton);
+    showSeparator(doShowSeparator);
 }
 
 void NoteData::elideTitle()

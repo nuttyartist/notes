@@ -225,7 +225,6 @@ void MainWindow::setupTitleBarButtons ()
     ui->redCloseButton->installEventFilter(this);
     ui->yellowMinimizeButton->installEventFilter(this);
     ui->greenMaximizeButton->installEventFilter(this);
-
 }
 
 /**
@@ -528,6 +527,10 @@ NoteData *MainWindow::generateNote(QString noteName, bool isLoadingOrNew)
     newNote->setTitle(firstLine);
 
     connect(newNote, SIGNAL(pressed()), this, SLOT(onNotePressed()));
+    connect(newNote, SIGNAL(hoverEntered()), this, SLOT(onNoteHoverEntered()));
+    connect(newNote, SIGNAL(hoverLeft()), this, SLOT(onNoteHoverLeft()));
+    connect(newNote, SIGNAL(focusedIn()), this, SLOT(onNoteHoverEntered()));
+    connect(newNote, SIGNAL(focusedOut()), this, SLOT(onNoteHoverLeft()));
 
     return newNote;
 }
@@ -654,7 +657,61 @@ void MainWindow::onNotePressed ()
     if(sender() != Q_NULLPTR){
         NoteData* pressedNote = qobject_cast<NoteData *>(sender());
 
+        int currIndex = m_visibleNotesList.indexOf(m_currentSelectedNote);
+        if(currIndex+1 < m_visibleNotesList.size())
+            m_visibleNotesList[currIndex+1]->showSeparator(true);
+
         selectNote(pressedNote);
+
+        currIndex = m_visibleNotesList.indexOf(m_currentSelectedNote);
+        if(currIndex+1 < m_visibleNotesList.size())
+            m_visibleNotesList[currIndex+1]->showSeparator(false);
+
+        m_currentHoveredNote = Q_NULLPTR;
+
+        pressedNote->showSeparator(false);
+    }
+}
+
+void MainWindow::onNoteHoverEntered()
+{
+    qApp->processEvents();
+    if(sender() != Q_NULLPTR){
+        NoteData* hoveredNote = qobject_cast<NoteData *>(sender());
+
+        if(m_currentHoveredNote != Q_NULLPTR){
+            int currHoveredIndex = m_visibleNotesList.indexOf(m_currentHoveredNote);
+            if(currHoveredIndex + 1 < m_visibleNotesList.size()
+                    && !m_visibleNotesList[currHoveredIndex+1]->isSelected()){
+
+                m_visibleNotesList[currHoveredIndex+1]->showSeparator(true);
+            }
+        }
+
+        m_currentHoveredNote = hoveredNote;
+        int currHoveredIndex = m_visibleNotesList.indexOf(m_currentHoveredNote);
+        if(currHoveredIndex+1 < m_visibleNotesList.size())
+            m_visibleNotesList[currHoveredIndex+1]->showSeparator(false);
+
+        int currIndex = m_visibleNotesList.indexOf(m_currentSelectedNote);
+        if(currIndex+1 < m_visibleNotesList.size())
+            m_visibleNotesList[currIndex+1]->showSeparator(false);
+    }
+}
+
+void MainWindow::onNoteHoverLeft()
+{
+    if(sender() != Q_NULLPTR){
+        NoteData* hoveredNote = qobject_cast<NoteData *>(sender());
+        int hoverLeftIndex = m_visibleNotesList.indexOf(hoveredNote);
+        if(hoverLeftIndex + 1 < m_visibleNotesList.size()
+                && m_visibleNotesList[hoverLeftIndex + 1] != m_currentSelectedNote
+                && hoveredNote != m_currentSelectedNote)
+            m_visibleNotesList[hoverLeftIndex + 1]->showSeparator(true);
+
+        if(hoverLeftIndex - 1 > 0
+                && m_visibleNotesList[hoverLeftIndex - 1] == m_currentSelectedNote)
+            m_visibleNotesList[hoverLeftIndex]->showSeparator(false);
     }
 }
 
@@ -768,7 +825,6 @@ bool MainWindow::goToAndSelectNote (NoteData* note)
 */
 void MainWindow::onLineEditTextChanged (const QString &keyword)
 {
-
     if(m_tempNote != Q_NULLPTR){
         deleteNoteWithAnimation(m_tempNote, false);
     }else if(m_selectedNoteBeforeSearching == Q_NULLPTR
@@ -828,6 +884,10 @@ void MainWindow::createNewNote ()
 
         if(m_currentSelectedNote != Q_NULLPTR){
             saveCurrentNoteToDB();
+            // manage the separator
+            int currIndex = m_visibleNotesList.indexOf(m_currentSelectedNote);
+            if(currIndex+1 < m_visibleNotesList.size())
+                m_visibleNotesList[currIndex+1]->showSeparator(true);
             m_currentSelectedNote->setSelected(false);
         }
 
@@ -1278,6 +1338,11 @@ void MainWindow::moveNoteToTop()
             && m_noteOnTopInTheLayout != m_currentSelectedNote){
 
         m_noteOnTopInTheLayout = m_currentSelectedNote;
+
+        // show seperator in the note above the one modified
+        int currIndex = m_visibleNotesList.indexOf(m_currentSelectedNote);
+        if(currIndex + 1 < m_visibleNotesList.size())
+            m_visibleNotesList[currIndex + 1]->showSeparator(true);
 
         // scroll to top
         int scrollBarMinValue = ui->scrollArea->verticalScrollBar()->minimum();

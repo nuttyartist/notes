@@ -18,6 +18,7 @@ public:
     ~NoteData();
 
     void setTitle(QString &title);
+    void showSeparator(bool doShow);
 
     bool isSelected() const;
     void setSelected(bool isSelected);
@@ -63,6 +64,7 @@ private:
     QColor m_unfocusColor;
     QColor m_enterColor;
     QColor m_defaultColor;
+    QColor m_backgroundColor;
 
     QFrame* m_frameContainer;
     QPushButton* m_button;
@@ -74,6 +76,10 @@ public slots:
 
 signals:
     void pressed();
+    void hoverEntered();
+    void hoverLeft();
+    void focusedIn();
+    void focusedOut();
 
 };
 
