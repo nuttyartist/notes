@@ -756,6 +756,9 @@ void MainWindow::onTextEditTextChanged ()
     if(m_currentSelectedNote != Q_NULLPTR
             && ui->textEdit->toPlainText() != m_currentSelectedNote->text()){
 
+        if(m_currentSelectedNote != m_noteOnTopInTheLayout)
+            moveNoteToTopWithAnimation();
+
         // update modification flag
         m_currentSelectedNote->setModified(true);
         // update text
@@ -767,9 +770,6 @@ void MainWindow::onTextEditTextChanged ()
         m_currentSelectedNote->setDateTime(QDateTime::currentDateTime());
         QString noteDate = m_currentSelectedNote->dateTime().toString(Qt::ISODate);
         ui->editorDateLabel->setText(getNoteDateEditor(noteDate));
-
-        if(m_currentSelectedNote != m_noteOnTopInTheLayout)
-            moveNoteToTopWithAnimation();
     }
 
     if(m_isTemp && !m_tempNote->text().isEmpty()){
@@ -924,9 +924,6 @@ void MainWindow::createNewNoteWithAnimation()
     QPair<int, int> end = QPair<int,int>(0,noteHeight);
     QPropertyAnimation *animation = createAnimation(m_currentSelectedNote,start,end,90);
 
-    connect(animation, &QPropertyAnimation::valueChanged, this, [&,noteHeight](QVariant v){
-        m_currentSelectedNote->setFixedHeight(v.toRect().height());
-    });
     animation->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
@@ -996,10 +993,6 @@ void MainWindow::deleteNoteWithAnimation(NoteData *note, bool isFromUser)
         auto start = QPair<int, int>(note->y(),note->height());
         auto end = QPair<int, int>(note->y(),0);
         QPropertyAnimation* animation = createAnimation(note, start, end, 190);
-
-        connect(animation, &QPropertyAnimation::valueChanged, [this, note, isFromUser](QVariant v){
-            note->setFixedHeight(v.toRect().height());
-        });
 
         connect(animation, &QPropertyAnimation::finished, [this, note, isFromUser](){
             deleteNote(note, isFromUser);
@@ -1319,11 +1312,16 @@ QPropertyAnimation *MainWindow::createAnimation(NoteData *note, const QPair<int,
 {
     QRect startRect(note->x(),start.first, note->width(), start.second);
     QRect endRect(note->x(),end.first, note->width(), end.second);
+
     QPropertyAnimation *animation = new QPropertyAnimation(note, "geometry", this);
     animation->setEasingCurve(QEasingCurve::Linear);
     animation->setDuration(duration);
     animation->setStartValue(startRect);
     animation->setEndValue(endRect);
+
+    connect(animation, &QPropertyAnimation::valueChanged, [note](QVariant value){
+        note->setFixedHeight(value.toRect().height());
+    });
 
     return animation;
 }
@@ -1364,6 +1362,10 @@ void MainWindow::moveNoteToTop()
  */
 void MainWindow::moveNoteToTopWithAnimation()
 {
+    // block signals emited from text edit to not interfer with the animation
+    QTextEdit* textEdit = ui->textEdit;
+    textEdit->blockSignals(true);
+
     int tempHeight = m_currentSelectedNote->height();
 
     // Animation for removing
@@ -1384,27 +1386,23 @@ void MainWindow::moveNoteToTopWithAnimation()
                                                        insEnd,
                                                        90);
 
-    // start the inserting animation after removing annimation finishes
-    connect(rmAnimation, &QPropertyAnimation::finished, this, [this, insAnimation](){
-        // move the note widget to the top in the background side
+    QSequentialAnimationGroup* seqAnim = new QSequentialAnimationGroup;
+    seqAnim->addAnimation(rmAnimation);
+    seqAnim->addAnimation(insAnimation);
+
+    // when remove animation finishes, move note to the top
+    connect(seqAnim, &QSequentialAnimationGroup::currentAnimationChanged, this, [&](){
         moveNoteToTop();
+    },Qt::DirectConnection);
 
-        // apply the new height when the value of the animation property changes
-        connect(insAnimation, &QPropertyAnimation::valueChanged, this, [this](QVariant value){
-            m_currentSelectedNote->setFixedHeight(value.toRect().height());
-        });
 
-        // start the insert animation
-        insAnimation->start(QAbstractAnimation::DeleteWhenStopped);
+    // when animation finishes, disable blocking signal and sync the edit text with the note widget
+    connect(seqAnim, &QSequentialAnimationGroup::finished, this, [&,textEdit](){
+        textEdit->blockSignals(false);
+        textEdit->textChanged();
     });
 
-    // apply the new height when the value of the animation property changes
-    connect(rmAnimation, &QPropertyAnimation::valueChanged, this, [this](QVariant value){
-        m_currentSelectedNote->setFixedHeight(value.toRect().height());
-    });
-
-    // start the remove animation
-    rmAnimation->start(QAbstractAnimation::DeleteWhenStopped);
+    seqAnim->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
 void MainWindow::clearSearch(NoteData* previousNote)
