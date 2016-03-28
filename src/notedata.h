@@ -19,6 +19,7 @@ public:
 
     void setTitle(QString &title);
     void showSeparator(bool doShow);
+    void updateWidth();
 
     bool isSelected() const;
     void setSelected(bool isSelected);
@@ -70,6 +71,7 @@ private:
     QPushButton* m_button;
     QLabel* m_titleLabel;
     QLabel* m_dateLabel;
+    QFontMetrics m_titleFontMetrics;
 
 public slots:
     void onButtonPressed();

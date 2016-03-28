@@ -2,7 +2,6 @@
 #include <QVBoxLayout>
 #include <QDebug>
 #include <QSplitter>
-#include <QFocusEvent>
 
 NoteData::NoteData(const QString& noteName, QWidget *parent) :
     QWidget(parent),
@@ -16,9 +15,11 @@ NoteData::NoteData(const QString& noteName, QWidget *parent) :
     m_defaultColor(Qt::white),
     m_backgroundColor(Qt::white),
     m_frameContainer(new QFrame(this)),
-    m_button(new QPushButton("", m_frameContainer)),
-    m_titleLabel(new QLabel("", m_frameContainer)),
-    m_dateLabel(new QLabel("", m_frameContainer))
+    m_button(new QPushButton(m_frameContainer)),
+    m_titleLabel(new QLabel(m_frameContainer)),
+    m_dateLabel(new QLabel(m_frameContainer)),
+    m_titleFontMetrics(m_dateLabel->fontMetrics())
+
 {
     setFocusPolicy(Qt::StrongFocus);
     setupWidget();
@@ -39,20 +40,25 @@ void NoteData::showSeparator(bool doShow)
 {
     QString serparatorColorName = doShow ? QColor(qRgb(221, 221, 221)).name()
                                          : m_backgroundColor.name();
-    QString ssButton = QString("#button{"
-                               "  border: none; "
-                               "  border-bottom:1px solid %1; "
-                               "  outline: none;"
-                               "  background-color: transparent;"
-                               "  margin-left : 10px"
-                               "}").arg(serparatorColorName);
+    QString ssButton = QStringLiteral("#button{"
+                                      "  border: none; "
+                                      "  border-bottom:1px solid %1; "
+                                      "  outline: none;"
+                                      "  background-color: transparent;"
+                                      "  margin-left : 10px"
+                                      "}").arg(serparatorColorName);
     m_button->setStyleSheet(ssButton);
+}
+
+void NoteData::updateWidth()
+{
+    m_button->setFixedWidth(this->width());
+    elideTitle();
 }
 
 void NoteData::resizeEvent(QResizeEvent *)
 {
-    m_button->setFixedWidth(this->width());
-    elideTitle();
+    updateWidth();
 }
 
 void NoteData::focusInEvent(QFocusEvent *)
@@ -90,8 +96,8 @@ void NoteData::leaveEvent(QEvent *)
 void NoteData::setupWidget()
 {
 #ifdef Q_OS_LINUX
-    QFont titleLabelFont("Liberation Sans");
-    QFont dateLabelFont("Liberation Sans");
+    QFont titleLabelFont(QStringLiteral("Liberation Sans"));
+    QFont dateLabelFont(QStringLiteral("Liberation Sans"));
 #elif _WIN32
     QFont titleLabelFont("Arial");
     QFont dateLabelFont("Arial");
@@ -105,10 +111,10 @@ void NoteData::setupWidget()
     titleLabelFont.setPixelSize(13);
     dateLabelFont.setPixelSize(11);
 
-    m_button->setObjectName("button");
-    m_titleLabel->setObjectName("titleLabel");
-    m_dateLabel->setObjectName("dateLabel");
-    m_frameContainer->setObjectName("container");
+    m_button->setObjectName(QStringLiteral("button"));
+    m_titleLabel->setObjectName(QStringLiteral("titleLabel"));
+    m_dateLabel->setObjectName(QStringLiteral("dateLabel"));
+    m_frameContainer->setObjectName(QStringLiteral("container"));
 
     // On windows +2 is not enough room so we do it os specific
     // Maybe it's because of the way windows render its fonts
@@ -133,17 +139,18 @@ void NoteData::setupWidget()
 
     // title label
     m_titleLabel->setFont(titleLabelFont);
-    m_titleLabel->resize(this->width() - 1, 0);
     int tHeight = titleLabelFont.pixelSize() + addToTitleLabelHeight;
-    m_titleLabel->setFixedHeight(tHeight);
+    m_titleLabel->resize(this->width() - 1, tHeight);
     m_titleLabel->move(0, distanceToTitleLabel);
+    m_titleLabel->setAttribute(Qt::WA_TranslucentBackground);
+    m_titleFontMetrics = m_titleLabel->fontMetrics();
     // date label
     m_dateLabel->setFont(dateLabelFont);
-    m_dateLabel->resize(this->width(), m_dateLabel->height());
     int dHeight = dateLabelFont.pixelSize() + addToDateLabelHeight;
-    m_dateLabel->setFixedHeight(dHeight);
+    m_dateLabel->resize(this->width(), dHeight);
     int dy = m_titleLabel->height() + distanceBetweenEverything*2;
     m_dateLabel->move(0, dy);
+    m_dateLabel->setAttribute(Qt::WA_TranslucentBackground);
     // Note Height
     int noteHeight = m_titleLabel->height()
             + m_dateLabel->height()
@@ -154,6 +161,8 @@ void NoteData::setupWidget()
     m_button->raise();
     m_button->setFlat(true);
     m_button->setFocusPolicy(Qt::NoFocus);
+    m_button->setAttribute(Qt::WA_TranslucentBackground);
+    showSeparator(true);
     //container
     m_frameContainer->setFixedHeight(this->height());
 
@@ -170,42 +179,16 @@ void NoteData::setupWidget()
     vLayoutNote->setSpacing(0);
     vLayoutNote->addWidget(m_frameContainer);
     this->setLayout(vLayoutNote);
-
-    QString ss = "#container { "
-                 "  border: none; "
-                 "  background-color: white"
-                 "}"
-                 "#titleLabel{"
-                 "  margin-left:8px;"
-                 "  padding:0px;"
-                 "  background-color:transparent;"
-                 "  color: black"
-                 "}"
-                 "#dateLabel{"
-                 "  padding:0px;"
-                 "  margin-left:7px;"
-                 "  color: rgb(132, 132, 132);"
-                 "  background-color:transparent;"
-                 "}"
-                 "#button{"
-                 "  border: none; "
-                 "  border-bottom:1px solid rgb(221, 221, 221); "
-                 "  outline: none;"
-                 "  background-color: transparent;"
-                 "  margin-left : 10px"
-                 "}";
-
-    this->setStyleSheet(ss);
 }
 
 void NoteData::updateStyleSheet(QColor color, bool doShowSeparator)
 {
     m_backgroundColor = color;
-    QString ssContainer = QString("#container{"
-                                  "  border: none; "
-                                  "  background-color: %1; "
-                                  "}"
-                                  ).arg(m_backgroundColor.name());
+    QString ssContainer = QStringLiteral("#container{"
+                                         "  border: none; "
+                                         "  background-color: %1; "
+                                         "}"
+                                         ).arg(m_backgroundColor.name());
 
     m_frameContainer->setStyleSheet(ssContainer);
 
@@ -214,23 +197,28 @@ void NoteData::updateStyleSheet(QColor color, bool doShowSeparator)
 
 void NoteData::elideTitle()
 {
-    QFontMetrics fontMetrics = m_titleLabel->fontMetrics();
-    QString elidedText = fontMetrics.elidedText(m_fullTitle,
-                                                Qt::ElideRight,
-                                                this->width()-25);
-    m_titleLabel->setText(elidedText);
+    if (m_titleFontMetrics.width(m_fullTitle) > this->width()-25) {
+        QString elidedText = m_titleFontMetrics.elidedText(m_fullTitle,
+                                                           Qt::ElideRight,
+                                                           this->width()-25);
+        m_titleLabel->setText(elidedText);
+    }else{
+        m_titleLabel->setText(m_fullTitle);
+    }
 }
 
 QString NoteData::parseDateTime(QDateTime dateTimeEdited)
 {
     QLocale usLocale(QLocale("en_US"));
 
-    if(dateTimeEdited.date() == QDate::currentDate()){
+    auto currDateTime = QDateTime::currentDateTime();
+
+    if(dateTimeEdited.date() == currDateTime.date()){
         return usLocale.toString(dateTimeEdited.time(),"h:mm A");
-    }else if(dateTimeEdited.daysTo(QDateTime::currentDateTime()) == 1){
+    }else if(dateTimeEdited.daysTo(currDateTime) == 1){
         return "Yesterday";
-    }else if(dateTimeEdited.daysTo(QDateTime::currentDateTime()) >= 2 &&
-             dateTimeEdited.daysTo(QDateTime::currentDateTime()) <= 7){
+    }else if(dateTimeEdited.daysTo(currDateTime) >= 2 &&
+             dateTimeEdited.daysTo(currDateTime) <= 7){
         return usLocale.toString(dateTimeEdited.date(), "dddd");
     }
 
