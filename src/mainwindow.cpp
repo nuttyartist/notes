@@ -1371,7 +1371,7 @@ void MainWindow::moveNoteToTopWithAnimation()
     textEdit->blockSignals(true);
 
     int tempHeight = m_currentSelectedNote->height();
-
+    m_currentSelectedNote->lower();
     // Animation for removing
     int currNotePosY = m_currentSelectedNote->y();
     int currNoteHeight = m_currentSelectedNote->height();
@@ -1383,7 +1383,7 @@ void MainWindow::moveNoteToTopWithAnimation()
                                                       90);
 
     // animation for inserting
-    auto insStart = QPair<int,int>(tempHeight, 0);
+    auto insStart = QPair<int,int>(tempHeight, tempHeight);
     auto insEnd = QPair<int,int>(0, tempHeight);
     QPropertyAnimation *insAnimation = createAnimation(m_currentSelectedNote,
                                                        insStart,
