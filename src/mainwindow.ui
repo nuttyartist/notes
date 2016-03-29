@@ -26,7 +26,26 @@
    <string>Notes</string>
   </property>
   <property name="styleSheet">
-   <string notr="true"/>
+   <string notr="true">#frameLeft{
+background-color: rgb(255, 255, 255);
+}
+
+NoteData #container {
+  border: none;
+  background-color: white
+}
+NoteData #titleLabel{
+  margin-left:8px;
+  padding:0px;
+  color: black;
+}
+
+NoteData #dateLabel{
+  padding:0px;
+  margin-left:7px;
+  color: rgb(132, 132, 132);
+}
+</string>
   </property>
   <property name="documentMode">
    <bool>false</bool>
@@ -40,6 +59,12 @@
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>505</width>
+     <height>260</height>
+    </size>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <property name="spacing">
@@ -80,9 +105,21 @@
       <property name="handleWidth">
        <number>0</number>
       </property>
-      <widget class="QWidget" name="horizontalLayoutWidget">
+      <widget class="QFrame" name="frameLeft">
        <layout class="QHBoxLayout" name="horizontalLayout_scrollArea">
         <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
          <number>0</number>
         </property>
         <item>
@@ -442,7 +479,7 @@
           <item>
            <widget class="QScrollArea" name="scrollArea">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -465,6 +502,12 @@
             <property name="frameShape">
              <enum>QFrame::NoFrame</enum>
             </property>
+            <property name="verticalScrollBarPolicy">
+             <enum>Qt::ScrollBarAlwaysOn</enum>
+            </property>
+            <property name="horizontalScrollBarPolicy">
+             <enum>Qt::ScrollBarAlwaysOff</enum>
+            </property>
             <property name="sizeAdjustPolicy">
              <enum>QAbstractScrollArea::AdjustIgnored</enum>
             </property>
@@ -479,10 +522,40 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>343</width>
-               <height>274</height>
+               <width>330</width>
+               <height>276</height>
               </rect>
              </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_3">
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>2</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_scrollArea_2">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+               </layout>
+              </item>
+             </layout>
             </widget>
            </widget>
           </item>
@@ -521,12 +594,21 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="layoutWidget">
+      <widget class="QFrame" name="frameRight">
        <layout class="QVBoxLayout" name="verticalLayout_textEdit">
         <property name="spacing">
          <number>0</number>
         </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
         <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
          <number>0</number>
         </property>
         <item>
