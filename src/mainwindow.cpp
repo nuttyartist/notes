@@ -36,7 +36,8 @@ MainWindow::MainWindow (QWidget *parent) :
     m_resizeVertLeft(false),
     m_canMoveWindow(false),
     m_focusBreaker(false),
-    m_isTemp(false)
+    m_isTemp(false),
+    m_isScrollAreaScrollBarHidden(true)
 {
     ui->setupUi(this);
     setupMainWindow();
@@ -320,18 +321,9 @@ void MainWindow::setupScrollArea ()
     ui->scrollArea->setGeometry(ui->scrollArea->x() + 1, ui->scrollArea->y(), ui->scrollArea->width() - 1, ui->scrollArea->height());
 #endif
 
-    QString ss = QString("QScrollArea QWidget{background-color:white;} "
-                         "QScrollBar {margin-right: 2px; background: transparent;} "
-                         "QScrollBar:hover { background-color: rgb(217, 217, 217);}"
-                         "QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
-                         "QScrollBar:handle:vertical:pressed { background: rgb(149, 149, 149);}"
-                         "QScrollBar:vertical { border: none; width: 10px; border-radius: 4px;} "
-                         "QScrollBar::handle:vertical { border-radius: 4px; background: rgb(188, 188, 188); min-height: 20px; }  "
-                         "QScrollBar::add-line:vertical { height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
-                         "QScrollBar::sub-line:vertical { height: 0px; subcontrol-position: top; subcontrol-origin: margin; }");
-
-    ui->scrollArea->setStyleSheet(ss);
-    ui->scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    ui->scrollArea->installEventFilter(this);
+    ui->scrollAreaWidgetContents->installEventFilter(this);
+    setScrollAreaStyleSheet();
 }
 
 /**
@@ -574,11 +566,17 @@ void MainWindow::loadNotes ()
         return lhs->dateTime() < rhs->dateTime();
     });
 
-    foreach (NoteData *note, sortedNotesList) {
+    ui->scrollAreaWidgetContents->setVisible(false);
+
+    Q_FOREACH(NoteData *note, sortedNotesList){
         m_allNotesList.push_back(note);
         m_visibleNotesList.push_back(note);
         m_noteWidgetsContainer->insertWidget(0, note, 0, Qt::AlignTop);
     }
+
+    ui->scrollAreaWidgetContents->setVisible(true);
+
+    setScrollAreaStyleSheet();
 
     if(!m_allNotesList.isEmpty())
         m_noteOnTopInTheLayout = m_allNotesList.back();
@@ -915,6 +913,8 @@ void MainWindow::createNewNote ()
 
 void MainWindow::createNewNoteWithAnimation()
 {
+    QTextEdit* textEdit = ui->textEdit;
+    textEdit->blockSignals(true);
     this->createNewNote();
 
     int noteHeight = m_currentSelectedNote->height();
@@ -923,6 +923,10 @@ void MainWindow::createNewNoteWithAnimation()
     QPair<int, int> start = QPair<int,int>(0,0);
     QPair<int, int> end = QPair<int,int>(0,noteHeight);
     QPropertyAnimation *animation = createAnimation(m_currentSelectedNote,start,end,90);
+    connect(animation, &QPropertyAnimation::finished, [this, textEdit](){
+        textEdit->blockSignals(false);
+        textEdit->textChanged();
+    });
 
     animation->start(QAbstractAnimation::DeleteWhenStopped);
 }
@@ -1471,6 +1475,33 @@ void MainWindow::selectNote(NoteData *note)
     showNoteInEditor(m_currentSelectedNote);
 }
 
+void MainWindow::setScrollAreaStyleSheet()
+{
+    int contentHeight = m_visibleNotesList.isEmpty() ? 0
+                                                     : m_visibleNotesList[0]->height() * m_visibleNotesList.size();
+
+    m_isScrollAreaScrollBarHidden = contentHeight < ui->scrollArea->height();
+
+    QString verticalBg = contentHeight > ui->scrollArea->height() ? "" : "background-color: transparent";
+    QString handleBg = contentHeight > ui->scrollArea->height() ? "background: rgb(188, 188, 188)"
+                                                                : "background-color: transparent";
+
+    QString ss = QString("QScrollArea QWidget{background-color:white;} "
+                         "QScrollBar {margin-right: 2px; background: transparent;} "
+                         "QScrollBar:hover { background-color: rgb(217, 217, 217);}"
+                         "QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
+                         "QScrollBar:handle:vertical:pressed { background: rgb(149, 149, 149);}"
+                         "QScrollBar:vertical { border: none; width: 10px; border-radius: 4px;%1;} "
+                         "QScrollBar::handle:vertical { border-radius: 4px; %2; min-height: 20px; }  "
+                         "QScrollBar::add-line:vertical { height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
+                         "QScrollBar::sub-line:vertical { height: 0px; subcontrol-position: top; subcontrol-origin: margin; }"
+                         )
+            .arg(verticalBg)
+            .arg(handleBg);
+
+    ui->scrollArea->setStyleSheet(ss);
+}
+
 /**
 * @brief
 * When the blank area at the top of window is double-clicked the window get maximized
@@ -1590,6 +1621,22 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
                 ui->lineEdit->blockSignals(false);
                 clearSearch(m_currentSelectedNote);
                 ui->textEdit->setFocus();
+            }
+        }
+    }
+
+    if(event->type() == QEvent::Resize){
+
+        if(object == ui->scrollArea
+                || object == ui->scrollAreaWidgetContents){
+
+            if(!m_visibleNotesList.isEmpty()){
+                int contentHeight = m_visibleNotesList[0]->height() * m_visibleNotesList.size();
+                if((contentHeight > ui->scrollArea->height()
+                        && m_isScrollAreaScrollBarHidden)
+                        ||(contentHeight < ui->scrollArea->height()
+                        && !m_isScrollAreaScrollBarHidden))
+                setScrollAreaStyleSheet();
             }
         }
     }

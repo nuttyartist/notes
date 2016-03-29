@@ -71,6 +71,7 @@ private:
     bool m_canMoveWindow;
     bool m_focusBreaker;
     bool m_isTemp;
+    bool m_isScrollAreaScrollBarHidden;
 
     void setupMainWindow();
     void setupKeyboardShortcuts();
@@ -109,6 +110,7 @@ private:
     void clearSearch(NoteData *previousNote);
     void findNotesContain(const QString &keyword);
     void selectNote(NoteData* note);
+    void setScrollAreaStyleSheet();
 
 private slots:
     void InitData();
