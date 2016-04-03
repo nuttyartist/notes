@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <QShortcut>
 #include <QTextStream>
+#include "notewidgetdelegate.h"
 
 #define FIRST_LINE_MAX 80
 
@@ -24,11 +25,10 @@ MainWindow::MainWindow (QWidget *parent) :
     m_settingsDatabase(Q_NULLPTR),
     m_noteWidgetsContainer(Q_NULLPTR),
     m_clearButton(Q_NULLPTR),
-    m_tempNote(Q_NULLPTR),
+    m_notesModel(new NoteModel(this)),
+    m_proxyModel(new QSortFilterProxyModel(this)),
     m_currentSelectedNote(Q_NULLPTR),
-    m_currentHoveredNote(Q_NULLPTR),
     m_selectedNoteBeforeSearching(Q_NULLPTR),
-    m_noteOnTopInTheLayout(Q_NULLPTR),
     m_canBeResized(false),
     m_resizeHorzTop(false),
     m_resizeHorzBottom(false),
@@ -37,7 +37,7 @@ MainWindow::MainWindow (QWidget *parent) :
     m_canMoveWindow(false),
     m_focusBreaker(false),
     m_isTemp(false),
-    m_isScrollAreaScrollBarHidden(true)
+    m_isListViewScrollBarHidden(true)
 {
     ui->setupUi(this);
     setupMainWindow();
@@ -50,11 +50,24 @@ MainWindow::MainWindow (QWidget *parent) :
     setupRightFrame ();
     setupTitleBarButtons();
     setupLineEdit();
-    setupScrollArea();
+    setupListView();
     setupTextEdit();
     setupDatabases();
     restoreStates();
-    setLayoutForScrollArea();
+
+
+
+    m_proxyModel->setSourceModel(m_notesModel);
+    m_proxyModel->setFilterKeyColumn(0);
+    m_proxyModel->setFilterRole(NoteModel::NoteContent);
+    m_proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
+
+    ui->listView->setItemDelegate(new NoteWidgetDelegate);
+    ui->listView->setModel(m_proxyModel);
+    ui->listView->setMouseTracking(true);
+    ui->listView->setUpdatesEnabled(true);
+
+
 
     QTimer::singleShot(200,this, SLOT(InitData()));
 }
@@ -250,6 +263,8 @@ void MainWindow::setupSignalsSlots()
     connect(ui->textEdit, SIGNAL(textChanged()), this, SLOT(onTextEditTextChanged()),Qt::QueuedConnection);
     // line edit text changed
     connect(ui->lineEdit, SIGNAL(textChanged(QString)), this, SLOT(onLineEditTextChanged(QString)));
+    // note pressed
+    connect(ui->listView, SIGNAL(pressed(QModelIndex)), this, SLOT(onNotePressed(QModelIndex)));
 }
 
 /**
@@ -315,15 +330,14 @@ void MainWindow::setupLineEdit ()
 * @brief
 * Setting up the scrollArea widget:
 */
-void MainWindow::setupScrollArea ()
+void MainWindow::setupListView ()
 {
 #ifdef __APPLE__
-    ui->scrollArea->setGeometry(ui->scrollArea->x() + 1, ui->scrollArea->y(), ui->scrollArea->width() - 1, ui->scrollArea->height());
+    // ui->scrollArea->setGeometry(ui->scrollArea->x() + 1, ui->scrollArea->y(), ui->scrollArea->width() - 1, ui->scrollArea->height());
 #endif
 
-    ui->scrollArea->installEventFilter(this);
-    ui->scrollAreaWidgetContents->installEventFilter(this);
-    setScrollAreaStyleSheet();
+    ui->listView->installEventFilter(this);
+    setListViewStyleSheet();
 }
 
 /**
@@ -452,18 +466,6 @@ void MainWindow::restoreStates()
 }
 
 /**
-* @brief configure the layout contained in scrollArea
-*/
-void MainWindow::setLayoutForScrollArea ()
-{
-    m_noteWidgetsContainer = ui->verticalLayout_scrollArea_2;
-
-    m_noteWidgetsContainer->addStretch();
-    m_noteWidgetsContainer->setSpacing(0);
-    m_noteWidgetsContainer->setContentsMargins(0,0,0,0);
-}
-
-/**
 * @brief
 * Get a string 'str' and return only the first line of it
 * If the string contain no text, return "New Note"
@@ -509,20 +511,15 @@ QString MainWindow::getNoteDateEditor (QString dateEdited)
 */
 NoteData *MainWindow::generateNote(QString noteName, bool isLoadingOrNew)
 {
-    NoteData* newNote = new NoteData(noteName, this);
+    NoteData* newNote = new NoteData(this);
+    newNote->setId(noteName);
 
     QString dateDB = m_notesDatabase->value(noteName + "/dateEdited", "Error").toString();
     newNote->setDateTime(QDateTime::fromString(dateDB, Qt::ISODate));
     QString contentText = m_notesDatabase->value(noteName + "/content", "Error").toString();
-    newNote->setText(contentText);
+    newNote->setContent(contentText);
     QString firstLine = isLoadingOrNew ? getFirstLine(contentText) : "New Note";
-    newNote->setTitle(firstLine);
-
-    connect(newNote, SIGNAL(pressed()), this, SLOT(onNotePressed()));
-    connect(newNote, SIGNAL(hoverEntered()), this, SLOT(onNoteHoverEntered()));
-    connect(newNote, SIGNAL(hoverLeft()), this, SLOT(onNoteHoverLeft()));
-    connect(newNote, SIGNAL(focusedIn()), this, SLOT(onNoteHoverEntered()));
-    connect(newNote, SIGNAL(focusedOut()), this, SLOT(onNoteHoverLeft()));
+    newNote->setFullTitle(firstLine);
 
     return newNote;
 }
@@ -536,7 +533,7 @@ void MainWindow::showNoteInEditor(NoteData *note)
 {
     ui->textEdit->blockSignals(true);
     // set text and date
-    ui->textEdit->setText(note->text());
+    ui->textEdit->setText(note->content());
     QString noteDate = note->dateTime().toString(Qt::ISODate);
     QString noteDateEditor = getNoteDateEditor(noteDate);
     ui->editorDateLabel->setText(noteDateEditor);
@@ -548,55 +545,42 @@ void MainWindow::showNoteInEditor(NoteData *note)
 
 /**
 * @brief
-* Load all the notes from database into the notes list (in scrollArea)
+* Load all the notes from database
+* add data to the models
+* sort them according to the date
+* update scrollbar stylesheet
 */
 void MainWindow::loadNotes ()
 {
     QStringList dbKeys = m_notesDatabase->allKeys();
-    QList<NoteData *> sortedNotesList;
 
     auto it = dbKeys.begin();
     for(; it < dbKeys.end()-1; it += 3){
         QString noteName = it->split("/")[0];
         NoteData* newNote = generateNote(noteName, true);
-        sortedNotesList.push_back(newNote);
+        m_notesModel->addNote(newNote);
     }
 
-    std::stable_sort(std::begin(sortedNotesList), std::end(sortedNotesList),[&](NoteData *lhs, NoteData *rhs){
-        return lhs->dateTime() < rhs->dateTime();
-    });
+    m_notesModel->sort(0,Qt::AscendingOrder);
 
-    ui->scrollAreaWidgetContents->setVisible(false);
-
-    Q_FOREACH(NoteData *note, sortedNotesList){
-        m_allNotesList.push_back(note);
-        m_visibleNotesList.push_back(note);
-        m_noteWidgetsContainer->insertWidget(0, note, 0, Qt::AlignTop);
-    }
-
-    ui->scrollAreaWidgetContents->setVisible(true);
-
-    setScrollAreaStyleSheet();
-
-    if(!m_allNotesList.isEmpty())
-        m_noteOnTopInTheLayout = m_allNotesList.back();
+    setListViewStyleSheet();
 }
 
 /**
 * @brief
 * save the current note to database
 */
-void MainWindow::saveCurrentNoteToDB()
+void MainWindow::saveNoteToDB(NoteData *note)
 {
-    if(m_currentSelectedNote != Q_NULLPTR){
-        m_notesDatabase->setValue(m_currentSelectedNote->noteName() + "/content", m_currentSelectedNote->text());
+    if(note != Q_NULLPTR){
+        m_notesDatabase->setValue(note->id() + "/content", note->content());
 
-        QString noteDate = m_currentSelectedNote->dateTime().toString(Qt::ISODate);
-        m_notesDatabase->setValue(m_currentSelectedNote->noteName() + "/dateEdited", noteDate);
+        QString noteDate = note->dateTime().toString(Qt::ISODate);
+        m_notesDatabase->setValue(note->id() + "/dateEdited", noteDate);
 
         m_notesDatabase->sync();
 
-        m_currentSelectedNote->setModified(false);
+        note->setModified(false);
     }
 }
 
@@ -606,11 +590,16 @@ void MainWindow::saveCurrentNoteToDB()
 */
 void MainWindow::selectFirstNote ()
 {
-    if(!m_visibleNotesList.empty()){
-        m_currentSelectedNote != Q_NULLPTR ? m_currentSelectedNote->setSelected(false) : void();
-        m_currentSelectedNote = m_visibleNotesList.back();
-        m_currentSelectedNote->setSelected(true);
-        this->showNoteInEditor(m_currentSelectedNote);
+    if(m_proxyModel->rowCount() > 0){
+        QModelIndex index = m_proxyModel->mapToSource(m_proxyModel->index(0,0));
+        QItemSelection itemSelection(index,
+                                     index);
+        ui->listView->selectionModel()->select(itemSelection,
+                                               QItemSelectionModel::ClearAndSelect);
+        ui->listView->setCurrentIndex(ui->listView->model()->index(0,0));
+
+        m_currentSelectedNote = m_notesModel->getNote(index);
+        showNoteInEditor(m_currentSelectedNote);
     }
 }
 
@@ -620,8 +609,9 @@ void MainWindow::selectFirstNote ()
 */
 void MainWindow::createNewNoteIfEmpty ()
 {
-    if(m_allNotesList.empty())
-        this->createNewNoteWithAnimation();
+    if(m_notesModel->rowCount() == 0)
+//        this->createNewNoteWithAnimation();
+        createNewNote();
 }
 
 /**
@@ -630,7 +620,8 @@ void MainWindow::createNewNoteIfEmpty ()
 */
 void MainWindow::onNewNoteButtonClicked()
 {
-    this->createNewNoteWithAnimation();
+    //    this->createNewNoteWithAnimation();
+    this->createNewNote();
 }
 
 /**
@@ -650,66 +641,14 @@ void MainWindow::onTrashButtonClicked()
 * Highlight the selected note
 * Load the selected note content into textedit
 */
-void MainWindow::onNotePressed ()
+void MainWindow::onNotePressed (QModelIndex index)
 {
     if(sender() != Q_NULLPTR){
-        NoteData* pressedNote = qobject_cast<NoteData *>(sender());
+        ui->listView->setCurrentIndex(index);
 
-        int currIndex = m_visibleNotesList.indexOf(m_currentSelectedNote);
-        if(currIndex+1 < m_visibleNotesList.size())
-            m_visibleNotesList[currIndex+1]->showSeparator(true);
+        NoteData* pressedNote = m_notesModel->getNote(index);
 
         selectNote(pressedNote);
-
-        currIndex = m_visibleNotesList.indexOf(m_currentSelectedNote);
-        if(currIndex+1 < m_visibleNotesList.size())
-            m_visibleNotesList[currIndex+1]->showSeparator(false);
-
-        m_currentHoveredNote = Q_NULLPTR;
-
-        pressedNote->showSeparator(false);
-    }
-}
-
-void MainWindow::onNoteHoverEntered()
-{
-    qApp->processEvents();
-    if(sender() != Q_NULLPTR){
-        NoteData* hoveredNote = qobject_cast<NoteData *>(sender());
-
-        if(m_currentHoveredNote != Q_NULLPTR){
-            int currHoveredIndex = m_visibleNotesList.indexOf(m_currentHoveredNote);
-            if(currHoveredIndex + 1 < m_visibleNotesList.size()
-                    && !m_visibleNotesList[currHoveredIndex+1]->isSelected()){
-
-                m_visibleNotesList[currHoveredIndex+1]->showSeparator(true);
-            }
-        }
-
-        m_currentHoveredNote = hoveredNote;
-        int currHoveredIndex = m_visibleNotesList.indexOf(m_currentHoveredNote);
-        if(currHoveredIndex+1 < m_visibleNotesList.size())
-            m_visibleNotesList[currHoveredIndex+1]->showSeparator(false);
-
-        int currIndex = m_visibleNotesList.indexOf(m_currentSelectedNote);
-        if(currIndex+1 < m_visibleNotesList.size())
-            m_visibleNotesList[currIndex+1]->showSeparator(false);
-    }
-}
-
-void MainWindow::onNoteHoverLeft()
-{
-    if(sender() != Q_NULLPTR){
-        NoteData* hoveredNote = qobject_cast<NoteData *>(sender());
-        int hoverLeftIndex = m_visibleNotesList.indexOf(hoveredNote);
-        if(hoverLeftIndex + 1 < m_visibleNotesList.size()
-                && m_visibleNotesList[hoverLeftIndex + 1] != m_currentSelectedNote
-                && hoveredNote != m_currentSelectedNote)
-            m_visibleNotesList[hoverLeftIndex + 1]->showSeparator(true);
-
-        if(hoverLeftIndex - 1 > 0
-                && m_visibleNotesList[hoverLeftIndex - 1] == m_currentSelectedNote)
-            m_visibleNotesList[hoverLeftIndex]->showSeparator(false);
     }
 }
 
@@ -719,24 +658,22 @@ void MainWindow::onNoteHoverLeft()
 */
 void MainWindow::deleteNoteFromDataBase (NoteData *note)
 {
-    m_allNotesList.removeOne(note);
-
     // Putting the deleted note in trash
     int counter = m_trashDatabase->value("notesCounter").toInt() + 1;
     m_trashDatabase->setValue("notesCounter", counter);
 
     QString noteName = QString("noteID_%1").arg(counter);
-    m_trashDatabase->setValue(noteName + "/content",  m_notesDatabase->value(note->noteName() + "/content", "Error"));
+    m_trashDatabase->setValue(noteName + "/content",  m_notesDatabase->value(note->id() + "/content", "Error"));
 
-    QString dateDBCreated = m_notesDatabase->value(note->noteName() + "/dateCreated", "Error").toString();
-    QString dateDBEdited = m_notesDatabase->value(note->noteName() + "/dateEdited", "Error").toString();
+    QString dateDBCreated = m_notesDatabase->value(note->id() + "/dateCreated", "Error").toString();
+    QString dateDBEdited = m_notesDatabase->value(note->id() + "/dateEdited", "Error").toString();
     QString noteDate = QDateTime::currentDateTime().toString(Qt::ISODate);
 
     m_trashDatabase->setValue(noteName + "/dateCreated", dateDBCreated);
     m_trashDatabase->setValue(noteName + "/dateEdited", dateDBEdited);
     m_trashDatabase->setValue(noteName + "/dateTrashed", noteDate);
 
-    m_notesDatabase->remove(note->noteName());
+    m_notesDatabase->remove(note->id());
 
     m_notesDatabase->sync();
     m_trashDatabase->sync();
@@ -751,29 +688,35 @@ void MainWindow::deleteNoteFromDataBase (NoteData *note)
 void MainWindow::onTextEditTextChanged ()
 {
     //if(text has really changed)
-    if(m_currentSelectedNote != Q_NULLPTR
-            && ui->textEdit->toPlainText() != m_currentSelectedNote->text()){
+    auto index = ui->listView->currentIndex();
+    if(index.row() != -1
+            && ui->textEdit->toPlainText() != m_notesModel->getNote(index)->content()){
 
-        if(m_currentSelectedNote != m_noteOnTopInTheLayout)
-            moveNoteToTopWithAnimation();
+        if(m_currentSelectedNote != Q_NULLPTR)
+            //moveNoteToTopWithAnimation();
+            moveNoteToTop();
+
+        index = m_notesModel->index(0,0);
+
+        QString firstline = getFirstLine(ui->textEdit->toPlainText());
+        QDateTime dateTime = QDateTime::currentDateTime();
+        QString noteDate = dateTime.toString(Qt::ISODate);
+        ui->editorDateLabel->setText(getNoteDateEditor(noteDate));
+
+        // update model
+        QMap<int, QVariant> dataValue;
+        dataValue[NoteModel::NoteContent] = QVariant::fromValue(ui->textEdit->toPlainText());
+        dataValue[NoteModel::NoteFullTitle] = QVariant::fromValue(firstline);
+        dataValue[NoteModel::NoteDateTime] = QVariant::fromValue(dateTime);
+
+        m_notesModel->setItemData(index, dataValue);
 
         // update modification flag
         m_currentSelectedNote->setModified(true);
-        // update text
-        m_currentSelectedNote->setText(ui->textEdit->toPlainText());
-        // update title
-        QString firstline = getFirstLine(m_currentSelectedNote->text());
-        m_currentSelectedNote->setTitle(firstline);
-        // update time
-        m_currentSelectedNote->setDateTime(QDateTime::currentDateTime());
-        QString noteDate = m_currentSelectedNote->dateTime().toString(Qt::ISODate);
-        ui->editorDateLabel->setText(getNoteDateEditor(noteDate));
     }
 
-    if(m_isTemp && !m_tempNote->text().isEmpty()){
-        m_tempNote = Q_NULLPTR;
-        m_isTemp = false;
-    }
+
+    m_isTemp = false;
 }
 
 /**
@@ -782,13 +725,13 @@ void MainWindow::onTextEditTextChanged ()
 */
 void MainWindow::clearAllNotesFromVisual ()
 {
-    foreach (NoteData *note, m_visibleNotesList) {
-        note->setSelected(false);
-        note->hide();
-    }
+    //    foreach (Note *note, m_visibleNotesList) {
+    //        note->setSelected(false);
+    //        //        note->hide();
+    //    }
 
-    m_visibleNotesList.clear();
-    m_currentSelectedNote = Q_NULLPTR;
+    //    m_visibleNotesList.clear();
+    //    m_currentSelectedNote = Q_NULLPTR;
 }
 
 /**
@@ -801,12 +744,15 @@ bool MainWindow::goToAndSelectNote (NoteData* note)
 {
     bool found = false;
 
-    int noteIndex = m_visibleNotesList.indexOf(note);
-    if(noteIndex != -1){
+    QModelIndex indexInVisualModel = m_notesModel->getNoteIndex(note);
+    QModelIndex indexInProxyModel = m_proxyModel->mapFromSource(indexInVisualModel);
+    if(indexInProxyModel.isValid()){
         found = true;
-        selectNote(note);
-        qApp->processEvents(); // wait till the events processed
-        ui->scrollArea->ensureWidgetVisible(note);
+        QModelIndex currentIndex = ui->listView->model()->index(indexInProxyModel.row(), 0);
+        ui->listView->setCurrentIndex(currentIndex);
+        ui->listView->scrollTo(currentIndex);
+        m_currentSelectedNote = note;
+        showNoteInEditor(note);
     }
 
     return found;
@@ -823,8 +769,11 @@ bool MainWindow::goToAndSelectNote (NoteData* note)
 */
 void MainWindow::onLineEditTextChanged (const QString &keyword)
 {
-    if(m_tempNote != Q_NULLPTR){
-        deleteNoteWithAnimation(m_tempNote, false);
+    if(m_isTemp){
+        QModelIndex index = m_notesModel->index(0);
+        NoteData* tmpNote = m_notesModel->getNote(index);
+        m_notesModel->removeNote(tmpNote);
+
     }else if(m_selectedNoteBeforeSearching == Q_NULLPTR
              && m_currentSelectedNote != Q_NULLPTR){
 
@@ -871,35 +820,26 @@ void MainWindow::createNewNote ()
             ui->lineEdit->clear();
 
         QString noteName = createNewNoteInDatabase();
-        m_tempNote = generateNote(noteName, false);
-        m_noteOnTopInTheLayout = m_tempNote;
+        NoteData* tmpNote = generateNote(noteName, false);
         m_isTemp = true;
 
-        m_visibleNotesList.push_back(m_tempNote);
-        m_allNotesList.push_back(m_tempNote);
+        m_notesModel->insertNote(tmpNote, 0);
 
-        m_noteWidgetsContainer->insertWidget(0, m_tempNote, 0, Qt::AlignTop);
+        if(m_currentSelectedNote != Q_NULLPTR)
+            saveNoteToDB(m_currentSelectedNote);
 
-        if(m_currentSelectedNote != Q_NULLPTR){
-            saveCurrentNoteToDB();
-            // manage the separator
-            int currIndex = m_visibleNotesList.indexOf(m_currentSelectedNote);
-            if(currIndex+1 < m_visibleNotesList.size())
-                m_visibleNotesList[currIndex+1]->showSeparator(true);
-            m_currentSelectedNote->setSelected(false);
-        }
-
-        m_currentSelectedNote = m_tempNote;
-        m_currentSelectedNote->setSelectedWithFocus(true, false);
-
-        QString dateTimeFromDB = m_tempNote->dateTime().toString(Qt::ISODate);
+        QString dateTimeFromDB = tmpNote->dateTime().toString(Qt::ISODate);
         QString dateTimeForEditor = getNoteDateEditor(dateTimeFromDB);
         ui->editorDateLabel->setText(dateTimeForEditor);
+
+        m_currentSelectedNote = tmpNote;
 
         ui->textEdit->blockSignals(true);
         ui->textEdit->clear();
         ui->textEdit->setFocus();
         ui->textEdit->blockSignals(false);
+
+        setListViewStyleSheet();
 
     }else{
         ui->textEdit->blockSignals(true);
@@ -907,28 +847,30 @@ void MainWindow::createNewNote ()
         ui->textEdit->blockSignals(false);
     }
 
-    int scVal = ui->scrollArea->verticalScrollBar()->minimum();
-    ui->scrollArea->verticalScrollBar()->setValue(scVal);
+    ui->listView->selectionModel()->select(m_notesModel->index(0,0),
+                                           QItemSelectionModel::ClearAndSelect);
+    ui->listView->setCurrentIndex(ui->listView->model()->index(0, 0));
+    ui->listView->scrollToTop();
 }
 
 void MainWindow::createNewNoteWithAnimation()
 {
-    QTextEdit* textEdit = ui->textEdit;
-    textEdit->blockSignals(true);
-    this->createNewNote();
+    //    QTextEdit* textEdit = ui->textEdit;
+    //    textEdit->blockSignals(true);
+    //    this->createNewNote();
 
-    int noteHeight = m_currentSelectedNote->height();
-    m_currentSelectedNote->setFixedHeight(0);
+    //    int noteHeight = m_currentSelectedNote->height();
+    //    m_currentSelectedNote->setFixedHeight(0);
 
-    QPair<int, int> start = QPair<int,int>(0,0);
-    QPair<int, int> end = QPair<int,int>(0,noteHeight);
-    QPropertyAnimation *animation = createAnimation(m_currentSelectedNote,start,end,90);
-    connect(animation, &QPropertyAnimation::finished, [this, textEdit](){
-        textEdit->blockSignals(false);
-        textEdit->textChanged();
-    });
+    //    QPair<int, int> start = QPair<int,int>(0,0);
+    //    QPair<int, int> end = QPair<int,int>(0,noteHeight);
+    //    QPropertyAnimation *animation = createAnimation(m_currentSelectedNote,start,end,90);
+    //    connect(animation, &QPropertyAnimation::finished, [this, textEdit](){
+    //        textEdit->blockSignals(false);
+    //        textEdit->textChanged();
+    //    });
 
-    animation->start(QAbstractAnimation::DeleteWhenStopped);
+    //    animation->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
 /**
@@ -938,28 +880,17 @@ void MainWindow::createNewNoteWithAnimation()
  */
 void MainWindow::deleteNote(NoteData *note, bool isFromUser)
 {
-    if(note == m_tempNote){
-        m_tempNote = Q_NULLPTR;
+    if(m_isTemp)
         m_isTemp = false;
-    }
 
-    // update m_noteOnTopInTheLayout
-    int noteDbIndex = m_allNotesList.indexOf(note);
-    if(noteDbIndex == m_allNotesList.size() - 1 && m_allNotesList.size() > 1){
-        m_noteOnTopInTheLayout = m_allNotesList.at( m_allNotesList.size() - 2);
-    }else if(m_allNotesList.size() == 1){
-        m_noteOnTopInTheLayout = Q_NULLPTR;
-    }
+    //    int noteVisibleIdx = ui->listView;
 
     // delete from database
     deleteNoteFromDataBase(note);
 
-    int noteVisibleIdx = m_visibleNotesList.indexOf(note);
+    // delete from models
+    m_notesModel->removeNote(note);
 
-    // delete from visible list
-    m_visibleNotesList.removeOne(note);
-    // remove note widget from the layout
-    m_noteWidgetsContainer->removeWidget(note);
     // delete
     delete note;
 
@@ -972,18 +903,15 @@ void MainWindow::deleteNote(NoteData *note, bool isFromUser)
         ui->textEdit->clearFocus();
         ui->textEdit->blockSignals(false);
 
-        if(m_visibleNotesList.size() > 0){
-            // select the next note and highlight it
-            m_currentSelectedNote = noteVisibleIdx == 0? m_visibleNotesList.at(0)
-                                                       : m_visibleNotesList.at(noteVisibleIdx-1);
-            m_currentSelectedNote->setSelectedWithFocus(true,true);
-
-            // show the note in text edit
-            showNoteInEditor(m_currentSelectedNote);
+        if(m_notesModel->rowCount() > 0){
+            QModelIndex index = ui->listView->currentIndex();
+            m_currentSelectedNote = m_notesModel->getNote(index);
         }else{
             m_currentSelectedNote = Q_NULLPTR;
         }
     }
+
+    setListViewStyleSheet();
 }
 
 /**
@@ -992,18 +920,18 @@ void MainWindow::deleteNote(NoteData *note, bool isFromUser)
  */
 void MainWindow::deleteNoteWithAnimation(NoteData *note, bool isFromUser)
 {
-    if(note != Q_NULLPTR){
-        // animate the deletion
-        auto start = QPair<int, int>(note->y(),note->height());
-        auto end = QPair<int, int>(note->y(),0);
-        QPropertyAnimation* animation = createAnimation(note, start, end, 190);
+    //    if(note != Q_NULLPTR){
+    //        // animate the deletion
+    //        auto start = QPair<int, int>(note->y(),note->height());
+    //        auto end = QPair<int, int>(note->y(),0);
+    //        QPropertyAnimation* animation = createAnimation(note, start, end, 190);
 
-        connect(animation, &QPropertyAnimation::finished, [this, note, isFromUser](){
-            deleteNote(note, isFromUser);
-        });
+    //        connect(animation, &QPropertyAnimation::finished, [this, note, isFromUser](){
+    //            deleteNote(note, isFromUser);
+    //        });
 
-        animation->start(QAbstractAnimation::DeleteWhenStopped);
-    }
+    //        animation->start(QAbstractAnimation::DeleteWhenStopped);
+    //    }
 }
 
 /**
@@ -1012,8 +940,11 @@ void MainWindow::deleteNoteWithAnimation(NoteData *note, bool isFromUser)
 */
 void MainWindow::deleteSelectedNote ()
 {
-    if(m_currentSelectedNote != Q_NULLPTR)
-        deleteNoteWithAnimation(m_currentSelectedNote, true);
+    if(ui->listView->currentIndex().row() != -1){
+        //        deleteNoteWithAnimation(m_currentSelectedNote, true);
+        NoteData *note = m_notesModel->getNote(ui->listView->currentIndex());
+        deleteNote(note, true);
+    }
 }
 
 /**
@@ -1033,7 +964,7 @@ void MainWindow::setFocusOnText ()
 void MainWindow::setFocusOnCurrentNote ()
 {
     if(m_currentSelectedNote != Q_NULLPTR)
-        m_currentSelectedNote->setSelectedWithFocus(true,true);
+        ui->listView->setFocus();
 }
 
 /**
@@ -1043,11 +974,12 @@ void MainWindow::setFocusOnCurrentNote ()
 void MainWindow::selectNoteUp ()
 {
     if(m_currentSelectedNote != Q_NULLPTR){
-        int currNoteIndex = m_visibleNotesList.indexOf(m_currentSelectedNote);
-        if(currNoteIndex < m_visibleNotesList.size()-1){
-            NoteData* aboveNote = m_visibleNotesList.at(currNoteIndex+1);
-            ui->scrollArea->ensureWidgetVisible(aboveNote, 38, 0);
-            selectNote(aboveNote);
+        int currentRow = ui->listView->currentIndex().row();
+        QModelIndex aboveIndex = ui->listView->model()->index(currentRow - 1, 0);
+        if(aboveIndex.isValid()){
+            ui->listView->setCurrentIndex(aboveIndex);
+            m_currentSelectedNote = m_notesModel->getNote(m_notesModel->index(aboveIndex.row()));
+            showNoteInEditor(m_currentSelectedNote);
         }
     }
 }
@@ -1059,11 +991,12 @@ void MainWindow::selectNoteUp ()
 void MainWindow::selectNoteDown ()
 {
     if(m_currentSelectedNote != Q_NULLPTR){
-        int currNoteIndex = m_visibleNotesList.indexOf(m_currentSelectedNote);
-        if(currNoteIndex > 0){
-            NoteData* aboveNote = m_visibleNotesList.at(currNoteIndex-1);
-            ui->scrollArea->ensureWidgetVisible(aboveNote, 38, 0);
-            selectNote(aboveNote);
+        int currentRow = ui->listView->currentIndex().row();
+        QModelIndex belowIndex = ui->listView->model()->index(currentRow + 1, 0);
+        if(belowIndex.isValid()){
+            ui->listView->setCurrentIndex(belowIndex);
+            m_currentSelectedNote = m_notesModel->getNote(m_notesModel->index(belowIndex.row()));
+            showNoteInEditor(m_currentSelectedNote);
         }
     }
 }
@@ -1111,9 +1044,12 @@ void MainWindow::minimizeWindow ()
 */
 void MainWindow::QuitApplication ()
 {
-    if(m_tempNote != Q_NULLPTR){
+    if(m_isTemp){
         ui->textEdit->blockSignals(true);
-        deleteNoteFromDataBase(m_tempNote);
+        QModelIndex index = m_notesModel->index(0,0);
+        NoteData* tmpNote = m_notesModel->getNote(index);
+        deleteNoteFromDataBase(tmpNote);
+        ui->textEdit->blockSignals(false);
     }
 
     //QApplication::quit();
@@ -1195,15 +1131,15 @@ void MainWindow::closeEvent(QCloseEvent *event)
     if(windowState() != Qt::WindowFullScreen && windowState() != Qt::WindowMaximized)
         m_settingsDatabase->setValue("windowGeometry", saveGeometry());
 
-    if(m_currentSelectedNote != Q_NULLPTR
-            && m_currentSelectedNote->isModified()
-            && m_tempNote == Q_NULLPTR){
+    //    if(m_currentSelectedNote != Q_NULLPTR
+    //            && m_currentSelectedNote->isModified()
+    //            && m_tempNote == Q_NULLPTR){
 
-        saveCurrentNoteToDB();
-    }
+    //        saveCurrentNoteToDB();
+    //    }
 
-    if(m_tempNote != Q_NULLPTR)
-        m_notesDatabase->remove(m_tempNote->noteName());
+    //    if(m_tempNote != Q_NULLPTR)
+    //        m_notesDatabase->remove(m_tempNote->id());
 
     m_settingsDatabase->setValue("splitterSizes", ui->splitter->saveState());
 
@@ -1314,18 +1250,18 @@ void MainWindow::mouseReleaseEvent (QMouseEvent *event)
  */
 QPropertyAnimation *MainWindow::createAnimation(NoteData *note, const QPair<int, int>& start, const QPair<int, int>& end, const int duration)
 {
-    QRect startRect(note->x(),start.first, note->width(), start.second);
-    QRect endRect(note->x(),end.first, note->width(), end.second);
+    //    QRect startRect(note->x(),start.first, note->width(), start.second);
+    //    QRect endRect(note->x(),end.first, note->width(), end.second);
 
     QPropertyAnimation *animation = new QPropertyAnimation(note, "geometry", this);
-    animation->setEasingCurve(QEasingCurve::Linear);
-    animation->setDuration(duration);
-    animation->setStartValue(startRect);
-    animation->setEndValue(endRect);
+    //    animation->setEasingCurve(QEasingCurve::Linear);
+    //    animation->setDuration(duration);
+    //    animation->setStartValue(startRect);
+    //    animation->setEndValue(endRect);
 
-    connect(animation, &QPropertyAnimation::valueChanged, [note](QVariant value){
-        note->setFixedHeight(value.toRect().height());
-    });
+    //    connect(animation, &QPropertyAnimation::valueChanged, [note](QVariant value){
+    //        note->setFixedHeight(value.toRect().height());
+    //    });
 
     return animation;
 }
@@ -1336,27 +1272,19 @@ QPropertyAnimation *MainWindow::createAnimation(NoteData *note, const QPair<int,
  */
 void MainWindow::moveNoteToTop()
 {
+    // check if the current note is note on the top of the list
+    // if true move the note to the top
     if(m_currentSelectedNote != Q_NULLPTR
-            && m_noteOnTopInTheLayout != m_currentSelectedNote){
+            && ui->listView->currentIndex().row() != 0){
 
-        m_noteOnTopInTheLayout = m_currentSelectedNote;
+        ui->listView->scrollToTop();
 
-        // show seperator in the note above the one modified
-        int currIndex = m_visibleNotesList.indexOf(m_currentSelectedNote);
-        if(currIndex + 1 < m_visibleNotesList.size())
-            m_visibleNotesList[currIndex + 1]->showSeparator(true);
+        // move the current selected note to the top
+        int currentRow = ui->listView->currentIndex().row();
+        m_notesModel->moveRow(m_notesModel->index(currentRow,0), currentRow, m_notesModel->index(0,0), 0);
 
-        // scroll to top
-        int scrollBarMinValue = ui->scrollArea->verticalScrollBar()->minimum();
-        ui->scrollArea->verticalScrollBar()->setValue(scrollBarMinValue);
-
-        // move the current selected note to the top (m_allNotesList/m_visibleNotesList: top = back)
-        m_noteWidgetsContainer->removeWidget(m_currentSelectedNote);
-        m_noteWidgetsContainer->insertWidget(0,m_currentSelectedNote);
-        int currNoteDbIdx = m_allNotesList.indexOf(m_currentSelectedNote);
-        m_allNotesList.move(currNoteDbIdx, m_allNotesList.count()-1);
-        int currNoteVisibleIdx = m_visibleNotesList.indexOf(m_currentSelectedNote);
-        m_visibleNotesList.move(currNoteVisibleIdx, m_visibleNotesList.count()-1);
+        // update the current item
+        ui->listView->setCurrentIndex(ui->listView->model()->index(0,0));
     }
 }
 
@@ -1367,126 +1295,126 @@ void MainWindow::moveNoteToTop()
 void MainWindow::moveNoteToTopWithAnimation()
 {
     // block signals emited from text edit to not interfer with the animation
-    QTextEdit* textEdit = ui->textEdit;
-    textEdit->blockSignals(true);
+    //    QTextEdit* textEdit = ui->textEdit;
+    //    textEdit->blockSignals(true);
 
-    int tempHeight = m_currentSelectedNote->height();
-    m_currentSelectedNote->lower();
-    // Animation for removing
-    int currNotePosY = m_currentSelectedNote->y();
-    int currNoteHeight = m_currentSelectedNote->height();
-    auto rmStart = QPair<int,int>(currNotePosY, currNoteHeight);
-    auto rmEnd = QPair<int,int>(m_currentSelectedNote->y(), 0);
-    QPropertyAnimation *rmAnimation = createAnimation(m_currentSelectedNote,
-                                                      rmStart,
-                                                      rmEnd,
-                                                      90);
+    //    int tempHeight = m_currentSelectedNote->height();
+    //    m_currentSelectedNote->lower();
+    //    // Animation for removing
+    //    int currNotePosY = m_currentSelectedNote->y();
+    //    int currNoteHeight = m_currentSelectedNote->height();
+    //    auto rmStart = QPair<int,int>(currNotePosY, currNoteHeight);
+    //    auto rmEnd = QPair<int,int>(m_currentSelectedNote->y(), 0);
+    //    QPropertyAnimation *rmAnimation = createAnimation(m_currentSelectedNote,
+    //                                                      rmStart,
+    //                                                      rmEnd,
+    //                                                      90);
 
-    // animation for inserting
-    auto insStart = QPair<int,int>(tempHeight, tempHeight);
-    auto insEnd = QPair<int,int>(0, tempHeight);
-    QPropertyAnimation *insAnimation = createAnimation(m_currentSelectedNote,
-                                                       insStart,
-                                                       insEnd,
-                                                       90);
+    //    // animation for inserting
+    //    auto insStart = QPair<int,int>(tempHeight, tempHeight);
+    //    auto insEnd = QPair<int,int>(0, tempHeight);
+    //    QPropertyAnimation *insAnimation = createAnimation(m_currentSelectedNote,
+    //                                                       insStart,
+    //                                                       insEnd,
+    //                                                       90);
 
-    QSequentialAnimationGroup* seqAnim = new QSequentialAnimationGroup;
-    seqAnim->addAnimation(rmAnimation);
-    seqAnim->addAnimation(insAnimation);
+    //    QSequentialAnimationGroup* seqAnim = new QSequentialAnimationGroup;
+    //    seqAnim->addAnimation(rmAnimation);
+    //    seqAnim->addAnimation(insAnimation);
 
-    // when remove animation finishes, move note to the top
-    connect(seqAnim, &QSequentialAnimationGroup::currentAnimationChanged, this, [&](){
-        moveNoteToTop();
-    },Qt::DirectConnection);
+    //    // when remove animation finishes, move note to the top
+    //    connect(seqAnim, &QSequentialAnimationGroup::currentAnimationChanged, this, [&](){
+    //        moveNoteToTop();
+    //    },Qt::DirectConnection);
 
 
-    // when animation finishes, disable blocking signal and sync the edit text with the note widget
-    connect(seqAnim, &QSequentialAnimationGroup::finished, this, [&,textEdit](){
-        textEdit->blockSignals(false);
-        textEdit->textChanged();
-    });
+    //    // when animation finishes, disable blocking signal and sync the edit text with the note widget
+    //    connect(seqAnim, &QSequentialAnimationGroup::finished, this, [&,textEdit](){
+    //        textEdit->blockSignals(false);
+    //        textEdit->textChanged();
+    //    });
 
-    seqAnim->start(QAbstractAnimation::DeleteWhenStopped);
+    //    seqAnim->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
 void MainWindow::clearSearch(NoteData* previousNote)
 {
-    clearAllNotesFromVisual();
-
-    foreach(NoteData* note, m_allNotesList){
-        note->show();
-        m_visibleNotesList.push_back(note);
-    }
-
+    m_proxyModel->setFilterRegExp(QStringLiteral(""));
     bool found = goToAndSelectNote(previousNote);
     if(!found)
         selectFirstNote();
     ui->lineEdit->setFocus();
     m_selectedNoteBeforeSearching = Q_NULLPTR;
+
     m_clearButton->hide();
 }
 
 void MainWindow::findNotesContain(const QString& keyword)
 {
-    clearAllNotesFromVisual();
+
+    m_proxyModel->setFilterRegExp(keyword);
     m_clearButton->show();
 
-    int scVal = ui->scrollArea->verticalScrollBar()->minimum();
-    ui->scrollArea->verticalScrollBar()->setValue(scVal);
+    ui->textEdit->blockSignals(true);
+    ui->textEdit->clear();
+    ui->editorDateLabel->clear();
+    ui->textEdit->blockSignals(false);
 
-    if(m_visibleNotesList.empty()){
-        ui->textEdit->blockSignals(true);
-        ui->textEdit->clear();
-        ui->editorDateLabel->clear();
-        ui->textEdit->blockSignals(false);
+    if(m_proxyModel->rowCount() > 0){
+        selectFirstNote();
+    }else{
+        m_currentSelectedNote = Q_NULLPTR;
     }
 
-    foreach (NoteData *note, m_allNotesList) {
-        bool isFound = note->text().contains(keyword, Qt::CaseInsensitive);
-        if(isFound){
-            note->show();
-            m_visibleNotesList.push_back(note);
-        }
+    // update listView scrollbar styleSheet
+    if(m_proxyModel->rowCount() > 0){
+        int rc = m_proxyModel->rowCount();
+        int szHint = ui->listView->sizeHintForRow(0);
+        int contentHeight =  rc * szHint;
+        if((contentHeight > ui->listView->height()
+            && m_isListViewScrollBarHidden)
+                ||(contentHeight < ui->listView->height()
+                   && !m_isListViewScrollBarHidden))
+
+            setListViewStyleSheet();
     }
 
-    selectFirstNote();
+
 }
 
 void MainWindow::selectNote(NoteData *note)
 {
-    if(m_currentSelectedNote != Q_NULLPTR && note != m_currentSelectedNote)
-        m_currentSelectedNote->setSelected(false);
-
-    if(m_tempNote == Q_NULLPTR && m_currentSelectedNote != Q_NULLPTR)
+    // save the text edit scrollbar position
+    if(!m_isTemp && m_currentSelectedNote != Q_NULLPTR)
         m_currentSelectedNote->setScrollBarPosition(ui->textEdit->verticalScrollBar()->value());
 
-    if(m_tempNote != Q_NULLPTR && note != m_tempNote){
-        deleteNoteWithAnimation(m_tempNote,false);
-    }else if(m_tempNote == Q_NULLPTR
+    if(m_isTemp && note != m_currentSelectedNote){
+        //deleteNoteWithAnimation(m_tempNote,false);
+        deleteNote(m_currentSelectedNote, false);
+    }else if(!m_isTemp
              && m_currentSelectedNote != Q_NULLPTR
              && note != m_currentSelectedNote
              && m_currentSelectedNote->isModified()){
 
-        saveCurrentNoteToDB();
+        saveNoteToDB(m_currentSelectedNote);
     }
 
     m_currentSelectedNote = note;
-    m_currentSelectedNote->setSelectedWithFocus(true,true);
     showNoteInEditor(m_currentSelectedNote);
 }
 
-void MainWindow::setScrollAreaStyleSheet()
+void MainWindow::setListViewStyleSheet()
 {
-    int contentHeight = m_visibleNotesList.isEmpty() ? 0
-                                                     : m_visibleNotesList[0]->height() * m_visibleNotesList.size();
+    int ctHeight = m_proxyModel->rowCount() == 0 ? 0
+                                                 : ui->listView->sizeHintForRow(0) * m_proxyModel->rowCount();
 
-    m_isScrollAreaScrollBarHidden = contentHeight < ui->scrollArea->height();
+    m_isListViewScrollBarHidden = ctHeight < ui->listView->height();
 
-    QString verticalBg = contentHeight > ui->scrollArea->height() ? "" : "background-color: transparent";
-    QString handleBg = contentHeight > ui->scrollArea->height() ? "background: rgb(188, 188, 188)"
-                                                                : "background-color: transparent";
+    QString verticalBg = ctHeight > ui->listView->height() ? "" : "background-color: transparent";
+    QString handleBg = ctHeight > ui->listView->height() ? "background: rgb(188, 188, 188)"
+                                                         : "background-color: transparent";
 
-    QString ss = QString("QScrollArea QWidget{background-color:white;} "
+    QString ss = QString("QListView QWidget{background-color:white;} "
                          "QScrollBar {margin-right: 2px; background: transparent;} "
                          "QScrollBar:hover { background-color: rgb(217, 217, 217);}"
                          "QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
@@ -1499,7 +1427,7 @@ void MainWindow::setScrollAreaStyleSheet()
             .arg(verticalBg)
             .arg(handleBg);
 
-    ui->scrollArea->setStyleSheet(ss);
+    ui->listView->setStyleSheet(ss);
 }
 
 /**
@@ -1590,7 +1518,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
     }
 
     if(event->type() == QEvent::Leave){
-        // When not hivering, change back the icons of the traffic lights to their default icon
+        // When not hovering, change back the icons of the traffic lights to their default icon
         if(object == ui->redCloseButton
                 || object == ui->yellowMinimizeButton
                 || object == ui->greenMaximizeButton){
@@ -1604,42 +1532,52 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
     if(event->type() == QEvent::FocusIn){
         if(object == ui->textEdit){
 
-            if(m_visibleNotesList.isEmpty()){
-                this->createNewNoteWithAnimation();
-            }else if(m_currentSelectedNote != Q_NULLPTR){
-                m_currentSelectedNote->setSelectedWithFocus(true, false);
-            }
-
             // When clicking in a note's content while searching,
             // reload all the notes and go and select that note
             if(!m_focusBreaker
-                    && !ui->lineEdit->text().isEmpty()
-                    && m_currentSelectedNote != Q_NULLPTR){
+                    && !ui->lineEdit->text().isEmpty()){
+
 
                 ui->lineEdit->blockSignals(true);
                 ui->lineEdit->clear();
                 ui->lineEdit->blockSignals(false);
-                clearSearch(m_currentSelectedNote);
-                ui->textEdit->setFocus();
+
+                m_proxyModel->setFilterRegExp(QStringLiteral(""));
+                m_clearButton->hide();
+
+                if(m_currentSelectedNote != Q_NULLPTR){
+                    bool found = goToAndSelectNote(m_currentSelectedNote);
+                    if(!found)
+                        selectFirstNote();
+                }else{
+                    // this->createNewNoteWithAnimation();
+                    createNewNote();
+                }
+            }else if(m_proxyModel->rowCount() == 0){
+                // this->createNewNoteWithAnimation();
+                createNewNote();
             }
         }
     }
 
     if(event->type() == QEvent::Resize){
 
-        if(object == ui->scrollArea
-                || object == ui->scrollAreaWidgetContents){
+        if(object == ui->listView){
 
-            if(!m_visibleNotesList.isEmpty()){
-                int contentHeight = m_visibleNotesList[0]->height() * m_visibleNotesList.size();
-                if((contentHeight > ui->scrollArea->height()
-                        && m_isScrollAreaScrollBarHidden)
-                        ||(contentHeight < ui->scrollArea->height()
-                        && !m_isScrollAreaScrollBarHidden))
-                setScrollAreaStyleSheet();
+            if(m_proxyModel->rowCount() > 0){
+                int rc = m_proxyModel->rowCount();
+                int szHint = ui->listView->sizeHintForRow(0);
+                int contentHeight =  rc * szHint;
+                if((contentHeight > ui->listView->height()
+                    && m_isListViewScrollBarHidden)
+                        ||(contentHeight < ui->listView->height()
+                           && !m_isListViewScrollBarHidden))
+
+                    setListViewStyleSheet();
             }
         }
     }
+
 
     return QObject::eventFilter(object, event);
 }

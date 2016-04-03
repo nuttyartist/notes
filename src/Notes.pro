@@ -14,10 +14,14 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    notedata.cpp
+    notedata.cpp \
+    notewidgetdelegate.cpp \
+    notemodel.cpp
 
 HEADERS  += mainwindow.h \
-    notedata.h
+    notedata.h \
+    notewidgetdelegate.h \
+    notemodel.h
 
 FORMS    += mainwindow.ui
 
