@@ -4,7 +4,7 @@ Notes is an open source, cross-platform note taking app which has the potential 
 This is where you come into play. Be part of making Notes better.
 
 # Screenshot
-![notes](https://cloud.githubusercontent.com/assets/16375940/12075768/5ceeef56-b194-11e5-9b30-94cdc787a80f.png)
+![notes](https://cloud.githubusercontent.com/assets/16375940/14313739/ea9fc8fa-fbfb-11e5-95bb-fb10c59770a8.png)
 
 # Information for End Users
 
