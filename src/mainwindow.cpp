@@ -837,6 +837,19 @@ void MainWindow::onLineEditTextChanged (const QString &keyword)
     }else{
         findNotesContain(keyword);
     }
+
+    if(!m_visibleNotesList.isEmpty()){
+        int contentHeight = m_visibleNotesList[0]->height() * m_visibleNotesList.size();
+        if((contentHeight > ui->scrollArea->height()
+                && m_isScrollAreaScrollBarHidden)
+                ||(contentHeight < ui->scrollArea->height()
+                && !m_isScrollAreaScrollBarHidden))
+        setScrollAreaStyleSheet();
+    }
+    else
+    {
+        setScrollAreaStyleSheet();
+    }
 }
 
 /**
@@ -984,6 +997,15 @@ void MainWindow::deleteNote(NoteData *note, bool isFromUser)
             m_currentSelectedNote = Q_NULLPTR;
         }
     }
+
+    if(!m_visibleNotesList.isEmpty()){
+        int contentHeight = m_visibleNotesList[0]->height() * m_visibleNotesList.size();
+        if((contentHeight > ui->scrollArea->height()
+                && m_isScrollAreaScrollBarHidden)
+                ||(contentHeight < ui->scrollArea->height()
+                && !m_isScrollAreaScrollBarHidden))
+        setScrollAreaStyleSheet();
+    }
 }
 
 /**
@@ -1004,6 +1026,8 @@ void MainWindow::deleteNoteWithAnimation(NoteData *note, bool isFromUser)
 
         animation->start(QAbstractAnimation::DeleteWhenStopped);
     }
+
+
 }
 
 /**
