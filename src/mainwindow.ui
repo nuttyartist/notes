@@ -477,7 +477,7 @@ NoteData #dateLabel{
            </spacer>
           </item>
           <item>
-           <widget class="QListView" name="listView">
+           <widget class="NoteView" name="listView">
             <property name="frameShape">
              <enum>QFrame::NoFrame</enum>
             </property>
@@ -802,6 +802,13 @@ p, li { white-space: pre-wrap; }
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>NoteView</class>
+   <extends>QListView</extends>
+   <header>noteview.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="images.qrc"/>
  </resources>

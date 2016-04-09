@@ -16,9 +16,11 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QLabel>
+#include <QTextEdit>
 #include <QSettings>
 #include "notedata.h"
 #include "notemodel.h"
+#include "noteview.h"
 
 namespace Ui {
 class MainWindow;
@@ -33,7 +35,6 @@ public:
     ~MainWindow();
 
 protected:
-    void paintEvent(QPaintEvent* e) Q_DECL_OVERRIDE;
     void closeEvent(QCloseEvent* event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
@@ -52,11 +53,20 @@ private:
     QSettings* m_settingsDatabase;
     QVBoxLayout* m_noteWidgetsContainer;
     QToolButton* m_clearButton;
+    QPushButton* m_greenMaximizeButton;
+    QPushButton* m_redCloseButton;
+    QPushButton* m_yellowMinimizeButton;
+    QPushButton* m_newNoteButton;
+    QPushButton* m_trashButton;
+    QTextEdit* m_textEdit;
+    QLineEdit* m_lineEdit;
 
-    NoteModel* m_notesModel;
+
+    NoteView* m_noteView;
+    NoteModel* m_noteModel;
     QSortFilterProxyModel* m_proxyModel;
-    NoteData* m_currentSelectedNote;
-    NoteData* m_selectedNoteBeforeSearching;
+    QModelIndex m_currentSelectedNoteProxy;
+    QModelIndex m_selectedNoteBeforeSearching;
     int m_currentVerticalScrollAreaRange;
     int m_mousePressX;
     int m_mousePressY;
@@ -81,40 +91,35 @@ private:
     void setupTitleBarButtons();
     void setupSignalsSlots();
     void setupLineEdit();
-    void setupListView();
     void setupTextEdit();
     void setupDatabases();
+    void setupModelView();
     void initializeSettingsDatabase();
     void createNewNoteIfEmpty();
     QString createNewNoteInDatabase();
-    void deleteNoteFromDataBase(NoteData *note);
+    void deleteNoteFromDataBase(const QModelIndex& noteIndex);
     void setLayoutForScrollArea();
     void restoreStates();
     QString getFirstLine(const QString& str);
     QString getNoteDateEditor (QString dateEdited);
     NoteData *generateNote(QString noteName, bool isLoadingOrNew);
     QDateTime getQDateTime(QString date);
-    QPropertyAnimation* getAnimationForDeletion(NoteData* note);
-    void showNoteInEditor(NoteData *note);
+    void showNoteInEditor(const QModelIndex& noteIndex);
     void sortNotesList(QStringList &stringNotesList);
     void loadNotes();
-    void saveNoteToDB(NoteData* note);
+    void saveNoteToDB(const QModelIndex& noteIndex);
     void selectFirstNote();
-    void clearAllNotesFromVisual();
-    bool goToAndSelectNote(NoteData *note);
-    QPropertyAnimation* createAnimation(NoteData* note, const QPair<int, int> &start, const QPair<int, int> &end, int duration);
+    bool goToAndSelectNote(const QModelIndex& noteIndex);
     void moveNoteToTop();
-    void moveNoteToTopWithAnimation();
-    void clearSearch(NoteData *previousNote);
+    void clearSearch(const QModelIndex &previousNote);
     void findNotesContain(const QString &keyword);
-    void selectNote(NoteData *note);
-    void setListViewStyleSheet();
+    void selectNote(const QModelIndex& noteIndex);
 
 private slots:
     void InitData();
     void onNewNoteButtonClicked();
     void onTrashButtonClicked();
-    void onNotePressed(QModelIndex index);
+    void onNotePressed(const QModelIndex &index);
     void onTextEditTextChanged();
     void onLineEditTextChanged(const QString& keyword);
     void onGreenMaximizeButtonPressed ();
@@ -124,9 +129,7 @@ private slots:
     void onYellowMinimizeButtonClicked();
     void onRedCloseButtonClicked();
     void createNewNote();
-    void createNewNoteWithAnimation();
-    void deleteNote(NoteData *note, bool isFromUser=true);
-    void deleteNoteWithAnimation(NoteData *note, bool isFromUser=true);
+    void deleteNote(const QModelIndex& noteIndex, bool isFromUser=true);
     void deleteSelectedNote();
     void setFocusOnCurrentNote();
     void selectNoteDown();

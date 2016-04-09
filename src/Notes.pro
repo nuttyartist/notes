@@ -16,12 +16,14 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     notedata.cpp \
     notewidgetdelegate.cpp \
-    notemodel.cpp
+    notemodel.cpp \
+    noteview.cpp
 
 HEADERS  += mainwindow.h \
     notedata.h \
     notewidgetdelegate.h \
-    notemodel.h
+    notemodel.h \
+    noteview.h
 
 FORMS    += mainwindow.ui
 

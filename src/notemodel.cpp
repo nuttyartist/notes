@@ -12,33 +12,46 @@ NoteModel::~NoteModel()
 
 }
 
-void NoteModel::addNote(NoteData* note)
+QModelIndex NoteModel::addNote(NoteData* note)
 {
     const int rowCnt = rowCount();
     beginInsertRows(QModelIndex(), rowCnt, rowCnt);
     note->setParent(this);
     m_noteList << note;
     endInsertRows();
+
+    return createIndex(rowCnt, 0);
 }
 
-void NoteModel::insertNote(NoteData *note, int row)
+QModelIndex NoteModel::insertNote(NoteData *note, int row)
 {
     if(row >= rowCount()){
-        addNote(note);
+        return addNote(note);
     }else{
         beginInsertRows(QModelIndex(), row, row);
-        note->setParent(this);
         m_noteList.insert(row, note);
         endInsertRows();
     }
+
+    return createIndex(row,0);
 }
 
-void NoteModel::removeNote(NoteData *note)
+void NoteModel::addListNote(QList<NoteData *> noteList)
 {
-    int row = m_noteList.indexOf(note);
+    int start = rowCount();
+    int end = start + noteList.count()-1;
+    beginInsertRows(QModelIndex(), start, end);
+    m_noteList << noteList;
+    endInsertRows();
+}
+
+void NoteModel::removeNote(const QModelIndex &noteIndex)
+{
+    int row = noteIndex.row();
     beginRemoveRows(QModelIndex(), row, row);
-    m_noteList.removeOne(note);
+    m_noteList.removeAt(row);
     endRemoveRows();
+
 }
 
 bool NoteModel::moveRow(const QModelIndex &sourceParent, int sourceRow, const QModelIndex &destinationParent, int destinationChild)
@@ -65,28 +78,6 @@ void NoteModel::clearNotes()
     endResetModel();
 }
 
-void NoteModel::copyFromModel(NoteModel *model)
-{
-    beginInsertRows(QModelIndex(),0,model->rowCount()-1);
-    for(int i=0; i<model->rowCount(); i++){
-        QModelIndex index = model->index(i,0);
-        NoteData* noteToAdd = model->getNote(index);
-        m_noteList.push_back(noteToAdd);
-    }
-    endInsertRows();
-}
-
-NoteData *NoteModel::getNote(const QModelIndex &index) const
-{
-    return m_noteList.at(index.row());
-}
-
-QModelIndex NoteModel::getNoteIndex(NoteData *note) const
-{
-    int row = m_noteList.indexOf(note);
-    return createIndex(row, 0);
-}
-
 QVariant NoteModel::data(const QModelIndex &index, int role) const
 {
     if (index.row() < 0 || index.row() >= m_noteList.count())
@@ -101,6 +92,8 @@ QVariant NoteModel::data(const QModelIndex &index, int role) const
         return note->dateTime();
     }else if(role == NoteContent){
         return note->content();
+    }else if(role == NoteScrollbarPos){
+        return note->scrollBarPosition();
     }
 
     return QVariant();
@@ -122,6 +115,8 @@ bool NoteModel::setData(const QModelIndex &index, const QVariant &value, int rol
         note->setDateTime(value.toDateTime());
     }else if(role == NoteContent){
         note->setContent(value.toString());
+    }else if(role == NoteScrollbarPos){
+        note->setScrollBarPosition(value.toInt());
     }else{
         return false;
     }
@@ -143,6 +138,8 @@ Qt::ItemFlags NoteModel::flags(const QModelIndex &index) const
 
 int NoteModel::rowCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent)
+
     return m_noteList.count();
 }
 
@@ -156,15 +153,4 @@ void NoteModel::sort(int column, Qt::SortOrder order)
     });
 
     emit dataChanged(index(0), index(rowCount()-1));
-}
-
-QHash<int, QByteArray> NoteModel::roleNames() const
-{
-    QHash<int, QByteArray> roles;
-    roles[NoteID] = "id";
-    roles[NoteFullTitle] = "fullTitle";
-    roles[NoteDateTime] = "dateTime";
-    roles[NoteContent] = "content";
-
-    return roles;
 }
