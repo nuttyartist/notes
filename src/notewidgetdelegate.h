@@ -12,10 +12,11 @@ public:
     NoteWidgetDelegate(QObject *parent = Q_NULLPTR);
 
     enum States{
-        NewNote,
-        RemoveNote,
-        MovingNote,
-        Normal
+        Normal,
+        Insert,
+        Remove,
+        MoveOut,
+        MoveIn
     };
 
     void setState(States NewState , QModelIndex index);
@@ -47,6 +48,7 @@ private:
     QColor m_hoverColor;
     QColor m_separatorColor;
     QColor m_defaultColor;
+    int m_rowHeight;
     States m_state;
 
     QTimeLine *m_timeLine;
