@@ -42,7 +42,8 @@ MainWindow::MainWindow (QWidget *parent) :
     m_canMoveWindow(false),
     m_focusBreaker(false),
     m_isTemp(false),
-    m_isListViewScrollBarHidden(true)
+    m_isListViewScrollBarHidden(true),
+    m_isContentModified(false)
 {
     ui->setupUi(this);
     setupMainWindow();
@@ -581,8 +582,7 @@ void MainWindow::saveNoteToDB(const QModelIndex &noteIndex)
 
         m_notesDatabase->sync();
 
-        // TODO : find a way to mark a note was modified
-        // noteIndex->setModified(false);
+        m_isContentModified = false;
     }
 }
 
@@ -716,9 +716,7 @@ void MainWindow::onTextEditTextChanged ()
             QModelIndex index = m_noteModel->index(0,0);
             m_noteModel->setItemData(index, dataValue);
 
-            // update modification flag
-            // TODO : find a way to set modify flag
-            //m_currentSelectedNote->setModified(true);
+            m_isContentModified = true;
         }
 
         m_textEdit->blockSignals(false);
@@ -1090,7 +1088,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         m_settingsDatabase->setValue("windowGeometry", saveGeometry());
 
     if(m_currentSelectedNoteProxy.isValid()
-            // && m_currentSelectedNote->isModified() // TODO find a way to fetch the modification value
+            &&  m_isContentModified
             && !m_isTemp){
 
         saveNoteToDB(m_currentSelectedNoteProxy);
@@ -1268,7 +1266,7 @@ void MainWindow::selectNote(const QModelIndex &noteIndex)
         }else if(!m_isTemp
                  && m_currentSelectedNoteProxy.isValid()
                  && noteIndex != m_currentSelectedNoteProxy
-                 /*& m_currentSelectedNote->isModified()*/){ // TODO: Find a way for modified
+                 && m_isContentModified){
 
             saveNoteToDB(m_currentSelectedNoteProxy);
         }

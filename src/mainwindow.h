@@ -80,6 +80,7 @@ private:
     bool m_focusBreaker;
     bool m_isTemp;
     bool m_isListViewScrollBarHidden;
+    bool m_isContentModified;
 
     void setupMainWindow();
     void setupKeyboardShortcuts();
