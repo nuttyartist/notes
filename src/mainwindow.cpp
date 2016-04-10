@@ -60,12 +60,7 @@ MainWindow::MainWindow (QWidget *parent) :
     restoreStates();
     setupSignalsSlots();
 
-
-    connect(m_noteModel, &NoteModel::rowsAboutToBeMoved, m_noteView, &NoteView::rowsAboutToBeMoved);
-    connect(m_noteModel, &NoteModel::rowsMoved, m_noteView, &NoteView::rowsMoved);
-
-
-   QTimer::singleShot(200,this, SLOT(InitData()));
+    QTimer::singleShot(200,this, SLOT(InitData()));
 }
 
 /**
@@ -261,6 +256,9 @@ void MainWindow::setupSignalsSlots()
     connect(m_lineEdit, &QLineEdit::textChanged, this, &MainWindow::onLineEditTextChanged);
     // note pressed
     connect(m_noteView, &NoteView::pressed, this, &MainWindow::onNotePressed);
+    // note model rows moved
+    connect(m_noteModel, &NoteModel::rowsAboutToBeMoved, m_noteView, &NoteView::rowsAboutToBeMoved);
+    connect(m_noteModel, &NoteModel::rowsMoved, m_noteView, &NoteView::rowsMoved);
 }
 
 /**
@@ -657,29 +655,34 @@ void MainWindow::onNotePressed (const QModelIndex& index)
 */
 void MainWindow::deleteNoteFromDataBase (const QModelIndex &noteIndex)
 {
-    QString id = noteIndex.data(NoteModel::NoteID).toString();
-    QString content = noteIndex.data(NoteModel::NoteContent).toString();
-    QDateTime dateTime = noteIndex.data(NoteModel::NoteDateTime).toDateTime();
+    if(noteIndex.isValid()){
+        QString id = noteIndex.data(NoteModel::NoteID).toString();
+        QString content = noteIndex.data(NoteModel::NoteContent).toString();
+        QDateTime dateTime = noteIndex.data(NoteModel::NoteDateTime).toDateTime();
 
-    // Putting the deleted note in trash
-    int counter = m_trashDatabase->value("notesCounter").toInt() + 1;
-    m_trashDatabase->setValue("notesCounter", counter);
+        // Putting the deleted note in trash
+        int counter = m_trashDatabase->value("notesCounter").toInt() + 1;
+        m_trashDatabase->setValue("notesCounter", counter);
 
-    QString noteName = QString("noteID_%1").arg(counter);
-    m_trashDatabase->setValue(noteName + "/content",  content);
+        QString noteName = QString("noteID_%1").arg(counter);
+        m_trashDatabase->setValue(noteName + "/content",  content);
 
-    QString dateDBCreated = m_notesDatabase->value(id + "/dateCreated", "Error").toString();
-    QString dateDBEdited = dateTime.toString(Qt::ISODate);
-    QString dateNoteDeleted = QDateTime::currentDateTime().toString(Qt::ISODate);
+        QString dateDBCreated = m_notesDatabase->value(id + "/dateCreated", "Error").toString();
+        QString dateDBEdited = dateTime.toString(Qt::ISODate);
+        QString dateNoteDeleted = QDateTime::currentDateTime().toString(Qt::ISODate);
 
-    m_trashDatabase->setValue(noteName + "/dateCreated", dateDBCreated);
-    m_trashDatabase->setValue(noteName + "/dateEdited", dateDBEdited);
-    m_trashDatabase->setValue(noteName + "/dateTrashed", dateNoteDeleted);
+        m_trashDatabase->setValue(noteName + "/dateCreated", dateDBCreated);
+        m_trashDatabase->setValue(noteName + "/dateEdited", dateDBEdited);
+        m_trashDatabase->setValue(noteName + "/dateTrashed", dateNoteDeleted);
 
-    m_notesDatabase->remove(id);
+        m_notesDatabase->remove(id);
 
-    m_notesDatabase->sync();
-    m_trashDatabase->sync();
+        m_notesDatabase->sync();
+        m_trashDatabase->sync();
+
+    }else{
+        qDebug() << "MainWindow::deleteNoteFromDataBase() : noteIndex is not valid";
+    }
 }
 
 /**
@@ -690,39 +693,40 @@ void MainWindow::deleteNoteFromDataBase (const QModelIndex &noteIndex)
 */
 void MainWindow::onTextEditTextChanged ()
 {
-    m_textEdit->blockSignals(true);
-    //if(text has really changed)
-    auto index = m_noteView->currentIndex();
-    QString content = index.data(NoteModel::NoteContent).toString();
-    if(index.row() != -1
-            && ui->textEdit->toPlainText() != content){
+    if(m_currentSelectedNoteProxy.isValid()){
+        m_textEdit->blockSignals(true);
+        QString content = m_currentSelectedNoteProxy.data(NoteModel::NoteContent).toString();
+        if(ui->textEdit->toPlainText() != content){
 
-        if(m_currentSelectedNoteProxy.isValid())
+            // move note to the top of the list
             moveNoteToTop();
 
-        index = m_noteModel->index(0,0);
+            // Get the new data
+            QString firstline = getFirstLine(ui->textEdit->toPlainText());
+            QDateTime dateTime = QDateTime::currentDateTime();
+            QString noteDate = dateTime.toString(Qt::ISODate);
+            ui->editorDateLabel->setText(getNoteDateEditor(noteDate));
 
-        QString firstline = getFirstLine(ui->textEdit->toPlainText());
-        QDateTime dateTime = QDateTime::currentDateTime();
-        QString noteDate = dateTime.toString(Qt::ISODate);
-        ui->editorDateLabel->setText(getNoteDateEditor(noteDate));
+            // update model
+            QMap<int, QVariant> dataValue;
+            dataValue[NoteModel::NoteContent] = QVariant::fromValue(ui->textEdit->toPlainText());
+            dataValue[NoteModel::NoteFullTitle] = QVariant::fromValue(firstline);
+            dataValue[NoteModel::NoteDateTime] = QVariant::fromValue(dateTime);
 
-        // update model
-        QMap<int, QVariant> dataValue;
-        dataValue[NoteModel::NoteContent] = QVariant::fromValue(ui->textEdit->toPlainText());
-        dataValue[NoteModel::NoteFullTitle] = QVariant::fromValue(firstline);
-        dataValue[NoteModel::NoteDateTime] = QVariant::fromValue(dateTime);
+            QModelIndex index = m_noteModel->index(0,0);
+            m_noteModel->setItemData(index, dataValue);
 
-        m_noteModel->setItemData(index, dataValue);
+            // update modification flag
+            // TODO : find a way to set modify flag
+            //m_currentSelectedNote->setModified(true);
+        }
 
-        // update modification flag
-        // TODO : find a way to set modify flag
-        //m_currentSelectedNote->setModified(true);
+        m_textEdit->blockSignals(false);
+
+        m_isTemp = false;
+    }else{
+        qDebug() << "MainWindow::onTextEditTextChanged() : m_currentSelectedNoteProxy is not valid";
     }
-
-    m_textEdit->blockSignals(false);
-
-    m_isTemp = false;
 }
 
 /**
@@ -742,6 +746,8 @@ bool MainWindow::goToAndSelectNote (const QModelIndex& noteIndex)
         m_noteView->scrollTo(currentIndex);
         m_currentSelectedNoteProxy = noteIndex;
         showNoteInEditor(noteIndex);
+    }else{
+        qDebug() << "MainWindow::goToAndSelectNote() : noteIndex is not valid";
     }
 
     return found;
@@ -845,7 +851,7 @@ void MainWindow::createNewNote ()
     }
 
     m_noteView->selectionModel()->select(m_noteModel->index(0,0),
-                                           QItemSelectionModel::ClearAndSelect);
+                                         QItemSelectionModel::ClearAndSelect);
     m_noteView->setCurrentIndex(m_noteView->model()->index(0, 0));
     m_noteView->scrollToTop();
 }
@@ -882,6 +888,8 @@ void MainWindow::deleteNote(const QModelIndex &noteIndex, bool isFromUser)
                 m_currentSelectedNoteProxy = QModelIndex();
             }
         }
+    }else{
+
     }
 }
 
@@ -1082,7 +1090,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         m_settingsDatabase->setValue("windowGeometry", saveGeometry());
 
     if(m_currentSelectedNoteProxy.isValid()
-            // && m_currentSelectedNote->isModified()
+            // && m_currentSelectedNote->isModified() // TODO find a way to fetch the modification value
             && !m_isTemp){
 
         saveNoteToDB(m_currentSelectedNoteProxy);
@@ -1247,25 +1255,30 @@ void MainWindow::findNotesContain(const QString& keyword)
 
 void MainWindow::selectNote(const QModelIndex &noteIndex)
 {
-    // save the text edit scrollbar position
-    if(!m_isTemp && m_currentSelectedNoteProxy.isValid()){
-        int pos = ui->textEdit->verticalScrollBar()->value();
-        m_noteModel->setData(m_currentSelectedNoteProxy, QVariant::fromValue(pos), NoteModel::NoteScrollbarPos);
+    if(noteIndex.isValid()){
+        // save the text edit scrollbar position
+        if(!m_isTemp && m_currentSelectedNoteProxy.isValid()){
+            int pos = ui->textEdit->verticalScrollBar()->value();
+            m_noteModel->setData(m_currentSelectedNoteProxy, QVariant::fromValue(pos), NoteModel::NoteScrollbarPos);
+        }
+
+        if(m_isTemp && noteIndex != m_currentSelectedNoteProxy){
+            deleteNote(m_currentSelectedNoteProxy, false);
+
+        }else if(!m_isTemp
+                 && m_currentSelectedNoteProxy.isValid()
+                 && noteIndex != m_currentSelectedNoteProxy
+                 /*& m_currentSelectedNote->isModified()*/){ // TODO: Find a way for modified
+
+            saveNoteToDB(m_currentSelectedNoteProxy);
+        }
+
+        m_currentSelectedNoteProxy = noteIndex;
+        showNoteInEditor(m_currentSelectedNoteProxy);
+
+    }else{
+        qDebug() << "MainWindow::selectNote() : noteIndex is not valid";
     }
-
-    if(m_isTemp && noteIndex != m_currentSelectedNoteProxy){
-        deleteNote(m_currentSelectedNoteProxy, false);
-
-    }else if(!m_isTemp
-             && m_currentSelectedNoteProxy.isValid()
-             && noteIndex != m_currentSelectedNoteProxy/*
-                      && m_currentSelectedNote->isModified()*/){ // TODO: Find a way for modified
-
-        saveNoteToDB(m_currentSelectedNoteProxy);
-    }
-
-    m_currentSelectedNoteProxy = noteIndex;
-    showNoteInEditor(m_currentSelectedNoteProxy);
 }
 
 /**
