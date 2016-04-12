@@ -48,6 +48,7 @@ private:
 
     Ui::MainWindow* ui;
 
+    QTimer* m_autoSaveTimer;
     QSettings* m_notesDatabase;
     QSettings* m_trashDatabase;
     QSettings* m_settingsDatabase;
@@ -64,13 +65,17 @@ private:
 
     NoteView* m_noteView;
     NoteModel* m_noteModel;
+    NoteModel* m_deletedNotesModel;
     QSortFilterProxyModel* m_proxyModel;
     QModelIndex m_currentSelectedNoteProxy;
     QModelIndex m_selectedNoteBeforeSearching;
+
     int m_currentVerticalScrollAreaRange;
     int m_mousePressX;
     int m_mousePressY;
     int m_textEditLeftPadding;
+    int m_noteCounter;
+    int m_trashCounter;
     bool m_canBeResized;
     bool m_resizeHorzTop;
     bool m_resizeHorzBottom;
