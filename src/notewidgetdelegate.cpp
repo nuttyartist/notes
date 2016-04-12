@@ -17,11 +17,13 @@ NoteWidgetDelegate::NoteWidgetDelegate(QObject *parent)
       m_separatorColor(221, 221, 221),
       m_defaultColor(255,255,255),
       m_rowHeight(38),
+      m_maxFrame(200),
       m_state(Normal)
 {
     m_timeLine = new QTimeLine(300, this);
-    m_timeLine->setFrameRange(0,m_rowHeight);
-    m_timeLine->setCurveShape(QTimeLine::LinearCurve);
+    m_timeLine->setFrameRange(0,m_maxFrame);
+    m_timeLine->setUpdateInterval(10);
+    m_timeLine->setCurveShape(QTimeLine::EaseInOutCurve);
 
     connect( m_timeLine, &QTimeLine::frameChanged, [this](){
         emit sizeHintChanged(m_animatedIndex);
@@ -38,7 +40,6 @@ void NoteWidgetDelegate::setState(States NewState, QModelIndex index)
     m_animatedIndex = index;
 
     auto startAnimation = [this](QTimeLine::Direction diretion, int duration){
-        m_timeLine->stop();
         m_timeLine->setDirection(diretion);
         m_timeLine->setDuration(duration);
         m_timeLine->start();
@@ -46,17 +47,18 @@ void NoteWidgetDelegate::setState(States NewState, QModelIndex index)
 
     switch ( NewState ){
     case Insert:
-        startAnimation(QTimeLine::Forward, 300);
+        startAnimation(QTimeLine::Forward, m_maxFrame);
         break;
     case Remove:
-        startAnimation(QTimeLine::Backward, 300);
+        startAnimation(QTimeLine::Backward, m_maxFrame);
         break;
     case MoveOut:
+        startAnimation(QTimeLine::Backward, m_maxFrame);
+        break;
     case MoveIn:
-        startAnimation(QTimeLine::Backward, 180);
+        startAnimation(QTimeLine::Backward, m_maxFrame);
         break;
     case Normal:
-        m_timeLine->stop();
         m_animatedIndex = QModelIndex();
         break;
     }
@@ -71,28 +73,37 @@ void NoteWidgetDelegate::setAnimationDuration(const int duration)
 
 void NoteWidgetDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    painter->save();
     QStyleOptionViewItem opt = option;
     opt.rect.setWidth(option.rect.width()-2);
+
+    int currentFrame = m_timeLine->currentFrame();
+    double rate = (currentFrame/(double)m_maxFrame);
+    double height = m_rowHeight * rate;
 
     switch(m_state){
     case Insert:
     case Remove:
     case MoveOut:
         if(index == m_animatedIndex){
-            opt.rect.setHeight(m_timeLine->currentFrame());
-            painter->fillRect(opt.rect, m_noFocusColor);
-        }else{
-            paintBackground(painter, opt, index);
+            opt.rect.setHeight(height);
+            opt.backgroundBrush.setColor(m_noFocusColor);
         }
         break;
     case MoveIn:
+        if(index == m_animatedIndex){
+            opt.rect.setY(height);
+        }
+        break;
     case Normal:
-        paintBackground(painter, opt, index);
         break;
     }
 
+    paintBackground(painter, opt, index);
     paintTitle(painter, option, index);
     paintDateTime(painter, option, index);
+
+    painter->restore();
 }
 
 QSize NoteWidgetDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
@@ -102,7 +113,9 @@ QSize NoteWidgetDelegate::sizeHint(const QStyleOptionViewItem &option, const QMo
         if(m_state == MoveIn){
             result.setHeight(m_rowHeight);
         }else{
-            result.setHeight(m_timeLine->currentFrame());
+            double rate = m_timeLine->currentFrame()/(double)m_maxFrame;
+            double height = m_rowHeight * rate;
+            result.setHeight(height);
         }
     }else{
         result.setHeight(m_rowHeight);
@@ -118,6 +131,7 @@ QTimeLine::State NoteWidgetDelegate::animationState()
 
 void NoteWidgetDelegate::paintBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    painter->save();
     if((option.state & QStyle::State_Selected) == QStyle::State_Selected){
         if((option.state & QStyle::State_HasFocus)== QStyle::State_HasFocus){
             painter->fillRect(option.rect, QBrush(m_focusColor));
@@ -130,20 +144,14 @@ void NoteWidgetDelegate::paintBackground(QPainter *painter, const QStyleOptionVi
              && (index.row() !=  m_hoveredIndex.row() -1)){
 
         painter->fillRect(option.rect, QBrush(m_defaultColor));
-        painter->setPen(QPen(m_separatorColor));
-
-        int posX1 = option.rect.x() + 9;
-        int posX2 = option.rect.x() + option.rect.width()-1;
-        int posY = option.rect.y() + option.rect.height()-1;
-
-
-        painter->drawLine(QPoint(posX1, posY),
-                          QPoint(posX2, posY));
+        paintSeparator(painter, option, index);
     }
+    painter->restore();
 }
 
 void NoteWidgetDelegate::paintTitle(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    painter->save();
     QString title{index.data(NoteModel::NoteFullTitle).toString()};
     QFontMetrics fontMetrics(m_titleFont);
     title = fontMetrics.elidedText(title,Qt::ElideRight, option.rect.width() - 20);
@@ -152,45 +160,67 @@ void NoteWidgetDelegate::paintTitle(QPainter *painter, const QStyleOptionViewIte
     painter->setFont(m_titleFont);
     painter->setOpacity(1);
 
+    double rate = m_timeLine->currentFrame()/(double)m_maxFrame;
+
     if(index.row() == m_animatedIndex.row()){
         if(m_state == MoveIn){
-            int posY = option.rect.y() + 15 + m_timeLine->currentFrame();
+            int posY = option.rect.y() + 15 + m_rowHeight * rate;
             int posX = option.rect.x() + 9;
-            painter->setOpacity(1-m_timeLine->currentFrame()/(double)m_rowHeight);
+            painter->setOpacity(1-rate);
             painter->drawText(QPoint(posX, posY), title);
         }else{
-            int posY = option.rect.y() + 15 - m_rowHeight + m_timeLine->currentFrame();
+            int posY = option.rect.y() + 15 + m_rowHeight * (rate - 1);
             int posX = option.rect.x() + 9;
-            painter->setOpacity(m_timeLine->currentFrame()/(double)m_rowHeight);
+            painter->setOpacity(rate);
             painter->drawText(QPoint(posX, posY), title);
         }
     }else{
         painter->drawText(QPoint(option.rect.x() + 9, option.rect.y() + 15), title);
     }
+    painter->restore();
 }
 
 void NoteWidgetDelegate::paintDateTime(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    QString date = parseDateTime(index.data(NoteModel::NoteDateTime).toDateTime());
+    painter->save();
+    QString date = parseDateTime(index.data(NoteModel::NoteLastModificationDateTime).toDateTime());
     painter->setPen(m_dateColor);
     painter->setFont(m_dateFont);
     painter->setOpacity(1);
 
+    double rate = m_timeLine->currentFrame()/(double)m_maxFrame;
+
     if(index.row() == m_animatedIndex.row()){
         if(m_state == MoveIn){
-            int posY = option.rect.y() + 31 + m_timeLine->currentFrame();
+            int posY = option.rect.y() + 31 + m_rowHeight * rate;
             int posX = option.rect.x() + 9;
-            painter->setOpacity(1-m_timeLine->currentFrame()/(double)m_rowHeight);
+            painter->setOpacity(1 - rate);
             painter->drawText(QPoint(posX, posY), date);
         }else{
-            int posY = option.rect.y() + 31 - m_rowHeight + m_timeLine->currentFrame();
+            int posY = option.rect.y() + 31 + m_rowHeight * (rate - 1);
             int posX = option.rect.x() + 9;
-            painter->setOpacity(m_timeLine->currentFrame()/(double)m_rowHeight);
+            painter->setOpacity(rate);
             painter->drawText(QPoint(posX, posY), date);
         }
     }else{
         painter->drawText(QPoint(option.rect.x() + 9, option.rect.y() + 31), date);
     }
+    painter->restore();
+}
+
+void NoteWidgetDelegate::paintSeparator(QPainter*painter, const QStyleOptionViewItem&option, const QModelIndex&index) const
+{
+    Q_UNUSED(index)
+
+    painter->setPen(QPen(m_separatorColor));
+
+    int posX1 = option.rect.x() + 9;
+    int posX2 = option.rect.x() + option.rect.width()-1;
+    int posY = option.rect.y() + option.rect.height()-1;
+
+
+    painter->drawLine(QPoint(posX1, posY),
+                      QPoint(posX2, posY));
 }
 
 QString NoteWidgetDelegate::parseDateTime(const QDateTime &dateTime) const

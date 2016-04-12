@@ -37,6 +37,7 @@ private:
     void paintBackground(QPainter* painter, const QStyleOptionViewItem &option, const QModelIndex &index)const;
     void paintTitle(QPainter* painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     void paintDateTime(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    void paintSeparator(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     QString parseDateTime(const QDateTime& dateTime) const;
 
     QFont m_titleFont;
@@ -49,6 +50,7 @@ private:
     QColor m_separatorColor;
     QColor m_defaultColor;
     int m_rowHeight;
+    int m_maxFrame;
     States m_state;
 
     QTimeLine *m_timeLine;
