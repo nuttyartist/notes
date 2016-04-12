@@ -11,7 +11,9 @@ public:
     enum NoteRoles{
         NoteID = Qt::UserRole + 1,
         NoteFullTitle,
-        NoteDateTime,
+        NoteCreationDateTime,
+        NoteLastModificationDateTime,
+        NoteDeletionDateTime,
         NoteContent,
         NoteScrollbarPos
     };
@@ -22,7 +24,7 @@ public:
     QModelIndex addNote(NoteData* note);
     QModelIndex insertNote(NoteData* note, int row);
     void addListNote(QList<NoteData*> noteList);
-    void removeNote(const QModelIndex &noteIndex);
+    NoteData* removeNote(const QModelIndex &noteIndex);
     bool moveRow(const QModelIndex &sourceParent,
                  int sourceRow,
                  const QModelIndex &destinationParent,

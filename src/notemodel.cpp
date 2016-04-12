@@ -16,7 +16,6 @@ QModelIndex NoteModel::addNote(NoteData* note)
 {
     const int rowCnt = rowCount();
     beginInsertRows(QModelIndex(), rowCnt, rowCnt);
-    note->setParent(this);
     m_noteList << note;
     endInsertRows();
 
@@ -45,13 +44,14 @@ void NoteModel::addListNote(QList<NoteData *> noteList)
     endInsertRows();
 }
 
-void NoteModel::removeNote(const QModelIndex &noteIndex)
+NoteData* NoteModel::removeNote(const QModelIndex &noteIndex)
 {
     int row = noteIndex.row();
     beginRemoveRows(QModelIndex(), row, row);
-    m_noteList.removeAt(row);
+    NoteData* note = m_noteList.takeAt(row);
     endRemoveRows();
 
+    return note;
 }
 
 bool NoteModel::moveRow(const QModelIndex &sourceParent, int sourceRow, const QModelIndex &destinationParent, int destinationChild)
@@ -88,8 +88,12 @@ QVariant NoteModel::data(const QModelIndex &index, int role) const
         return note->id();
     }else if(role == NoteFullTitle){
         return note->fullTitle();
-    }else if(role == NoteDateTime){
-        return note->dateTime();
+    }else if(role == NoteCreationDateTime){
+        return note->creationDateTime();
+    }else if(role == NoteLastModificationDateTime){
+        return note->lastModificationdateTime();
+    }else if(role == NoteDeletionDateTime){
+        return note->deletionDateTime();
     }else if(role == NoteContent){
         return note->content();
     }else if(role == NoteScrollbarPos){
@@ -111,8 +115,12 @@ bool NoteModel::setData(const QModelIndex &index, const QVariant &value, int rol
         note->setId(value.toString());
     }else if(role == NoteFullTitle){
         note->setFullTitle(value.toString());
-    }else if(role == NoteDateTime){
-        note->setDateTime(value.toDateTime());
+    }else if(role == NoteCreationDateTime){
+        note->setCreationDateTime(value.toDateTime());
+    }else if(role == NoteLastModificationDateTime){
+        note->setLastModificationDateTime(value.toDateTime());
+    }else if(role == NoteDeletionDateTime){
+        note->setDeletionDateTime(value.toDateTime());
     }else if(role == NoteContent){
         note->setContent(value.toString());
     }else if(role == NoteScrollbarPos){
@@ -149,7 +157,7 @@ void NoteModel::sort(int column, Qt::SortOrder order)
     Q_UNUSED(order)
 
     std::stable_sort(m_noteList.begin(), m_noteList.end(), [](NoteData* lhs, NoteData* rhs){
-        return lhs->dateTime() > rhs->dateTime();
+        return lhs->lastModificationdateTime() > rhs->lastModificationdateTime();
     });
 
     emit dataChanged(index(0), index(rowCount()-1));
