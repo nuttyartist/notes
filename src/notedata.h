@@ -16,8 +16,11 @@ public:
     QString fullTitle() const;
     void setFullTitle(const QString &fullTitle);
 
-    QDateTime dateTime() const;
-    void setDateTime(const QDateTime &dateTime);
+    QDateTime lastModificationdateTime() const;
+    void setLastModificationDateTime(const QDateTime &lastModificationdateTime);
+
+    QDateTime creationDateTime() const;
+    void setCreationDateTime(const QDateTime& creationDateTime);
 
     QString content() const;
     void setContent(const QString &content);
@@ -31,10 +34,15 @@ public:
     int scrollBarPosition() const;
     void setScrollBarPosition(int scrollBarPosition);
 
+    QDateTime deletionDateTime() const;
+    void setDeletionDateTime(const QDateTime& deletionDateTime);
+
 private:
     QString m_id;
     QString m_fullTitle;
-    QDateTime m_dateTime;
+    QDateTime m_lastModificationDateTime;
+    QDateTime m_creationDateTime;
+    QDateTime m_deletionDateTime;
     QString m_content;
     bool m_isModified;
     bool m_isSelected;

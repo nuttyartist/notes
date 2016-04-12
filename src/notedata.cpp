@@ -29,14 +29,14 @@ void NoteData::setFullTitle(const QString &fullTitle)
     m_fullTitle = fullTitle;
 }
 
-QDateTime NoteData::dateTime() const
+QDateTime NoteData::lastModificationdateTime() const
 {
-    return m_dateTime;
+    return m_lastModificationDateTime;
 }
 
-void NoteData::setDateTime(const QDateTime &dateTime)
+void NoteData::setLastModificationDateTime(const QDateTime &lastModificationdateTime)
 {
-    m_dateTime = dateTime;
+    m_lastModificationDateTime = lastModificationdateTime;
 }
 
 QString NoteData::content() const
@@ -77,4 +77,24 @@ int NoteData::scrollBarPosition() const
 void NoteData::setScrollBarPosition(int scrollBarPosition)
 {
     m_scrollBarPosition = scrollBarPosition;
+}
+
+QDateTime NoteData::deletionDateTime() const
+{
+    return m_deletionDateTime;
+}
+
+void NoteData::setDeletionDateTime(const QDateTime& deletionDateTime)
+{
+    m_deletionDateTime = deletionDateTime;
+}
+
+QDateTime NoteData::creationDateTime() const
+{
+    return m_creationDateTime;
+}
+
+void NoteData::setCreationDateTime(const QDateTime&creationDateTime)
+{
+    m_creationDateTime = creationDateTime;
 }
