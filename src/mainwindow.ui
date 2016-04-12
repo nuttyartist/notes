@@ -490,6 +490,9 @@ NoteData #dateLabel{
             <property name="editTriggers">
              <set>QAbstractItemView::NoEditTriggers</set>
             </property>
+            <property name="showDropIndicator" stdset="0">
+             <bool>false</bool>
+            </property>
             <property name="selectionBehavior">
              <enum>QAbstractItemView::SelectRows</enum>
             </property>
@@ -629,7 +632,7 @@ NoteData #dateLabel{
           <item>
            <widget class="QLabel" name="editorDateLabel">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
