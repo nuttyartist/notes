@@ -16,7 +16,6 @@ public:
 
 protected:
     void paintEvent(QPaintEvent *e) Q_DECL_OVERRIDE;
-    void resizeEvent(QResizeEvent*e) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
     void mouseReleaseEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
@@ -40,7 +39,7 @@ private slots:
 protected slots:
     void rowsInserted(const QModelIndex &parent, int start, int end) Q_DECL_OVERRIDE;
     void rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end) Q_DECL_OVERRIDE;
-    void updateStyleSheet();
+    void setupStyleSheet();
 };
 
 #endif // NOTEVIEW_H

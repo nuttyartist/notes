@@ -19,7 +19,7 @@ NoteView::NoteView(QWidget *parent)
     setUpdatesEnabled(true);
     viewport()->setAttribute(Qt::WA_Hover);
 
-    updateStyleSheet();
+    setupStyleSheet();
     QTimer::singleShot(0, this, SLOT(setupSignalsSlots()));
 }
 
@@ -56,18 +56,6 @@ void NoteView::paintEvent(QPaintEvent *e)
     delegate->setHoveredIndex(index);
 
     QListView::paintEvent(e);
-
-    // update the stylesheet
-    int rc = model()->rowCount();
-    int contentHeight =  rc * rowHeight;
-
-    if((contentHeight > height()
-        && m_isScrollBarHidden)
-            ||(contentHeight < height()
-               && !m_isScrollBarHidden)){
-
-        updateStyleSheet();
-    }
 }
 
 /**
@@ -151,25 +139,6 @@ void NoteView::rowsMoved(const QModelIndex &parent, int start, int end,
     }
 }
 
-/**
- * @brief Reimplemented from QWidget::resizeEvent()
- */
-void NoteView::resizeEvent(QResizeEvent *e)
-{
-    QListView::resizeEvent(e);
-
-    int rc = model()->rowCount();
-    int contentHeight =  rc * rowHeight;
-
-    if((contentHeight > height()
-        && m_isScrollBarHidden)
-            ||(contentHeight < height()
-               && !m_isScrollBarHidden)){
-
-        updateStyleSheet();
-    }
-}
-
 void NoteView::mouseMoveEvent(QMouseEvent*e)
 {
     if(m_isMousePressed){
@@ -208,36 +177,20 @@ void NoteView::setupSignalsSlots()
 }
 
 /**
- * @brief NoteView::updateStyleSheet updates the styleSheet of the vertical scrollbar
- * hide the scrollbar if they are less notes than what visible area can show
+ * @brief setup styleSheet
  */
-void NoteView::updateStyleSheet()
+void NoteView::setupStyleSheet()
 {
-    QString verticalBg = "background-color: transparent";
-    QString handleBg = "background-color: transparent";
-
-    if(model() != Q_NULLPTR){
-        int ctHeight = rowHeight * model()->rowCount();
-
-        m_isScrollBarHidden = ctHeight < height();
-
-        verticalBg = ctHeight > height() ? "" : "background-color: transparent";
-        handleBg = ctHeight > height() ? "background: rgb(188, 188, 188)"
-                                       : "background-color: transparent";
-    }
-
     QString ss = QString("QListView QWidget{background-color:white;} "
                          "QScrollBar {margin-right: 2px; background: transparent;} "
                          "QScrollBar:hover { background-color: rgb(217, 217, 217);}"
                          "QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
                          "QScrollBar:handle:vertical:pressed { background: rgb(149, 149, 149);}"
-                         "QScrollBar:vertical { border: none; width: 10px; border-radius: 4px;%1;} "
-                         "QScrollBar::handle:vertical { border-radius: 4px; %2; min-height: 20px; }  "
+                         "QScrollBar:vertical { border: none; width: 10px; border-radius: 4px;} "
+                         "QScrollBar::handle:vertical { border-radius: 4px; background: rgb(188, 188, 188); min-height: 20px; }  "
                          "QScrollBar::add-line:vertical { height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
                          "QScrollBar::sub-line:vertical { height: 0px; subcontrol-position: top; subcontrol-origin: margin; }"
-                         )
-                 .arg(verticalBg)
-                 .arg(handleBg);
+                         );
 
     setStyleSheet(ss);
 }

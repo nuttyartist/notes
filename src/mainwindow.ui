@@ -482,7 +482,7 @@ NoteData #dateLabel{
              <enum>QFrame::NoFrame</enum>
             </property>
             <property name="verticalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOn</enum>
+             <enum>Qt::ScrollBarAsNeeded</enum>
             </property>
             <property name="horizontalScrollBarPolicy">
              <enum>Qt::ScrollBarAlwaysOff</enum>
