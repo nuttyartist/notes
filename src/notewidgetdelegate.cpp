@@ -161,21 +161,21 @@ void NoteWidgetDelegate::paintTitle(QPainter *painter, const QStyleOptionViewIte
     painter->setOpacity(1);
 
     double rate = m_timeLine->currentFrame()/(double)m_maxFrame;
+    int posX = option.rect.x() + 10;
+    int posY = option.rect.y() + 15;
 
     if(index.row() == m_animatedIndex.row()){
         if(m_state == MoveIn){
-            int posY = option.rect.y() + 15 + m_rowHeight * rate;
-            int posX = option.rect.x() + 9;
+            int posYAnim = posY + m_rowHeight * rate;
             painter->setOpacity(1-rate);
-            painter->drawText(QPoint(posX, posY), title);
+            painter->drawText(QPoint(posX, posYAnim), title);
         }else{
-            int posY = option.rect.y() + 15 + m_rowHeight * (rate - 1);
-            int posX = option.rect.x() + 9;
+            int posYAnim = posY + m_rowHeight * (rate - 1);
             painter->setOpacity(rate);
-            painter->drawText(QPoint(posX, posY), title);
+            painter->drawText(QPoint(posX, posYAnim), title);
         }
     }else{
-        painter->drawText(QPoint(option.rect.x() + 9, option.rect.y() + 15), title);
+        painter->drawText(QPoint(posX, posY), title);
     }
     painter->restore();
 }
@@ -189,21 +189,21 @@ void NoteWidgetDelegate::paintDateTime(QPainter *painter, const QStyleOptionView
     painter->setOpacity(1);
 
     double rate = m_timeLine->currentFrame()/(double)m_maxFrame;
+    int posX = option.rect.x() + 10;
+    int posY = option.rect.y() + 31;
 
     if(index.row() == m_animatedIndex.row()){
         if(m_state == MoveIn){
-            int posY = option.rect.y() + 31 + m_rowHeight * rate;
-            int posX = option.rect.x() + 9;
-            painter->setOpacity(1 - rate);
-            painter->drawText(QPoint(posX, posY), date);
+            int posYAnim = posY + m_rowHeight * rate;
+            painter->setOpacity(1-rate);
+            painter->drawText(QPoint(posX, posYAnim), date);
         }else{
-            int posY = option.rect.y() + 31 + m_rowHeight * (rate - 1);
-            int posX = option.rect.x() + 9;
+            int posYAnim = posY + m_rowHeight * (rate - 1);
             painter->setOpacity(rate);
-            painter->drawText(QPoint(posX, posY), date);
+            painter->drawText(QPoint(posX, posYAnim), date);
         }
     }else{
-        painter->drawText(QPoint(option.rect.x() + 9, option.rect.y() + 31), date);
+        painter->drawText(QPoint(posX, posY), date);
     }
     painter->restore();
 }
@@ -215,7 +215,7 @@ void NoteWidgetDelegate::paintSeparator(QPainter*painter, const QStyleOptionView
     painter->setPen(QPen(m_separatorColor));
 
     int posX1 = option.rect.x() + 9;
-    int posX2 = option.rect.x() + option.rect.width()-1;
+    int posX2 = option.rect.x() + option.rect.width()-11;
     int posY = option.rect.y() + option.rect.height()-1;
 
 
