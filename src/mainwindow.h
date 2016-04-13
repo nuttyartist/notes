@@ -86,6 +86,7 @@ private:
     bool m_isTemp;
     bool m_isListViewScrollBarHidden;
     bool m_isContentModified;
+    bool m_isOperationRunning;
 
     void setupMainWindow();
     void setupKeyboardShortcuts();

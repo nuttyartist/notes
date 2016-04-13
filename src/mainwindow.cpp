@@ -47,7 +47,8 @@ MainWindow::MainWindow (QWidget *parent) :
     m_focusBreaker(false),
     m_isTemp(false),
     m_isListViewScrollBarHidden(true),
-    m_isContentModified(false)
+    m_isContentModified(false),
+    m_isOperationRunning(false)
 {
     ui->setupUi(this);
     setupMainWindow();
@@ -139,6 +140,8 @@ void MainWindow::setupKeyboardShortcuts ()
     new QShortcut(QKeySequence(Qt::Key_Up), this, SLOT(selectNoteUp()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Enter), this, SLOT(setFocusOnText()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Return), this, SLOT(setFocusOnText()));
+    new QShortcut(QKeySequence(Qt::Key_Enter), this, SLOT(setFocusOnText()));
+    new QShortcut(QKeySequence(Qt::Key_Return), this, SLOT(setFocusOnText()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_F), this, SLOT(fullscreenWindow()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_L), this, SLOT(maximizeWindow()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_M), this, SLOT(minimizeWindow()));
@@ -266,7 +269,7 @@ void MainWindow::setupSignalsSlots()
     connect(m_noteModel, &NoteModel::rowsMoved, m_noteView, &NoteView::rowsMoved);
     // timer
     connect(m_autoSaveTimer, &QTimer::timeout, [this](){
-       saveNoteToDB(m_currentSelectedNoteProxy);
+        saveNoteToDB(m_currentSelectedNoteProxy);
     });
 }
 
@@ -846,52 +849,57 @@ QString MainWindow::createNewNoteInDatabase ()
  */
 void MainWindow::createNewNote ()
 {
-    m_noteView->scrollToTop();
+    if(!m_isOperationRunning){
+        m_isOperationRunning = true;
 
-    if(!m_isTemp){
-        if(!m_lineEdit->text().isEmpty())
-            m_lineEdit->clear();
+        m_noteView->scrollToTop();
 
-        // save the data of the previous selected
-        if(m_currentSelectedNoteProxy.isValid()
-                && m_isContentModified){
+        if(!m_isTemp){
+            if(!m_lineEdit->text().isEmpty())
+                m_lineEdit->clear();
 
-            saveNoteToDB(m_currentSelectedNoteProxy);
-            m_isContentModified = false;
+            // save the data of the previous selected
+            if(m_currentSelectedNoteProxy.isValid()
+                    && m_isContentModified){
+
+                saveNoteToDB(m_currentSelectedNoteProxy);
+                m_isContentModified = false;
+            }
+
+            ++m_noteCounter;
+            QString noteID = QString("noteID_%1").arg(m_noteCounter);
+            NoteData* tmpNote = generateNote(noteID, false);
+            m_isTemp = true;
+
+            // insert the new note to NoteModel
+            QModelIndex indexSrc = m_noteModel->insertNote(tmpNote, 0);
+
+            // update the editor header date label
+            QString dateTimeFromDB = tmpNote->lastModificationdateTime().toString(Qt::ISODate);
+            QString dateTimeForEditor = getNoteDateEditor(dateTimeFromDB);
+            ui->editorDateLabel->setText(dateTimeForEditor);
+
+            // clear the textEdit
+            ui->textEdit->blockSignals(true);
+            ui->textEdit->clear();
+            ui->textEdit->setFocus();
+            ui->textEdit->blockSignals(false);
+
+            // update the current selected index
+            m_currentSelectedNoteProxy = m_proxyModel->mapFromSource(indexSrc);
+
+        }else{
+            int row = m_currentSelectedNoteProxy.row();
+            m_noteView->animateAddedRow(QModelIndex(),row, row);
+
+            ui->textEdit->blockSignals(true);
+            ui->textEdit->setFocus();
+            ui->textEdit->blockSignals(false);
         }
 
-        ++m_noteCounter;
-        QString noteID = QString("noteID_%1").arg(m_noteCounter);
-        NoteData* tmpNote = generateNote(noteID, false);
-        m_isTemp = true;
-
-        // insert the new note to NoteModel
-        QModelIndex indexSrc = m_noteModel->insertNote(tmpNote, 0);
-
-        // update the editor header date label
-        QString dateTimeFromDB = tmpNote->lastModificationdateTime().toString(Qt::ISODate);
-        QString dateTimeForEditor = getNoteDateEditor(dateTimeFromDB);
-        ui->editorDateLabel->setText(dateTimeForEditor);
-
-        // clear the textEdit
-        ui->textEdit->blockSignals(true);
-        ui->textEdit->clear();
-        ui->textEdit->setFocus();
-        ui->textEdit->blockSignals(false);
-
-        // update the current selected index
-        m_currentSelectedNoteProxy = m_proxyModel->mapFromSource(indexSrc);
-
-    }else{
-        int row = m_currentSelectedNoteProxy.row();
-        m_noteView->animateAddedRow(QModelIndex(),row, row);
-
-        ui->textEdit->blockSignals(true);
-        ui->textEdit->setFocus();
-        ui->textEdit->blockSignals(false);
+        m_noteView->setCurrentIndex(m_currentSelectedNoteProxy);
+        m_isOperationRunning = false;
     }
-
-    m_noteView->setCurrentIndex(m_currentSelectedNoteProxy);
 }
 
 /**
@@ -939,9 +947,13 @@ void MainWindow::deleteNote(const QModelIndex &noteIndex, bool isFromUser)
 */
 void MainWindow::deleteSelectedNote ()
 {
-    if(m_currentSelectedNoteProxy.isValid()){
-        deleteNote(m_currentSelectedNoteProxy, true);
-        showNoteInEditor(m_currentSelectedNoteProxy);
+    if(!m_isOperationRunning){
+        m_isOperationRunning = true;
+        if(m_currentSelectedNoteProxy.isValid()){
+            deleteNote(m_currentSelectedNoteProxy, true);
+            showNoteInEditor(m_currentSelectedNoteProxy);
+        }
+        m_isOperationRunning = false;
     }
 }
 
@@ -979,6 +991,7 @@ void MainWindow::selectNoteUp ()
             m_currentSelectedNoteProxy = aboveIndex;
             showNoteInEditor(m_currentSelectedNoteProxy);
         }
+        m_noteView->setFocus();
     }
 }
 
@@ -1002,6 +1015,7 @@ void MainWindow::selectNoteDown ()
                 showNoteInEditor(m_currentSelectedNoteProxy);
             }
         }
+        m_noteView->setFocus();
     }
 }
 
