@@ -158,7 +158,6 @@ void NoteWidgetDelegate::paintTitle(QPainter *painter, const QStyleOptionViewIte
 
     painter->setPen(m_titleColor);
     painter->setFont(m_titleFont);
-    painter->setOpacity(1);
 
     double rate = m_timeLine->currentFrame()/(double)m_maxFrame;
     int posX = option.rect.x() + 10;
@@ -167,11 +166,9 @@ void NoteWidgetDelegate::paintTitle(QPainter *painter, const QStyleOptionViewIte
     if(index.row() == m_animatedIndex.row()){
         if(m_state == MoveIn){
             int posYAnim = posY + m_rowHeight * rate;
-            painter->setOpacity(1-rate);
             painter->drawText(QPoint(posX, posYAnim), title);
         }else{
             int posYAnim = posY + m_rowHeight * (rate - 1);
-            painter->setOpacity(rate);
             painter->drawText(QPoint(posX, posYAnim), title);
         }
     }else{
@@ -186,7 +183,6 @@ void NoteWidgetDelegate::paintDateTime(QPainter *painter, const QStyleOptionView
     QString date = parseDateTime(index.data(NoteModel::NoteLastModificationDateTime).toDateTime());
     painter->setPen(m_dateColor);
     painter->setFont(m_dateFont);
-    painter->setOpacity(1);
 
     double rate = m_timeLine->currentFrame()/(double)m_maxFrame;
     int posX = option.rect.x() + 10;
@@ -195,11 +191,9 @@ void NoteWidgetDelegate::paintDateTime(QPainter *painter, const QStyleOptionView
     if(index.row() == m_animatedIndex.row()){
         if(m_state == MoveIn){
             int posYAnim = posY + m_rowHeight * rate;
-            painter->setOpacity(1-rate);
             painter->drawText(QPoint(posX, posYAnim), date);
         }else{
             int posYAnim = posY + m_rowHeight * (rate - 1);
-            painter->setOpacity(rate);
             painter->drawText(QPoint(posX, posYAnim), date);
         }
     }else{
