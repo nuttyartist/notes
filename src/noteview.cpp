@@ -163,6 +163,20 @@ void NoteView::mouseReleaseEvent(QMouseEvent*e)
 
 void NoteView::setupSignalsSlots()
 {
+    connect(selectionModel(), &QItemSelectionModel::currentRowChanged, [this]
+            (const QModelIndex & current, const QModelIndex & previous){
+
+        QModelIndex prevPrevIndex = model()->index(current.row()-2, 0);
+        QModelIndex prevIndex = model()->index(current.row()-1, 0);
+
+        if(current.row() < previous.row()){
+            viewport()->update(visualRect(prevPrevIndex));
+            viewport()->update(visualRect(prevIndex));
+        }else{
+            viewport()->update(visualRect(prevPrevIndex));
+        }
+    });
+
     connect(this, &NoteView::entered,[this](QModelIndex index){
         QModelIndex prevPrevIndex = model()->index(index.row()-2, 0);
         viewport()->update(visualRect(prevPrevIndex));
