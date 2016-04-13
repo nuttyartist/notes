@@ -208,7 +208,7 @@ void NoteWidgetDelegate::paintSeparator(QPainter*painter, const QStyleOptionView
 
     painter->setPen(QPen(m_separatorColor));
 
-    int posX1 = option.rect.x() + 9;
+    int posX1 = option.rect.x() + 10;
     int posX2 = option.rect.x() + option.rect.width()-11;
     int posY = option.rect.y() + option.rect.height()-1;
 
