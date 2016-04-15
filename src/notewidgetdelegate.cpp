@@ -18,6 +18,7 @@ NoteWidgetDelegate::NoteWidgetDelegate(QObject *parent)
       m_defaultColor(255,255,255),
       m_rowHeight(38),
       m_maxFrame(200),
+      m_rowRightOffset(0),
       m_state(Normal)
 {
     m_timeLine = new QTimeLine(300, this);
@@ -75,7 +76,7 @@ void NoteWidgetDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
 {
     painter->save();
     QStyleOptionViewItem opt = option;
-    opt.rect.setWidth(option.rect.width()-2);
+    opt.rect.setWidth(option.rect.width() - m_rowRightOffset);
 
     int currentFrame = m_timeLine->currentFrame();
     double rate = (currentFrame/(double)m_maxFrame);
@@ -266,6 +267,11 @@ QString NoteWidgetDelegate::parseDateTime(const QDateTime &dateTime) const
     }
 
     return dateTime.date().toString("M/d/yy");
+}
+
+void NoteWidgetDelegate::setRowRightOffset(int rowRightOffset)
+{
+    m_rowRightOffset = rowRightOffset;
 }
 
 void NoteWidgetDelegate::setHoveredIndex(const QModelIndex &hoveredIndex)

@@ -24,7 +24,7 @@ private:
     bool m_isScrollBarHidden;
     bool m_isSearching;
     bool m_isMousePressed;
-    int rowHeight;
+    int m_rowHeight;
 
 public slots:
     void rowsAboutToBeMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd,

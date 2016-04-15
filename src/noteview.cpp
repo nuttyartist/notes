@@ -7,13 +7,14 @@
 #include <QPaintEvent>
 #include <QSortFilterProxyModel>
 #include <QTimer>
+#include <QScrollBar>
 
 NoteView::NoteView(QWidget *parent)
     : QListView( parent ),
       m_isScrollBarHidden(true),
       m_isSearching(false),
       m_isMousePressed(false),
-      rowHeight(38)
+      m_rowHeight(38)
 {
     setMouseTracking(true);
     setUpdatesEnabled(true);
@@ -33,6 +34,7 @@ void NoteView::animateAddedRow(const QModelIndex& parent, int start, int end)
     Q_UNUSED(end)
 
     QModelIndex idx = model()->index(start,0);
+    // Note: this line add flikering, seen when the animation runs slow
     selectionModel()->select(idx, QItemSelectionModel::ClearAndSelect);
     NoteWidgetDelegate* delegate = static_cast<NoteWidgetDelegate*>(itemDelegate(idx));
     delegate->setState( NoteWidgetDelegate::Insert, idx);
@@ -163,6 +165,7 @@ void NoteView::mouseReleaseEvent(QMouseEvent*e)
 
 void NoteView::setupSignalsSlots()
 {
+    // remove/add separator
     connect(selectionModel(), &QItemSelectionModel::currentRowChanged, [this]
             (const QModelIndex & current, const QModelIndex & previous){
 
@@ -187,6 +190,18 @@ void NoteView::setupSignalsSlots()
     connect(this, &NoteView::viewportEntered,[this](){
         QModelIndex lastIndex = model()->index(model()->rowCount()-2, 0);
         viewport()->update(visualRect(lastIndex));
+    });
+
+    // remove/add offset
+    connect(this->verticalScrollBar(), &QScrollBar::rangeChanged,[this](int min, int max){
+        Q_UNUSED(min)
+        NoteWidgetDelegate* delegate = static_cast<NoteWidgetDelegate*>(itemDelegate());
+        if(max > 0){
+            delegate->setRowRightOffset(2);
+        }else{
+            delegate->setRowRightOffset(0);
+        }
+        viewport()->repaint();
     });
 }
 

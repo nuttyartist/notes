@@ -32,6 +32,7 @@ public:
 
     void setCurrentSelectedIndex(const QModelIndex &currentSelectedIndex);
     void setHoveredIndex(const QModelIndex &hoveredIndex);
+    void setRowRightOffset(int rowRightOffset);
 
 private:
     void paintBackground(QPainter* painter, const QStyleOptionViewItem &option, const QModelIndex &index)const;
@@ -51,6 +52,7 @@ private:
     QColor m_defaultColor;
     int m_rowHeight;
     int m_maxFrame;
+    int m_rowRightOffset;
     States m_state;
 
     QTimeLine *m_timeLine;
