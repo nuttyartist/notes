@@ -939,6 +939,8 @@ void MainWindow::deleteNote(const QModelIndex &noteIndex, bool isFromUser)
     }else{
         qDebug() << "MainWindow::deleteNote noteIndex is not valid";
     }
+
+    m_noteView->setFocus();
 }
 
 /**
