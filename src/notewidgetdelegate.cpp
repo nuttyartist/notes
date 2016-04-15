@@ -23,7 +23,7 @@ NoteWidgetDelegate::NoteWidgetDelegate(QObject *parent)
     m_timeLine = new QTimeLine(300, this);
     m_timeLine->setFrameRange(0,m_maxFrame);
     m_timeLine->setUpdateInterval(10);
-    m_timeLine->setCurveShape(QTimeLine::EaseInOutCurve);
+    m_timeLine->setCurveShape(QTimeLine::EaseInCurve);
 
     connect( m_timeLine, &QTimeLine::frameChanged, [this](){
         emit sizeHintChanged(m_animatedIndex);
@@ -153,26 +153,40 @@ void NoteWidgetDelegate::paintTitle(QPainter *painter, const QStyleOptionViewIte
 {
     painter->save();
     QString title{index.data(NoteModel::NoteFullTitle).toString()};
-    QFontMetrics fontMetrics(m_titleFont);
-    title = fontMetrics.elidedText(title,Qt::ElideRight, option.rect.width() - 20);
-
+    QFontMetrics fm(m_titleFont);
+    QRect fmRect = fm.boundingRect(title);
+    title = fm.elidedText(title,Qt::ElideRight, option.rect.width() - 20);
     painter->setPen(m_titleColor);
     painter->setFont(m_titleFont);
 
-    double rate = m_timeLine->currentFrame()/(double)m_maxFrame;
-    int posX = option.rect.x() + 10;
-    int posY = option.rect.y() + 15;
+    double rowRate = m_timeLine->currentFrame()/(double)m_maxFrame;
+    int rowPosX = option.rect.x();
+    int rowPosY = option.rect.y();
+    int rowWidth = option.rect.width();
+    int textRectPosX = rowPosX + 10;
+    int textRectPosY = rowPosY;
+    double textRectWidth = rowWidth - textRectPosX - 10;
+    double textRectHeight = fmRect.height() + 4.0;
+
+    auto textRect = [&](double heightRate){
+        return QRectF(textRectPosX, textRectPosY, textRectWidth, textRectHeight*heightRate);
+    };
 
     if(index.row() == m_animatedIndex.row()){
         if(m_state == MoveIn){
-            int posYAnim = posY + m_rowHeight * rate;
+            int posX = option.rect.x() + 10;
+            int posY = option.rect.y() + 16;
+            int posYAnim = posY + m_rowHeight * rowRate;
             painter->drawText(QPoint(posX, posYAnim), title);
         }else{
-            int posYAnim = posY + m_rowHeight * (rate - 1);
-            painter->drawText(QPoint(posX, posYAnim), title);
+            double currRowHeight = m_rowHeight * rowRate;
+            if(currRowHeight >= textRectHeight){
+                double rateTitle = (currRowHeight - textRectHeight)/(m_rowHeight - textRectHeight);
+                painter->drawText(textRect(rateTitle), Qt::AlignBottom, title);
+            }
         }
     }else{
-        painter->drawText(QPoint(posX, posY), title);
+        painter->drawText(textRect(1), Qt::AlignBottom, title);
     }
     painter->restore();
 }
@@ -183,21 +197,40 @@ void NoteWidgetDelegate::paintDateTime(QPainter *painter, const QStyleOptionView
     QString date = parseDateTime(index.data(NoteModel::NoteLastModificationDateTime).toDateTime());
     painter->setPen(m_dateColor);
     painter->setFont(m_dateFont);
+    QFontMetrics fm(m_dateFont);
 
-    double rate = m_timeLine->currentFrame()/(double)m_maxFrame;
-    int posX = option.rect.x() + 10;
-    int posY = option.rect.y() + 31;
+    int rowPosX = option.rect.x();
+    int rowPosY = option.rect.y();
+    int rowWidth = option.rect.width();
+    double rowHeightRate = m_timeLine->currentFrame()/(double)m_maxFrame;
+    double currRowHeight = m_rowHeight * rowHeightRate;
+    double textRectPosX = rowPosX + 10;
+    double textRectWidth = rowWidth - textRectPosX - 10;
 
     if(index.row() == m_animatedIndex.row()){
         if(m_state == MoveIn){
-            int posYAnim = posY + m_rowHeight * rate;
-            painter->drawText(QPoint(posX, posYAnim), date);
+            int textPosX = rowPosX + 10;
+            int textPosY = rowPosY + 32;
+            int posYAnim = textPosY + currRowHeight;
+            painter->drawText(QPoint(textPosX, posYAnim), date);
         }else{
-            int posYAnim = posY + m_rowHeight * (rate - 1);
-            painter->drawText(QPoint(posX, posYAnim), date);
+
+            double textRectHeight = fm.height() + 2;
+            double textRectPosY = rowPosY + currRowHeight - (textRectHeight + 3);
+
+            if(currRowHeight <= (textRectHeight + 3)){
+                textRectPosY = rowPosY;
+                textRectHeight = currRowHeight - 3;
+            }
+
+            QRectF rect(textRectPosX, textRectPosY, textRectWidth, textRectHeight);
+            painter->drawText(rect, Qt::AlignBottom, date);
         }
     }else{
-        painter->drawText(QPoint(posX, posY), date);
+        double textRectHeight = fm.height() + 2;
+        double textRectPosY = rowPosY + m_rowHeight - (textRectHeight+3);
+        QRectF rect(QPoint(textRectPosX, textRectPosY), QSize(textRectWidth, textRectHeight));
+        painter->drawText(rect, Qt::AlignBottom, date);
     }
     painter->restore();
 }
