@@ -1288,7 +1288,7 @@ void MainWindow::clearSearch(const QModelIndex& previousNote)
     m_lineEdit->clear();
     m_lineEdit->blockSignals(false);
 
-    m_proxyModel->setFilterRegExp(QStringLiteral(""));
+    m_proxyModel->setFilterFixedString(QStringLiteral(""));
 
     if(previousNote.isValid()){
         bool found = goToAndSelectNote(previousNote);
@@ -1303,8 +1303,7 @@ void MainWindow::clearSearch(const QModelIndex& previousNote)
 
 void MainWindow::findNotesContain(const QString& keyword)
 {
-
-    m_proxyModel->setFilterRegExp(keyword);
+    m_proxyModel->setFilterFixedString(keyword);
     m_clearButton->show();
 
     ui->textEdit->blockSignals(true);
@@ -1465,7 +1464,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
                 m_clearButton->hide();
 
                 QModelIndex indexSrc = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
-                m_proxyModel->setFilterRegExp(QStringLiteral(""));
+                m_proxyModel->setFilterFixedString(QStringLiteral(""));
                 m_currentSelectedNoteProxy = m_proxyModel->mapFromSource(indexSrc);
                 m_selectedNoteBeforeSearching = QModelIndex();
 
