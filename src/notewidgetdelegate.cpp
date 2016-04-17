@@ -74,7 +74,6 @@ void NoteWidgetDelegate::setAnimationDuration(const int duration)
 
 void NoteWidgetDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    painter->save();
     QStyleOptionViewItem opt = option;
     opt.rect.setWidth(option.rect.width() - m_rowRightOffset);
 
@@ -103,8 +102,6 @@ void NoteWidgetDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
     paintBackground(painter, opt, index);
     paintTitle(painter, option, index);
     paintDateTime(painter, option, index);
-
-    painter->restore();
 }
 
 QSize NoteWidgetDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
@@ -132,7 +129,6 @@ QTimeLine::State NoteWidgetDelegate::animationState()
 
 void NoteWidgetDelegate::paintBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    painter->save();
     if((option.state & QStyle::State_Selected) == QStyle::State_Selected){
         if((option.state & QStyle::State_HasFocus)== QStyle::State_HasFocus){
             painter->fillRect(option.rect, QBrush(m_focusColor));
@@ -147,12 +143,10 @@ void NoteWidgetDelegate::paintBackground(QPainter *painter, const QStyleOptionVi
         painter->fillRect(option.rect, QBrush(m_defaultColor));
         paintSeparator(painter, option, index);
     }
-    painter->restore();
 }
 
 void NoteWidgetDelegate::paintTitle(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    painter->save();
     QString title{index.data(NoteModel::NoteFullTitle).toString()};
     QFontMetrics fm(m_titleFont);
     QRect fmRect = fm.boundingRect(title);
@@ -189,12 +183,10 @@ void NoteWidgetDelegate::paintTitle(QPainter *painter, const QStyleOptionViewIte
     }else{
         painter->drawText(textRect(1), Qt::AlignBottom, title);
     }
-    painter->restore();
 }
 
 void NoteWidgetDelegate::paintDateTime(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    painter->save();
     QString date = parseDateTime(index.data(NoteModel::NoteLastModificationDateTime).toDateTime());
     painter->setPen(m_dateColor);
     painter->setFont(m_dateFont);
@@ -233,7 +225,6 @@ void NoteWidgetDelegate::paintDateTime(QPainter *painter, const QStyleOptionView
         QRectF rect(QPoint(textRectPosX, textRectPosY), QSize(textRectWidth, textRectHeight));
         painter->drawText(rect, Qt::AlignBottom, date);
     }
-    painter->restore();
 }
 
 void NoteWidgetDelegate::paintSeparator(QPainter*painter, const QStyleOptionViewItem&option, const QModelIndex&index) const
