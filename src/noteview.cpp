@@ -65,12 +65,11 @@ void NoteView::paintEvent(QPaintEvent *e)
  */
 void NoteView::rowsInserted(const QModelIndex &parent, int start, int end)
 {
-    QSortFilterProxyModel *proxyModel = static_cast<QSortFilterProxyModel *>(model());
-
+//    QSortFilterProxyModel *proxyModel = static_cast<QSortFilterProxyModel *>(model());
     if(start == end && !m_isSearching)
         animateAddedRow(parent, start, end);
 
-    m_isSearching = !proxyModel->filterRegExp().pattern().isEmpty();
+//    m_isSearching = !proxyModel->filterRegExp().pattern().isEmpty();
 
     QListView::rowsInserted(parent, start, end);
 }
@@ -80,10 +79,10 @@ void NoteView::rowsInserted(const QModelIndex &parent, int start, int end)
  */
 void NoteView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end)
 {
-    QSortFilterProxyModel *proxyModel = static_cast<QSortFilterProxyModel *>(model());
-    m_isSearching = !proxyModel->filterRegExp().pattern().isEmpty();
-
-    if(start == end){
+//    QSortFilterProxyModel *proxyModel = static_cast<QSortFilterProxyModel *>(model());
+//    m_isSearching = !proxyModel->filterRegExp().pattern().isEmpty();
+//    qDebug() << "rowRemoved : " << (m_isSearching? "searching" : "not searching");
+    if(start == end && !m_isSearching){
         QModelIndex idx = model()->index(start,0);
         NoteWidgetDelegate* delegate = static_cast<NoteWidgetDelegate*>(itemDelegate(idx));
         delegate->setCurrentSelectedIndex(QModelIndex());
@@ -163,6 +162,11 @@ void NoteView::mouseReleaseEvent(QMouseEvent*e)
     QListView::mouseReleaseEvent(e);
 }
 
+void NoteView::setSearching(bool isSearching)
+{
+    m_isSearching = isSearching;
+}
+
 void NoteView::setupSignalsSlots()
 {
     // remove/add separator
@@ -201,7 +205,7 @@ void NoteView::setupSignalsSlots()
         }else{
             delegate->setRowRightOffset(0);
         }
-        viewport()->repaint();
+        viewport()->update();
     });
 }
 
