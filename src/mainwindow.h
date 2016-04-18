@@ -70,7 +70,7 @@ private:
     NoteModel* m_deletedNotesModel;
     QSortFilterProxyModel* m_proxyModel;
     QModelIndex m_currentSelectedNoteProxy;
-    QModelIndex m_selectedNoteBeforeSearching;
+    QModelIndex m_selectedNoteBeforeSearchingInSource;
 
     int m_currentVerticalScrollAreaRange;
     int m_mousePressX;
@@ -116,9 +116,8 @@ private:
     void loadNotes();
     void saveNoteToDB(const QModelIndex& noteIndex);
     void selectFirstNote();
-    bool goToAndSelectNote(const QModelIndex& noteIndex);
     void moveNoteToTop();
-    void clearSearch(const QModelIndex &previousNote);
+    void clearSearch();
     void findNotesContain(const QString &keyword);
     void selectNote(const QModelIndex& noteIndex);
 
@@ -129,6 +128,7 @@ private slots:
     void onNotePressed(const QModelIndex &index);
     void onTextEditTextChanged();
     void onLineEditTextChanged(const QString& keyword);
+    void onClearButtonClicked();
     void onGreenMaximizeButtonPressed ();
     void onYellowMinimizeButtonPressed ();
     void onRedCloseButtonPressed ();
