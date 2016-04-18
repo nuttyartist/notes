@@ -83,7 +83,6 @@ private:
     bool m_resizeVertRight;
     bool m_resizeVertLeft;
     bool m_canMoveWindow;
-    bool m_focusBreaker;
     bool m_isTemp;
     bool m_isListViewScrollBarHidden;
     bool m_isContentModified;
@@ -104,7 +103,6 @@ private:
     void setupModelView();
     void initializeSettingsDatabase();
     void createNewNoteIfEmpty();
-    QString createNewNoteInDatabase();
     void deleteNoteFromDataBase(const QModelIndex& noteIndex);
     void setLayoutForScrollArea();
     void restoreStates();

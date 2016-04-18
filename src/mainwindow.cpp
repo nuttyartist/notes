@@ -45,7 +45,6 @@ MainWindow::MainWindow (QWidget *parent) :
     m_resizeVertRight(false),
     m_resizeVertLeft(false),
     m_canMoveWindow(false),
-    m_focusBreaker(false),
     m_isTemp(false),
     m_isListViewScrollBarHidden(true),
     m_isContentModified(false),
@@ -764,29 +763,6 @@ void MainWindow::onTextEditTextChanged ()
 
 /**
 * @brief
-* Given a note name name, select the given note
-* and set the scrollArea's scrollBar position to it
-* return true if the given note was found, else return false
-*/
-bool MainWindow::goToAndSelectNote (const QModelIndex& noteIndex)
-{
-    bool found = false;
-    if(noteIndex.isValid()){
-        found = true;
-        QModelIndex currentIndex = m_noteView->model()->index(noteIndex.row(), 0);
-        m_noteView->setCurrentIndex(currentIndex);
-        m_noteView->scrollTo(currentIndex);
-        m_currentSelectedNoteProxy = noteIndex;
-        showNoteInEditor(noteIndex);
-    }else{
-        qDebug() << "MainWindow::goToAndSelectNote() : noteIndex is not valid";
-    }
-
-    return found;
-}
-
-/**
-* @brief
 * When text on lineEdit change:
 * If there is a temp note "New Note" while searching, we delete it
 * Saving the last selected note for recovery after searching
@@ -1456,8 +1432,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
         if(object == ui->textEdit){
             // When clicking in a note's content while searching,
             // reload all the notes and go and select that note
-            if(!m_focusBreaker
-                    && !m_lineEdit->text().isEmpty()){
+            if(!m_lineEdit->text().isEmpty()){
 
                 m_lineEdit->blockSignals(true);
                 m_lineEdit->clear();
