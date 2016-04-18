@@ -113,7 +113,7 @@ void MainWindow::setupMainWindow ()
     m_lineEdit = ui->lineEdit;
     m_textEdit = ui->textEdit;
     m_editorDateLabel = ui->editorDateLabel;
-
+    m_splitter = ui->splitter;
 
     QPalette pal(palette());
     pal.setColor(QPalette::Background, Qt::white);
@@ -192,8 +192,8 @@ void MainWindow::setupEditorDateLabel()
 */
 void MainWindow::setupSplitter()
 {
-    ui->splitter->setStretchFactor(1, 1);
-    ui->splitter->setStretchFactor(2, 0);
+    m_splitter->setStretchFactor(1, 1);
+    m_splitter->setStretchFactor(2, 0);
 }
 
 /**
@@ -362,16 +362,16 @@ void MainWindow::setupTextEdit ()
                          "QScrollBar::sub-line:vertical { width:0px; height: 0px; subcontrol-position: top; subcontrol-origin: margin; }"
                          ).arg(QString::number(m_newNoteButton->width() - m_textEditLeftPadding), "27");
 
-    ui->textEdit->setStyleSheet(ss);
+    m_textEdit->setStyleSheet(ss);
 
-    ui->textEdit->installEventFilter(this);
+    m_textEdit->installEventFilter(this);
 
 #ifdef Q_OS_LINUX
-    ui->textEdit->setFont(QFont("Liberation Sans", 11));
+    m_textEdit->setFont(QFont("Liberation Sans", 11));
 #elif _WIN32
-    ui->textEdit->setFont(QFont("Arial", 11));
+    m_textEdit->setFont(QFont("Arial", 11));
 #elif __APPLE__
-    ui->textEdit->setFont(QFont("Helvetica", 15));
+    m_textEdit->setFont(QFont("Helvetica", 15));
 #else
 #error "We don't support that version yet..."
 #endif
@@ -392,7 +392,7 @@ void MainWindow::initializeSettingsDatabase()
         m_settingsDatabase->setValue("windowGeometry", saveGeometry());
 
     if(m_settingsDatabase->value("splitterSizes", "NULL") == "NULL")
-        m_settingsDatabase->setValue("splitterSizes", ui->splitter->saveState());
+        m_settingsDatabase->setValue("splitterSizes", m_splitter->saveState());
 }
 
 /**
@@ -463,10 +463,10 @@ void MainWindow::restoreStates()
 {
     this->restoreGeometry(m_settingsDatabase->value("windowGeometry").toByteArray());
 
-    ui->splitter->restoreState(m_settingsDatabase->value("splitterSizes").toByteArray());
+    m_splitter->restoreState(m_settingsDatabase->value("splitterSizes").toByteArray());
 
     // If scrollArea is collapsed
-    if(ui->splitter->sizes().at(0) == 0){
+    if(m_splitter->sizes().at(0) == 0){
         ui->verticalLayout_scrollArea->removeItem(ui->horizontalLayout_scrollArea_2);
         ui->verticalLayout_textEdit->insertLayout(0, ui->horizontalLayout_scrollArea_2, 0);
 
@@ -556,19 +556,19 @@ NoteData *MainWindow::generateNote(QString noteName, bool isLoadingOrNew)
  */
 void MainWindow::showNoteInEditor(const QModelIndex &noteIndex)
 {
-    ui->textEdit->blockSignals(true);
+    m_textEdit->blockSignals(true);
     QString content = noteIndex.data(NoteModel::NoteContent).toString();
     QDateTime dateTime = noteIndex.data(NoteModel::NoteLastModificationDateTime).toDateTime();
     int scrollbarPos = noteIndex.data(NoteModel::NoteScrollbarPos).toInt();
 
     // set text and date
-    ui->textEdit->setText(content);
+    m_textEdit->setText(content);
     QString noteDate = dateTime.toString(Qt::ISODate);
     QString noteDateEditor = getNoteDateEditor(noteDate);
     m_editorDateLabel->setText(noteDateEditor);
     // set scrollbar position
-    ui->textEdit->verticalScrollBar()->setValue(scrollbarPos);
-    ui->textEdit->blockSignals(false);
+    m_textEdit->verticalScrollBar()->setValue(scrollbarPos);
+    m_textEdit->blockSignals(false);
 }
 
 /**
@@ -727,7 +727,7 @@ void MainWindow::onTextEditTextChanged ()
     if(m_currentSelectedNoteProxy.isValid()){
         m_textEdit->blockSignals(true);
         QString content = m_currentSelectedNoteProxy.data(NoteModel::NoteContent).toString();
-        if(ui->textEdit->toPlainText() != content){
+        if(m_textEdit->toPlainText() != content){
 
             m_autoSaveTimer->start(500);
 
@@ -736,14 +736,14 @@ void MainWindow::onTextEditTextChanged ()
                 moveNoteToTop();
 
             // Get the new data
-            QString firstline = getFirstLine(ui->textEdit->toPlainText());
+            QString firstline = getFirstLine(m_textEdit->toPlainText());
             QDateTime dateTime = QDateTime::currentDateTime();
             QString noteDate = dateTime.toString(Qt::ISODate);
             m_editorDateLabel->setText(getNoteDateEditor(noteDate));
 
             // update model
             QMap<int, QVariant> dataValue;
-            dataValue[NoteModel::NoteContent] = QVariant::fromValue(ui->textEdit->toPlainText());
+            dataValue[NoteModel::NoteContent] = QVariant::fromValue(m_textEdit->toPlainText());
             dataValue[NoteModel::NoteFullTitle] = QVariant::fromValue(firstline);
             dataValue[NoteModel::NoteLastModificationDateTime] = QVariant::fromValue(dateTime);
 
@@ -774,11 +774,11 @@ void MainWindow::onLineEditTextChanged (const QString &keyword)
 {
     if(m_isTemp){
         m_isTemp = false;
-        ui->lineEdit->blockSignals(true);
+        m_lineEdit->blockSignals(true);
         m_currentSelectedNoteProxy = QModelIndex();
         QModelIndex index = m_noteModel->index(0);
         m_noteModel->removeNote(index);
-        ui->lineEdit->blockSignals(false);
+        m_lineEdit->blockSignals(false);
 
     }else if(!m_selectedNoteBeforeSearching.isValid()
              && m_currentSelectedNoteProxy.isValid()){
@@ -902,10 +902,10 @@ void MainWindow::deleteNote(const QModelIndex &noteIndex, bool isFromUser)
         if(isFromUser){
             // clear text edit and time date label
             m_editorDateLabel->clear();
-            ui->textEdit->blockSignals(true);
-            ui->textEdit->clear();
-            ui->textEdit->clearFocus();
-            ui->textEdit->blockSignals(false);
+            m_textEdit->blockSignals(true);
+            m_textEdit->clear();
+            m_textEdit->clearFocus();
+            m_textEdit->blockSignals(false);
 
             if(m_noteModel->rowCount() > 0){
                 QModelIndex index = m_noteView->currentIndex();
@@ -943,8 +943,8 @@ void MainWindow::deleteSelectedNote ()
 */
 void MainWindow::setFocusOnText ()
 {
-    if(m_currentSelectedNoteProxy.isValid() && !ui->textEdit->hasFocus())
-        ui->textEdit->setFocus();
+    if(m_currentSelectedNoteProxy.isValid() && !m_textEdit->hasFocus())
+        m_textEdit->setFocus();
 }
 
 /**
@@ -1138,7 +1138,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         m_notesDatabase->remove(id);
     }
 
-    m_settingsDatabase->setValue("splitterSizes", ui->splitter->saveState());
+    m_settingsDatabase->setValue("splitterSizes", m_splitter->saveState());
 
     m_settingsDatabase->sync();
     m_notesDatabase->sync();
@@ -1284,10 +1284,10 @@ void MainWindow::findNotesContain(const QString& keyword)
     m_proxyModel->setFilterFixedString(keyword);
     m_clearButton->show();
 
-    ui->textEdit->blockSignals(true);
-    ui->textEdit->clear();
+    m_textEdit->blockSignals(true);
+    m_textEdit->clear();
     m_editorDateLabel->clear();
-    ui->textEdit->blockSignals(false);
+    m_textEdit->blockSignals(false);
 
     if(m_proxyModel->rowCount() > 0){
         selectFirstNote();
@@ -1304,7 +1304,7 @@ void MainWindow::selectNote(const QModelIndex &noteIndex)
 
         // save the position of text edit scrollbar
         if(!m_isTemp && m_currentSelectedNoteProxy.isValid()){
-            int pos = ui->textEdit->verticalScrollBar()->value();
+            int pos = m_textEdit->verticalScrollBar()->value();
             QModelIndex indexSrc = m_proxyModel->mapToSource(noteIndex);
             m_noteModel->setData(indexSrc, QVariant::fromValue(pos), NoteModel::NoteScrollbarPos);
         }
@@ -1429,7 +1429,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
     }
 
     if(event->type() == QEvent::FocusIn){
-        if(object == ui->textEdit){
+        if(object == m_textEdit){
             // When clicking in a note's content while searching,
             // reload all the notes and go and select that note
             if(!m_lineEdit->text().isEmpty()){

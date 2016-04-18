@@ -18,6 +18,7 @@
 #include <QLabel>
 #include <QTextEdit>
 #include <QSettings>
+#include <QSplitter>
 #include "notedata.h"
 #include "notemodel.h"
 #include "noteview.h"
@@ -62,7 +63,7 @@ private:
     QTextEdit* m_textEdit;
     QLineEdit* m_lineEdit;
     QLabel* m_editorDateLabel;
-
+    QSplitter *m_splitter;
 
     NoteView* m_noteView;
     NoteModel* m_noteModel;
