@@ -785,44 +785,55 @@ void MainWindow::onLineEditTextChanged (const QString &keyword)
 {
     m_textEdit->clearFocus();
 
-    if(m_isTemp){
-        m_isTemp = false;
-        // prevent the line edit from emitting signal
-        // while animation for deleting the new note is running
-        m_lineEdit->blockSignals(true);
-        m_currentSelectedNoteProxy = QModelIndex();
-        QModelIndex index = m_noteModel->index(0);
-        m_noteModel->removeNote(index);
-        m_lineEdit->blockSignals(false);
+    m_searchQueue.enqueue(keyword);
 
-        if(m_noteModel->rowCount() > 0){
-            m_selectedNoteBeforeSearchingInSource = m_noteModel->index(0);
-        }else{
-            m_selectedNoteBeforeSearchingInSource = QModelIndex();
+    if(!m_isOperationRunning){
+        m_isOperationRunning = true;
+        if(m_isTemp){
+            m_isTemp = false;
+            // prevent the line edit from emitting signal
+            // while animation for deleting the new note is running
+            m_lineEdit->blockSignals(true);
+            m_currentSelectedNoteProxy = QModelIndex();
+            QModelIndex index = m_noteModel->index(0);
+            m_noteModel->removeNote(index);
+            m_lineEdit->blockSignals(false);
+
+            if(m_noteModel->rowCount() > 0){
+                m_selectedNoteBeforeSearchingInSource = m_noteModel->index(0);
+            }else{
+                m_selectedNoteBeforeSearchingInSource = QModelIndex();
+            }
+
+        }else if(!m_selectedNoteBeforeSearchingInSource.isValid()
+                 && m_currentSelectedNoteProxy.isValid()){
+
+            m_selectedNoteBeforeSearchingInSource = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
         }
 
-    }else if(!m_selectedNoteBeforeSearchingInSource.isValid()
-             && m_currentSelectedNoteProxy.isValid()){
+        if(m_currentSelectedNoteProxy.isValid()
+                && m_isContentModified){
 
-        m_selectedNoteBeforeSearchingInSource = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
-    }
+            saveNoteToDB(m_currentSelectedNoteProxy);
+        }
 
-    if(m_currentSelectedNoteProxy.isValid()
-            && m_isContentModified){
+        // tell the noteView that we are searching
+        m_noteView->setSearching(true);
 
-        saveNoteToDB(m_currentSelectedNoteProxy);
-    }
+        while(!m_searchQueue.isEmpty()){
+            qApp->processEvents();
+            QString str = m_searchQueue.dequeue();
+            if(str.isEmpty()){
+                clearSearch();
+                QModelIndex indexInProxy = m_proxyModel->mapFromSource(m_selectedNoteBeforeSearchingInSource);
+                selectNote(indexInProxy);
+                m_selectedNoteBeforeSearchingInSource = QModelIndex();
+            }else{
+                findNotesContain(str);
+            }
+        }
 
-    // tell the noteView that we are searching
-    m_noteView->setSearching(true);
-
-    if(keyword.isEmpty()){
-        clearSearch();
-        QModelIndex indexInProxy = m_proxyModel->mapFromSource(m_selectedNoteBeforeSearchingInSource);
-        selectNote(indexInProxy);
-        m_selectedNoteBeforeSearchingInSource = QModelIndex();
-    }else{
-        findNotesContain(keyword);
+        m_isOperationRunning = false;
     }
 }
 /**
@@ -831,20 +842,24 @@ void MainWindow::onLineEditTextChanged (const QString &keyword)
  */
 void MainWindow::onClearButtonClicked()
 {
-    clearSearch();
+    if(!m_isOperationRunning){
 
-    if(m_noteModel->rowCount() > 0){
-        QModelIndex indexInProxy = m_proxyModel->mapFromSource(m_selectedNoteBeforeSearchingInSource);
-        int row = m_selectedNoteBeforeSearchingInSource.row();
-        if(row == m_noteModel->rowCount())
-            indexInProxy = m_proxyModel->index(m_proxyModel->rowCount()-1,0);
+        clearSearch();
 
-        selectNote(indexInProxy);
-    }else{
-        m_currentSelectedNoteProxy = QModelIndex();
+        if(m_noteModel->rowCount() > 0){
+            QModelIndex indexInProxy = m_proxyModel->mapFromSource(m_selectedNoteBeforeSearchingInSource);
+            int row = m_selectedNoteBeforeSearchingInSource.row();
+            if(row == m_noteModel->rowCount())
+                indexInProxy = m_proxyModel->index(m_proxyModel->rowCount()-1,0);
+
+            selectNote(indexInProxy);
+        }else{
+            m_currentSelectedNoteProxy = QModelIndex();
+        }
+
+        m_selectedNoteBeforeSearchingInSource = QModelIndex();
+
     }
-
-    m_selectedNoteBeforeSearchingInSource = QModelIndex();
 }
 
 /**
@@ -1456,26 +1471,29 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
 
     if(event->type() == QEvent::FocusIn){
         if(object == m_textEdit){
-            // When clicking in a note's content while searching,
-            // reload all the notes and go and select that note
-            if(!m_lineEdit->text().isEmpty()){
-                m_selectedNoteBeforeSearchingInSource = QModelIndex();
 
-                if(m_currentSelectedNoteProxy.isValid()){
-                    QModelIndex indexInSource = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
-                    clearSearch();
-                    m_currentSelectedNoteProxy = m_proxyModel->mapFromSource(indexInSource);
-                    selectNote(m_currentSelectedNoteProxy);
+            if(!m_isOperationRunning){
+                // When clicking in a note's content while searching,
+                // reload all the notes and go and select that note
+                if(!m_lineEdit->text().isEmpty()){
+                    m_selectedNoteBeforeSearchingInSource = QModelIndex();
 
-                }else{
-                    clearSearch();
+                    if(m_currentSelectedNoteProxy.isValid()){
+                        QModelIndex indexInSource = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
+                        clearSearch();
+                        m_currentSelectedNoteProxy = m_proxyModel->mapFromSource(indexInSource);
+                        selectNote(m_currentSelectedNoteProxy);
+
+                    }else{
+                        clearSearch();
+                        createNewNote();
+                    }
+
+                    m_textEdit->setFocus();
+
+                }else if(m_proxyModel->rowCount() == 0){
                     createNewNote();
                 }
-
-                m_textEdit->setFocus();
-
-            }else if(m_proxyModel->rowCount() == 0){
-                createNewNote();
             }
         }
     }

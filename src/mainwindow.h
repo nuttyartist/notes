@@ -71,6 +71,7 @@ private:
     QSortFilterProxyModel* m_proxyModel;
     QModelIndex m_currentSelectedNoteProxy;
     QModelIndex m_selectedNoteBeforeSearchingInSource;
+    QQueue<QString> m_searchQueue;
 
     int m_currentVerticalScrollAreaRange;
     int m_mousePressX;
