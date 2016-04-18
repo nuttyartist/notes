@@ -61,6 +61,7 @@ private:
     QPushButton* m_trashButton;
     QTextEdit* m_textEdit;
     QLineEdit* m_lineEdit;
+    QLabel* m_editorDateLabel;
 
 
     NoteView* m_noteView;

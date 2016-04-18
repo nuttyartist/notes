@@ -33,6 +33,7 @@ MainWindow::MainWindow (QWidget *parent) :
     m_trashButton(Q_NULLPTR),
     m_textEdit(Q_NULLPTR),
     m_lineEdit(Q_NULLPTR),
+    m_editorDateLabel(Q_NULLPTR),
     m_noteModel(new NoteModel(this)),
     m_deletedNotesModel(new NoteModel(this)),
     m_proxyModel(new QSortFilterProxyModel(this)),
@@ -112,6 +113,7 @@ void MainWindow::setupMainWindow ()
     m_trashButton = ui->trashButton;
     m_lineEdit = ui->lineEdit;
     m_textEdit = ui->textEdit;
+    m_editorDateLabel = ui->editorDateLabel;
 
 
     QPalette pal(palette());
@@ -180,8 +182,8 @@ void MainWindow::setupEditorDateLabel()
 #ifdef __APPLE__
     QFont editorDateLabelFont(QFont("Arial", 12));
     editorDateLabelFont.setBold(true);
-    ui->editorDateLabel->setFont(editorDateLabelFont);
-    ui->editorDateLabel->setGeometry(ui->editorDateLabel->x(), ui->editorDateLabel->y() + 4, ui->editorDateLabel->width(), ui->editorDateLabel->height());
+    m_editorDateLabel->setFont(editorDateLabelFont);
+    m_editorDateLabel->setGeometry(m_editorDateLabel->x(), m_editorDateLabel->y() + 4, m_editorDateLabel->width(), m_editorDateLabel->height());
 #endif
 }
 
@@ -564,7 +566,7 @@ void MainWindow::showNoteInEditor(const QModelIndex &noteIndex)
     ui->textEdit->setText(content);
     QString noteDate = dateTime.toString(Qt::ISODate);
     QString noteDateEditor = getNoteDateEditor(noteDate);
-    ui->editorDateLabel->setText(noteDateEditor);
+    m_editorDateLabel->setText(noteDateEditor);
     // set scrollbar position
     ui->textEdit->verticalScrollBar()->setValue(scrollbarPos);
     ui->textEdit->blockSignals(false);
@@ -738,7 +740,7 @@ void MainWindow::onTextEditTextChanged ()
             QString firstline = getFirstLine(ui->textEdit->toPlainText());
             QDateTime dateTime = QDateTime::currentDateTime();
             QString noteDate = dateTime.toString(Qt::ISODate);
-            ui->editorDateLabel->setText(getNoteDateEditor(noteDate));
+            m_editorDateLabel->setText(getNoteDateEditor(noteDate));
 
             // update model
             QMap<int, QVariant> dataValue;
@@ -877,7 +879,7 @@ void MainWindow::createNewNote ()
             // update the editor header date label
             QString dateTimeFromDB = tmpNote->lastModificationdateTime().toString(Qt::ISODate);
             QString dateTimeForEditor = getNoteDateEditor(dateTimeFromDB);
-            ui->editorDateLabel->setText(dateTimeForEditor);
+            m_editorDateLabel->setText(dateTimeForEditor);
 
             // clear the textEdit
             ui->textEdit->blockSignals(true);
@@ -922,9 +924,9 @@ void MainWindow::deleteNote(const QModelIndex &noteIndex, bool isFromUser)
         }
 
         if(isFromUser){
-            // clear text edit
+            // clear text edit and time date label
+            m_editorDateLabel->clear();
             ui->textEdit->blockSignals(true);
-            ui->editorDateLabel->clear();
             ui->textEdit->clear();
             ui->textEdit->clearFocus();
             ui->textEdit->blockSignals(false);
@@ -1308,7 +1310,7 @@ void MainWindow::findNotesContain(const QString& keyword)
 
     ui->textEdit->blockSignals(true);
     ui->textEdit->clear();
-    ui->editorDateLabel->clear();
+    m_editorDateLabel->clear();
     ui->textEdit->blockSignals(false);
 
     if(m_proxyModel->rowCount() > 0){
@@ -1321,10 +1323,10 @@ void MainWindow::findNotesContain(const QString& keyword)
 void MainWindow::selectNote(const QModelIndex &noteIndex)
 {
     if(noteIndex.isValid()){
-        // show the content of the pressed not in the text editor
+        // show the content of the pressed note in the text editor
         showNoteInEditor(noteIndex);
 
-        // save the text edit scrollbar position
+        // save the position of text edit scrollbar
         if(!m_isTemp && m_currentSelectedNoteProxy.isValid()){
             int pos = ui->textEdit->verticalScrollBar()->value();
             QModelIndex indexSrc = m_proxyModel->mapToSource(noteIndex);
@@ -1339,7 +1341,7 @@ void MainWindow::selectNote(const QModelIndex &noteIndex)
                  && m_currentSelectedNoteProxy.isValid()
                  && noteIndex != m_currentSelectedNoteProxy
                  && m_isContentModified){
-
+            // save if the previous selected note was modified
             saveNoteToDB(m_currentSelectedNoteProxy);
             m_currentSelectedNoteProxy = noteIndex;
         }else{
