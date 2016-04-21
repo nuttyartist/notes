@@ -33,6 +33,7 @@ public:
     void setCurrentSelectedIndex(const QModelIndex &currentSelectedIndex);
     void setHoveredIndex(const QModelIndex &hoveredIndex);
     void setRowRightOffset(int rowRightOffset);
+    void setActive(bool isActive);
 
 private:
     void paintBackground(QPainter* painter, const QStyleOptionViewItem &option, const QModelIndex &index)const;
@@ -45,8 +46,8 @@ private:
     QFont m_dateFont;
     QColor m_titleColor;
     QColor m_dateColor;
-    QColor m_focusColor;
-    QColor m_noFocusColor;
+    QColor m_ActiveColor;
+    QColor m_notActiveColor;
     QColor m_hoverColor;
     QColor m_separatorColor;
     QColor m_defaultColor;
@@ -54,6 +55,7 @@ private:
     int m_maxFrame;
     int m_rowRightOffset;
     States m_state;
+    bool m_isActive;
 
     QTimeLine *m_timeLine;
     QModelIndex m_animatedIndex;

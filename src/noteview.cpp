@@ -156,6 +156,13 @@ void NoteView::mouseReleaseEvent(QMouseEvent*e)
     QListView::mouseReleaseEvent(e);
 }
 
+void NoteView::setCurrentRowActive(bool isActive)
+{
+    NoteWidgetDelegate* delegate = static_cast<NoteWidgetDelegate*>(itemDelegate(currentIndex()));
+    delegate->setActive(isActive);
+    viewport()->update(visualRect(currentIndex()));
+}
+
 void NoteView::setSearching(bool isSearching)
 {
     m_isSearching = isSearching;
