@@ -2,87 +2,52 @@
 #define NOTEDATA_H
 
 #include <QObject>
-#include <QWidget>
-#include <QGroupBox>
-#include <QPushButton>
-#include <QLabel>
-#include <QFrame>
 #include <QDateTime>
 
-class NoteData : public QWidget
+class NoteData : public QObject
 {
     Q_OBJECT
-
 public:
-    explicit NoteData(const QString& noteName, QWidget *parent = 0);
-    ~NoteData();
+    explicit NoteData(QObject *parent = Q_NULLPTR);
 
-    void setTitle(QString &title);
-    void showSeparator(bool doShow);
-    void updateWidth();
+    QString id() const;
+    void setId(const QString &id);
 
-    bool isSelected() const;
-    void setSelected(bool isSelected);
-    void setSelectedWithFocus(bool isSelected, bool focus);
+    QString fullTitle() const;
+    void setFullTitle(const QString &fullTitle);
+
+    QDateTime lastModificationdateTime() const;
+    void setLastModificationDateTime(const QDateTime &lastModificationdateTime);
+
+    QDateTime creationDateTime() const;
+    void setCreationDateTime(const QDateTime& creationDateTime);
+
+    QString content() const;
+    void setContent(const QString &content);
 
     bool isModified() const;
     void setModified(bool isModified);
 
-    QString noteName() const;
-    void setNoteName(const QString &noteName);
-
-    QString text() const;
-    void setText(const QString &text);
-
-    void setDateTime(const QDateTime &dateTime);
-    QDateTime dateTime() const;
+    bool isSelected() const;
+    void setSelected(bool isSelected);
 
     int scrollBarPosition() const;
     void setScrollBarPosition(int scrollBarPosition);
 
-protected:
-    void resizeEvent(QResizeEvent *) override;
-    void focusInEvent(QFocusEvent *) override;
-    void focusOutEvent(QFocusEvent *) override;
-    void enterEvent(QEvent *) override;
-    void leaveEvent(QEvent *) override;
+    QDateTime deletionDateTime() const;
+    void setDeletionDateTime(const QDateTime& deletionDateTime);
 
 private:
-    void setupWidget();
-    void updateStyleSheet(QColor color, bool doShowSeparator);
-    void elideTitle();
-    QString parseDateTime(QDateTime dateTimeEdited);
-
-    bool m_isSelected;
-    bool m_isModified;
-    int m_scrollBarPosition;
-
-    QString m_noteName;
+    QString m_id;
     QString m_fullTitle;
-    QString m_text;
-    QDateTime m_dateTime;
-    QColor m_focusColor;
-    QColor m_unfocusColor;
-    QColor m_enterColor;
-    QColor m_defaultColor;
-    QColor m_backgroundColor;
-
-    QFrame* m_frameContainer;
-    QPushButton* m_button;
-    QLabel* m_titleLabel;
-    QLabel* m_dateLabel;
-    QFontMetrics m_titleFontMetrics;
-
-public slots:
-    void onButtonPressed();
-
-signals:
-    void pressed();
-    void hoverEntered();
-    void hoverLeft();
-    void focusedIn();
-    void focusedOut();
-
+    QDateTime m_lastModificationDateTime;
+    QDateTime m_creationDateTime;
+    QDateTime m_deletionDateTime;
+    QString m_content;
+    bool m_isModified;
+    bool m_isSelected;
+    int m_scrollBarPosition;
 };
+
 
 #endif // NOTEDATA_H
