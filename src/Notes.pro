@@ -32,7 +32,21 @@ RESOURCES += \
 
 CONFIG   += c++11
 
-DESTDIR = ../bin
+win32|mac {
+    DESTDIR = ../bin
+}
+
+unix {
+    isEmpty(PREFIX) {
+        PREFIX = /usr
+    }
+
+    BINDIR = $$PREFIX/bin
+    DATADIR =$$PREFIX/share
+
+    target.path = $$BINDIR
+    INSTALLS += target
+}
 
 win32:RC_FILE = images\notes.rc
 
