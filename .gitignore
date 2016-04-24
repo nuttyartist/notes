@@ -9,3 +9,6 @@ bin*
 .DS_Store*
 ehthumbs.db
 Thumbs.db
+Makefile
+Notes
+qrc_images.cpp
