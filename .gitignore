@@ -13,3 +13,6 @@ Makefile
 Notes
 qrc_images.cpp
 *.autosave
+*~
+*.snap
+*.swp

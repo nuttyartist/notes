@@ -1,0 +1,30 @@
+name: notes
+# Note on version: $UPSTREAM_VERSION~snap$SNAP_BUILD.git$GIT_COMMIT_ID
+version: 0.0.8~snap3.gita80fd1c
+summary: Note taking application, write down your thoughts.
+description: |
+  Notes is a tool for the things you need to write down off your
+  brain. It is your place of expressing yourself. Notes is an open
+  source and cross-platform project, and you're welcome to be part
+  of it and contribute. We hope you will love it as much as we do.
+
+apps:
+  notes:
+    command: qt5-launch Notes
+    plugs: [unity7, opengl]
+
+parts:
+  notes:
+    plugin: qmake
+    source: ../../../../src
+    source-branch: dev
+    source-subdir: src
+    build-packages:
+      - qtbase5-dev
+      - qtbase5-dev-tools
+      - qt5-qmake
+    stage-packages:
+      - libqt5gui5
+      - libqt5widgets5
+      - libqt5core5a
+    after: [qt5conf]
