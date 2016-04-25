@@ -3,9 +3,21 @@ snap for Ubuntu.
 
 ![notes](https://cloud.githubusercontent.com/assets/16375940/14313739/ea9fc8fa-fbfb-11e5-95bb-fb10c59770a8.png)
 
-To build, simply go to the `notes` directory and type:
+To build it on an Ubuntu 16.04 machine, simply go to the `notes` directory and type:
 
     snapcraft
+    
+**Developers**: to install the locally built snap (i.e. sideload),
+
+    sudo snap install notes_0.0.8~snap3.gita80fd1c_amd64.snap
+
+Note: replacing `0.0.8~snap3.gita80fd1c` by the revision of the resulting app you've built. The version is defined on the `snapcraft.yaml` file.
+
+**Users**: to install the app from the Ubuntu store:
+
+    sudo snap install notes
+
+[Learn more at the Ubuntu developer site](https://developer.ubuntu.com/en/desktop/get-started)
 
 ## Snapcraft features
 
