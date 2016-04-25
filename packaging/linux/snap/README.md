@@ -17,7 +17,7 @@ This project uses the following Snapcraft features
 
 ## App functionality
 
-The application works fine so far, apart from some icons not being shown. This seems to be the case for the upstream version shipped in the Debian package, so it's likely not caused by the snap packaging or confinement.
+The application works fine so far. Note that due to confinement data is being written to `/home/$USER/snap/notes`.
 
 ### Warnings
 
