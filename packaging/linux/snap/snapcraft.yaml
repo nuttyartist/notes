@@ -16,9 +16,7 @@ apps:
 parts:
   notes:
     plugin: qmake
-    source: ../../../../src
-    source-branch: dev
-    source-subdir: src
+    source: ../../../src
     build-packages:
       - qtbase5-dev
       - qtbase5-dev-tools

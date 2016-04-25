@@ -16,3 +16,7 @@ qrc_images.cpp
 *~
 *.snap
 *.swp
+parts/notes
+__pycache__
+parts/qt5conf
+stage
