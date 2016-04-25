@@ -16,7 +16,8 @@ qrc_images.cpp
 *~
 *.snap
 *.swp
-parts/notes
 __pycache__
-parts/qt5conf
-stage
+packaging/linux/snap/stage
+packaging/linux/snap/snap
+packaging/linux/snap/parts/notes
+packaging/linux/snap/parts/qt5conf
