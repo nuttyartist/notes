@@ -25,5 +25,4 @@ parts:
       - libqt5gui5
       - libqt5widgets5
       - libqt5core5a
-      - libqt5libqgtk2
     after: [qt5conf]
