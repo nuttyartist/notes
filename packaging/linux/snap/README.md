@@ -6,7 +6,7 @@ snap for Ubuntu.
 To build it on an Ubuntu 16.04 machine, simply go to the `notes` directory and type:
 
     snapcraft
-
+    
 **Developers**: to install the locally built snap (i.e. sideload),
 
     sudo snap install notes_0.0.8~snap3.gita80fd1c_amd64.snap
@@ -45,7 +45,3 @@ The first warning might need setting an environment variable on the wrapper. The
     Apr 21 13:30:06 host kernel: [118072.276749] audit: type=1400 audit(1461238206.897:1500): apparmor="DENIED" operation="chmod" profile="snap.notes-dpm.notes" name="/var/cache/fontconfig/" pid=15243 comm="Notes" requested_mask="w" denied_mask="w" fsuid=1000 ouid=0
 
 Denial trying to write to `/var/cache/fontconfig`, which seems to be quite common amongst snaps.
-
-    Apr 26 13:48:11 host kernel: [13537.976542] audit: type=1400 audit(1461671291.269:73): apparmor="DENIED" operation="open" profile="snap.notes.notes" name="/usr/share/glib-2.0/schemas/gschemas.compiled" pid=19412 comm="Notes" requested_mask="r" denied_mask="r" fsuid=1000 ouid=0
-
-Denial trying to read GSettings schemas. That seems to stop the app from loading now.
