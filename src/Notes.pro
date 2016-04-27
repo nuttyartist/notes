@@ -4,6 +4,8 @@
 #
 #-------------------------------------------------
 
+VERSION = 0.8.0
+
 QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -32,9 +34,7 @@ RESOURCES += \
 
 CONFIG   += c++11
 
-win32|mac {
-    DESTDIR = ../bin
-}
+DESTDIR = ../bin
 
 unix {
     isEmpty(PREFIX) {
@@ -46,6 +46,20 @@ unix {
 
     target.path = $$BINDIR
     INSTALLS += target
+
+    GIT_REV = $$system(git rev-parse --short HEAD)
+    SNAPDIR = $$PWD/../packaging/linux/snap
+
+    snap_bump_version.commands = \
+        sed -i \"s/\\(^version:\\).*$$/\\1 $$VERSION~git$$GIT_REV/1\" $$SNAPDIR/snapcraft.yaml
+
+    snap.commands = cd $$SNAPDIR && \
+        snapcraft clean && snapcraft
+    snap.depends = snap_bump_version
+
+    QMAKE_EXTRA_TARGETS   += \
+        snap \
+        snap_bump_version
 }
 
 win32:RC_FILE = images\notes.rc
