@@ -6,6 +6,9 @@
 
 class NoteModel : public QAbstractListModel
 {
+
+    friend class tst_NoteModel;
+
 public:
 
     enum NoteRoles{
