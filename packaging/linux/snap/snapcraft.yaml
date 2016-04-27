@@ -1,6 +1,6 @@
 name: notes
-# Note on version: $UPSTREAM_VERSION~snap$SNAP_BUILD.git$GIT_COMMIT_ID
-version: 0.0.8~snap3.gita80fd1c
+# Note on version: $UPSTREAM_VERSION~.git$GIT_COMMIT_ID
+version: 0.8.0~giteb5ad3f
 summary: Note taking application, write down your thoughts.
 description: |
   Notes is a tool for the things you need to write down off your
@@ -25,4 +25,9 @@ parts:
       - libqt5gui5
       - libqt5widgets5
       - libqt5core5a
+      - libqt5libqgtk2
+      - libgtk2.0-common
+      - overlay-scrollbar-gtk2
+      - unity-gtk2-module
+      - libcanberra-gtk-module
     after: [qt5conf]
