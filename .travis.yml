@@ -12,13 +12,15 @@ before_install:
   - sudo apt-get update -qq
 
 install:
+  - sudo apt-get -y install xvfb
   - if [ "$QT_BASE" = "55" ]; then sudo apt-get install -qq qt55base; source /opt/qt55/bin/qt55-env.sh; fi
   - if [ "$QT_BASE" = "56" ]; then sudo apt-get install -qq qt56base; source /opt/qt56/bin/qt56-env.sh; fi
 
 script:
   - mkdir build
   - cd build
-  - qmake ../src && make && sudo make install
+  - qmake .. && make
+  - xvfb-run -a -s "-screen 0 800x600x24" tests/test
 
 notifications:
   email: false
