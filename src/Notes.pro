@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -17,13 +17,15 @@ SOURCES += main.cpp\
     notedata.cpp \
     notewidgetdelegate.cpp \
     notemodel.cpp \
-    noteview.cpp
+    noteview.cpp \
+    singleinstance.cpp
 
 HEADERS  += mainwindow.h \
     notedata.h \
     notewidgetdelegate.h \
     notemodel.h \
-    noteview.h
+    noteview.h \
+    singleinstance.h
 
 FORMS    += mainwindow.ui
 
