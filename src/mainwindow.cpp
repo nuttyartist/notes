@@ -779,7 +779,6 @@ void MainWindow::onTextEditTextChanged ()
 void MainWindow::onLineEditTextChanged (const QString &keyword)
 {
     m_textEdit->clearFocus();
-
     m_searchQueue.enqueue(keyword);
 
     if(!m_isOperationRunning){
@@ -812,18 +811,20 @@ void MainWindow::onLineEditTextChanged (const QString &keyword)
             saveNoteToDB(m_currentSelectedNoteProxy);
         }
 
-        // tell the noteView that we are searching
+        // tell the noteView that we are searching to disable the animation
         m_noteView->setSearching(true);
 
         while(!m_searchQueue.isEmpty()){
             qApp->processEvents();
             QString str = m_searchQueue.dequeue();
             if(str.isEmpty()){
+                m_noteView->setFocusPolicy(Qt::StrongFocus);
                 clearSearch();
                 QModelIndex indexInProxy = m_proxyModel->mapFromSource(m_selectedNoteBeforeSearchingInSource);
                 selectNote(indexInProxy);
                 m_selectedNoteBeforeSearchingInSource = QModelIndex();
             }else{
+                m_noteView->setFocusPolicy(Qt::NoFocus);
                 findNotesContain(str);
             }
         }
@@ -1251,6 +1252,8 @@ void MainWindow::moveNoteToTop()
 
 void MainWindow::clearSearch()
 {
+    m_noteView->setFocusPolicy(Qt::StrongFocus);
+
     m_lineEdit->blockSignals(true);
     m_lineEdit->clear();
     m_lineEdit->blockSignals(false);
