@@ -49,6 +49,7 @@ private:
     QColor m_ActiveColor;
     QColor m_notActiveColor;
     QColor m_hoverColor;
+    QColor m_applicationInactiveColor;
     QColor m_separatorColor;
     QColor m_defaultColor;
     int m_rowHeight;

@@ -1346,34 +1346,47 @@ void MainWindow::leaveEvent(QEvent *)
 */
 bool MainWindow::eventFilter (QObject *object, QEvent *event)
 {
-    if(event->type() == QEvent::Enter){
-        // When hovering one of the traffic light buttons (red, yellow, green),
-        // set new icons to show their function
-        if(object == m_redCloseButton
-                || object == m_yellowMinimizeButton
-                || object == m_greenMaximizeButton){
+    if(qApp->applicationState() == Qt::ApplicationActive){
+        if(event->type() == QEvent::Enter){
+            // When hovering one of the traffic light buttons (red, yellow, green),
+            // set new icons to show their function
+            if(object == m_redCloseButton
+                    || object == m_yellowMinimizeButton
+                    || object == m_greenMaximizeButton){
 
-            m_redCloseButton->setIcon(QIcon(":images/redHovered.png"));
-            m_yellowMinimizeButton->setIcon(QIcon(":images/yellowHovered.png"));
-            if(this->windowState() == Qt::WindowFullScreen){
-                m_greenMaximizeButton->setIcon(QIcon(":images/greenInHovered.png"));
-            }else{
-                m_greenMaximizeButton->setIcon(QIcon(":images/greenHovered.png"));
+                m_redCloseButton->setIcon(QIcon(":images/redHovered.png"));
+                m_yellowMinimizeButton->setIcon(QIcon(":images/yellowHovered.png"));
+                if(this->windowState() == Qt::WindowFullScreen){
+                    m_greenMaximizeButton->setIcon(QIcon(":images/greenInHovered.png"));
+                }else{
+                    m_greenMaximizeButton->setIcon(QIcon(":images/greenHovered.png"));
+                }
+            }
+        }
+
+        if(event->type() == QEvent::Leave){
+            // When not hovering, change back the icons of the traffic lights to their default icon
+            if(object == m_redCloseButton
+                    || object == m_yellowMinimizeButton
+                    || object == m_greenMaximizeButton){
+
+                m_redCloseButton->setIcon(QIcon(":images/red.png"));
+                m_yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
+                m_greenMaximizeButton->setIcon(QIcon(":images/green.png"));
             }
         }
     }
 
-    if(event->type() == QEvent::Leave){
-        // When not hovering, change back the icons of the traffic lights to their default icon
-        if(object == m_redCloseButton
-                || object == m_yellowMinimizeButton
-                || object == m_greenMaximizeButton){
-
-            m_redCloseButton->setIcon(QIcon(":images/red.png"));
-            m_yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
-            m_greenMaximizeButton->setIcon(QIcon(":images/green.png"));
-        }
+    if(event->type() == QEvent::WindowDeactivate){
+        m_redCloseButton->setIcon(QIcon(":images/unfocusedButton"));
+        m_yellowMinimizeButton->setIcon(QIcon(":images/unfocusedButton"));
+        m_greenMaximizeButton->setIcon(QIcon(":images/unfocusedButton"));
+    }else if(event->type() == QEvent::WindowActivate){
+        m_redCloseButton->setIcon(QIcon(":images/red.png"));
+        m_yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
+        m_greenMaximizeButton->setIcon(QIcon(":images/green.png"));
     }
+
 
     if(event->type() == QEvent::FocusIn){
         if(object == m_textEdit){
