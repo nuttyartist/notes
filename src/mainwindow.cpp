@@ -358,6 +358,7 @@ void MainWindow::setupTextEdit ()
     m_textEdit->setStyleSheet(ss);
 
     m_textEdit->installEventFilter(this);
+    m_textEdit->verticalScrollBar()->installEventFilter(this);
 
 #ifdef Q_OS_LINUX
     m_textEdit->setFont(QFont("Liberation Sans", 11));
@@ -1387,6 +1388,27 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
         m_greenMaximizeButton->setIcon(QIcon(":images/green.png"));
     }
 
+    // Disable focus on textEdit while searching and the mouse is on the textedit scrollbar
+    // Re-Enable it when the the mouse is released from scrollbar and it is not on the scrollbar or
+    // when the mouse leaves the scrollbar and no mouse button is pressed
+    bool isMouseOnScrollBar = qApp->widgetAt(QCursor::pos()) != m_textEdit->verticalScrollBar();
+    bool isNoButtonClicked = qApp->mouseButtons() == Qt::NoButton;
+
+    if(event->type() == QEvent::HoverEnter){
+        if(object == m_textEdit->verticalScrollBar()){
+            bool isSearching = !m_lineEdit->text().isEmpty();
+            if(isSearching)
+                m_textEdit->setFocusPolicy(Qt::NoFocus);
+        }
+    }else if((event->type() == QEvent::HoverLeave
+              && isNoButtonClicked)
+             || (event->type() == QEvent::MouseButtonRelease
+                 && isMouseOnScrollBar)){
+
+        if(object == m_textEdit->verticalScrollBar()){
+            m_textEdit->setFocusPolicy(Qt::StrongFocus);
+        }
+    }
 
     if(event->type() == QEvent::FocusIn){
         if(object == m_textEdit){
