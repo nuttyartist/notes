@@ -358,6 +358,7 @@ void MainWindow::setupTextEdit ()
     m_textEdit->setStyleSheet(ss);
 
     m_textEdit->installEventFilter(this);
+    m_textEdit->verticalScrollBar()->installEventFilter(this);
 
 #ifdef Q_OS_LINUX
     m_textEdit->setFont(QFont("Liberation Sans", 11));
@@ -779,7 +780,6 @@ void MainWindow::onTextEditTextChanged ()
 void MainWindow::onLineEditTextChanged (const QString &keyword)
 {
     m_textEdit->clearFocus();
-
     m_searchQueue.enqueue(keyword);
 
     if(!m_isOperationRunning){
@@ -812,18 +812,20 @@ void MainWindow::onLineEditTextChanged (const QString &keyword)
             saveNoteToDB(m_currentSelectedNoteProxy);
         }
 
-        // tell the noteView that we are searching
+        // tell the noteView that we are searching to disable the animation
         m_noteView->setSearching(true);
 
         while(!m_searchQueue.isEmpty()){
             qApp->processEvents();
             QString str = m_searchQueue.dequeue();
             if(str.isEmpty()){
+                m_noteView->setFocusPolicy(Qt::StrongFocus);
                 clearSearch();
                 QModelIndex indexInProxy = m_proxyModel->mapFromSource(m_selectedNoteBeforeSearchingInSource);
                 selectNote(indexInProxy);
                 m_selectedNoteBeforeSearchingInSource = QModelIndex();
             }else{
+                m_noteView->setFocusPolicy(Qt::NoFocus);
                 findNotesContain(str);
             }
         }
@@ -1251,6 +1253,8 @@ void MainWindow::moveNoteToTop()
 
 void MainWindow::clearSearch()
 {
+    m_noteView->setFocusPolicy(Qt::StrongFocus);
+
     m_lineEdit->blockSignals(true);
     m_lineEdit->clear();
     m_lineEdit->blockSignals(false);
@@ -1343,32 +1347,66 @@ void MainWindow::leaveEvent(QEvent *)
 */
 bool MainWindow::eventFilter (QObject *object, QEvent *event)
 {
-    if(event->type() == QEvent::Enter){
-        // When hovering one of the traffic light buttons (red, yellow, green),
-        // set new icons to show their function
-        if(object == m_redCloseButton
-                || object == m_yellowMinimizeButton
-                || object == m_greenMaximizeButton){
+    if(qApp->applicationState() == Qt::ApplicationActive){
+        if(event->type() == QEvent::Enter){
+            // When hovering one of the traffic light buttons (red, yellow, green),
+            // set new icons to show their function
+            if(object == m_redCloseButton
+                    || object == m_yellowMinimizeButton
+                    || object == m_greenMaximizeButton){
 
-            m_redCloseButton->setIcon(QIcon(":images/redHovered.png"));
-            m_yellowMinimizeButton->setIcon(QIcon(":images/yellowHovered.png"));
-            if(this->windowState() == Qt::WindowFullScreen){
-                m_greenMaximizeButton->setIcon(QIcon(":images/greenInHovered.png"));
-            }else{
-                m_greenMaximizeButton->setIcon(QIcon(":images/greenHovered.png"));
+                m_redCloseButton->setIcon(QIcon(":images/redHovered.png"));
+                m_yellowMinimizeButton->setIcon(QIcon(":images/yellowHovered.png"));
+                if(this->windowState() == Qt::WindowFullScreen){
+                    m_greenMaximizeButton->setIcon(QIcon(":images/greenInHovered.png"));
+                }else{
+                    m_greenMaximizeButton->setIcon(QIcon(":images/greenHovered.png"));
+                }
+            }
+        }
+
+        if(event->type() == QEvent::Leave){
+            // When not hovering, change back the icons of the traffic lights to their default icon
+            if(object == m_redCloseButton
+                    || object == m_yellowMinimizeButton
+                    || object == m_greenMaximizeButton){
+
+                m_redCloseButton->setIcon(QIcon(":images/red.png"));
+                m_yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
+                m_greenMaximizeButton->setIcon(QIcon(":images/green.png"));
             }
         }
     }
 
-    if(event->type() == QEvent::Leave){
-        // When not hovering, change back the icons of the traffic lights to their default icon
-        if(object == m_redCloseButton
-                || object == m_yellowMinimizeButton
-                || object == m_greenMaximizeButton){
+    if(event->type() == QEvent::WindowDeactivate){
+        m_redCloseButton->setIcon(QIcon(":images/unfocusedButton"));
+        m_yellowMinimizeButton->setIcon(QIcon(":images/unfocusedButton"));
+        m_greenMaximizeButton->setIcon(QIcon(":images/unfocusedButton"));
+    }else if(event->type() == QEvent::WindowActivate){
+        m_redCloseButton->setIcon(QIcon(":images/red.png"));
+        m_yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
+        m_greenMaximizeButton->setIcon(QIcon(":images/green.png"));
+    }
 
-            m_redCloseButton->setIcon(QIcon(":images/red.png"));
-            m_yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
-            m_greenMaximizeButton->setIcon(QIcon(":images/green.png"));
+    // Disable focus on textEdit while searching and the mouse is on the textedit scrollbar
+    // Re-Enable it when the the mouse is released from scrollbar and it is not on the scrollbar or
+    // when the mouse leaves the scrollbar and no mouse button is pressed
+    bool isMouseOnScrollBar = qApp->widgetAt(QCursor::pos()) != m_textEdit->verticalScrollBar();
+    bool isNoButtonClicked = qApp->mouseButtons() == Qt::NoButton;
+
+    if(event->type() == QEvent::HoverEnter){
+        if(object == m_textEdit->verticalScrollBar()){
+            bool isSearching = !m_lineEdit->text().isEmpty();
+            if(isSearching)
+                m_textEdit->setFocusPolicy(Qt::NoFocus);
+        }
+    }else if((event->type() == QEvent::HoverLeave
+              && isNoButtonClicked)
+             || (event->type() == QEvent::MouseButtonRelease
+                 && isMouseOnScrollBar)){
+
+        if(object == m_textEdit->verticalScrollBar()){
+            m_textEdit->setFocusPolicy(Qt::StrongFocus);
         }
     }
 
