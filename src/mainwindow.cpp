@@ -93,7 +93,7 @@ void MainWindow::setupMainWindow ()
 #ifdef Q_OS_LINUX
     this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
 #elif _WIN32
-    this->setWindowFlags(Qt::CustomizeWindowHint);
+    this->setWindowFlags(Qt::CustomizeWindowHint | Qt::FramelessWindowHint);
 #elif __APPLE__
     this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
 #else
@@ -337,9 +337,9 @@ void MainWindow::setupTextEdit ()
 #ifdef Q_OS_LINUX
     m_textEditLeftPadding = 5;
 #elif _WIN32
-    textEditLeftPadding = 5;
+    m_textEditLeftPadding = 5;
 #elif __APPLE__
-    textEditLeftPadding = 18;
+    m_textEditLeftPadding = 18;
 #else
 #error "We don't support that version yet..."
 #endif
@@ -583,9 +583,10 @@ void MainWindow::loadNotes ()
         noteList << newNote;
     }
 
-    m_noteModel->addListNote(noteList);
-
-    m_noteModel->sort(0,Qt::AscendingOrder);
+    if(!noteList.isEmpty()){
+        m_noteModel->addListNote(noteList);
+        m_noteModel->sort(0,Qt::AscendingOrder);
+    }
 }
 
 /**
@@ -1066,7 +1067,6 @@ void MainWindow::maximizeWindow ()
 void MainWindow::minimizeWindow ()
 {
     this->setWindowState(Qt::WindowMinimized);
-    this->showNormal(); // I don't know why, but it's need to be here
 }
 
 /**
@@ -1347,8 +1347,9 @@ void MainWindow::leaveEvent(QEvent *)
 */
 bool MainWindow::eventFilter (QObject *object, QEvent *event)
 {
-    if(qApp->applicationState() == Qt::ApplicationActive){
-        if(event->type() == QEvent::Enter){
+    switch (event->type()){
+    case QEvent::Enter:{
+        if(qApp->applicationState() == Qt::ApplicationActive){
             // When hovering one of the traffic light buttons (red, yellow, green),
             // set new icons to show their function
             if(object == m_redCloseButton
@@ -1364,8 +1365,10 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
                 }
             }
         }
-
-        if(event->type() == QEvent::Leave){
+        break;
+    }
+    case QEvent::Leave:{
+        if(qApp->applicationState() == Qt::ApplicationActive){
             // When not hovering, change back the icons of the traffic lights to their default icon
             if(object == m_redCloseButton
                     || object == m_yellowMinimizeButton
@@ -1376,41 +1379,47 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
                 m_greenMaximizeButton->setIcon(QIcon(":images/green.png"));
             }
         }
+        break;
     }
-
-    if(event->type() == QEvent::WindowDeactivate){
+    case QEvent::WindowDeactivate:{
         m_redCloseButton->setIcon(QIcon(":images/unfocusedButton"));
         m_yellowMinimizeButton->setIcon(QIcon(":images/unfocusedButton"));
         m_greenMaximizeButton->setIcon(QIcon(":images/unfocusedButton"));
-    }else if(event->type() == QEvent::WindowActivate){
+        break;
+    }
+    case QEvent::WindowActivate:{
         m_redCloseButton->setIcon(QIcon(":images/red.png"));
         m_yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
         m_greenMaximizeButton->setIcon(QIcon(":images/green.png"));
+        break;
     }
-
-    // Disable focus on textEdit while searching and the mouse is on the textedit scrollbar
-    // Re-Enable it when the the mouse is released from scrollbar and it is not on the scrollbar or
-    // when the mouse leaves the scrollbar and no mouse button is pressed
-    bool isMouseOnScrollBar = qApp->widgetAt(QCursor::pos()) != m_textEdit->verticalScrollBar();
-    bool isNoButtonClicked = qApp->mouseButtons() == Qt::NoButton;
-
-    if(event->type() == QEvent::HoverEnter){
+    case QEvent::HoverEnter:{
         if(object == m_textEdit->verticalScrollBar()){
             bool isSearching = !m_lineEdit->text().isEmpty();
             if(isSearching)
                 m_textEdit->setFocusPolicy(Qt::NoFocus);
         }
-    }else if((event->type() == QEvent::HoverLeave
-              && isNoButtonClicked)
-             || (event->type() == QEvent::MouseButtonRelease
-                 && isMouseOnScrollBar)){
-
-        if(object == m_textEdit->verticalScrollBar()){
-            m_textEdit->setFocusPolicy(Qt::StrongFocus);
-        }
+        break;
     }
-
-    if(event->type() == QEvent::FocusIn){
+    case QEvent::HoverLeave:{
+        bool isNoButtonClicked = qApp->mouseButtons() == Qt::NoButton;
+        if(isNoButtonClicked){
+            if(object == m_textEdit->verticalScrollBar()){
+                m_textEdit->setFocusPolicy(Qt::StrongFocus);
+            }
+        }
+        break;
+    }
+    case QEvent::MouseButtonRelease:{
+        bool isMouseOnScrollBar = qApp->widgetAt(QCursor::pos()) != m_textEdit->verticalScrollBar();
+        if(isMouseOnScrollBar){
+            if(object == m_textEdit->verticalScrollBar()){
+                m_textEdit->setFocusPolicy(Qt::StrongFocus);
+            }
+        }
+        break;
+    }
+    case QEvent::FocusIn:{
         if(object == m_textEdit){
 
             m_noteView->setCurrentRowActive(true);
@@ -1439,11 +1448,16 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
                 }
             }
         }
+        break;
     }
-    if(event->type() == QEvent::FocusOut){
+    case QEvent::FocusOut:{
         if(object == m_textEdit){
             m_noteView->setCurrentRowActive(false);
         }
+        break;
+    }
+    default:
+        break;
     }
 
     return QObject::eventFilter(object, event);
