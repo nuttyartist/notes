@@ -93,7 +93,7 @@ void MainWindow::setupMainWindow ()
 #ifdef Q_OS_LINUX
     this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
 #elif _WIN32
-    this->setWindowFlags(Qt::CustomizeWindowHint);
+    this->setWindowFlags(Qt::CustomizeWindowHint | Qt::FramelessWindowHint);
 #elif __APPLE__
     this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
 #else
@@ -337,9 +337,9 @@ void MainWindow::setupTextEdit ()
 #ifdef Q_OS_LINUX
     m_textEditLeftPadding = 5;
 #elif _WIN32
-    textEditLeftPadding = 5;
+    m_textEditLeftPadding = 5;
 #elif __APPLE__
-    textEditLeftPadding = 18;
+    m_textEditLeftPadding = 18;
 #else
 #error "We don't support that version yet..."
 #endif
@@ -583,9 +583,10 @@ void MainWindow::loadNotes ()
         noteList << newNote;
     }
 
-    m_noteModel->addListNote(noteList);
-
-    m_noteModel->sort(0,Qt::AscendingOrder);
+    if(!noteList.isEmpty()){
+        m_noteModel->addListNote(noteList);
+        m_noteModel->sort(0,Qt::AscendingOrder);
+    }
 }
 
 /**
@@ -1066,7 +1067,6 @@ void MainWindow::maximizeWindow ()
 void MainWindow::minimizeWindow ()
 {
     this->setWindowState(Qt::WindowMinimized);
-    this->showNormal(); // I don't know why, but it's need to be here
 }
 
 /**
