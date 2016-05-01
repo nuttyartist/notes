@@ -23,12 +23,16 @@ protected:
     void mouseMoveEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
     void mouseReleaseEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
+    bool viewportEvent(QEvent* e) Q_DECL_OVERRIDE;
 
 private:
     bool m_isScrollBarHidden;
     bool m_isSearching;
     bool m_isMousePressed;
     int m_rowHeight;
+
+    void setupSignalsSlots();
+    void setupStyleSheet();
 
 public slots:
     void rowsAboutToBeMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd,
@@ -38,12 +42,11 @@ public slots:
                    const QModelIndex &destination, int row);
 
 private slots:
-    void setupSignalsSlots();
+    void init();
 
 protected slots:
     void rowsInserted(const QModelIndex &parent, int start, int end) Q_DECL_OVERRIDE;
     void rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end) Q_DECL_OVERRIDE;
-    void setupStyleSheet();
 };
 
 #endif // NOTEVIEW_H

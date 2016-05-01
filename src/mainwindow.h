@@ -44,7 +44,6 @@ protected:
     void mouseReleaseEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
     void mouseDoubleClickEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
     void leaveEvent(QEvent*) Q_DECL_OVERRIDE;
-    void resizeWindow(QMouseEvent* event);
     bool eventFilter(QObject* object, QEvent* event) Q_DECL_OVERRIDE;
 
 private:
@@ -81,11 +80,6 @@ private:
     int m_textEditLeftPadding;
     int m_noteCounter;
     int m_trashCounter;
-    bool m_canBeResized;
-    bool m_resizeHorzTop;
-    bool m_resizeHorzBottom;
-    bool m_resizeVertRight;
-    bool m_resizeVertLeft;
     bool m_canMoveWindow;
     bool m_isTemp;
     bool m_isListViewScrollBarHidden;

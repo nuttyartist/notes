@@ -3,6 +3,7 @@
 #include <QPainter>
 #include <QEvent>
 #include <QDebug>
+#include <QApplication>
 #include "notemodel.h"
 
 NoteWidgetDelegate::NoteWidgetDelegate(QObject *parent)
@@ -14,6 +15,7 @@ NoteWidgetDelegate::NoteWidgetDelegate(QObject *parent)
       m_ActiveColor(255, 235, 80),
       m_notActiveColor(254, 206, 9),
       m_hoverColor(207, 207, 207),
+      m_applicationInactiveColor(207, 207, 207),
       m_separatorColor(221, 221, 221),
       m_defaultColor(255,255,255),
       m_rowHeight(38),
@@ -131,10 +133,14 @@ QTimeLine::State NoteWidgetDelegate::animationState()
 void NoteWidgetDelegate::paintBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     if((option.state & QStyle::State_Selected) == QStyle::State_Selected){
-        if(m_isActive){
-            painter->fillRect(option.rect, QBrush(m_ActiveColor));
-        }else{
-            painter->fillRect(option.rect, QBrush(m_notActiveColor));
+        if(qApp->applicationState() == Qt::ApplicationActive){
+            if(m_isActive){
+                painter->fillRect(option.rect, QBrush(m_ActiveColor));
+            }else{
+                painter->fillRect(option.rect, QBrush(m_notActiveColor));
+            }
+        }else if(qApp->applicationState() == Qt::ApplicationInactive){
+            painter->fillRect(option.rect, QBrush(m_applicationInactiveColor));
         }
     }else if((option.state & QStyle::State_MouseOver) == QStyle::State_MouseOver){
         painter->fillRect(option.rect, QBrush(m_hoverColor));
