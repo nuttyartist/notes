@@ -93,7 +93,7 @@ void MainWindow::setupMainWindow ()
 #ifdef Q_OS_LINUX
     this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
 #elif _WIN32
-    this->setWindowFlags(Qt::CustomizeWindowHint | Qt::FramelessWindowHint);
+    this->setWindowFlags(Qt::CustomizeWindowHint);
 #elif __APPLE__
     this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
 #else
