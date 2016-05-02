@@ -24,6 +24,11 @@ NoteWidgetDelegate::NoteWidgetDelegate(QObject *parent)
       m_state(Normal),
       m_isActive(false)
 {
+#ifdef __APPLE__
+    m_titleFont.setPointSize(13);
+    m_dateFont.setPointSize(10);
+#endif
+
     m_timeLine = new QTimeLine(300, this);
     m_timeLine->setFrameRange(0,m_maxFrame);
     m_timeLine->setUpdateInterval(10);
