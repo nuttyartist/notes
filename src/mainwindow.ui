@@ -477,86 +477,25 @@ NoteData #dateLabel{
            </spacer>
           </item>
           <item>
-           <widget class="QScrollArea" name="scrollArea">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>212</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="baseSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="styleSheet">
-             <string notr="true"/>
-            </property>
+           <widget class="NoteView" name="listView">
             <property name="frameShape">
              <enum>QFrame::NoFrame</enum>
             </property>
             <property name="verticalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOn</enum>
+             <enum>Qt::ScrollBarAsNeeded</enum>
             </property>
             <property name="horizontalScrollBarPolicy">
              <enum>Qt::ScrollBarAlwaysOff</enum>
             </property>
-            <property name="sizeAdjustPolicy">
-             <enum>QAbstractScrollArea::AdjustIgnored</enum>
+            <property name="editTriggers">
+             <set>QAbstractItemView::NoEditTriggers</set>
             </property>
-            <property name="widgetResizable">
-             <bool>true</bool>
+            <property name="showDropIndicator" stdset="0">
+             <bool>false</bool>
             </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            <property name="selectionBehavior">
+             <enum>QAbstractItemView::SelectRows</enum>
             </property>
-            <widget class="QWidget" name="scrollAreaWidgetContents">
-             <property name="geometry">
-              <rect>
-               <x>0</x>
-               <y>0</y>
-               <width>330</width>
-               <height>276</height>
-              </rect>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_3">
-              <property name="spacing">
-               <number>0</number>
-              </property>
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
-               <number>2</number>
-              </property>
-              <property name="bottomMargin">
-               <number>0</number>
-              </property>
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_scrollArea_2">
-                <property name="spacing">
-                 <number>0</number>
-                </property>
-               </layout>
-              </item>
-             </layout>
-            </widget>
            </widget>
           </item>
          </layout>
@@ -693,7 +632,7 @@ NoteData #dateLabel{
           <item>
            <widget class="QLabel" name="editorDateLabel">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -866,6 +805,13 @@ p, li { white-space: pre-wrap; }
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>NoteView</class>
+   <extends>QListView</extends>
+   <header>noteview.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="images.qrc"/>
  </resources>

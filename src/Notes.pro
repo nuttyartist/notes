@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -14,10 +14,18 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    notedata.cpp
+    notedata.cpp \
+    notewidgetdelegate.cpp \
+    notemodel.cpp \
+    noteview.cpp \
+    singleinstance.cpp
 
 HEADERS  += mainwindow.h \
-    notedata.h
+    notedata.h \
+    notewidgetdelegate.h \
+    notemodel.h \
+    noteview.h \
+    singleinstance.h
 
 FORMS    += mainwindow.ui
 
@@ -26,7 +34,21 @@ RESOURCES += \
 
 CONFIG   += c++11
 
-DESTDIR = ../bin
+win32|mac {
+    DESTDIR = ../bin
+}
+
+unix {
+    isEmpty(PREFIX) {
+        PREFIX = /usr
+    }
+
+    BINDIR = $$PREFIX/bin
+    DATADIR =$$PREFIX/share
+
+    target.path = $$BINDIR
+    INSTALLS += target
+}
 
 win32:RC_FILE = images\notes.rc
 
