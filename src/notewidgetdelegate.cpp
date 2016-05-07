@@ -25,8 +25,10 @@ NoteWidgetDelegate::NoteWidgetDelegate(QObject *parent)
       m_isActive(false)
 {
 #ifdef __APPLE__
+    m_titleFont = QFont(QStringLiteral("Helvetica"), 10,QFont::Bold);
+    m_dateFont = QFont(QStringLiteral("Helvetica"), 8);
     m_titleFont.setPointSize(13);
-    m_dateFont.setPointSize(10);
+    m_dateFont.setPointSize(11);
 #elif _WIN32
     m_titleFont = QFont(QStringLiteral("Arial"), 10, QFont::Bold);
     m_dateFont = QFont(QStringLiteral("Arial"), 8);
