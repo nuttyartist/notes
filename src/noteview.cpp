@@ -16,6 +16,8 @@ NoteView::NoteView(QWidget *parent)
       m_isMousePressed(false),
       m_rowHeight(38)
 {
+    this->setAttribute(Qt::WA_MacShowFocusRect, 0);
+
     QTimer::singleShot(0, this, SLOT(init()));
 }
 

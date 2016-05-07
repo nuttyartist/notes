@@ -93,7 +93,7 @@ void MainWindow::setupMainWindow ()
 #ifdef Q_OS_LINUX
     this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
 #elif _WIN32
-    this->setWindowFlags(Qt::CustomizeWindowHint | Qt::FramelessWindowHint);
+    this->setWindowFlags(Qt::CustomizeWindowHint);
 #elif __APPLE__
     this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
 #else
@@ -155,10 +155,8 @@ void MainWindow::setupKeyboardShortcuts ()
 void MainWindow::setupNewNoteButtonAndTrahButton ()
 {
 #ifdef __APPLE__
-    m_newNoteButton->setGeometry(m_newNoteButton->x(), m_newNoteButton->y(), 50, 32);
-    m_newNoteButton->setIconSize(QSize(16, 16));
-    m_trashButton->setGeometry(676, m_trashButton->y(), 50, 32);
-    m_trashButton->setIconSize(QSize(14, 18));
+    m_newNoteButton->setMinimumSize(QSize(50, 32));
+    m_trashButton->setMinimumSize(QSize(50, 32));
 #endif
 }
 /**
@@ -177,7 +175,6 @@ void MainWindow::setupEditorDateLabel()
     QFont editorDateLabelFont(QFont("Arial", 12));
     editorDateLabelFont.setBold(true);
     m_editorDateLabel->setFont(editorDateLabelFont);
-    m_editorDateLabel->setGeometry(m_editorDateLabel->x(), m_editorDateLabel->y() + 4, m_editorDateLabel->width(), m_editorDateLabel->height());
 #endif
 }
 
@@ -339,7 +336,7 @@ void MainWindow::setupTextEdit ()
 #elif _WIN32
     m_textEditLeftPadding = 5;
 #elif __APPLE__
-    m_textEditLeftPadding = 18;
+    m_textEditLeftPadding = 22;
 #else
 #error "We don't support that version yet..."
 #endif
