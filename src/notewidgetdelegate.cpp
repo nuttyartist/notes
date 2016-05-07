@@ -27,6 +27,9 @@ NoteWidgetDelegate::NoteWidgetDelegate(QObject *parent)
 #ifdef __APPLE__
     m_titleFont.setPointSize(13);
     m_dateFont.setPointSize(10);
+#elif _WIN32
+    m_titleFont = QFont(QStringLiteral("Arial"), 10, QFont::Bold);
+    m_dateFont = QFont(QStringLiteral("Arial"), 8);
 #endif
 
     m_timeLine = new QTimeLine(300, this);
