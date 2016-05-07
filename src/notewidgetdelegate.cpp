@@ -216,6 +216,11 @@ void NoteWidgetDelegate::paintDateTime(QPainter *painter, const QStyleOptionView
     double currRowHeight = m_rowHeight * rowHeightRate;
     double textRectPosX = rowPosX + 10;
     double textRectWidth = rowWidth - textRectPosX - 10;
+#ifdef __APPLE__
+    int bottomOffset = 5;
+#else
+    int bottomOffset = 3;
+#endif
 
     if(index.row() == m_animatedIndex.row()){
         if(m_state == MoveIn){
@@ -226,11 +231,11 @@ void NoteWidgetDelegate::paintDateTime(QPainter *painter, const QStyleOptionView
         }else{
 
             double textRectHeight = fm.height() + 2;
-            double textRectPosY = rowPosY + currRowHeight - (textRectHeight + 3);
+            double textRectPosY = rowPosY + currRowHeight - (textRectHeight + bottomOffset);
 
-            if(currRowHeight <= (textRectHeight + 3)){
+            if(currRowHeight <= (textRectHeight + bottomOffset)){
                 textRectPosY = rowPosY;
-                textRectHeight = currRowHeight - 3;
+                textRectHeight = currRowHeight - bottomOffset;
             }
 
             QRectF rect(textRectPosX, textRectPosY, textRectWidth, textRectHeight);
@@ -238,7 +243,7 @@ void NoteWidgetDelegate::paintDateTime(QPainter *painter, const QStyleOptionView
         }
     }else{
         double textRectHeight = fm.height() + 2;
-        double textRectPosY = rowPosY + m_rowHeight - (textRectHeight+3);
+        double textRectPosY = rowPosY + m_rowHeight - (textRectHeight + bottomOffset);
         QRectF rect(QPoint(textRectPosX, textRectPosY), QSize(textRectWidth, textRectHeight));
         painter->drawText(rect, Qt::AlignBottom, date);
     }
