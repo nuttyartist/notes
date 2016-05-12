@@ -35,8 +35,8 @@ MainWindow::MainWindow (QWidget *parent) :
     m_lineEdit(Q_NULLPTR),
     m_editorDateLabel(Q_NULLPTR),
     m_trayIcon(new QSystemTrayIcon(this)),
-    m_restoreAction(new QAction(tr("&Show Notes"), this)),
-    m_quitAction(new QAction(tr("&Exit"), this)),
+    m_restoreAction(new QAction(tr("&Hide Notes"), this)),
+    m_quitAction(new QAction(tr("&Quit"), this)),
     m_trayIconMenu(new QMenu(this)),
     m_noteModel(new NoteModel(this)),
     m_deletedNotesModel(new NoteModel(this)),
@@ -284,7 +284,15 @@ void MainWindow::setupSignalsSlots()
     // clear button
     connect(m_clearButton, &QToolButton::clicked, this, &MainWindow::onClearButtonClicked);
     // Restore Notes Action
-    connect(m_restoreAction, &QAction::triggered, this, &MainWindow::show);
+    connect(m_restoreAction, &QAction::triggered, this, [this](){
+        if(this->isHidden()){
+            show();
+            m_restoreAction->setText(tr("&Hide Notes"));
+        }else{
+            hide();
+            m_restoreAction->setText(tr("&show Notes"));
+        }
+    });
     // Quit Action
     connect(m_quitAction, &QAction::triggered, this, &MainWindow::QuitApplication);
 
@@ -1167,6 +1175,7 @@ void MainWindow::onRedCloseButtonClicked()
     m_redCloseButton->setIcon(QIcon(":images/red.png"));
 
     hide();
+    m_restoreAction->setText(tr("&show Notes"));
 }
 
 /**
