@@ -19,6 +19,9 @@
 #include <QTextEdit>
 #include <QSettings>
 #include <QSplitter>
+#include <QSystemTrayIcon>
+#include <QMenu>
+#include <qaction.h>
 #include "notedata.h"
 #include "notemodel.h"
 #include "noteview.h"
@@ -63,6 +66,10 @@ private:
     QLineEdit* m_lineEdit;
     QLabel* m_editorDateLabel;
     QSplitter *m_splitter;
+    QSystemTrayIcon* m_trayIcon;
+    QAction* m_restoreAction;
+    QAction* m_quitAction;
+    QMenu* m_trayIconMenu;
 
     NoteView* m_noteView;
     NoteModel* m_noteModel;
@@ -85,6 +92,7 @@ private:
     bool m_isOperationRunning;
 
     void setupMainWindow();
+    void setupTrayIcon();
     void setupKeyboardShortcuts();
     void setupNewNoteButtonAndTrahButton();
     void setupEditorDateLabel();

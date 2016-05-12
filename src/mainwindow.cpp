@@ -34,6 +34,10 @@ MainWindow::MainWindow (QWidget *parent) :
     m_textEdit(Q_NULLPTR),
     m_lineEdit(Q_NULLPTR),
     m_editorDateLabel(Q_NULLPTR),
+    m_trayIcon(new QSystemTrayIcon(this)),
+    m_restoreAction(new QAction(tr("&Show Notes"), this)),
+    m_quitAction(new QAction(tr("&Exit"), this)),
+    m_trayIconMenu(new QMenu(this)),
     m_noteModel(new NoteModel(this)),
     m_deletedNotesModel(new NoteModel(this)),
     m_proxyModel(new QSortFilterProxyModel(this)),
@@ -47,6 +51,7 @@ MainWindow::MainWindow (QWidget *parent) :
 {
     ui->setupUi(this);
     setupMainWindow();
+    setupTrayIcon();
     setupKeyboardShortcuts();
     setupNewNoteButtonAndTrahButton();
     setupEditorDateLabel();
@@ -117,6 +122,18 @@ void MainWindow::setupMainWindow ()
 
     m_newNoteButton->setToolTip("Create New Note");
     m_trashButton->setToolTip("Delete Selected Note");
+}
+
+void MainWindow::setupTrayIcon()
+{
+    m_trayIconMenu->addAction(m_restoreAction);
+    m_trayIconMenu->addSeparator();
+    m_trayIconMenu->addAction(m_quitAction);
+
+    QIcon icon(":images/notes_icon.png");
+    m_trayIcon->setIcon(icon);
+    m_trayIcon->setContextMenu(m_trayIconMenu);
+    m_trayIcon->show();
 }
 
 /**
@@ -266,6 +283,11 @@ void MainWindow::setupSignalsSlots()
     });
     // clear button
     connect(m_clearButton, &QToolButton::clicked, this, &MainWindow::onClearButtonClicked);
+    // Restore Notes Action
+    connect(m_restoreAction, &QAction::triggered, this, &MainWindow::show);
+    // Quit Action
+    connect(m_quitAction, &QAction::triggered, this, &MainWindow::QuitApplication);
+
 }
 
 /**
@@ -1144,7 +1166,7 @@ void MainWindow::onRedCloseButtonClicked()
 {
     m_redCloseButton->setIcon(QIcon(":images/red.png"));
 
-    QuitApplication();
+    hide();
 }
 
 /**
