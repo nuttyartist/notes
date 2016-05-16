@@ -257,6 +257,13 @@ void MainWindow::setupSignalsSlots()
     connect(m_lineEdit, &QLineEdit::textChanged, this, &MainWindow::onLineEditTextChanged);
     // note pressed
     connect(m_noteView, &NoteView::pressed, this, &MainWindow::onNotePressed);
+    // noteView viewport pressed
+    connect(m_noteView, &NoteView::viewportPressed, this, [this](){
+        if(m_isTemp && m_proxyModel->rowCount() > 1){
+            QModelIndex indexInProxy = m_proxyModel->index(1, 0);
+            selectNote(indexInProxy);
+        }
+    });
     // note model rows moved
     connect(m_noteModel, &NoteModel::rowsAboutToBeMoved, m_noteView, &NoteView::rowsAboutToBeMoved);
     connect(m_noteModel, &NoteModel::rowsMoved, m_noteView, &NoteView::rowsMoved);

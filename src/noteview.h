@@ -45,6 +45,10 @@ private slots:
 protected slots:
     void rowsInserted(const QModelIndex &parent, int start, int end) Q_DECL_OVERRIDE;
     void rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end) Q_DECL_OVERRIDE;
+
+signals:
+    void viewportPressed();
+
 };
 
 #endif // NOTEVIEW_H
