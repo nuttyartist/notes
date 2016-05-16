@@ -123,6 +123,7 @@ private:
     void clearSearch();
     void findNotesContain(const QString &keyword);
     void selectNote(const QModelIndex& noteIndex);
+    void setMainWindowVisibility(bool state);
 
 private slots:
     void InitData();

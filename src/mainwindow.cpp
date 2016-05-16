@@ -11,7 +11,7 @@
 #include <QTextStream>
 #include <QScrollArea>
 #include "notewidgetdelegate.h"
-
+#include "qxtglobalshortcut.h"
 #define FIRST_LINE_MAX 80
 
 /**
@@ -77,6 +77,17 @@ void MainWindow::InitData()
     loadNotes();
     createNewNoteIfEmpty();
     selectFirstNote();
+}
+
+void MainWindow::setMainWindowVisibility(bool state)
+{
+    if(state){
+        m_restoreAction->setText(tr("&Hide Notes"));
+        show();
+    }else{
+        m_restoreAction->setText(tr("&Show Notes"));
+        hide();
+    }
 }
 
 /**
@@ -159,6 +170,18 @@ void MainWindow::setupKeyboardShortcuts ()
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_L), this, SLOT(maximizeWindow()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_M), this, SLOT(minimizeWindow()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q), this, SLOT(QuitApplication()));
+
+    QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
+    shortcut->setShortcut(QKeySequence("META+N"));
+    connect(shortcut, &QxtGlobalShortcut::activated,[=]() {
+        // workaround prevent textEdit and lineEdit
+        // from taking 'N' from shortcut
+        m_textEdit->setDisabled(true);
+        m_lineEdit->setDisabled(true);
+        this->setMainWindowVisibility(isHidden());
+        m_textEdit->setDisabled(false);
+        m_lineEdit->setDisabled(false);
+    });
 }
 
 /**
@@ -285,13 +308,7 @@ void MainWindow::setupSignalsSlots()
     connect(m_clearButton, &QToolButton::clicked, this, &MainWindow::onClearButtonClicked);
     // Restore Notes Action
     connect(m_restoreAction, &QAction::triggered, this, [this](){
-        if(this->isHidden()){
-            show();
-            m_restoreAction->setText(tr("&Hide Notes"));
-        }else{
-            hide();
-            m_restoreAction->setText(tr("&show Notes"));
-        }
+        setMainWindowVisibility(isHidden());
     });
     // Quit Action
     connect(m_quitAction, &QAction::triggered, this, &MainWindow::QuitApplication);
@@ -1174,8 +1191,7 @@ void MainWindow::onRedCloseButtonClicked()
 {
     m_redCloseButton->setIcon(QIcon(":images/red.png"));
 
-    hide();
-    m_restoreAction->setText(tr("&show Notes"));
+    setMainWindowVisibility(false);
 }
 
 /**
