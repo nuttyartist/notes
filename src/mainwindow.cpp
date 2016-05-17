@@ -262,6 +262,9 @@ void MainWindow::setupSignalsSlots()
         if(m_isTemp && m_proxyModel->rowCount() > 1){
             QModelIndex indexInProxy = m_proxyModel->index(1, 0);
             selectNote(indexInProxy);
+        }else if(m_isTemp && m_proxyModel->rowCount() == 1){
+            QModelIndex indexInProxy = m_proxyModel->index(0, 0);
+            deleteNote(indexInProxy, false);
         }
     });
     // note model rows moved
@@ -910,7 +913,7 @@ void MainWindow::createNewNote ()
 }
 
 /**
- * @brief MainWindow::deleteNote delete the specified note
+ * @brief MainWindow::deleteNote deletes the specified note
  * @param note  : note to delete
  * @param isFromUser :  true if the user clicked on trash button
  */
