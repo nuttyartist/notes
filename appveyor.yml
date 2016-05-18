@@ -1,0 +1,53 @@
+clone_depth: 200
+version: '0.9.0-{Build}'
+
+environment:
+  matrix:
+  # MSVC x86
+  - name: win32
+    platformEnv: amd64_x86
+    qt: 5.6\msvc2015
+
+  # MSVC x64
+  - name: win64
+    platformEnv: amd64
+    qt: 5.6\msvc2015_64
+
+  # MinGW
+  - name: win32
+    platformEnv: mingw
+    qt: 5.6\mingw49_32
+
+configuration: Release
+
+clone_folder: c:\ci\notes
+
+cache:
+  - C:\Program Files (x86)\Inno Setup 5 -> appveyor.yml
+
+install:
+  - ps: Update-AppveyorBuild -Version "$(git describe --tags $(git rev-list --tags --max-count=1))~git$($env:appveyor_repo_commit.substring(0,7))"
+  - setx /m PLATFORMENV %platformEnv%
+  - if not exist "C:\Program Files (x86)\Inno Setup 5" choco install innosetup 
+  - set PATH="C:\Program Files\7-Zip";"C:\Program Files (x86)\Inno Setup 5";%PATH%
+  - if %platformEnv%==mingw set PATH=C:\Qt\Tools\mingw492_32\bin;%PATH%
+  - set PATH=C:\Qt\%qt%\bin;%PATH%
+  - if not %platformEnv%==mingw call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %platformEnv%
+
+build_script:
+  - cd C:\ci\notes\src
+  - qmake -config release 
+  - if not %platformEnv%==mingw (nmake) else (mingw32-make)
+  - if not %platformEnv%==mingw (nmake install) else (mingw32-make install)
+  - cd C:\ci\notes\bin
+  - windeployqt .
+  - iscc C:\ci\notes\packaging\windows\Notes_Inno_Script.iss
+  - cd C:\ci\notes\installer
+  - dir
+
+on_success:
+  - ps: Push-AppveyorArtifact $("NotesSetup_"+$env:APPVEYOR_BUILD_VERSION+"_"+$env:platformEnv+".exe")
+
+artifacts:
+  - path: '*.exe'
+    name: 'App Executable $(name)'
