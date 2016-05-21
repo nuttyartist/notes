@@ -42,7 +42,7 @@ INCLUDEPATH += ../3rdParty/qxt
 RESOURCES += \
     images.qrc
 
-unix {
+unix:!macx {
     SOURCES += ../3rdParty/qxt/qxtglobalshortcut_x11.cpp
     LIBS += -lX11
 
@@ -57,14 +57,15 @@ unix {
     INSTALLS += target
 }
 
-win32 {
-    SOURCES += ../3rdParty/qxt/qxtglobalshortcut_win.cpp
-    DESTDIR = ../bin
-    RC_FILE = images\notes.rc
-}
-
 macx{
     SOURCES += ../3rdParty/qxt/qxtglobalshortcut_mac.cpp
     DESTDIR = ../bin
     ICON = images\notes_icon.icns
+}
+
+win32 {
+    SOURCES += ../3rdParty/qxt/qxtglobalshortcut_win.cpp
+    DESTDIR = ../bin
+    RC_FILE = images\notes.rc
+    DEFINES += QXT_STATIC
 }
