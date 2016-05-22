@@ -38,6 +38,8 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+    void setMainWindowVisibility(bool state);
+
 protected:
     void closeEvent(QCloseEvent* event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
@@ -123,7 +125,6 @@ private:
     void clearSearch();
     void findNotesContain(const QString &keyword);
     void selectNote(const QModelIndex& noteIndex);
-    void setMainWindowVisibility(bool state);
 
 private slots:
     void InitData();

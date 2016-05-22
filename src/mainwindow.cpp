@@ -82,8 +82,14 @@ void MainWindow::InitData()
 void MainWindow::setMainWindowVisibility(bool state)
 {
     if(state){
+        showNormal();
+        setWindowState(Qt::WindowNoState);
+        qApp->processEvents();
+        setWindowState(Qt::WindowActive);
+        qApp->processEvents();
+        qApp->setActiveWindow(this);
+        qApp->processEvents();
         m_restoreAction->setText(tr("&Hide Notes"));
-        show();
     }else{
         m_restoreAction->setText(tr("&Show Notes"));
         hide();
@@ -178,7 +184,9 @@ void MainWindow::setupKeyboardShortcuts ()
         // from taking 'N' from shortcut
         m_textEdit->setDisabled(true);
         m_lineEdit->setDisabled(true);
-        this->setMainWindowVisibility(isHidden());
+        setMainWindowVisibility(isHidden()
+                                || windowState() == Qt::WindowMinimized
+                                || qApp->applicationState() == Qt::ApplicationInactive);
         m_textEdit->setDisabled(false);
         m_lineEdit->setDisabled(false);
     });
@@ -308,11 +316,16 @@ void MainWindow::setupSignalsSlots()
     connect(m_clearButton, &QToolButton::clicked, this, &MainWindow::onClearButtonClicked);
     // Restore Notes Action
     connect(m_restoreAction, &QAction::triggered, this, [this](){
-        setMainWindowVisibility(isHidden());
+        setMainWindowVisibility(isHidden()
+                                || windowState() == Qt::WindowMinimized
+                                || (qApp->applicationState() == Qt::ApplicationInactive));
     });
     // Quit Action
     connect(m_quitAction, &QAction::triggered, this, &MainWindow::QuitApplication);
-
+    // Application state changed
+    connect(qApp, &QApplication::applicationStateChanged, this,[this](){
+        m_noteView->update(m_noteView->currentIndex());
+    });
 }
 
 /**
@@ -1180,6 +1193,7 @@ void MainWindow::onYellowMinimizeButtonClicked()
     m_yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
 
     minimizeWindow();
+    m_restoreAction->setText(tr("&Show Notes"));
 }
 
 /**
@@ -1190,7 +1204,6 @@ void MainWindow::onYellowMinimizeButtonClicked()
 void MainWindow::onRedCloseButtonClicked()
 {
     m_redCloseButton->setIcon(QIcon(":images/red.png"));
-
     setMainWindowVisibility(false);
 }
 
