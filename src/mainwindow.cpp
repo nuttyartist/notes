@@ -1300,15 +1300,15 @@ void MainWindow::findNotesContain(const QString& keyword)
 void MainWindow::selectNote(const QModelIndex &noteIndex)
 {
     if(noteIndex.isValid()){
-        // show the content of the pressed note in the text editor
-        showNoteInEditor(noteIndex);
-
         // save the position of text edit scrollbar
         if(!m_isTemp && m_currentSelectedNoteProxy.isValid()){
             int pos = m_textEdit->verticalScrollBar()->value();
-            QModelIndex indexSrc = m_proxyModel->mapToSource(noteIndex);
+            QModelIndex indexSrc = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
             m_noteModel->setData(indexSrc, QVariant::fromValue(pos), NoteModel::NoteScrollbarPos);
         }
+
+        // show the content of the pressed note in the text editor
+        showNoteInEditor(noteIndex);
 
         if(m_isTemp && noteIndex.row() != 0){
             // delete the unmodified new note
