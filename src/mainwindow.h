@@ -34,6 +34,8 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
+    friend class tst_MainWindow;
+
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();

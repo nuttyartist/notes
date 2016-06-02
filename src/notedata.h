@@ -7,6 +7,9 @@
 class NoteData : public QObject
 {
     Q_OBJECT
+
+    friend class tst_NoteData;
+
 public:
     explicit NoteData(QObject *parent = Q_NULLPTR);
 

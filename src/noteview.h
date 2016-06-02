@@ -8,6 +8,8 @@ class NoteView : public QListView
 {
     Q_OBJECT
 
+    friend class tst_NoteView;
+
 public:
     explicit NoteView(QWidget* parent = Q_NULLPTR);
     ~NoteView();
