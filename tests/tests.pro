@@ -14,34 +14,34 @@ TEMPLATE = app
 
 unix:!mac{
 LIBS += \
-        ../src/qxtglobalshortcut_x11.o      \
+        ../src/OBJ/qxtglobalshortcut_x11.o      \
         -lX11
 }
 
 macx{
 LIBS += \
-        ../src/qxtglobalshortcut_mac.o
+        ../src/OBJ/qxtglobalshortcut_mac.o
 }
 
-macx{
+win32{
 LIBS += \
-        ../src/qxtglobalshortcut_win.o
+        ../src/OBJ/qxtglobalshortcut_win.o
 }
 
-LIBS += ../src/qxtglobal.o                  \
-        ../src/qxtglobalshortcut.o          \
-        ../src/moc_qxtglobalshortcut.o      \
-        ../src/moc_singleinstance.o         \
-        ../src/singleinstance.o             \
-        ../src/moc_notedata.o               \
-        ../src/notedata.o                   \
-        ../src/moc_noteview.o               \
-        ../src/noteview.o                   \
-        ../src/notemodel.o                  \
-        ../src/moc_notewidgetdelegate.o     \
-        ../src/notewidgetdelegate.o         \
-        ../src/mainwindow.o                 \
-        ../src/moc_mainwindow.o
+LIBS += ../src/OBJ/qxtglobal.o                  \
+        ../src/OBJ/qxtglobalshortcut.o          \
+        ../src/OBJ/moc_qxtglobalshortcut.o      \
+        ../src/OBJ/moc_singleinstance.o         \
+        ../src/OBJ/singleinstance.o             \
+        ../src/OBJ/moc_notedata.o               \
+        ../src/OBJ/notedata.o                   \
+        ../src/OBJ/moc_noteview.o               \
+        ../src/OBJ/noteview.o                   \
+        ../src/OBJ/notemodel.o                  \
+        ../src/OBJ/moc_notewidgetdelegate.o     \
+        ../src/OBJ/notewidgetdelegate.o         \
+        ../src/OBJ/mainwindow.o                 \
+        ../src/OBJ/moc_mainwindow.o
 
 HEADERS += \
     tst_mainwindow.h \

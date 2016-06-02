@@ -42,6 +42,8 @@ INCLUDEPATH += ../3rdParty/qxt
 RESOURCES += \
     images.qrc
 
+OBJECTS_DIR = OBJ
+
 unix:!macx {
     SOURCES += ../3rdParty/qxt/qxtglobalshortcut_x11.cpp
     LIBS += -lX11
