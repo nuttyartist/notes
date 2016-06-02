@@ -11,7 +11,7 @@
 #include <QTextStream>
 #include <QScrollArea>
 #include "notewidgetdelegate.h"
-
+#include "qxtglobalshortcut.h"
 #define FIRST_LINE_MAX 80
 
 /**
@@ -34,6 +34,10 @@ MainWindow::MainWindow (QWidget *parent) :
     m_textEdit(Q_NULLPTR),
     m_lineEdit(Q_NULLPTR),
     m_editorDateLabel(Q_NULLPTR),
+    m_trayIcon(new QSystemTrayIcon(this)),
+    m_restoreAction(new QAction(tr("&Hide Notes"), this)),
+    m_quitAction(new QAction(tr("&Quit"), this)),
+    m_trayIconMenu(new QMenu(this)),
     m_noteModel(new NoteModel(this)),
     m_deletedNotesModel(new NoteModel(this)),
     m_proxyModel(new QSortFilterProxyModel(this)),
@@ -47,6 +51,7 @@ MainWindow::MainWindow (QWidget *parent) :
 {
     ui->setupUi(this);
     setupMainWindow();
+    setupTrayIcon();
     setupKeyboardShortcuts();
     setupNewNoteButtonAndTrahButton();
     setupEditorDateLabel();
@@ -72,6 +77,23 @@ void MainWindow::InitData()
     loadNotes();
     createNewNoteIfEmpty();
     selectFirstNote();
+}
+
+void MainWindow::setMainWindowVisibility(bool state)
+{
+    if(state){
+        showNormal();
+        setWindowState(Qt::WindowNoState);
+        qApp->processEvents();
+        setWindowState(Qt::WindowActive);
+        qApp->processEvents();
+        qApp->setActiveWindow(this);
+        qApp->processEvents();
+        m_restoreAction->setText(tr("&Hide Notes"));
+    }else{
+        m_restoreAction->setText(tr("&Show Notes"));
+        hide();
+    }
 }
 
 /**
@@ -119,6 +141,18 @@ void MainWindow::setupMainWindow ()
     m_trashButton->setToolTip("Delete Selected Note");
 }
 
+void MainWindow::setupTrayIcon()
+{
+    m_trayIconMenu->addAction(m_restoreAction);
+    m_trayIconMenu->addSeparator();
+    m_trayIconMenu->addAction(m_quitAction);
+
+    QIcon icon(":images/notes_icon.png");
+    m_trayIcon->setIcon(icon);
+    m_trayIcon->setContextMenu(m_trayIconMenu);
+    m_trayIcon->show();
+}
+
 /**
 * @brief
 * Setting up the keyboard shortcuts
@@ -142,6 +176,20 @@ void MainWindow::setupKeyboardShortcuts ()
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_L), this, SLOT(maximizeWindow()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_M), this, SLOT(minimizeWindow()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q), this, SLOT(QuitApplication()));
+
+    QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
+    shortcut->setShortcut(QKeySequence("META+N"));
+    connect(shortcut, &QxtGlobalShortcut::activated,[=]() {
+        // workaround prevent textEdit and lineEdit
+        // from taking 'N' from shortcut
+        m_textEdit->setDisabled(true);
+        m_lineEdit->setDisabled(true);
+        setMainWindowVisibility(isHidden()
+                                || windowState() == Qt::WindowMinimized
+                                || qApp->applicationState() == Qt::ApplicationInactive);
+        m_textEdit->setDisabled(false);
+        m_lineEdit->setDisabled(false);
+    });
 }
 
 /**
@@ -276,6 +324,18 @@ void MainWindow::setupSignalsSlots()
     });
     // clear button
     connect(m_clearButton, &QToolButton::clicked, this, &MainWindow::onClearButtonClicked);
+    // Restore Notes Action
+    connect(m_restoreAction, &QAction::triggered, this, [this](){
+        setMainWindowVisibility(isHidden()
+                                || windowState() == Qt::WindowMinimized
+                                || (qApp->applicationState() == Qt::ApplicationInactive));
+    });
+    // Quit Action
+    connect(m_quitAction, &QAction::triggered, this, &MainWindow::QuitApplication);
+    // Application state changed
+    connect(qApp, &QApplication::applicationStateChanged, this,[this](){
+        m_noteView->update(m_noteView->currentIndex());
+    });
 }
 
 /**
@@ -1143,6 +1203,7 @@ void MainWindow::onYellowMinimizeButtonClicked()
     m_yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
 
     minimizeWindow();
+    m_restoreAction->setText(tr("&Show Notes"));
 }
 
 /**
@@ -1153,8 +1214,7 @@ void MainWindow::onYellowMinimizeButtonClicked()
 void MainWindow::onRedCloseButtonClicked()
 {
     m_redCloseButton->setIcon(QIcon(":images/red.png"));
-
-    QuitApplication();
+    setMainWindowVisibility(false);
 }
 
 /**
