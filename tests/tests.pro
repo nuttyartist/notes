@@ -13,35 +13,10 @@ CONFIG   -= app_bundle
 TEMPLATE = app
 
 unix:!mac{
-LIBS += \
-        ../src/OBJ/qxtglobalshortcut_x11.o      \
-        -lX11
+LIBS += -lX11
 }
 
-macx{
-LIBS += \
-        ../src/OBJ/qxtglobalshortcut_mac.o
-}
-
-win32{
-LIBS += \
-        ../src/OBJ/qxtglobalshortcut_win.o
-}
-
-LIBS += ../src/OBJ/qxtglobal.o                  \
-        ../src/OBJ/qxtglobalshortcut.o          \
-        ../src/OBJ/moc_qxtglobalshortcut.o      \
-        ../src/OBJ/moc_singleinstance.o         \
-        ../src/OBJ/singleinstance.o             \
-        ../src/OBJ/moc_notedata.o               \
-        ../src/OBJ/notedata.o                   \
-        ../src/OBJ/moc_noteview.o               \
-        ../src/OBJ/noteview.o                   \
-        ../src/OBJ/notemodel.o                  \
-        ../src/OBJ/moc_notewidgetdelegate.o     \
-        ../src/OBJ/notewidgetdelegate.o         \
-        ../src/OBJ/mainwindow.o                 \
-        ../src/OBJ/moc_mainwindow.o
+DEPENDPATH += ../src/OBJ
 
 HEADERS += \
     tst_mainwindow.h \

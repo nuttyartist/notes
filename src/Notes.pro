@@ -21,8 +21,8 @@ SOURCES += \
     notemodel.cpp \
     noteview.cpp \
     singleinstance.cpp \
-    ../3rdParty/qxt/qxtglobalshortcut.cpp \
-    ../3rdParty/qxt/qxtglobal.cpp
+    ../3rdParty/qxt/qxtglobal.cpp \
+    ../3rdParty/qxt/qxtglobalshortcut.cpp
 
 HEADERS  += \
     mainwindow.h \
@@ -31,9 +31,9 @@ HEADERS  += \
     notemodel.h \
     noteview.h \
     singleinstance.h \
-    ../3rdParty/qxt/qxtglobalshortcut_p.h \
+    ../3rdParty/qxt/qxtglobal.h \
     ../3rdParty/qxt/qxtglobalshortcut.h \
-    ../3rdParty/qxt/qxtglobal.h
+    ../3rdParty/qxt/qxtglobalshortcut_p.h
 
 FORMS    += mainwindow.ui
 
@@ -67,6 +67,7 @@ macx{
 
 win32 {
     SOURCES += ../3rdParty/qxt/qxtglobalshortcut_win.cpp
+    LIBS+= -luser32
     DESTDIR = ../bin
     RC_FILE = images\notes.rc
     DEFINES += QXT_STATIC
