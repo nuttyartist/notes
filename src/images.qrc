@@ -17,5 +17,6 @@
         <file>images/greenInPressed.png</file>
         <file>images/trashCan.png</file>
         <file>images/newNote.png</file>
+        <file>images/notes_icon.png</file>
     </qresource>
 </RCC>

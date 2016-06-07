@@ -1,6 +1,6 @@
 # Build dirs and files #
 ########################
-Notes.pro.user
+*.pro.user
 build-Notes-*
 bin*
 

@@ -8,6 +8,8 @@ class NoteView : public QListView
 {
     Q_OBJECT
 
+    friend class tst_NoteView;
+
 public:
     explicit NoteView(QWidget* parent = Q_NULLPTR);
     ~NoteView();
@@ -45,6 +47,10 @@ private slots:
 protected slots:
     void rowsInserted(const QModelIndex &parent, int start, int end) Q_DECL_OVERRIDE;
     void rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end) Q_DECL_OVERRIDE;
+
+signals:
+    void viewportPressed();
+
 };
 
 #endif // NOTEVIEW_H

@@ -28,15 +28,7 @@ int main(int argc, char *argv[])
 
     // Bring the Notes window to the front
     QObject::connect(&instance, &SingleInstance::newInstance, [&](){
-
-        (&w)->hide();
-        (&w)->setWindowState(Qt::WindowMinimized);
-        qApp->processEvents();
-        (&w)->setWindowState(Qt::WindowNoState);
-        qApp->processEvents();
-        (&w)->show();
-        (&w)->setWindowState(Qt::WindowActive);
-
+        (&w)->setMainWindowVisibility(true);
     });
 
     return a.exec();

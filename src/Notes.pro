@@ -5,40 +5,49 @@
 #-------------------------------------------------
 
 QT       += core gui network
+QT       += gui-private
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = Notes
-TEMPLATE = app
+TARGET    = Notes
+TEMPLATE  = app
+CONFIG   += c++11
 
-
-SOURCES += main.cpp\
-        mainwindow.cpp \
+SOURCES += \
+    main.cpp\
+    mainwindow.cpp \
     notedata.cpp \
     notewidgetdelegate.cpp \
     notemodel.cpp \
     noteview.cpp \
-    singleinstance.cpp
+    singleinstance.cpp \
+    ../3rdParty/qxt/qxtglobal.cpp \
+    ../3rdParty/qxt/qxtglobalshortcut.cpp
 
-HEADERS  += mainwindow.h \
+HEADERS  += \
+    mainwindow.h \
     notedata.h \
     notewidgetdelegate.h \
     notemodel.h \
     noteview.h \
-    singleinstance.h
+    singleinstance.h \
+    ../3rdParty/qxt/qxtglobal.h \
+    ../3rdParty/qxt/qxtglobalshortcut.h \
+    ../3rdParty/qxt/qxtglobalshortcut_p.h
 
 FORMS    += mainwindow.ui
+
+INCLUDEPATH += ../3rdParty/qxt
 
 RESOURCES += \
     images.qrc
 
-CONFIG   += c++11
+OBJECTS_DIR = OBJ
 
-win32|mac {
-    DESTDIR = ../bin
-}
+unix:!macx {
+    SOURCES += ../3rdParty/qxt/qxtglobalshortcut_x11.cpp
+    LIBS += -lX11
 
-unix {
     isEmpty(PREFIX) {
         PREFIX = /usr
     }
@@ -50,6 +59,16 @@ unix {
     INSTALLS += target
 }
 
-win32:RC_FILE = images\notes.rc
+macx{
+    SOURCES += ../3rdParty/qxt/qxtglobalshortcut_mac.cpp
+    DESTDIR = ../bin
+    ICON = images\notes_icon.icns
+}
 
-macx:ICON = images\notes_icon.icns
+win32 {
+    SOURCES += ../3rdParty/qxt/qxtglobalshortcut_win.cpp
+    LIBS+= -luser32
+    DESTDIR = ../bin
+    RC_FILE = images\notes.rc
+    DEFINES += QXT_STATIC
+}
