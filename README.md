@@ -1,7 +1,7 @@
 # Notes
 
 [![Join the chat at https://gitter.im/nuttyartist/notes](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/nuttyartist/notes?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Build Status](https://travis-ci.org/nuttyartist/notes.svg?branch=Travis_CI_Test)](https://travis-ci.org/nuttyartist/notes)
+[![Build Status](https://travis-ci.org/nuttyartist/notes.svg?branch=dev)](https://travis-ci.org/nuttyartist/notes)
 [![Build status](https://ci.appveyor.com/api/projects/status/rgque4o6x2y0i92i?svg=true)](https://ci.appveyor.com/project/nuttyartist/notes)
 
 Notes is an open source, cross-platform note taking app which has the potential to be something much bigger, and much better at empowering the people using it.
