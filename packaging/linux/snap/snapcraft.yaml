@@ -1,6 +1,6 @@
 name: notes
 # Note on version: $UPSTREAM_VERSION~.git$GIT_COMMIT_ID
-version: 0.8.0~giteb5ad3f
+version: 0.9.0
 summary: Note taking application, write down your thoughts.
 description: |
   Notes is a tool for the things you need to write down off your

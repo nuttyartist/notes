@@ -39,11 +39,6 @@ MainWindow::MainWindow (QWidget *parent) :
     m_proxyModel(new QSortFilterProxyModel(this)),
     m_noteCounter(0),
     m_trashCounter(0),
-    m_canBeResized(false),
-    m_resizeHorzTop(false),
-    m_resizeHorzBottom(false),
-    m_resizeVertRight(false),
-    m_resizeVertLeft(false),
     m_canMoveWindow(false),
     m_isTemp(false),
     m_isListViewScrollBarHidden(true),
@@ -160,10 +155,8 @@ void MainWindow::setupKeyboardShortcuts ()
 void MainWindow::setupNewNoteButtonAndTrahButton ()
 {
 #ifdef __APPLE__
-    m_newNoteButton->setGeometry(m_newNoteButton->x(), m_newNoteButton->y(), 50, 32);
-    m_newNoteButton->setIconSize(QSize(16, 16));
-    m_trashButton->setGeometry(676, m_trashButton->y(), 50, 32);
-    m_trashButton->setIconSize(QSize(14, 18));
+    m_newNoteButton->setMinimumSize(QSize(50, 32));
+    m_trashButton->setMinimumSize(QSize(50, 32));
 #endif
 }
 /**
@@ -182,7 +175,6 @@ void MainWindow::setupEditorDateLabel()
     QFont editorDateLabelFont(QFont("Arial", 12));
     editorDateLabelFont.setBold(true);
     m_editorDateLabel->setFont(editorDateLabelFont);
-    m_editorDateLabel->setGeometry(m_editorDateLabel->x(), m_editorDateLabel->y() + 4, m_editorDateLabel->width(), m_editorDateLabel->height());
 #endif
 }
 
@@ -342,9 +334,9 @@ void MainWindow::setupTextEdit ()
 #ifdef Q_OS_LINUX
     m_textEditLeftPadding = 5;
 #elif _WIN32
-    textEditLeftPadding = 5;
+    m_textEditLeftPadding = 5;
 #elif __APPLE__
-    textEditLeftPadding = 18;
+    m_textEditLeftPadding = 22;
 #else
 #error "We don't support that version yet..."
 #endif
@@ -363,6 +355,7 @@ void MainWindow::setupTextEdit ()
     m_textEdit->setStyleSheet(ss);
 
     m_textEdit->installEventFilter(this);
+    m_textEdit->verticalScrollBar()->installEventFilter(this);
 
 #ifdef Q_OS_LINUX
     m_textEdit->setFont(QFont("Liberation Sans", 11));
@@ -587,9 +580,10 @@ void MainWindow::loadNotes ()
         noteList << newNote;
     }
 
-    m_noteModel->addListNote(noteList);
-
-    m_noteModel->sort(0,Qt::AscendingOrder);
+    if(!noteList.isEmpty()){
+        m_noteModel->addListNote(noteList);
+        m_noteModel->sort(0,Qt::AscendingOrder);
+    }
 }
 
 /**
@@ -784,7 +778,6 @@ void MainWindow::onTextEditTextChanged ()
 void MainWindow::onLineEditTextChanged (const QString &keyword)
 {
     m_textEdit->clearFocus();
-
     m_searchQueue.enqueue(keyword);
 
     if(!m_isOperationRunning){
@@ -817,18 +810,20 @@ void MainWindow::onLineEditTextChanged (const QString &keyword)
             saveNoteToDB(m_currentSelectedNoteProxy);
         }
 
-        // tell the noteView that we are searching
+        // tell the noteView that we are searching to disable the animation
         m_noteView->setSearching(true);
 
         while(!m_searchQueue.isEmpty()){
             qApp->processEvents();
             QString str = m_searchQueue.dequeue();
             if(str.isEmpty()){
+                m_noteView->setFocusPolicy(Qt::StrongFocus);
                 clearSearch();
                 QModelIndex indexInProxy = m_proxyModel->mapFromSource(m_selectedNoteBeforeSearchingInSource);
                 selectNote(indexInProxy);
                 m_selectedNoteBeforeSearchingInSource = QModelIndex();
             }else{
+                m_noteView->setFocusPolicy(Qt::NoFocus);
                 findNotesContain(str);
             }
         }
@@ -1069,7 +1064,6 @@ void MainWindow::maximizeWindow ()
 void MainWindow::minimizeWindow ()
 {
     this->setWindowState(Qt::WindowMinimized);
-    this->showNormal(); // I don't know why, but it's need to be here
 }
 
 /**
@@ -1186,7 +1180,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
 /**
 * @brief
 * Set variables to the position of the window when the mouse is pressed
-* And set variables for resizing
 */
 void MainWindow::mousePressEvent (QMouseEvent* event)
 {
@@ -1199,8 +1192,6 @@ void MainWindow::mousePressEvent (QMouseEvent* event)
             m_canMoveWindow = true;
             m_mousePressX = event->x();
             m_mousePressY = event->y();
-        }else{
-            m_canBeResized = true;
         }
     }
 
@@ -1210,7 +1201,6 @@ void MainWindow::mousePressEvent (QMouseEvent* event)
 /**
 * @brief
 * Move the window according to the mouse positions
-* And resizing
 */
 void MainWindow::mouseMoveEvent (QMouseEvent* event)
 {
@@ -1220,40 +1210,6 @@ void MainWindow::mouseMoveEvent (QMouseEvent* event)
         int dy = event->globalY() - m_mousePressY;
         move (dx, dy);
 
-    }else if(m_canBeResized
-             && (m_resizeVertLeft
-                 || m_resizeVertRight
-                 || m_resizeHorzTop
-                 || m_resizeHorzBottom)
-             ){
-
-        resizeWindow(event);
-
-    }else{
-        m_resizeVertLeft = false;
-        m_resizeVertRight = false;
-        m_resizeHorzTop = false;
-        m_resizeHorzBottom = false;
-
-        if(event->pos().x() <4){
-            m_resizeVertLeft = true;
-            this->setCursor(Qt::SizeHorCursor);
-            event->accept();
-        }else if(event->pos().x() > this->width() - 4){
-            m_resizeVertRight = true;
-            this->setCursor(Qt::SizeHorCursor);
-            event->accept();
-        }else if(event->pos().y() < 4){
-            m_resizeHorzTop = true;
-            this->setCursor(Qt::SizeVerCursor);
-            event->accept();
-        }else if(event->pos().y() > this->height() - 4){
-            m_resizeHorzBottom = true;
-            this->setCursor(Qt::SizeVerCursor);
-            event->accept();
-        }else{
-            this->unsetCursor();
-        }
     }
 }
 
@@ -1263,12 +1219,7 @@ void MainWindow::mouseMoveEvent (QMouseEvent* event)
  */
 void MainWindow::mouseReleaseEvent (QMouseEvent *event)
 {
-    m_canBeResized = false;
     m_canMoveWindow = false;
-    m_resizeVertLeft = false;
-    m_resizeVertRight = false;
-    m_resizeHorzTop = false;
-    m_resizeHorzBottom = false;
     this->unsetCursor();
     event->accept();
 }
@@ -1299,6 +1250,8 @@ void MainWindow::moveNoteToTop()
 
 void MainWindow::clearSearch()
 {
+    m_noteView->setFocusPolicy(Qt::StrongFocus);
+
     m_lineEdit->blockSignals(true);
     m_lineEdit->clear();
     m_lineEdit->blockSignals(false);
@@ -1387,89 +1340,83 @@ void MainWindow::leaveEvent(QEvent *)
 
 /**
 * @brief
- * resize the mainwindow depending on
- * the side from where the mouse used to resize the window
- *
- */
-void MainWindow::resizeWindow(QMouseEvent* event)
-{
-    int newPosX = this->x();
-    int newPosY = this->y();
-    int newWidth = this->width();
-    int newHeight = this->height();
-
-    if(m_resizeVertLeft){
-        if(this->width() + this->x() - event->globalX() > minimumWidth()){
-            newPosX = event->globalX();
-            newPosY = this->y();
-            newWidth = this-> width() + x() - event->globalX();
-            newHeight = height();
-        }
-
-    }else if(m_resizeVertRight){
-        if(event->globalX() - this->x() > minimumWidth()){
-            newPosX = this->x();
-            newPosY = this->y();
-            newWidth = event->globalX() - this->x();
-            newHeight = this->height();
-        }
-
-    }else if(m_resizeHorzTop){
-        if(this->height() + this->y() - event->globalY() > minimumHeight()){
-            newPosX = this->x();
-            newPosY = event->globalY();
-            newWidth = this->width();
-            newHeight = this->height() + this->y() - event->globalY();
-        }
-
-    }else if(m_resizeHorzBottom){
-        if(event->globalY() - this->y() > minimumHeight()){
-            newPosX = this->x();
-            newPosY = this->y();
-            newWidth = this->width();
-            newHeight = event->globalY() - this->y();
-        }
-    }
-
-    this->setGeometry(newPosX, newPosY, newWidth, newHeight);
-}
-
-/**
-* @brief
 * Mostly take care on the event happened on widget whose filter installed to tht mainwindow
 */
 bool MainWindow::eventFilter (QObject *object, QEvent *event)
 {
-    if(event->type() == QEvent::Enter){
-        // When hovering one of the traffic light buttons (red, yellow, green),
-        // set new icons to show their function
-        if(object == m_redCloseButton
-                || object == m_yellowMinimizeButton
-                || object == m_greenMaximizeButton){
+    switch (event->type()){
+    case QEvent::Enter:{
+        if(qApp->applicationState() == Qt::ApplicationActive){
+            // When hovering one of the traffic light buttons (red, yellow, green),
+            // set new icons to show their function
+            if(object == m_redCloseButton
+                    || object == m_yellowMinimizeButton
+                    || object == m_greenMaximizeButton){
 
-            m_redCloseButton->setIcon(QIcon(":images/redHovered.png"));
-            m_yellowMinimizeButton->setIcon(QIcon(":images/yellowHovered.png"));
-            if(this->windowState() == Qt::WindowFullScreen){
-                m_greenMaximizeButton->setIcon(QIcon(":images/greenInHovered.png"));
-            }else{
-                m_greenMaximizeButton->setIcon(QIcon(":images/greenHovered.png"));
+                m_redCloseButton->setIcon(QIcon(":images/redHovered.png"));
+                m_yellowMinimizeButton->setIcon(QIcon(":images/yellowHovered.png"));
+                if(this->windowState() == Qt::WindowFullScreen){
+                    m_greenMaximizeButton->setIcon(QIcon(":images/greenInHovered.png"));
+                }else{
+                    m_greenMaximizeButton->setIcon(QIcon(":images/greenHovered.png"));
+                }
             }
         }
+        break;
     }
+    case QEvent::Leave:{
+        if(qApp->applicationState() == Qt::ApplicationActive){
+            // When not hovering, change back the icons of the traffic lights to their default icon
+            if(object == m_redCloseButton
+                    || object == m_yellowMinimizeButton
+                    || object == m_greenMaximizeButton){
 
-    if(event->type() == QEvent::Leave){
-        // When not hovering, change back the icons of the traffic lights to their default icon
-        if(object == m_redCloseButton
-                || object == m_yellowMinimizeButton
-                || object == m_greenMaximizeButton){
-
-            m_redCloseButton->setIcon(QIcon(":images/red.png"));
-            m_yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
-            m_greenMaximizeButton->setIcon(QIcon(":images/green.png"));
+                m_redCloseButton->setIcon(QIcon(":images/red.png"));
+                m_yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
+                m_greenMaximizeButton->setIcon(QIcon(":images/green.png"));
+            }
         }
+        break;
     }
-
-    if(event->type() == QEvent::FocusIn){
+    case QEvent::WindowDeactivate:{
+        m_redCloseButton->setIcon(QIcon(":images/unfocusedButton"));
+        m_yellowMinimizeButton->setIcon(QIcon(":images/unfocusedButton"));
+        m_greenMaximizeButton->setIcon(QIcon(":images/unfocusedButton"));
+        break;
+    }
+    case QEvent::WindowActivate:{
+        m_redCloseButton->setIcon(QIcon(":images/red.png"));
+        m_yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
+        m_greenMaximizeButton->setIcon(QIcon(":images/green.png"));
+        break;
+    }
+    case QEvent::HoverEnter:{
+        if(object == m_textEdit->verticalScrollBar()){
+            bool isSearching = !m_lineEdit->text().isEmpty();
+            if(isSearching)
+                m_textEdit->setFocusPolicy(Qt::NoFocus);
+        }
+        break;
+    }
+    case QEvent::HoverLeave:{
+        bool isNoButtonClicked = qApp->mouseButtons() == Qt::NoButton;
+        if(isNoButtonClicked){
+            if(object == m_textEdit->verticalScrollBar()){
+                m_textEdit->setFocusPolicy(Qt::StrongFocus);
+            }
+        }
+        break;
+    }
+    case QEvent::MouseButtonRelease:{
+        bool isMouseOnScrollBar = qApp->widgetAt(QCursor::pos()) != m_textEdit->verticalScrollBar();
+        if(isMouseOnScrollBar){
+            if(object == m_textEdit->verticalScrollBar()){
+                m_textEdit->setFocusPolicy(Qt::StrongFocus);
+            }
+        }
+        break;
+    }
+    case QEvent::FocusIn:{
         if(object == m_textEdit){
 
             m_noteView->setCurrentRowActive(true);
@@ -1498,11 +1445,16 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
                 }
             }
         }
+        break;
     }
-    if(event->type() == QEvent::FocusOut){
+    case QEvent::FocusOut:{
         if(object == m_textEdit){
             m_noteView->setCurrentRowActive(false);
         }
+        break;
+    }
+    default:
+        break;
     }
 
     return QObject::eventFilter(object, event);

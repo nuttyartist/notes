@@ -3,6 +3,7 @@
 #include <QPainter>
 #include <QEvent>
 #include <QDebug>
+#include <QApplication>
 #include "notemodel.h"
 
 NoteWidgetDelegate::NoteWidgetDelegate(QObject *parent)
@@ -14,6 +15,7 @@ NoteWidgetDelegate::NoteWidgetDelegate(QObject *parent)
       m_ActiveColor(255, 235, 80),
       m_notActiveColor(254, 206, 9),
       m_hoverColor(207, 207, 207),
+      m_applicationInactiveColor(207, 207, 207),
       m_separatorColor(221, 221, 221),
       m_defaultColor(255,255,255),
       m_rowHeight(38),
@@ -22,6 +24,16 @@ NoteWidgetDelegate::NoteWidgetDelegate(QObject *parent)
       m_state(Normal),
       m_isActive(false)
 {
+#ifdef __APPLE__
+    m_titleFont = QFont(QStringLiteral("Helvetica"), 10,QFont::Bold);
+    m_dateFont = QFont(QStringLiteral("Helvetica"), 8);
+    m_titleFont.setPointSize(13);
+    m_dateFont.setPointSize(11);
+#elif _WIN32
+    m_titleFont = QFont(QStringLiteral("Arial"), 10, QFont::Bold);
+    m_dateFont = QFont(QStringLiteral("Arial"), 8);
+#endif
+
     m_timeLine = new QTimeLine(300, this);
     m_timeLine->setFrameRange(0,m_maxFrame);
     m_timeLine->setUpdateInterval(10);
@@ -131,10 +143,14 @@ QTimeLine::State NoteWidgetDelegate::animationState()
 void NoteWidgetDelegate::paintBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     if((option.state & QStyle::State_Selected) == QStyle::State_Selected){
-        if(m_isActive){
-            painter->fillRect(option.rect, QBrush(m_ActiveColor));
-        }else{
-            painter->fillRect(option.rect, QBrush(m_notActiveColor));
+        if(qApp->applicationState() == Qt::ApplicationActive){
+            if(m_isActive){
+                painter->fillRect(option.rect, QBrush(m_ActiveColor));
+            }else{
+                painter->fillRect(option.rect, QBrush(m_notActiveColor));
+            }
+        }else if(qApp->applicationState() == Qt::ApplicationInactive){
+            painter->fillRect(option.rect, QBrush(m_applicationInactiveColor));
         }
     }else if((option.state & QStyle::State_MouseOver) == QStyle::State_MouseOver){
         painter->fillRect(option.rect, QBrush(m_hoverColor));
@@ -200,6 +216,11 @@ void NoteWidgetDelegate::paintDateTime(QPainter *painter, const QStyleOptionView
     double currRowHeight = m_rowHeight * rowHeightRate;
     double textRectPosX = rowPosX + 10;
     double textRectWidth = rowWidth - textRectPosX - 10;
+#ifdef __APPLE__
+    int bottomOffset = 5;
+#else
+    int bottomOffset = 3;
+#endif
 
     if(index.row() == m_animatedIndex.row()){
         if(m_state == MoveIn){
@@ -210,11 +231,11 @@ void NoteWidgetDelegate::paintDateTime(QPainter *painter, const QStyleOptionView
         }else{
 
             double textRectHeight = fm.height() + 2;
-            double textRectPosY = rowPosY + currRowHeight - (textRectHeight + 3);
+            double textRectPosY = rowPosY + currRowHeight - (textRectHeight + bottomOffset);
 
-            if(currRowHeight <= (textRectHeight + 3)){
+            if(currRowHeight <= (textRectHeight + bottomOffset)){
                 textRectPosY = rowPosY;
-                textRectHeight = currRowHeight - 3;
+                textRectHeight = currRowHeight - bottomOffset;
             }
 
             QRectF rect(textRectPosX, textRectPosY, textRectWidth, textRectHeight);
@@ -222,7 +243,7 @@ void NoteWidgetDelegate::paintDateTime(QPainter *painter, const QStyleOptionView
         }
     }else{
         double textRectHeight = fm.height() + 2;
-        double textRectPosY = rowPosY + m_rowHeight - (textRectHeight+3);
+        double textRectPosY = rowPosY + m_rowHeight - (textRectHeight + bottomOffset);
         QRectF rect(QPoint(textRectPosX, textRectPosY), QSize(textRectWidth, textRectHeight));
         painter->drawText(rect, Qt::AlignBottom, date);
     }
