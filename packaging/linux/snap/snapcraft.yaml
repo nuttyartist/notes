@@ -7,11 +7,12 @@ description: |
   brain. It is your place of expressing yourself. Notes is an open
   source and cross-platform project, and you're welcome to be part
   of it and contribute. We hope you will love it as much as we do.
+confinement: strict
 
 apps:
   notes:
     command: qt5-launch Notes
-    plugs: [unity7, opengl]
+    plugs: [unity7, opengl, network-bind]
 
 parts:
   notes:
@@ -26,8 +27,12 @@ parts:
       - libqt5widgets5
       - libqt5core5a
       - libqt5libqgtk2
+      - libglib2.0-0
+      - libgtk2.0-bin
       - libgtk2.0-common
       - overlay-scrollbar-gtk2
       - unity-gtk2-module
       - libcanberra-gtk-module
-    after: [qt5conf]
+      - libatk-adaptor
+      - libgail-common
+    after: [qt5conf-with-gtk]

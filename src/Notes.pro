@@ -34,7 +34,7 @@ FORMS    += mainwindow.ui
 RESOURCES += \
     images.qrc
 
-CONFIG   += c++11
+CONFIG   += c++11 debug
 
 DESTDIR = ../bin
 

@@ -21,3 +21,6 @@ packaging/linux/snap/stage
 packaging/linux/snap/snap
 packaging/linux/snap/parts/notes
 packaging/linux/snap/parts/qt5conf
+prime/
+squashfs-root/
+parts/qt5conf-with-gtk
