@@ -6,9 +6,9 @@
 
 #include "mainwindow.h"
 #include "singleinstance.h"
+#include "QSimpleUpdater.h"
 
 #include <QApplication>
-#include <QSimpleUpdater.h>
 
 // Define from where we download update definitions.
 // This should be changed from "dev" to "master" for production releases.
