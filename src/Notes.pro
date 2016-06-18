@@ -4,51 +4,45 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network
-QT       += gui-private
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT += core gui network
+QT += gui-private
 
 TARGET    = Notes
 TEMPLATE  = app
 CONFIG   += c++11
 
+UI_DIR = uic
+MOC_DIR = moc
+RCC_DIR = qrc
+OBJECTS_DIR = obj
+
+greaterThan (QT_MAJOR_VERSION, 4): QT += widgets
+
+include ($$PWD/../3rdParty/qxt/qxt.pri)
+include ($$PWD/../3rdParty/QSimpleUpdater/QSimpleUpdater.pri)
+
 SOURCES += \
-    main.cpp\
-    mainwindow.cpp \
-    notedata.cpp \
-    notewidgetdelegate.cpp \
-    notemodel.cpp \
-    noteview.cpp \
-    singleinstance.cpp \
-    ../3rdParty/qxt/qxtglobal.cpp \
-    ../3rdParty/qxt/qxtglobalshortcut.cpp
+    $$PWD/main.cpp\
+    $$PWD/mainwindow.cpp \
+    $$PWD/notedata.cpp \
+    $$PWD/notewidgetdelegate.cpp \
+    $$PWD/notemodel.cpp \
+    $$PWD/noteview.cpp \
+    $$PWD/singleinstance.cpp
 
 HEADERS  += \
-    mainwindow.h \
-    notedata.h \
-    notewidgetdelegate.h \
-    notemodel.h \
-    noteview.h \
-    singleinstance.h \
-    ../3rdParty/qxt/qxtglobal.h \
-    ../3rdParty/qxt/qxtglobalshortcut.h \
-    ../3rdParty/qxt/qxtglobalshortcut_p.h
+    $$PWD/mainwindow.h \
+    $$PWD/notedata.h \
+    $$PWD/notewidgetdelegate.h \
+    $$PWD/notemodel.h \
+    $$PWD/noteview.h \
+    $$PWD/singleinstance.h
 
-FORMS    += mainwindow.ui
-
-INCLUDEPATH += ../3rdParty/qxt
-
-RESOURCES += \
-    images.qrc
-
-OBJECTS_DIR = OBJ
+FORMS += $$PWD/mainwindow.ui
+RESOURCES += $$PWD/images.qrc
 
 unix:!macx {
-    SOURCES += ../3rdParty/qxt/qxtglobalshortcut_x11.cpp
-    LIBS += -lX11
-
-    isEmpty(PREFIX) {
+    isEmpty (PREFIX) {
         PREFIX = /usr
     }
 
@@ -59,16 +53,12 @@ unix:!macx {
     INSTALLS += target
 }
 
-macx{
-    SOURCES += ../3rdParty/qxt/qxtglobalshortcut_mac.cpp
-    DESTDIR = ../bin
-    ICON = images\notes_icon.icns
+macx {
+    DESTDIR = $$PWD/../bin
+    ICON = $$PWD/images\notes_icon.icns
 }
 
 win32 {
-    SOURCES += ../3rdParty/qxt/qxtglobalshortcut_win.cpp
-    LIBS+= -luser32
-    DESTDIR = ../bin
-    RC_FILE = images\notes.rc
-    DEFINES += QXT_STATIC
+    DESTDIR = $$PWD/../bin
+    RC_FILE = $$PWD/images\notes.rc
 }
