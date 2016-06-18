@@ -35,6 +35,8 @@ install:
   - if not %platformEnv%==mingw call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %platformEnv%
 
 build_script:
+  - cd C:\ci\notes\3rdParty\QSimpleUpdater
+  - git submodule update --init
   - cd C:\ci\notes\src
   - qmake -config release 
   - if not %platformEnv%==mingw (nmake) else (mingw32-make)
