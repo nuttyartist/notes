@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
         (&w)->setMainWindowVisibility(true);
     });
 
+#if defined Q_OS_WIN || defined Q_OS_MAC
     // Disable the integrated downloader, just open a link in a web browser
     QSimpleUpdater::getInstance()->setDownloaderEnabled (UPDATES_URL, false);
 
@@ -50,6 +51,9 @@ int main(int argc, char *argv[])
 
     // Check for updates
     QSimpleUpdater::getInstance()->checkForUpdates (UPDATES_URL);
+#else
+    Q_UNUSED (UPDATES_URL);
+#endif
 
     return app .exec();
 }
