@@ -55,5 +55,5 @@ int main(int argc, char *argv[])
     Q_UNUSED (UPDATES_URL);
 #endif
 
-    return app .exec();
+    return app.exec();
 }
