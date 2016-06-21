@@ -2,7 +2,7 @@ source: notes
 Section: utils
 Priority: optional
 Maintainer: Nutty Artist <awesomeness.notes@gmail.com>
-Build-Depends: debhelper (>= 9), qtbase5-dev (>= 5.2), qtbase5-dev-tools (>= 5.2), qt5-qmake
+Build-Depends: debhelper (>= 9), qtbase5-dev (>= 5.2), qtbase5-dev-tools (>= 5.2), qt5-qmake, qtbase5-private-dev
 Standards-Version: 3.9.6
 Homepage: http://www.get-notes.com/
 

@@ -1,3 +1,3 @@
-bin/Notes  usr/bin
-Notes.desktop usr/share/applications
-src/images/notes_icon.png usr/share/pixmaps
+notes  /usr/bin
+notes.desktop /usr/share/applications
+notes.png /usr/share/pixmaps
