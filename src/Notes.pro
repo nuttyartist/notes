@@ -42,9 +42,15 @@ FORMS += $$PWD/mainwindow.ui
 RESOURCES += $$PWD/images.qrc
 
 linux:!android {
-    target.path = /usr/bin
-    icon.path = /usr/share/pixmaps
-    desktop.path = /usr/share/applications
+    isEmpty (PREFIX) {
+        PREFIX = /usr
+    }
+
+    BINDIR  = $$PREFIX/bin
+
+    target.path = $$BINDIR
+    icon.path =  $$PREFIX/share/pixmaps
+    desktop.path =  $$PREFIX/share/applications
     icon.files += $$PWD/packaging/linux/common/notes.png
     desktop.files += $$PWD/packaging/linux/common/notes.desktop
 
