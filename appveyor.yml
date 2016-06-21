@@ -43,6 +43,10 @@ build_script:
   - if not %platformEnv%==mingw (nmake install) else (mingw32-make install)
   - cd C:\ci\notes\bin
   - windeployqt .
+  - if %platformEnv%==amd64_x86 copy "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\redist\\x86\\Microsoft.VC140.CRT\\msvcp140.dll" .
+  - if %platformEnv%==amd64_x86 copy "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\redist\\x86\\Microsoft.VC140.CRT\\vcruntime140.dll" .
+  - if %platformEnv%==amd64 copy "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\redist\\x64\\Microsoft.VC140.CRT\\msvcp140.dll" .
+  - if %platformEnv%==amd64 copy "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\redist\\x64\\Microsoft.VC140.CRT\\vcruntime140.dll" .
   - iscc C:\ci\notes\packaging\windows\Notes_Inno_Script.iss
   - cd C:\ci\notes\installer
   - dir
