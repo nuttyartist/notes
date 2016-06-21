@@ -41,16 +41,21 @@ HEADERS  += \
 FORMS += $$PWD/mainwindow.ui
 RESOURCES += $$PWD/images.qrc
 
-unix:!macx {
+linux:!android {
     isEmpty (PREFIX) {
         PREFIX = /usr
     }
 
-    BINDIR = $$PREFIX/bin
-    DATADIR =$$PREFIX/share
+    BINDIR  = $$PREFIX/bin
 
     target.path = $$BINDIR
-    INSTALLS += target
+    icon.path =  $$PREFIX/share/pixmaps
+    desktop.path =  $$PREFIX/share/applications
+    icon.files += $$PWD/packaging/linux/common/notes.png
+    desktop.files += $$PWD/packaging/linux/common/notes.desktop
+
+    TARGET = notes
+    INSTALLS += target desktop icon
 }
 
 macx {

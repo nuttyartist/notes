@@ -6,5 +6,5 @@ StartupNotify=true
 Name=Notes
 Comment=Write down your thoughts
 Categories=Utility;Application;
-Exec=/usr/bin/Notes
-Icon=/usr/share/pixmaps/notes_icon.png
+Exec=notes
+Icon=notes

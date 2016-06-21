@@ -1,10 +1,10 @@
 TEMPLATE = subdirs
+
 SUBDIRS = \
-    src\
+    src \
     tests
 
-CONFIG+=ordered
+CONFIG += ordered
 
 src.file = src/Notes.pro
-
 tests.depends = src
