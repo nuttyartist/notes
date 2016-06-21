@@ -11,6 +11,9 @@ if [ -d "$project" ]; then
     rm -rf "$project"
 fi
 
+# Ensure that submodules are initialized
+git submodule update --init
+
 # Generate folders
 mkdir deb_build
 cd deb_build
