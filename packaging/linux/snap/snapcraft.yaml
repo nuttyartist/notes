@@ -1,6 +1,6 @@
 name: notes
 # Note on version: $UPSTREAM_VERSION~.git$GIT_COMMIT_ID
-version: '0.9.0~git8b202cf'
+version: '0.9.0~gitef78f37'
 summary: Note taking application, write down your thoughts.
 description: |
   Notes is a tool for the things you need to write down off your
@@ -26,6 +26,7 @@ parts:
       - qtbase5-private-dev
       - qt5-qmake
     stage-packages:
+      - fonts-liberation
       - libqt5gui5
       - libqt5widgets5
       - libqt5core5a
