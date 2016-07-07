@@ -23,6 +23,7 @@ parts:
     build-packages:
       - qtbase5-dev
       - qtbase5-dev-tools
+      - qtbase5-private-dev
       - qt5-qmake
     stage-packages:
       - libqt5gui5
