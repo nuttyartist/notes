@@ -4,6 +4,8 @@
 #
 #-------------------------------------------------
 
+VERSION = 0.9.0
+
 QT += core gui network
 QT += gui-private
 
@@ -56,6 +58,20 @@ linux:!android {
 
     TARGET = notes
     INSTALLS += target desktop icon
+
+    GIT_REV = $$system(git rev-parse --short HEAD)
+    SNAPDIR = $$PWD/../packaging/linux/snap
+
+    snap_bump_version.commands = \
+        sed -i \"s/\\(^version:\\).*$$/\\1 $$VERSION~git$$GIT_REV/1\" $$SNAPDIR/snapcraft.yaml
+
+    snap.commands = cd $$SNAPDIR && \
+        snapcraft clean && snapcraft
+    snap.depends = snap_bump_version
+
+    QMAKE_EXTRA_TARGETS   += \
+        snap \
+        snap_bump_version
 }
 
 macx {
