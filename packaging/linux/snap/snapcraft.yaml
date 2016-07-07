@@ -1,6 +1,6 @@
 name: notes
 # Note on version: $UPSTREAM_VERSION~.git$GIT_COMMIT_ID
-version: '0.9.0~git89271ca'
+version: '0.9.0~git8b202cf'
 summary: Note taking application, write down your thoughts.
 description: |
   Notes is a tool for the things you need to write down off your
@@ -11,7 +11,7 @@ confinement: strict
 
 apps:
   notes:
-    command: desktop-launch Notes
+    command: desktop-launch notes
     plugs: [unity7, opengl, network-bind]
 
 parts:
