@@ -70,12 +70,9 @@ linux:!android {
 
     # Note: while it is planned to make snapcraft work across distros at the
     # time of writing `snapcraft` only works on Ubuntu. This means the snap
-    # needs to be built from an Ubuntu host. Also note that cleanbuild does a
-    # build from scratch on a clean environment using an LXD container. Please
-    # ensure that you have got lxd on your system and that you have set it up
-    # with `lxd init` to let it access the network
+    # needs to be built from an Ubuntu host.
     snap.commands = cd $$SNAPDIR && \
-        snapcraft cleanbuild
+        snapcraft clean && snapcraft
     snap.depends = snap_bump_version
 
     QMAKE_EXTRA_TARGETS   += \
