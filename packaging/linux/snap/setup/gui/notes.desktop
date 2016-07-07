@@ -1,5 +1,5 @@
 [Desktop Entry]
-Version=0.8
+Version=0.9
 Type=Application
 Terminal=false
 StartupNotify=true
@@ -7,4 +7,4 @@ Name=Notes
 Comment=Write down your thoughts
 Categories=Utility;Application;
 Exec=notes
-Icon=${SNAP}/meta/gui/notes_icon.png
+Icon=notes
