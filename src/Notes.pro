@@ -62,11 +62,20 @@ linux:!android {
     GIT_REV = $$system(git rev-parse --short HEAD)
     SNAPDIR = $$PWD/../packaging/linux/snap
 
+    # This command bumps the version in the final snap every time it is built,
+    # appending the git version of the latest commit to the VERSION variable
+    # defined in this project file
     snap_bump_version.commands = \
-        sed -i \"s/\\(^version:\\).*$$/\\1 $$VERSION~git$$GIT_REV/1\" $$SNAPDIR/snapcraft.yaml
+        sed -i \"s/\\(^version:\\).*$$/\\1 \'$$VERSION~git$$GIT_REV\'/1\" $$SNAPDIR/snapcraft.yaml
 
+    # Note: while it is planned to make snapcraft work across distros at the
+    # time of writing `snapcraft` only works on Ubuntu. This means the snap
+    # needs to be built from an Ubuntu host. Also note that cleanbuild does a
+    # build from scratch on a clean environment using an LXD container. Please
+    # ensure that you have got lxd on your system and that you have set it up
+    # with `lxd init` to let it access the network
     snap.commands = cd $$SNAPDIR && \
-        snapcraft clean && snapcraft
+        snapcraft cleanbuild
     snap.depends = snap_bump_version
 
     QMAKE_EXTRA_TARGETS   += \
