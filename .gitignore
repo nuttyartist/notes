@@ -20,7 +20,6 @@ __pycache__
 packaging/linux/snap/stage
 packaging/linux/snap/snap
 packaging/linux/snap/parts/notes
-packaging/linux/snap/parts/qt5conf
+packaging/linux/snap/parts/desktop
 prime/
 squashfs-root/
-parts/qt5conf-with-gtk

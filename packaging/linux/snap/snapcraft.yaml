@@ -11,12 +11,14 @@ confinement: strict
 
 apps:
   notes:
-    command: qt5-launch Notes
+    command: desktop-launch Notes
     plugs: [unity7, opengl, network-bind]
 
 parts:
   notes:
     plugin: qmake
+    qt-version: qt5
+    project-files: [Notes.pro]
     source: ../../../src
     build-packages:
       - qtbase5-dev
@@ -27,12 +29,4 @@ parts:
       - libqt5widgets5
       - libqt5core5a
       - libqt5libqgtk2
-      - libglib2.0-0
-      - libgtk2.0-bin
-      - libgtk2.0-common
-      - overlay-scrollbar-gtk2
-      - unity-gtk2-module
-      - libcanberra-gtk-module
-      - libatk-adaptor
-      - libgail-common
-    after: [qt5conf-with-gtk]
+    after: [desktop/qt5]
