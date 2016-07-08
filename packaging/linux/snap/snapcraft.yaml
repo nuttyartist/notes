@@ -1,0 +1,35 @@
+name: notes
+# Note on version: $UPSTREAM_VERSION~.git$GIT_COMMIT_ID
+version: '0.9.0~gitef78f37'
+summary: Note taking application, write down your thoughts.
+description: |
+  Notes is a tool for the things you need to write down off your
+  brain. It is your place of expressing yourself. Notes is an open
+  source and cross-platform project, and you're welcome to be part
+  of it and contribute. We hope you will love it as much as we do.
+confinement: strict
+
+apps:
+  notes:
+    command: desktop-launch notes
+    plugs: [unity7, opengl, network-bind]
+
+parts:
+  notes:
+    source: ../../../src
+    plugin: qmake
+    qt-version: qt5
+    project-files: [Notes.pro]
+    build-packages:
+      - qtbase5-dev
+      - qtbase5-dev-tools
+      - qtbase5-private-dev
+      - qt5-qmake
+    stage-packages:
+      - fonts-liberation
+      - libqt5gui5
+      - libqt5widgets5
+      - libqt5core5a
+      - libqt5libqgtk2
+      - xcursor-themes
+    after: [desktop/qt5]
