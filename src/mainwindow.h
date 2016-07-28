@@ -96,10 +96,10 @@ private:
     bool m_isOperationRunning;
 
     void setupMainWindow();
+    void setupFonts();
     void setupTrayIcon();
     void setupKeyboardShortcuts();
     void setupNewNoteButtonAndTrahButton();
-    void setupEditorDateLabel();
     void setupSplitter();
     void setupLine();
     void setupRightFrame();
@@ -130,7 +130,9 @@ private:
 
 private slots:
     void InitData();
+    void onNewNoteButtonPressed();
     void onNewNoteButtonClicked();
+    void onTrashButtonPressed();
     void onTrashButtonClicked();
     void onNotePressed(const QModelIndex &index);
     void onTextEditTextChanged();

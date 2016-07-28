@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>757</width>
-    <height>341</height>
+    <width>739</width>
+    <height>323</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -27,12 +27,12 @@
   </property>
   <property name="styleSheet">
    <string notr="true">#frameLeft{
-background-color: rgb(255, 255, 255);
+background-color: rgb(247, 247, 247);
 }
 
 NoteData #container {
   border: none;
-  background-color: white
+  background-color: rgb(247, 247, 247);
 }
 NoteData #titleLabel{
   margin-left:8px;
@@ -396,14 +396,14 @@ NoteData #dateLabel{
               </property>
               <property name="minimumSize">
                <size>
-                <width>192</width>
-                <height>25</height>
+                <width>175</width>
+                <height>22</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
-                <height>25</height>
+                <height>22</height>
                </size>
               </property>
               <property name="font">
@@ -478,6 +478,24 @@ NoteData #dateLabel{
           </item>
           <item>
            <widget class="NoteView" name="listView">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="baseSize">
+             <size>
+              <width>20</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="frameShape">
              <enum>QFrame::NoFrame</enum>
             </property>
@@ -581,7 +599,7 @@ NoteData #dateLabel{
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>31</width>
+              <width>24</width>
               <height>20</height>
              </size>
             </property>
@@ -606,7 +624,7 @@ NoteData #dateLabel{
             </property>
             <property name="icon">
              <iconset resource="images.qrc">
-              <normaloff>:/images/newNote.png</normaloff>:/images/newNote.png</iconset>
+              <normaloff>:/images/newNote_Regular.png</normaloff>:/images/newNote_Regular.png</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -694,7 +712,7 @@ color: rgb(132, 132, 132);
             </property>
             <property name="icon">
              <iconset resource="images.qrc">
-              <normaloff>:/images/trashCan.png</normaloff>:/images/trashCan.png</iconset>
+              <normaloff>:/images/trashCan_Regular.png</normaloff>:/images/trashCan_Regular.png</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -714,7 +732,7 @@ color: rgb(132, 132, 132);
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>31</width>
+              <width>23</width>
               <height>20</height>
              </size>
             </property>

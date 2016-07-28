@@ -1,8 +1,6 @@
 <RCC>
     <qresource prefix="/">
-        <file>images/closeButton.gif</file>
         <file>images/magnifyingGlass.png</file>
-        <file>images/textSideBackground.png</file>
         <file>images/green.png</file>
         <file>images/greenHovered.png</file>
         <file>images/greenInHovered.png</file>
@@ -15,8 +13,13 @@
         <file>images/yellowPressed.png</file>
         <file>images/greenPressed.png</file>
         <file>images/greenInPressed.png</file>
-        <file>images/trashCan.png</file>
-        <file>images/newNote.png</file>
         <file>images/notes_icon.png</file>
+        <file>images/newNote_Regular.png</file>
+        <file>images/newNote_Pressed.png</file>
+        <file>images/newNote_Hovered.png</file>
+        <file>images/trashCan_Regular.png</file>
+        <file>images/trashCan_Pressed.png</file>
+        <file>images/trashCan_Hovered.png</file>
+        <file>images/closeButton.png</file>
     </qresource>
 </RCC>
