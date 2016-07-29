@@ -6,6 +6,7 @@
 
 QT += core gui network sql
 QT += gui-private
+QT += concurrent
 
 TARGET    = Notes
 TEMPLATE  = app
