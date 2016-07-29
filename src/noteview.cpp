@@ -293,7 +293,7 @@ void NoteView::setupSignalsSlots()
  */
 void NoteView::setupStyleSheet()
 {
-    QString ss = QString("QListView QWidget{background-color:white;} "
+    QString ss = QString("QListView {background-color: rgb(247, 247, 247);} "
                          "QScrollBar {margin-right: 2px; background: transparent;} "
                          "QScrollBar:hover { background-color: rgb(217, 217, 217);}"
                          "QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "

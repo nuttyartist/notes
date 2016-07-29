@@ -51,10 +51,10 @@ MainWindow::MainWindow (QWidget *parent) :
 {
     ui->setupUi(this);
     setupMainWindow();
+    setupFonts();
     setupTrayIcon();
     setupKeyboardShortcuts();
     setupNewNoteButtonAndTrahButton();
-    setupEditorDateLabel();
     setupSplitter();
     setupLine();
     setupRightFrame ();
@@ -133,12 +133,24 @@ void MainWindow::setupMainWindow ()
     m_splitter = ui->splitter;
 
     QPalette pal(palette());
-    pal.setColor(QPalette::Background, Qt::white);
+    pal.setColor(QPalette::Background, QColor(247, 247, 247));
     this->setAutoFillBackground(true);
     this->setPalette(pal);
 
     m_newNoteButton->setToolTip("Create New Note");
     m_trashButton->setToolTip("Delete Selected Note");
+}
+
+void MainWindow::setupFonts()
+{
+    int id = QFontDatabase::addApplicationFont(":/fonts/roboto-hinted/Roboto-Regular.ttf");
+    QString robotoFontRegular = QFontDatabase::applicationFontFamilies(id).at(0);
+
+    id = QFontDatabase::addApplicationFont(":/fonts/roboto-hinted/Roboto-Bold.ttf");
+    QString robotoFontBold = QFontDatabase::applicationFontFamilies(id).at(0);
+
+    m_lineEdit->setFont(QFont(robotoFontRegular, 10));
+    m_editorDateLabel->setFont(QFont(robotoFontBold, 10, QFont::Bold));
 }
 
 void MainWindow::setupTrayIcon()
@@ -202,28 +214,16 @@ void MainWindow::setupKeyboardShortcuts ()
 */
 void MainWindow::setupNewNoteButtonAndTrahButton ()
 {
-#ifdef __APPLE__
-    m_newNoteButton->setMinimumSize(QSize(50, 32));
-    m_trashButton->setMinimumSize(QSize(50, 32));
-#endif
-}
-/**
-* @brief
-* This is what happens when you build cross-platform apps,
-* some problems just occures that needs specific and special care.
-* When we face these kind of problems it helps to remember that when
-* we put the effort to linger on these tiny bits and bytes it creates
-* a flawless and a delightful experience for are users,
-* and that's what matters the most.
-*/
-void MainWindow::setupEditorDateLabel()
-{
-    // There is a problem with Helvetica here so we usa Arial, someone sguggestion?
-#ifdef __APPLE__
-    QFont editorDateLabelFont(QFont("Arial", 12));
-    editorDateLabelFont.setBold(true);
-    m_editorDateLabel->setFont(editorDateLabelFont);
-#endif
+    QString ss = "QPushButton { "
+                 "  border: none; "
+                 "  padding: 0px; "
+                 "}";
+
+    m_newNoteButton->setStyleSheet(ss);
+    m_trashButton->setStyleSheet(ss);
+
+    m_newNoteButton->installEventFilter(this);
+    m_trashButton->installEventFilter(this);
 }
 
 /**
@@ -252,7 +252,7 @@ void MainWindow::setupLine ()
 void MainWindow::setupRightFrame ()
 {
     QString ss = "QFrame{ "
-                 "  background-image: url(:images/textSideBackground.png); "
+                 "  background-color: rgb(247, 247, 247); "
                  "  border: none;"
                  "}";
     ui->frameRight->setStyleSheet(ss);
@@ -295,8 +295,10 @@ void MainWindow::setupSignalsSlots()
     connect(m_yellowMinimizeButton, &QPushButton::pressed, this, &MainWindow::onYellowMinimizeButtonPressed);
     connect(m_yellowMinimizeButton, &QPushButton::clicked, this, &MainWindow::onYellowMinimizeButtonClicked);
     // new note button
+    connect(m_newNoteButton, &QPushButton::pressed, this, &MainWindow::onNewNoteButtonPressed);
     connect(m_newNoteButton, &QPushButton::clicked, this, &MainWindow::onNewNoteButtonClicked);
     // delete note button
+    connect(m_trashButton, &QPushButton::pressed, this, &MainWindow::onTrashButtonPressed);
     connect(m_trashButton, &QPushButton::clicked, this, &MainWindow::onTrashButtonClicked);
     connect(m_noteModel, &NoteModel::rowsRemoved, [this](){m_trashButton->setEnabled(true);});
     // text edit text changed
@@ -344,18 +346,18 @@ void MainWindow::setupSignalsSlots()
 */
 void MainWindow::setupLineEdit ()
 {
-    // There is a problem with Helvetica here so we usa Arial, someone sguggestion?
-#ifdef __APPLE__
-    m_lineEdit->setFont(QFont("Arial", 12));
-#endif
 
     QLineEdit* lineEdit = m_lineEdit;
 
     int frameWidth = m_lineEdit->style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
     QString ss = QString("QLineEdit{ "
                          "  padding-right: %1px; "
-                         "  padding-left: 20px;"
+                         "  padding-left: 21px;"
                          "  padding-right: 19px;"
+                         "  border: 1px solid rgb(205, 205, 205);"
+                         "  border-radius: 3px;"
+                         "  background: rgb(251, 251, 251);"
+                         "  selection-background-color: rgb(61, 155, 218);"
                          "} "
                          "QToolButton { "
                          "  border: none; "
@@ -367,7 +369,7 @@ void MainWindow::setupLineEdit ()
 
     // clear button
     m_clearButton = new QToolButton(lineEdit);
-    QPixmap pixmap(":images/closeButton.gif");
+    QPixmap pixmap(":images/closeButton.png");
     m_clearButton->setIcon(QIcon(pixmap));
     QSize clearSize(15, 15);
     m_clearButton->setIconSize(clearSize);
@@ -389,6 +391,8 @@ void MainWindow::setupLineEdit ()
     layout->addStretch();
     layout->addWidget(searchButton);
     lineEdit->setLayout(layout);
+
+    lineEdit->installEventFilter(this);
 }
 
 /**
@@ -400,18 +404,7 @@ void MainWindow::setupLineEdit ()
 */
 void MainWindow::setupTextEdit ()
 {
-
-#ifdef Q_OS_LINUX
-    m_textEditLeftPadding = 5;
-#elif _WIN32
-    m_textEditLeftPadding = 5;
-#elif __APPLE__
-    m_textEditLeftPadding = 22;
-#else
-#error "We don't support that version yet..."
-#endif
-
-    QString ss = QString("QTextEdit {background-image: url(:images/textSideBackground.png); padding-left: %1px; padding-right: %2px; padding-bottom:2px;} "
+    QString ss = QString("QTextEdit {background-color: rgb(247, 247, 247); padding-left: %1px; padding-right: %2px; padding-bottom:2px;} "
                          "QScrollBar::handle:vertical:hover { background: rgb(170, 170, 171); } "
                          "QScrollBar::handle:vertical:pressed { background: rgb(149, 149, 149); } "
                          "QScrollBar::handle:vertical { border-radius: 4px; background: rgb(188, 188, 188); min-height: 20px; }  "
@@ -420,22 +413,18 @@ void MainWindow::setupTextEdit ()
                          "QScrollBar:hover { background-color: rgb(217, 217, 217);}"
                          "QScrollBar::add-line:vertical { width:0px; height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
                          "QScrollBar::sub-line:vertical { width:0px; height: 0px; subcontrol-position: top; subcontrol-origin: margin; }"
-                         ).arg(QString::number(m_newNoteButton->width() - m_textEditLeftPadding), "27");
+                         ).arg("27", "27");
 
     m_textEdit->setStyleSheet(ss);
 
     m_textEdit->installEventFilter(this);
     m_textEdit->verticalScrollBar()->installEventFilter(this);
 
-#ifdef Q_OS_LINUX
-    m_textEdit->setFont(QFont("Liberation Sans", 11));
-#elif _WIN32
-    m_textEdit->setFont(QFont("Arial", 11));
-#elif __APPLE__
-    m_textEdit->setFont(QFont("Helvetica", 15));
-#else
-#error "We don't support that version yet..."
-#endif
+    int id = QFontDatabase::addApplicationFont(":/fonts/arimo/Arimo-Regular.ttf");
+    QString arimoFont = QFontDatabase::applicationFontFamilies(id).at(0);
+    m_textEdit->setFont(QFont(arimoFont, 11));
+
+    m_textEdit->setTextColor(QColor(26, 26, 26));
 }
 
 void MainWindow::initializeSettingsDatabase()
@@ -711,10 +700,21 @@ void MainWindow::createNewNoteIfEmpty ()
 
 /**
 * @brief
+* When the new-note button is pressed, set it's icon accordingly
+*/
+void MainWindow::onNewNoteButtonPressed()
+{
+    m_newNoteButton->setIcon(QIcon(":/images/newNote_Pressed.png"));
+}
+
+/**
+* @brief
 * Create a new note when clicking the 'new note' button
 */
 void MainWindow::onNewNoteButtonClicked()
 {
+    m_newNoteButton->setIcon(QIcon(":/images/newNote_Regular.png"));
+
     if(!m_lineEdit->text().isEmpty()){
         clearSearch();
         m_selectedNoteBeforeSearchingInSource = QModelIndex();
@@ -733,10 +733,21 @@ void MainWindow::onNewNoteButtonClicked()
 
 /**
 * @brief
+* When the trash button is pressed, set it's icon accordingly
+*/
+void MainWindow::onTrashButtonPressed()
+{
+    m_trashButton->setIcon(QIcon(":/images/trashCan_Pressed.png"));
+}
+
+/**
+* @brief
 * Delete selected note when clicking the 'delete note' button
 */
 void MainWindow::onTrashButtonClicked()
 {
+    m_trashButton->setIcon(QIcon(":/images/trashCan_Regular.png"));
+
     m_trashButton->blockSignals(true);
     this->deleteSelectedNote();
     m_trashButton->blockSignals(false);
@@ -1431,6 +1442,16 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
                     m_greenMaximizeButton->setIcon(QIcon(":images/greenHovered.png"));
                 }
             }
+
+            if(object == m_newNoteButton){
+                this->setCursor(Qt::PointingHandCursor);
+                m_newNoteButton->setIcon(QIcon(":/images/newNote_Hovered.png"));
+            }
+
+            if(object == m_trashButton){
+                this->setCursor(Qt::PointingHandCursor);
+                m_trashButton->setIcon(QIcon(":/images/trashCan_Hovered.png"));
+            }
         }
         break;
     }
@@ -1445,6 +1466,16 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
                 m_yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
                 m_greenMaximizeButton->setIcon(QIcon(":images/green.png"));
             }
+
+            if(object == m_newNoteButton){
+                this->unsetCursor();
+                m_newNoteButton->setIcon(QIcon(":/images/newNote_Regular.png"));
+            }
+
+            if(object == m_trashButton){
+                this->unsetCursor();
+                m_trashButton->setIcon(QIcon(":/images/trashCan_Regular.png"));
+            }
         }
         break;
     }
@@ -1452,12 +1483,16 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
         m_redCloseButton->setIcon(QIcon(":images/unfocusedButton"));
         m_yellowMinimizeButton->setIcon(QIcon(":images/unfocusedButton"));
         m_greenMaximizeButton->setIcon(QIcon(":images/unfocusedButton"));
+        m_newNoteButton->setIcon(QIcon(":/images/newNote_Regular.png"));
+        m_trashButton->setIcon(QIcon(":/images/trashCan_Regular.png"));
         break;
     }
     case QEvent::WindowActivate:{
         m_redCloseButton->setIcon(QIcon(":images/red.png"));
         m_yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
         m_greenMaximizeButton->setIcon(QIcon(":images/green.png"));
+        m_newNoteButton->setIcon(QIcon(":/images/newNote_Regular.png"));
+        m_trashButton->setIcon(QIcon(":/images/trashCan_Regular.png"));
         break;
     }
     case QEvent::HoverEnter:{
@@ -1515,11 +1550,51 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
                 }
             }
         }
+
+        if(object == m_lineEdit){
+            int frameWidth = m_lineEdit->style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
+            QString ss = QString("QLineEdit{ "
+                                 "  padding-right: %1px; "
+                                 "  padding-left: 21px;"
+                                 "  padding-right: 19px;"
+                                 "  border: 1px solid rgb(61, 155, 218);"
+                                 "  border-radius: 3px;"
+                                 "  background: rgb(251, 251, 251);"
+                                 "  selection-background-color: rgb(61, 155, 218);"
+                                 "} "
+                                 "QToolButton { "
+                                 "  border: none; "
+                                 "  padding: 0px;"
+                                 "}"
+                                 ).arg(frameWidth + 1);
+
+            m_lineEdit->setStyleSheet(ss);
+        }
         break;
     }
     case QEvent::FocusOut:{
         if(object == m_textEdit){
             m_noteView->setCurrentRowActive(false);
+        }
+
+        if(object == m_lineEdit){
+            int frameWidth = m_lineEdit->style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
+            QString ss = QString("QLineEdit{ "
+                                 "  padding-right: %1px; "
+                                 "  padding-left: 21px;"
+                                 "  padding-right: 19px;"
+                                 "  border: 1px solid rgb(205, 205, 205);"
+                                 "  border-radius: 3px;"
+                                 "  background: rgb(251, 251, 251);"
+                                 "  selection-background-color: rgb(61, 155, 218);"
+                                 "} "
+                                 "QToolButton { "
+                                 "  border: none; "
+                                 "  padding: 0px;"
+                                 "}"
+                                 ).arg(frameWidth + 1);
+
+            m_lineEdit->setStyleSheet(ss);
         }
         break;
     }

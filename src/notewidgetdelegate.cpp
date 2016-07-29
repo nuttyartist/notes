@@ -4,35 +4,31 @@
 #include <QEvent>
 #include <QDebug>
 #include <QApplication>
+#include <QFontDatabase>
 #include "notemodel.h"
 
 NoteWidgetDelegate::NoteWidgetDelegate(QObject *parent)
     : QStyledItemDelegate(parent),
-      m_titleFont(QFont(QStringLiteral("Liberation Sans"), 10,QFont::Bold)),
-      m_dateFont(QFont(QStringLiteral("Liberation Sans"), 8)),
-      m_titleColor(0, 0, 0),
+      m_titleFont(),
+      m_dateFont(),
+      m_titleColor(26, 26, 26),
       m_dateColor(132, 132, 132),
-      m_ActiveColor(255, 235, 80),
-      m_notActiveColor(254, 206, 9),
+      m_ActiveColor(218, 233, 239),
+      m_notActiveColor(175, 212, 228),
       m_hoverColor(207, 207, 207),
       m_applicationInactiveColor(207, 207, 207),
       m_separatorColor(221, 221, 221),
-      m_defaultColor(255,255,255),
-      m_rowHeight(38),
+      m_defaultColor(247, 247, 247),
+      m_rowHeight(40),
       m_maxFrame(200),
       m_rowRightOffset(0),
       m_state(Normal),
       m_isActive(false)
 {
-#ifdef __APPLE__
-    m_titleFont = QFont(QStringLiteral("Helvetica"), 10,QFont::Bold);
-    m_dateFont = QFont(QStringLiteral("Helvetica"), 8);
-    m_titleFont.setPointSize(13);
-    m_dateFont.setPointSize(11);
-#elif _WIN32
-    m_titleFont = QFont(QStringLiteral("Arial"), 10, QFont::Bold);
-    m_dateFont = QFont(QStringLiteral("Arial"), 8);
-#endif
+    int id = QFontDatabase::addApplicationFont(":/fonts/roboto-hinted/Roboto-Medium.ttf");
+    QString robotoFontMedium = QFontDatabase::applicationFontFamilies(id).at(0);
+    m_titleFont = QFont(robotoFontMedium, 10, 60);
+    m_dateFont = QFont(robotoFontMedium, 10);
 
     m_timeLine = new QTimeLine(300, this);
     m_timeLine->setFrameRange(0,m_maxFrame);
@@ -209,12 +205,8 @@ void NoteWidgetDelegate::paintDateTime(QPainter *painter, const QStyleOptionView
     QFontMetrics fm(m_dateFont);
 
     const int leftOffsetX = 10;
-    const int topOffsetY = 2;
-#ifdef __APPLE__
-    const int bottomOffset = 5;
-#else
-    const int bottomOffset = 3;
-#endif
+    const int topOffsetY = 0;
+    const int bottomOffset = 6;
 
     int rowPosX = option.rect.x();
     int rowPosY = option.rect.y();

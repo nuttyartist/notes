@@ -41,7 +41,8 @@ HEADERS  += \
     $$PWD/singleinstance.h
 
 FORMS += $$PWD/mainwindow.ui
-RESOURCES += $$PWD/images.qrc
+RESOURCES += $$PWD/images.qrc \
+    fonts.qrc
 
 linux:!android {
     isEmpty (PREFIX) {
