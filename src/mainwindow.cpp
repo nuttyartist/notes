@@ -673,9 +673,9 @@ void MainWindow::saveNoteToDB(const QModelIndex &noteIndex)
         if(note != Q_NULLPTR){
             bool doExist = m_dbManager->isNoteExist(note);
             if(doExist){
-                m_dbManager->modifyNote(note);
+                QtConcurrent::run(m_dbManager, &DBManager::modifyNote, note);
             }else{
-                m_dbManager->addNote(note);
+                QtConcurrent::run(m_dbManager, &DBManager::addNote, note);
             }
         }
 
@@ -975,7 +975,7 @@ void MainWindow::deleteNote(const QModelIndex &noteIndex, bool isFromUser)
             m_isTemp = false;
         }else{
             noteTobeRemoved->setDeletionDateTime(QDateTime::currentDateTime());
-            m_dbManager->removeNote(noteTobeRemoved);
+            QtConcurrent::run(m_dbManager, &DBManager::removeNote, noteTobeRemoved);
         }
 
         if(isFromUser){
