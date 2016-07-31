@@ -349,6 +349,7 @@ void MainWindow::setupSignalsSlots()
             selectNote(indexInProxy);
         }else if(m_isTemp && m_proxyModel->rowCount() == 1){
             QModelIndex indexInProxy = m_proxyModel->index(0, 0);
+            m_editorDateLabel->clear();
             deleteNote(indexInProxy, false);
         }
     });
