@@ -17,6 +17,12 @@ Use this command to clone the repository:
 git clone --recursive https://github.com/nuttyartist/notes.git
 ```
 
+### Where the notes are stored:
+
+**Windows:** C:\Users\user\AppData\Roaming\Awesomeness  
+**Linux:** /home/user/.config/Awesomeness/ **or** /home/snap/notes/x1/.config/Awesomeness **(for Ubuntu 16.04)**  
+**Mac:** /home/.config/Awesomeness/  
+
 ### Information for Contributors
 
 Check out our [wiki](https://github.com/nuttyartist/notes/wiki), we discuss there our philosophy, our current state and the future version of Notes.
