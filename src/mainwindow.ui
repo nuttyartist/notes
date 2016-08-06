@@ -723,6 +723,29 @@ color: rgb(132, 132, 132);
            </widget>
           </item>
           <item>
+           <widget class="QPushButton" name="dotsButton">
+            <property name="minimumSize">
+             <size>
+              <width>33</width>
+              <height>25</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>33</width>
+              <height>25</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="images.qrc">
+              <normaloff>:/images/3dots_Regular.png</normaloff>:/images/3dots_Regular.png</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
            <spacer name="horizontalSpacer_rightTrashButton">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>

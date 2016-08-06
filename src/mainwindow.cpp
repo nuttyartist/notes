@@ -31,6 +31,7 @@ MainWindow::MainWindow (QWidget *parent) :
     m_yellowMinimizeButton(Q_NULLPTR),
     m_newNoteButton(Q_NULLPTR),
     m_trashButton(Q_NULLPTR),
+    m_dotsButton(Q_NULLPTR),
     m_textEdit(Q_NULLPTR),
     m_lineEdit(Q_NULLPTR),
     m_editorDateLabel(Q_NULLPTR),
@@ -51,6 +52,8 @@ MainWindow::MainWindow (QWidget *parent) :
 {
     ui->setupUi(this);
     setupMainWindow();
+    createActions();
+    createMenu();
     setupFonts();
     setupTrayIcon();
     setupKeyboardShortcuts();
@@ -127,6 +130,7 @@ void MainWindow::setupMainWindow ()
     m_yellowMinimizeButton = ui->yellowMinimizeButton;
     m_newNoteButton = ui->newNoteButton;
     m_trashButton = ui->trashButton;
+    m_dotsButton = ui->dotsButton;
     m_lineEdit = ui->lineEdit;
     m_textEdit = ui->textEdit;
     m_editorDateLabel = ui->editorDateLabel;
@@ -139,6 +143,7 @@ void MainWindow::setupMainWindow ()
 
     m_newNoteButton->setToolTip("Create New Note");
     m_trashButton->setToolTip("Delete Selected Note");
+    m_dotsButton->setToolTip("Open Menu");
 }
 
 void MainWindow::setupFonts()
@@ -204,6 +209,72 @@ void MainWindow::setupKeyboardShortcuts ()
     });
 }
 
+void MainWindow::createActions()
+{
+    m_alwaysOnTopAction = new QAction("Window Always On Top", this);
+    m_alwaysOnTopAction->setCheckable(true);
+
+    m_rightToLeftAction = new QAction("Right-To-Left Layout", this);;
+    m_rightToLeftAction->setCheckable(true);
+
+
+   m_checkForUpdatesAction = new QAction("Check For Updates", this);;
+}
+
+void MainWindow::createMenu()
+{
+    m_mainMenu = new QMenu(this);
+    QMenu* viewMenu = m_mainMenu->addMenu("View");
+
+    viewMenu->addAction(m_alwaysOnTopAction);
+    viewMenu->addAction(m_rightToLeftAction);
+
+    m_mainMenu->setStyleSheet("QMenu { "
+                            "  background-color: rgb(247, 247, 247); "
+                            "  border: 1px solid #308CC6; "
+                            "  }"
+                            "QMenu::item:selected { "
+                            "  background: 1px solid #308CC6; "
+                            "  }");
+
+    int id = QFontDatabase::addApplicationFont(":/fonts/roboto-hinted/Roboto-Regular.ttf");
+    QString robotoFontRegular = QFontDatabase::applicationFontFamilies(id).at(0);
+    m_mainMenu->setFont(robotoFontRegular);
+
+#ifndef Q_OS_LINUX
+    m_mainMenu->addAction(checkForUpdatesAction);
+#endif
+}
+
+void MainWindow::onAlwaysOnTopActionTriggered()
+{
+    if(m_alwaysOnTopAction->isChecked()){
+
+#ifdef Q_OS_LINUX
+    this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+#elif _WIN32
+    this->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint);
+#elif __APPLE__
+    this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+#endif
+
+        this->show();
+
+    }else{
+
+#ifdef Q_OS_LINUX
+    this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+#elif _WIN32
+    this->setWindowFlags(Qt::CustomizeWindowHint);
+#elif __APPLE__
+    this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+#endif
+
+        this->show();
+
+    }
+}
+
 /**
 * @brief
 * We need to set up some different values when using apple os x
@@ -221,9 +292,11 @@ void MainWindow::setupNewNoteButtonAndTrahButton ()
 
     m_newNoteButton->setStyleSheet(ss);
     m_trashButton->setStyleSheet(ss);
+    m_dotsButton->setStyleSheet(ss);
 
     m_newNoteButton->installEventFilter(this);
     m_trashButton->installEventFilter(this);
+    m_dotsButton->installEventFilter(this);
 }
 
 /**
@@ -285,6 +358,10 @@ void MainWindow::setupTitleBarButtons ()
  */
 void MainWindow::setupSignalsSlots()
 {
+    // actions
+    connect(m_alwaysOnTopAction, &QAction::triggered, this, &MainWindow::onAlwaysOnTopActionTriggered);
+   // connect(rightToLeftActionion, &QAction::triggered, this, );
+    //connect(checkForUpdatesAction, &QAction::triggered, this, );
     // green button
     connect(m_greenMaximizeButton, &QPushButton::pressed, this, &MainWindow::onGreenMaximizeButtonPressed);
     connect(m_greenMaximizeButton, &QPushButton::clicked, this, &MainWindow::onGreenMaximizeButtonClicked);
@@ -301,6 +378,9 @@ void MainWindow::setupSignalsSlots()
     connect(m_trashButton, &QPushButton::pressed, this, &MainWindow::onTrashButtonPressed);
     connect(m_trashButton, &QPushButton::clicked, this, &MainWindow::onTrashButtonClicked);
     connect(m_noteModel, &NoteModel::rowsRemoved, [this](){m_trashButton->setEnabled(true);});
+    // 3 dots button
+    connect(m_dotsButton, &QPushButton::pressed, this, &MainWindow::onDotsButtonPressed);
+    connect(m_dotsButton, &QPushButton::clicked, this, &MainWindow::onDotsButtonClicked);
     // text edit text changed
     connect(m_textEdit, &QTextEdit::textChanged, this, &MainWindow::onTextEditTextChanged);
     // line edit text changed
@@ -752,6 +832,27 @@ void MainWindow::onTrashButtonClicked()
     this->deleteSelectedNote();
     m_trashButton->blockSignals(false);
 }
+
+/**
+* @brief
+* When the 3 dots button is pressed, set it's icon accordingly
+*/
+void MainWindow::onDotsButtonPressed()
+{
+    m_dotsButton->setIcon(QIcon(":/images/3dots_Pressed.png"));
+}
+
+/**
+* @brief
+* Open up the menu when clicking the 3 dots button
+*/
+void MainWindow::onDotsButtonClicked()
+{
+    m_dotsButton->setIcon(QIcon(":/images/3dots_Regular.png"));
+
+    m_mainMenu->exec(m_dotsButton->mapToGlobal(QPoint(0, m_dotsButton->height())));
+}
+
 
 /**
 * @brief
@@ -1452,6 +1553,11 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
                 this->setCursor(Qt::PointingHandCursor);
                 m_trashButton->setIcon(QIcon(":/images/trashCan_Hovered.png"));
             }
+
+            if(object == m_dotsButton){
+                this->setCursor(Qt::PointingHandCursor);
+                m_dotsButton->setIcon(QIcon(":/images/3dots_Hovered.png"));
+            }
         }
         break;
     }
@@ -1476,6 +1582,11 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
                 this->unsetCursor();
                 m_trashButton->setIcon(QIcon(":/images/trashCan_Regular.png"));
             }
+
+            if(object == m_dotsButton){
+                this->unsetCursor();
+                m_dotsButton->setIcon(QIcon(":/images/3dots_Regular.png"));
+            }
         }
         break;
     }
@@ -1485,6 +1596,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
         m_greenMaximizeButton->setIcon(QIcon(":images/unfocusedButton"));
         m_newNoteButton->setIcon(QIcon(":/images/newNote_Regular.png"));
         m_trashButton->setIcon(QIcon(":/images/trashCan_Regular.png"));
+        m_dotsButton->setIcon(QIcon(":/images/3dots_Regular.png"));
         break;
     }
     case QEvent::WindowActivate:{
@@ -1493,6 +1605,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
         m_greenMaximizeButton->setIcon(QIcon(":images/green.png"));
         m_newNoteButton->setIcon(QIcon(":/images/newNote_Regular.png"));
         m_trashButton->setIcon(QIcon(":/images/trashCan_Regular.png"));
+        m_dotsButton->setIcon(QIcon(":/images/3dots_Regular.png"));
         break;
     }
     case QEvent::HoverEnter:{

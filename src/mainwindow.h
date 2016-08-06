@@ -55,6 +55,12 @@ private:
 
     Ui::MainWindow* ui;
 
+    QMenu* m_mainMenu;
+
+    QAction* m_alwaysOnTopAction;
+    QAction* m_rightToLeftAction;
+    QAction* m_checkForUpdatesAction;
+
     QTimer* m_autoSaveTimer;
     QSettings* m_notesDatabase;
     QSettings* m_trashDatabase;
@@ -66,6 +72,7 @@ private:
     QPushButton* m_yellowMinimizeButton;
     QPushButton* m_newNoteButton;
     QPushButton* m_trashButton;
+    QPushButton* m_dotsButton;
     QTextEdit* m_textEdit;
     QLineEdit* m_lineEdit;
     QLabel* m_editorDateLabel;
@@ -96,6 +103,8 @@ private:
     bool m_isOperationRunning;
 
     void setupMainWindow();
+    void createActions();
+    void createMenu();
     void setupFonts();
     void setupTrayIcon();
     void setupKeyboardShortcuts();
@@ -130,10 +139,13 @@ private:
 
 private slots:
     void InitData();
+    void onAlwaysOnTopActionTriggered();
     void onNewNoteButtonPressed();
     void onNewNoteButtonClicked();
     void onTrashButtonPressed();
     void onTrashButtonClicked();
+    void onDotsButtonPressed();
+    void onDotsButtonClicked();
     void onNotePressed(const QModelIndex &index);
     void onTextEditTextChanged();
     void onLineEditTextChanged(const QString& keyword);

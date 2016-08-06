@@ -21,5 +21,8 @@
         <file>images/trashCan_Pressed.png</file>
         <file>images/trashCan_Hovered.png</file>
         <file>images/closeButton.png</file>
+        <file>images/3dots_Regular.png</file>
+        <file>images/3dots_Pressed.png</file>
+        <file>images/3dots_Hovered.png</file>
     </qresource>
 </RCC>
