@@ -211,14 +211,10 @@ void MainWindow::setupKeyboardShortcuts ()
 
 void MainWindow::createActions()
 {
-    m_alwaysOnTopAction = new QAction("Window Always On Top", this);
-    m_alwaysOnTopAction->setCheckable(true);
-
     m_rightToLeftAction = new QAction("Right-To-Left Layout", this);;
     m_rightToLeftAction->setCheckable(true);
 
-
-   m_checkForUpdatesAction = new QAction("Check For Updates", this);;
+    m_checkForUpdatesAction = new QAction("Check For Updates", this);;
 }
 
 void MainWindow::createMenu()
@@ -226,7 +222,6 @@ void MainWindow::createMenu()
     m_mainMenu = new QMenu(this);
     QMenu* viewMenu = m_mainMenu->addMenu("View");
 
-    viewMenu->addAction(m_alwaysOnTopAction);
     viewMenu->addAction(m_rightToLeftAction);
 
     m_mainMenu->setStyleSheet("QMenu { "
@@ -245,35 +240,6 @@ void MainWindow::createMenu()
 #ifndef Q_OS_LINUX
     m_mainMenu->addAction(checkForUpdatesAction);
 #endif
-}
-
-void MainWindow::onAlwaysOnTopActionTriggered()
-{
-    if(m_alwaysOnTopAction->isChecked()){
-
-#ifdef Q_OS_LINUX
-    this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-#elif _WIN32
-    this->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint);
-#elif __APPLE__
-    this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-#endif
-
-        this->show();
-
-    }else{
-
-#ifdef Q_OS_LINUX
-    this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
-#elif _WIN32
-    this->setWindowFlags(Qt::CustomizeWindowHint);
-#elif __APPLE__
-    this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
-#endif
-
-        this->show();
-
-    }
 }
 
 /**
@@ -360,8 +326,7 @@ void MainWindow::setupTitleBarButtons ()
 void MainWindow::setupSignalsSlots()
 {
     // actions
-    connect(m_alwaysOnTopAction, &QAction::triggered, this, &MainWindow::onAlwaysOnTopActionTriggered);
-   // connect(rightToLeftActionion, &QAction::triggered, this, );
+    // connect(rightToLeftActionion, &QAction::triggered, this, );
     //connect(checkForUpdatesAction, &QAction::triggered, this, );
     // green button
     connect(m_greenMaximizeButton, &QPushButton::pressed, this, &MainWindow::onGreenMaximizeButtonPressed);
@@ -506,6 +471,11 @@ void MainWindow::setupTextEdit ()
     m_textEdit->setFont(QFont(arimoFont, 11));
 
     m_textEdit->setTextColor(QColor(26, 26, 26));
+
+    // This is done because for now where we're only handling plain text,
+    // and we don't want people to past rich text and get something wrong.
+    // In future versions, where we'll support rich text, we'll need to change that.
+    m_textEdit->setAcceptRichText(false);
 }
 
 void MainWindow::initializeSettingsDatabase()

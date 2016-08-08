@@ -57,7 +57,6 @@ private:
 
     QMenu* m_mainMenu;
 
-    QAction* m_alwaysOnTopAction;
     QAction* m_rightToLeftAction;
     QAction* m_checkForUpdatesAction;
 
@@ -139,7 +138,6 @@ private:
 
 private slots:
     void InitData();
-    void onAlwaysOnTopActionTriggered();
     void onNewNoteButtonPressed();
     void onNewNoteButtonClicked();
     void onTrashButtonPressed();
