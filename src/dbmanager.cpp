@@ -162,11 +162,17 @@ bool DBManager::migrateNote(NoteData* note)
 {
     QSqlQuery query;
 
+    QString emptyStr;
+
     int id = note->id().split('_')[1].toInt();
     qint64 epochTimeDateCreated = note->creationDateTime().toMSecsSinceEpoch();
     qint64 epochTimeDateModified = note->lastModificationdateTime().toMSecsSinceEpoch();
-    QString content = note->content().replace("'","''");
-    QString fullTitle = note->fullTitle().replace("'","''");
+    QString content = note->content()
+                      .replace("'","''")
+                      .replace(QChar('\x0'), emptyStr);
+    QString fullTitle = note->fullTitle()
+                        .replace("'","''")
+                        .replace(QChar('\x0'), emptyStr);
 
     QString queryStr = QString("INSERT INTO active_notes "
                                "VALUES (%1, %2, %3, -1, '%4', '%5');")
@@ -184,12 +190,18 @@ bool DBManager::migrateTrash(NoteData* note)
 {
     QSqlQuery query;
 
+    QString emptyStr;
+
     int id = note->id().split('_')[1].toInt();
     qint64 epochTimeDateCreated = note->creationDateTime().toMSecsSinceEpoch();
     qint64 epochTimeDateModified = note->lastModificationdateTime().toMSecsSinceEpoch();
     qint64 epochTimeDateDeleted = note->deletionDateTime().toMSecsSinceEpoch();
-    QString content = note->content().replace("'","''");
-    QString fullTitle = note->fullTitle().replace("'","''");
+    QString content = note->content()
+                      .replace("'","''")
+                      .replace(QChar('\x0'), emptyStr);
+    QString fullTitle = note->fullTitle()
+                        .replace("'","''")
+                        .replace(QChar('\x0'), emptyStr);
 
     QString queryStr = QString("INSERT INTO deleted_notes "
                        "VALUES (%1, %2, %3, %4, '%5', '%6');")

@@ -84,7 +84,7 @@ void MainWindow::InitData()
     bool exist = (QFile::exists(oldNoteDBPath) || QFile::exists(oldTrashDBPath));
 
     if(exist){
-        QProgressDialog* pd = new QProgressDialog("Migrating database", "", 0, 0, this);
+        QProgressDialog* pd = new QProgressDialog("Migrating database, please wait.", "", 0, 0, this);
         pd->setCancelButton(0);
         pd->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
         pd->setMinimumDuration(0);
