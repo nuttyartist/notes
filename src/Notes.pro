@@ -6,8 +6,9 @@
 
 VERSION = 0.9.0
 
-QT += core gui network
+QT += core gui network sql
 QT += gui-private
+QT += concurrent
 
 TARGET    = Notes
 TEMPLATE  = app
@@ -30,7 +31,8 @@ SOURCES += \
     $$PWD/notewidgetdelegate.cpp \
     $$PWD/notemodel.cpp \
     $$PWD/noteview.cpp \
-    $$PWD/singleinstance.cpp
+    $$PWD/singleinstance.cpp \
+    dbmanager.cpp
 
 HEADERS  += \
     $$PWD/mainwindow.h \
@@ -38,7 +40,8 @@ HEADERS  += \
     $$PWD/notewidgetdelegate.h \
     $$PWD/notemodel.h \
     $$PWD/noteview.h \
-    $$PWD/singleinstance.h
+    $$PWD/singleinstance.h \
+    dbmanager.h
 
 FORMS += $$PWD/mainwindow.ui
 RESOURCES += $$PWD/images.qrc \

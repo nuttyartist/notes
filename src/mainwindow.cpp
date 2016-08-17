@@ -6,12 +6,15 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "notewidgetdelegate.h"
+#include "qxtglobalshortcut.h"
+
 #include <QScrollBar>
 #include <QShortcut>
 #include <QTextStream>
 #include <QScrollArea>
-#include "notewidgetdelegate.h"
-#include "qxtglobalshortcut.h"
+#include <QtConcurrent>
+#include <QProgressDialog>
 #define FIRST_LINE_MAX 80
 
 /**
@@ -21,8 +24,6 @@ MainWindow::MainWindow (QWidget *parent) :
     QMainWindow (parent),
     ui (new Ui::MainWindow),
     m_autoSaveTimer(new QTimer(this)),
-    m_notesDatabase(Q_NULLPTR),
-    m_trashDatabase(Q_NULLPTR),
     m_settingsDatabase(Q_NULLPTR),
     m_noteWidgetsContainer(Q_NULLPTR),
     m_clearButton(Q_NULLPTR),
@@ -41,6 +42,7 @@ MainWindow::MainWindow (QWidget *parent) :
     m_noteModel(new NoteModel(this)),
     m_deletedNotesModel(new NoteModel(this)),
     m_proxyModel(new QSortFilterProxyModel(this)),
+    m_dbManager(Q_NULLPTR),
     m_noteCounter(0),
     m_trashCounter(0),
     m_canMoveWindow(false),
@@ -74,9 +76,42 @@ MainWindow::MainWindow (QWidget *parent) :
  */
 void MainWindow::InitData()
 {
-    loadNotes();
-    createNewNoteIfEmpty();
-    selectFirstNote();
+    QFileInfo fi(m_settingsDatabase->fileName());
+    QDir dir(fi.absolutePath());
+    QString oldNoteDBPath(dir.path() + "/Notes.ini");
+    QString oldTrashDBPath(dir.path() + "/Trash.ini");
+
+    bool exist = (QFile::exists(oldNoteDBPath) || QFile::exists(oldTrashDBPath));
+
+    if(exist){
+        QProgressDialog* pd = new QProgressDialog("Migrating database, please wait.", "", 0, 0, this);
+        pd->setCancelButton(0);
+        pd->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+        pd->setMinimumDuration(0);
+        pd->show();
+
+        setButtonsAndFieldsEnabled(false);
+
+        QFutureWatcher<void>* watcher = new QFutureWatcher<void>(this);
+        connect(watcher, &QFutureWatcher<void>::finished, this, [&, pd](){
+            pd->deleteLater();
+
+            setButtonsAndFieldsEnabled(true);
+
+            loadNotes();
+            createNewNoteIfEmpty();
+            selectFirstNote();
+        });
+
+        QFuture<void> migration = QtConcurrent::run(this, &MainWindow::checkMigration);
+        watcher->setFuture(migration);
+
+    }else{
+
+        loadNotes();
+        createNewNoteIfEmpty();
+        selectFirstNote();
+    }
 }
 
 void MainWindow::setMainWindowVisibility(bool state)
@@ -314,6 +349,7 @@ void MainWindow::setupSignalsSlots()
             selectNote(indexInProxy);
         }else if(m_isTemp && m_proxyModel->rowCount() == 1){
             QModelIndex indexInProxy = m_proxyModel->index(0, 0);
+            m_editorDateLabel->clear();
             deleteNote(indexInProxy, false);
         }
     });
@@ -463,34 +499,27 @@ void MainWindow::initializeSettingsDatabase()
 */
 void MainWindow::setupDatabases ()
 {
-    m_notesDatabase = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Awesomeness", "Notes", this);
-    m_notesDatabase->setFallbacksEnabled(false);
-
-    QString cntStr = m_notesDatabase->value("notesCounter", "NULL").toString();
-    if(cntStr == "NULL"){
-        m_notesDatabase->setValue("notesCounter", 0);
-    }else{
-        m_noteCounter = cntStr.toInt();
-    }
-
-    m_trashDatabase = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Awesomeness", "Trash", this);
-    m_trashDatabase->setFallbacksEnabled(false);
-
-    QString trashCntrStr = m_trashDatabase->value("notesCounter", "NULL").toString();
-    if(trashCntrStr == "NULL"){
-        m_trashDatabase->setValue("notesCounter", 0);
-    }else{
-        m_trashCounter = trashCntrStr.toInt();
-    }
-
     m_settingsDatabase = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Awesomeness", "Settings", this);
     m_settingsDatabase->setFallbacksEnabled(false);
-
     initializeSettingsDatabase();
 
-    m_notesDatabase->sync();
-    m_trashDatabase->sync();
-    m_settingsDatabase->sync();
+    bool doCreate = false;
+    QFileInfo fi(m_settingsDatabase->fileName());
+    QDir dir(fi.absolutePath());
+    QString noteDBFilePath(dir.path() + "/notes.db");
+
+    if(!QFile::exists(noteDBFilePath)){
+        QFile noteDBFile(noteDBFilePath);
+        if(!noteDBFile.open(QIODevice::WriteOnly)){
+            qDebug() << "can't create db file";
+            qApp->exit(-1);
+        }
+        noteDBFile.close();
+        doCreate = true;
+    }
+
+    m_dbManager = new DBManager(noteDBFilePath, doCreate, this);
+    m_noteCounter = m_dbManager->getLastRowID();
 }
 
 void MainWindow::setupModelView()
@@ -570,31 +599,15 @@ QString MainWindow::getNoteDateEditor (QString dateEdited)
 * @brief
 * @brief generate a new note
 */
-NoteData *MainWindow::generateNote(QString noteName, bool isLoadingOrNew)
+NoteData *MainWindow::generateNote(QString noteName)
 {
     NoteData* newNote = new NoteData(this);
     newNote->setId(noteName);
 
-    if(isLoadingOrNew){
-        // created date time
-        QString createdDateDB = m_notesDatabase->value(noteName + "/dateCreated", "Error").toString();
-        newNote->setCreationDateTime(QDateTime::fromString(createdDateDB, Qt::ISODate));
-        // last edited date time
-        QString lastEditedDateDB = m_notesDatabase->value(noteName + "/dateEdited", "Error").toString();
-        newNote->setLastModificationDateTime(QDateTime::fromString(lastEditedDateDB, Qt::ISODate));
-        // content
-        QString contentText = m_notesDatabase->value(noteName + "/content", "Error").toString();
-        newNote->setContent(contentText);
-        // full title
-        QString firstLine = getFirstLine(contentText);
-        newNote->setFullTitle(firstLine);
-
-    }else{
-        QDateTime noteDate = QDateTime::currentDateTime();
-        newNote->setCreationDateTime(noteDate);
-        newNote->setLastModificationDateTime(noteDate);
-        newNote->setFullTitle(QStringLiteral("New Note"));
-    }
+    QDateTime noteDate = QDateTime::currentDateTime();
+    newNote->setCreationDateTime(noteDate);
+    newNote->setLastModificationDateTime(noteDate);
+    newNote->setFullTitle(QStringLiteral("New Note"));
 
     return newNote;
 }
@@ -630,14 +643,7 @@ void MainWindow::showNoteInEditor(const QModelIndex &noteIndex)
 */
 void MainWindow::loadNotes ()
 {
-    QStringList dbKeys = m_notesDatabase->allKeys();
-    QList<NoteData*> noteList;
-    auto it = dbKeys.begin();
-    for(; it < dbKeys.end()-1; it += 3){
-        QString noteName = it->split("/")[0];
-        NoteData* newNote = generateNote(noteName, true);
-        noteList << newNote;
-    }
+    QList<NoteData*> noteList = m_dbManager->getAllNotes();
 
     if(!noteList.isEmpty()){
         m_noteModel->addListNote(noteList);
@@ -652,23 +658,27 @@ void MainWindow::loadNotes ()
 void MainWindow::saveNoteToDB(const QModelIndex &noteIndex)
 {
     if(noteIndex.isValid() && m_isContentModified){
-
-        QModelIndex proxyIndex = m_proxyModel->index(noteIndex.row(),0);
-        QModelIndex index = m_proxyModel->mapToSource(proxyIndex);
-
-        QString id = index.data(NoteModel::NoteID).toString();
-        QString content = index.data(NoteModel::NoteContent).toString();
-        QDateTime createdDateTime = index.data(NoteModel::NoteCreationDateTime).toDateTime();
-        QString createdNoteDateStr = createdDateTime.toString(Qt::ISODate);
-        QDateTime editedDateTime = index.data(NoteModel::NoteLastModificationDateTime).toDateTime();
-        QString editedNoteDateStr = editedDateTime.toString(Qt::ISODate);
-
-        m_notesDatabase->setValue("notesCounter", m_noteCounter);
-        m_notesDatabase->setValue(id + "/content", content);
-        m_notesDatabase->setValue(id + "/dateCreated", createdNoteDateStr);
-        m_notesDatabase->setValue(id + "/dateEdited", editedNoteDateStr);
+        QModelIndex indexInSrc = m_proxyModel->mapToSource(noteIndex);
+        NoteData* note = m_noteModel->getNote(indexInSrc);
+        if(note != Q_NULLPTR){
+            bool doExist = m_dbManager->isNoteExist(note);
+            if(doExist){
+                QtConcurrent::run(m_dbManager, &DBManager::modifyNote, note);
+            }else{
+                QtConcurrent::run(m_dbManager, &DBManager::addNote, note);
+            }
+        }
 
         m_isContentModified = false;
+    }
+}
+
+void MainWindow::removeNoteFromDB(const QModelIndex& noteIndex)
+{
+    if(noteIndex.isValid()){
+        QModelIndex indexInSrc = m_proxyModel->mapToSource(noteIndex);
+        NoteData* note = m_noteModel->getNote(indexInSrc);
+        m_dbManager->removeNote(note);
     }
 }
 
@@ -696,6 +706,17 @@ void MainWindow::createNewNoteIfEmpty ()
 {
     if(m_proxyModel->rowCount() == 0)
         createNewNote();
+}
+
+void MainWindow::setButtonsAndFieldsEnabled(bool doEnable)
+{
+    m_greenMaximizeButton->setEnabled(doEnable);
+    m_redCloseButton->setEnabled(doEnable);
+    m_yellowMinimizeButton->setEnabled(doEnable);
+    m_newNoteButton->setEnabled(doEnable);
+    m_trashButton->setEnabled(doEnable);
+    m_lineEdit->setEnabled(doEnable);
+    m_textEdit->setEnabled(doEnable);
 }
 
 /**
@@ -766,39 +787,6 @@ void MainWindow::onNotePressed (const QModelIndex& index)
     if(sender() != Q_NULLPTR){
         QModelIndex indexInProxy = m_proxyModel->index(index.row(), 0);
         selectNote(indexInProxy);
-    }
-}
-
-/**
-* @brief
-* Delete a given note from the database and put it in the trash DB
-*/
-void MainWindow::deleteNoteFromDataBase (const QModelIndex &noteIndex)
-{
-    if(noteIndex.isValid()){
-        QString id = noteIndex.data(NoteModel::NoteID).toString();
-        QString content = noteIndex.data(NoteModel::NoteContent).toString();
-        QDateTime createdDateTime = noteIndex.data(NoteModel::NoteCreationDateTime).toDateTime();
-        QDateTime lastEditedDateTime = noteIndex.data(NoteModel::NoteLastModificationDateTime).toDateTime();
-        QDateTime deletedNoteDateTime =  noteIndex.data(NoteModel::NoteDeletionDateTime).toDateTime();
-
-        // Putting the deleted note in trash
-        ++m_trashCounter;
-        QString noteName = QString("noteID_%1").arg(m_trashCounter);
-        QString dateDBCreated = createdDateTime.toString(Qt::ISODate);
-        QString dateDBEdited = lastEditedDateTime.toString(Qt::ISODate);
-        QString dateNoteDeleted = deletedNoteDateTime.toString(Qt::ISODate);
-
-        m_trashDatabase->setValue("notesCounter", m_trashCounter);
-        m_trashDatabase->setValue(noteName + "/content",  content);
-        m_trashDatabase->setValue(noteName + "/dateCreated", dateDBCreated);
-        m_trashDatabase->setValue(noteName + "/dateEdited", dateDBEdited);
-        m_trashDatabase->setValue(noteName + "/dateTrashed", dateNoteDeleted);
-
-        m_notesDatabase->remove(id);
-
-    }else{
-        qDebug() << "MainWindow::deleteNoteFromDataBase() : noteIndex is not valid";
     }
 }
 
@@ -959,7 +947,7 @@ void MainWindow::createNewNote ()
         if(!m_isTemp){
             ++m_noteCounter;
             QString noteID = QString("noteID_%1").arg(m_noteCounter);
-            NoteData* tmpNote = generateNote(noteID, false);
+            NoteData* tmpNote = generateNote(noteID);
             m_isTemp = true;
 
             // insert the new note to NoteModel
@@ -999,7 +987,7 @@ void MainWindow::deleteNote(const QModelIndex &noteIndex, bool isFromUser)
             m_isTemp = false;
         }else{
             noteTobeRemoved->setDeletionDateTime(QDateTime::currentDateTime());
-            m_deletedNotesModel->addNote(noteTobeRemoved);
+            QtConcurrent::run(m_dbManager, &DBManager::removeNote, noteTobeRemoved);
         }
 
         if(isFromUser){
@@ -1154,12 +1142,6 @@ void MainWindow::minimizeWindow ()
 */
 void MainWindow::QuitApplication ()
 {
-    //QApplication::quit();
-    for (int i=0; i<m_deletedNotesModel->rowCount(); i++) {
-        QModelIndex index = m_deletedNotesModel->index(i);
-        deleteNoteFromDataBase(index);
-    }
-
     MainWindow::close();
 }
 
@@ -1245,15 +1227,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
         saveNoteToDB(m_currentSelectedNoteProxy);
     }
 
-    if(m_isTemp){
-        QString id = m_currentSelectedNoteProxy.data(NoteModel::NoteID).toString();
-        m_notesDatabase->remove(id);
-    }
-
     m_settingsDatabase->setValue("splitterSizes", m_splitter->saveState());
-
     m_settingsDatabase->sync();
-    m_notesDatabase->sync();
 
     QWidget::closeEvent(event);
 }
@@ -1402,6 +1377,86 @@ void MainWindow::selectNote(const QModelIndex &noteIndex)
     }else{
         qDebug() << "MainWindow::selectNote() : noteIndex is not valid";
     }
+}
+
+void MainWindow::checkMigration()
+{
+    QFileInfo fi(m_settingsDatabase->fileName());
+    QDir dir(fi.absolutePath());
+
+    QString oldNoteDBPath(dir.path() + "/Notes.ini");
+    if(QFile::exists(oldNoteDBPath))
+        migrateNote(oldNoteDBPath);
+
+    QString oldTrashDBPath(dir.path() + "/Trash.ini");
+    if(QFile::exists(oldTrashDBPath))
+        migrateTrash(oldTrashDBPath);
+}
+
+void MainWindow::migrateNote(QString notePath)
+{
+    QSettings notesIni(QSettings::IniFormat, QSettings::UserScope, "Awesomeness", "Notes");
+    QStringList dbKeys = notesIni.allKeys();
+
+    auto it = dbKeys.begin();
+    for(; it < dbKeys.end()-1; it += 3){
+        QString noteName = it->split("/")[0];
+
+        NoteData* newNote = new NoteData();
+        newNote->setId(noteName);
+
+        QString cntStr = notesIni.value("notesCounter", "NULL").toString();
+        if(cntStr == "NULL"){
+            m_noteCounter = 0;
+        }else{
+            m_noteCounter = cntStr.toInt();
+        }
+
+        QString createdDateDB = notesIni.value(noteName + "/dateCreated", "Error").toString();
+        newNote->setCreationDateTime(QDateTime::fromString(createdDateDB, Qt::ISODate));
+        QString lastEditedDateDB = notesIni.value(noteName + "/dateEdited", "Error").toString();
+        newNote->setLastModificationDateTime(QDateTime::fromString(lastEditedDateDB, Qt::ISODate));
+        QString contentText = notesIni.value(noteName + "/content", "Error").toString();
+        newNote->setContent(contentText);
+        QString firstLine = getFirstLine(contentText);
+        newNote->setFullTitle(firstLine);
+
+        m_dbManager->migrateNote(newNote);
+        delete newNote;
+    }
+
+    QFile oldNoteDBFile(notePath);
+    oldNoteDBFile.rename(QFileInfo(notePath).dir().path() + "/oldNotes.ini");
+}
+
+void MainWindow::migrateTrash(QString trashPath)
+{
+    QSettings trashIni(QSettings::IniFormat, QSettings::UserScope, "Awesomeness", "Trash");
+
+    QStringList dbKeys = trashIni.allKeys();
+
+    auto it = dbKeys.begin();
+    for(; it < dbKeys.end()-1; it += 3){
+        QString noteName = it->split("/")[0];
+
+        NoteData* newNote = new NoteData();
+        newNote->setId(noteName);
+
+        QString createdDateDB = trashIni.value(noteName + "/dateCreated", "Error").toString();
+        newNote->setCreationDateTime(QDateTime::fromString(createdDateDB, Qt::ISODate));
+        QString lastEditedDateDB = trashIni.value(noteName + "/dateEdited", "Error").toString();
+        newNote->setLastModificationDateTime(QDateTime::fromString(lastEditedDateDB, Qt::ISODate));
+        QString contentText = trashIni.value(noteName + "/content", "Error").toString();
+        newNote->setContent(contentText);
+        QString firstLine = getFirstLine(contentText);
+        newNote->setFullTitle(firstLine);
+
+        m_dbManager->migrateTrash(newNote);
+        delete newNote;
+    }
+
+    QFile oldTrashDBFile(trashPath);
+    oldTrashDBFile.rename(QFileInfo(trashPath).dir().path() + "/oldTrash.ini");
 }
 
 /**

@@ -35,6 +35,15 @@ QModelIndex NoteModel::insertNote(NoteData *note, int row)
     return createIndex(row,0);
 }
 
+NoteData* NoteModel::getNote(const QModelIndex& index)
+{
+    if(index.isValid()){
+        return m_noteList.at(index.row());
+    }else{
+        return Q_NULLPTR;
+    }
+}
+
 void NoteModel::addListNote(QList<NoteData *> noteList)
 {
     int start = rowCount();
