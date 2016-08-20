@@ -1,4 +1,8 @@
 #include "dbmanager.h"
+#include <QtSql/QSqlQuery>
+#include <QTimeZone>
+#include <QDateTime>
+#include <QDebug>
 
 DBManager::DBManager(const QString& path, bool doCreate, QObject *parent) : QObject(parent)
 {
