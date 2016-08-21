@@ -4,9 +4,7 @@
 #include "notedata.h"
 
 #include <QObject>
-#include <QtSql>
-#include <QSqlDatabase>
-#include <QSqlQueryModel>
+#include <QtSql/QSqlDatabase>
 
 class DBManager : public QObject
 {
