@@ -20,7 +20,7 @@ NoteWidgetDelegate::NoteWidgetDelegate(QObject *parent)
       m_applicationInactiveColor(207, 207, 207),
       m_separatorColor(221, 221, 221),
       m_defaultColor(247, 247, 247),
-      m_rowHeight(40),
+      m_rowHeight(42),
       m_maxFrame(200),
       m_rowRightOffset(0),
       m_state(Normal),
@@ -163,8 +163,8 @@ void NoteWidgetDelegate::paintBackground(QPainter *painter, const QStyleOptionVi
 void NoteWidgetDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
     const int leftOffsetX = 10;
-    const int topOffsetY = 0;   // space on top of title
-    const int spaceY = 3;       // space between title and date
+    const int topOffsetY = 5;   // space on top of title
+    const int spaceY = 1;       // space between title and date
 
     QString title{index.data(NoteModel::NoteFullTitle).toString()};
     QFontMetrics fmTitle(m_titleFont);
