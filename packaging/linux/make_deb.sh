@@ -30,7 +30,7 @@ rm -r build
 
 # Copy icon & desktop file
 cp ../../common/LICENSE license.txt
-cp ../../common/notes.png notes.png
+cp -a ../../common/icons .
 cp ../../common/notes.desktop notes.desktop
 
 # Copy debian config to build directory
