@@ -19,7 +19,7 @@ NoteWidgetDelegate::NoteWidgetDelegate(QObject *parent)
       m_hoverColor(207, 207, 207),
       m_applicationInactiveColor(207, 207, 207),
       m_separatorColor(221, 221, 221),
-      m_defaultColor(247, 247, 247),
+      m_defaultColor(255, 255, 255),
       m_rowHeight(42),
       m_maxFrame(200),
       m_rowRightOffset(0),

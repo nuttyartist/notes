@@ -168,7 +168,7 @@ void MainWindow::setupMainWindow ()
     m_splitter = ui->splitter;
 
     QPalette pal(palette());
-    pal.setColor(QPalette::Background, QColor(247, 247, 247));
+    pal.setColor(QPalette::Background, QColor(248, 248, 248));
     this->setAutoFillBackground(true);
     this->setPalette(pal);
 
@@ -287,7 +287,7 @@ void MainWindow::setupLine ()
 void MainWindow::setupRightFrame ()
 {
     QString ss = "QFrame{ "
-                 "  background-color: rgb(247, 247, 247); "
+                 "  background-color: rgb(248, 248, 248); "
                  "  border: none;"
                  "}";
     ui->frameRight->setStyleSheet(ss);
@@ -392,7 +392,7 @@ void MainWindow::setupLineEdit ()
                          "  padding-right: 19px;"
                          "  border: 1px solid rgb(205, 205, 205);"
                          "  border-radius: 3px;"
-                         "  background: rgb(251, 251, 251);"
+                         "  background: rgb(255, 255, 255);"
                          "  selection-background-color: rgb(61, 155, 218);"
                          "} "
                          "QToolButton { "
@@ -440,7 +440,7 @@ void MainWindow::setupLineEdit ()
 */
 void MainWindow::setupTextEdit ()
 {
-    QString ss = QString("QTextEdit {background-color: rgb(247, 247, 247); padding-left: %1px; padding-right: %2px; padding-bottom:2px;} "
+    QString ss = QString("QTextEdit {background-color: rgb(248, 248, 248); padding-left: %1px; padding-right: %2px; padding-bottom:2px;} "
                          "QScrollBar::handle:vertical:hover { background: rgb(170, 170, 171); } "
                          "QScrollBar::handle:vertical:pressed { background: rgb(149, 149, 149); } "
                          "QScrollBar::handle:vertical { border-radius: 4px; background: rgb(188, 188, 188); min-height: 20px; }  "
@@ -1614,7 +1614,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
                                  "  padding-right: 19px;"
                                  "  border: 1px solid rgb(61, 155, 218);"
                                  "  border-radius: 3px;"
-                                 "  background: rgb(251, 251, 251);"
+                                 "  background: rgb(255, 255, 255);"
                                  "  selection-background-color: rgb(61, 155, 218);"
                                  "} "
                                  "QToolButton { "
@@ -1640,7 +1640,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
                                  "  padding-right: 19px;"
                                  "  border: 1px solid rgb(205, 205, 205);"
                                  "  border-radius: 3px;"
-                                 "  background: rgb(251, 251, 251);"
+                                 "  background: rgb(255, 255, 255);"
                                  "  selection-background-color: rgb(61, 155, 218);"
                                  "} "
                                  "QToolButton { "

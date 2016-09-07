@@ -27,12 +27,12 @@
   </property>
   <property name="styleSheet">
    <string notr="true">#frameLeft{
-background-color: rgb(247, 247, 247);
+background-color: rgb(255, 255, 255);
 }
 
 NoteData #container {
   border: none;
-  background-color: rgb(247, 247, 247);
+  background-color: rgb(255, 255, 255);
 }
 NoteData #titleLabel{
   margin-left:8px;
