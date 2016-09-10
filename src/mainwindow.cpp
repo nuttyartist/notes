@@ -460,7 +460,7 @@ void MainWindow::setupTextEdit ()
     QString arimoFont = QFontDatabase::applicationFontFamilies(id).at(0);
     m_textEdit->setFont(QFont(arimoFont, 11));
 
-    m_textEdit->setTextColor(QColor(26, 26, 26));
+    m_textEdit->setTextColor(QColor(51, 51, 51));
 }
 
 void MainWindow::initializeSettingsDatabase()
