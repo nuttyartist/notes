@@ -194,7 +194,7 @@ void MainWindow::setupTrayIcon()
     m_trayIconMenu->addSeparator();
     m_trayIconMenu->addAction(m_quitAction);
 
-    QIcon icon(":images/notes_icon.png");
+    QIcon icon(":images/notes_system_tray_icon.png");
     m_trayIcon->setIcon(icon);
     m_trayIcon->setContextMenu(m_trayIconMenu);
     m_trayIcon->show();
