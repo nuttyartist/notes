@@ -751,7 +751,7 @@ color: rgb(132, 132, 132);
           <property name="sizeHint" stdset="0">
            <size>
             <width>20</width>
-            <height>9</height>
+            <height>6</height>
            </size>
           </property>
          </spacer>
