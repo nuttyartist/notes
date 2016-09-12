@@ -619,6 +619,9 @@ NoteData #dateLabel{
               <height>25</height>
              </size>
             </property>
+            <property name="focusPolicy">
+             <enum>Qt::TabFocus</enum>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -706,6 +709,9 @@ color: rgb(132, 132, 132);
               <width>33</width>
               <height>25</height>
              </size>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::TabFocus</enum>
             </property>
             <property name="text">
              <string/>
