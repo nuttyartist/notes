@@ -110,8 +110,6 @@ void NoteWidgetDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
     }
 
     paintBackground(painter, opt, index);
-    //    paintTitle(painter, option, index);
-    //    paintDateTime(painter, option, index);
     paintLabels(painter, option, index);
 }
 
@@ -228,6 +226,7 @@ void NoteWidgetDelegate::paintLabels(QPainter* painter, const QStyleOptionViewIt
     }
 
     // draw title & date
+    title = fmTitle.elidedText(title, Qt::ElideRight, titleRectWidth);
     drawStr(titleRectPosX, titleRectPosY, titleRectWidth, titleRectHeight, m_titleColor, m_titleFont, title);
     drawStr(dateRectPosX, dateRectPosY, dateRectWidth, dateRectHeight, m_dateColor, m_dateFont, date);
 }
