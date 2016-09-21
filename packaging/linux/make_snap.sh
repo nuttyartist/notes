@@ -24,7 +24,7 @@ mkdir setup
 cd setup
 mkdir gui
 cd gui
-cp ../../../common/notes.png notes.png
+cp ../../../common/icons/scalable/notes.svg notes.svg
 cp ../../../common/notes.desktop notes.desktop
 
 # Go to snapcraft directory
