@@ -21,5 +21,6 @@
         <file>images/trashCan_Hovered.png</file>
         <file>images/closeButton.png</file>
         <file>images/notes_system_tray_icon.png</file>
+        <file>images/textEdit_background_pattern.png</file>
     </qresource>
 </RCC>
