@@ -5,14 +5,11 @@
 *********************************************************************************************/
 
 #include "mainwindow.h"
+#include "updaterwindow.h"
 #include "singleinstance.h"
-#include "QSimpleUpdater.h"
 
 #include <QApplication>
-
-// Define from where we download update definitions.
-// This should be changed from "dev" to "master" for production releases.
-const QString UPDATES_URL = "https://raw.githubusercontent.com/nuttyartist/notes/dev/UPDATES.json";
+#include <QStyleFactory>
 
 int main(int argc, char *argv[])
 {
@@ -33,27 +30,17 @@ int main(int argc, char *argv[])
     instance.listen (name);
 
     // Create and Show the app
-    MainWindow w;
-    w.show();
+    MainWindow window;
+    window.show();
+
+    // Create the updater window
+    UpdaterWindow updater;
+    updater.checkForUpdates();
 
     // Bring the Notes window to the front
     QObject::connect(&instance, &SingleInstance::newInstance, [&](){
-        (&w)->setMainWindowVisibility(true);
+        (&window)->setMainWindowVisibility(true);
     });
-
-#if defined Q_OS_WIN || defined Q_OS_MAC
-    // Disable the integrated downloader, just open a link in a web browser
-    QSimpleUpdater::getInstance()->setDownloaderEnabled (UPDATES_URL, false);
-
-    // Only notify the user when an update is available
-    QSimpleUpdater::getInstance()->setNotifyOnUpdate (UPDATES_URL, true);
-    QSimpleUpdater::getInstance()->setNotifyOnFinish (UPDATES_URL, false);
-
-    // Check for updates
-    QSimpleUpdater::getInstance()->checkForUpdates (UPDATES_URL);
-#else
-    Q_UNUSED (UPDATES_URL);
-#endif
 
     return app.exec();
 }
