@@ -13,6 +13,8 @@ namespace Ui {
 class UpdaterWindow;
 }
 
+class QSimpleUpdater;
+
 class UpdaterWindow : public QWidget
 {
     Q_OBJECT
@@ -24,8 +26,14 @@ public:
 public slots:
     void checkForUpdates();
 
+private slots:
+    void download();
+    void showWindow(const QString &url);
+    void onCheckFinished (const QString& url);
+
 private:
     Ui::UpdaterWindow *ui;
+    QSimpleUpdater* m_updater;
 };
 
 #endif

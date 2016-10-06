@@ -6,25 +6,25 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>319</width>
-    <height>419</height>
+    <width>314</width>
+    <height>280</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string/>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QLabel" name="title">
      <property name="font">
       <font>
-       <pointsize>16</pointsize>
+       <pointsize>14</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="text">
-      <string>A Newer Version is Available</string>
+      <string>A New Version is Available!</string>
      </property>
     </widget>
    </item>
@@ -122,39 +122,6 @@
       </size>
      </property>
     </spacer>
-   </item>
-   <item>
-    <widget class="QWidget" name="downloaderWidget" native="true">
-     <layout class="QVBoxLayout" name="verticalLayout_3">
-      <item>
-       <widget class="QLabel" name="downloaderTitle">
-        <property name="font">
-         <font>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Downloading Update...</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QProgressBar" name="downloadProgress">
-        <property name="value">
-         <number>24</number>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="timeRemaining">
-        <property name="text">
-         <string>Time Remaining: %1</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
    </item>
    <item>
     <widget class="QWidget" name="buttonsWidget" native="true">

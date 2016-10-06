@@ -33,6 +33,16 @@ QT += widgets
 
 INCLUDEPATH += $$PWD/include
 
+win32* {
+    LIBS += -L$$PWD/bin/OpenSSL/ -llibeay32
+    LIBS += -L$$PWD/bin/OpenSSL/ -llibssl32
+    LIBS += -L$$PWD/bin/OpenSSL/ -lssleay32
+}
+
+linux:!android {
+    LIBS += -lcrypto -lssl
+}
+
 SOURCES += \
     $$PWD/src/Updater.cpp \
     $$PWD/src/Downloader.cpp \
