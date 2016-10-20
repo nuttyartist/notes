@@ -238,7 +238,7 @@ void MainWindow::createMenu()
     viewMenu->setFont(QFont(robotoFontRegular, 10));
 
 #ifndef Q_OS_LINUX
-    m_mainMenu->addAction(checkForUpdatesAction);
+    m_mainMenu->addAction(m_checkForUpdatesAction);
 #endif
 }
 
