@@ -20,7 +20,7 @@
 /**
  * Indicates from where we should download the update definitions file
  */
-const QString UPDATES_URL = "https://raw.githubusercontent.com/alex-spataru/notes/dev/UPDATES.json";
+const QString UPDATES_URL = "https://raw.githubusercontent.com/nuttyartist/notes/dev/UPDATES.json";
 
 /**
  * Initializes the window components and configures the QSimpleUpdater
@@ -267,11 +267,7 @@ void UpdaterWindow::openDownload (const QString& path)
  * This function decides whenever to show the dialog or just notify the user
  * that he/she is running the latest version of notes
  */
-void UpdaterWindow::onCheckFinished (const QString &url)
-{
-    /* Ensure that the controls indicate what is actually happening */
-    resetControls();
-
+void UpdaterWindow::onCheckFinished (const QString &url) {
     /* There is an update available, show the window */
     if (m_updater->getUpdateAvailable (url) && (UPDATES_URL == url))
         onUpdateAvailable();
@@ -279,8 +275,6 @@ void UpdaterWindow::onCheckFinished (const QString &url)
     /* There are no updates available */
     else
         onNoUpdateAvailable();
-
-    show();
 }
 
 /**
