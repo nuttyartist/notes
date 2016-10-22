@@ -11,8 +11,14 @@
 #include <QDesktopServices>
 #include <QSimpleUpdater.h>
 
+/**
+ * Indicates from where we should download the update definitions file
+ */
 const QString UPDATES_URL = "https://raw.githubusercontent.com/nuttyartist/notes/dev/UPDATES.json";
 
+/**
+ * Initializes the window components and configures the QSimpleUpdater
+ */
 UpdaterWindow::UpdaterWindow (QWidget *parent) : QWidget (parent)
 {
     /* Initialize the UI */
@@ -40,11 +46,18 @@ UpdaterWindow::UpdaterWindow (QWidget *parent) : QWidget (parent)
              this,      SLOT   (onCheckFinished  (QString)));
 }
 
+/**
+ * Deletes the user interface
+ */
 UpdaterWindow::~UpdaterWindow()
 {
     delete ui;
 }
 
+/**
+ * Instructs the QSimpleUpdater to download and interpret the updater
+ * definitions file
+ */
 void UpdaterWindow::checkForUpdates()
 {
     /* Set module properties */
@@ -58,6 +71,10 @@ void UpdaterWindow::checkForUpdates()
     m_updater->checkForUpdates (UPDATES_URL);
 }
 
+/**
+ * Initializes the download of the binary installer of the latest verion
+ * of Notes
+ */
 void UpdaterWindow::download()
 {
     if (m_updater->getUpdateAvailable (UPDATES_URL)) {
@@ -65,6 +82,10 @@ void UpdaterWindow::download()
     }
 }
 
+/**
+ * Resizes the dialog to the smallest possible size, without hiding any
+ * user controls
+ */
 void UpdaterWindow::resizeToFit()
 {
     /* Resize window */
@@ -76,6 +97,10 @@ void UpdaterWindow::resizeToFit()
     setWindowFlags (Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
 }
 
+/**
+ * Resets the state, text and information displayed the the UI controls
+ * to indicate what is happening right now in the QSimpleUpdater
+ */
 void UpdaterWindow::resetControls()
 {
     /* Hide the progress controls */
@@ -114,13 +139,21 @@ void UpdaterWindow::resetControls()
     resizeToFit();
 }
 
+/**
+ * Updates the text displayed the the UI controls to reflect the information
+ * obtained by the QSimpleUpdater and shows the dialog
+ */
 void UpdaterWindow::onUpdateAvailable()
 {
     resetControls();
     showNormal();
 }
 
-void UpdaterWindow::onNoUpdateAvailalbe()
+/**
+ * Displays a message box that informs the user that he/she is running the
+ * latest version of the application
+ */
+void UpdaterWindow::onNoUpdateAvailable()
 {
     /* Construct the message to display to the user */
     QString msg = tr ("Congratulations! You are running the latest "
@@ -132,6 +165,13 @@ void UpdaterWindow::onNoUpdateAvailalbe()
                                        qApp->applicationVersion()));
 }
 
+/**
+ * Called when the \a QSimpleUpdater notifies us that it downloaded and
+ * interpreted the update definitions file.
+ *
+ * This function decides whenever to show the dialog or just notify the user
+ * that he/she is running the latest version of notes
+ */
 void UpdaterWindow::onCheckFinished (const QString &url)
 {
     /* Ensure that the controls indicate what is actually happening */
@@ -143,7 +183,7 @@ void UpdaterWindow::onCheckFinished (const QString &url)
 
     /* There are no updates available */
     else
-        onNoUpdateAvailalbe();
+        onNoUpdateAvailable();
 
 
     show();

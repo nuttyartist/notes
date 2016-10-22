@@ -31,7 +31,7 @@ private slots:
     void resizeToFit();
     void resetControls();
     void onUpdateAvailable();
-    void onNoUpdateAvailalbe();
+    void onNoUpdateAvailable();
     void onCheckFinished (const QString& url);
 
 private:

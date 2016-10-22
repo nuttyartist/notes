@@ -354,5 +354,5 @@ bool Updater::compare (const QString& x, const QString& y) {
             return false;
     }
 
-    return versionsY.count() < versionsX.count();
+    return false;
 }
