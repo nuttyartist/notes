@@ -28,7 +28,10 @@ public slots:
 
 private slots:
     void download();
-    void showWindow(const QString &url);
+    void resizeToFit();
+    void resetControls();
+    void onUpdateAvailable();
+    void onNoUpdateAvailalbe();
     void onCheckFinished (const QString& url);
 
 private:

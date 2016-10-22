@@ -7,7 +7,7 @@
 #include "updaterwindow.h"
 #include "ui_updaterwindow.h"
 
-#include <qdebug.h>
+#include <QMessageBox>
 #include <QDesktopServices>
 #include <QSimpleUpdater.h>
 
@@ -20,13 +20,15 @@ UpdaterWindow::UpdaterWindow (QWidget *parent) : QWidget (parent)
     ui->setupUi (this);
 
     /* Set window title to app name */
-    setWindowTitle (qApp->applicationName());
+    setWindowTitle (qApp->applicationName() + " " + tr ("Updater"));
 
     /* Setup the color palettes */
+#if defined Q_OS_WIN
     QPalette pal (palette());
     pal.setColor (QPalette::Background, QColor (248, 248, 248));
     setAutoFillBackground (true);
     setPalette (pal);
+#endif
 
     /* Connect UI signals/slots */
     connect (ui->closeButton,  SIGNAL (clicked()), this, SLOT (close()));
@@ -35,7 +37,7 @@ UpdaterWindow::UpdaterWindow (QWidget *parent) : QWidget (parent)
     /* Connect signals/slots of the QSU */
     m_updater = QSimpleUpdater::getInstance();
     connect (m_updater, SIGNAL (checkingFinished (QString)),
-             this,      SLOT (onCheckFinished  (QString)));
+             this,      SLOT   (onCheckFinished  (QString)));
 }
 
 UpdaterWindow::~UpdaterWindow()
@@ -58,32 +60,91 @@ void UpdaterWindow::checkForUpdates()
 
 void UpdaterWindow::download()
 {
-    if (m_updater->getUpdateAvailable (UPDATES_URL))
-        QDesktopServices::openUrl (QUrl (m_updater->getDownloadUrl (UPDATES_URL)));
+    if (m_updater->getUpdateAvailable (UPDATES_URL)) {
+        ui->updateButton->setEnabled (false);
+    }
 }
 
-void UpdaterWindow::showWindow (const QString& url)
+void UpdaterWindow::resizeToFit()
 {
-    /* Set version labels */
+    /* Resize window */
+    resize (minimumSize());
+    setFixedSize (size());
+
+    /* Set window flags */
+    setWindowModality (Qt::ApplicationModal);
+    setWindowFlags (Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
+}
+
+void UpdaterWindow::resetControls()
+{
+    /* Hide the progress controls */
+    ui->progressControls->hide();
+
+    /* Reset the button states */
+    ui->updateButton->setEnabled (false);
+
+    /* Set installed version label */
     ui->installedVersion->setText (qApp->applicationVersion());
-    ui->availableVersion->setText (m_updater->getLatestVersion (url));
+
+    /* Set available version label */
+    if (m_updater->getUpdateAvailable (UPDATES_URL))
+        ui->availableVersion->setText (m_updater->getLatestVersion (UPDATES_URL));
+    else
+        ui->availableVersion->setText ("--.--");
+
+    /* Set title label */
+    if (m_updater->getUpdateAvailable (UPDATES_URL)) {
+        ui->title->setText (tr ("An newer version of %1 is available!")
+                            .arg (qApp->applicationName()));
+    } else {
+        ui->title->setText (tr ("You are running the latest version of %1!")
+                            .arg (qApp->applicationName()));
+    }
 
     /* Set changelog text */
-    ui->changelog->setText (m_updater->getChangelog (url));
+    ui->changelog->setText (m_updater->getChangelog (UPDATES_URL));
     if (ui->changelog->toPlainText().isEmpty())
-        ui->changelog->setText ("<p>No Changelog found...</p>");
+        ui->changelog->setText ("<p>No changelog found...</p>");
 
     /* Enable/disable update button */
-    ui->updateButton->setEnabled (m_updater->getUpdateAvailable (url));
+    ui->updateButton->setEnabled (m_updater->getUpdateAvailable (UPDATES_URL));
 
-    /* Show the window if update button is enabled */
-    if (ui->updateButton->isEnabled())
-        show();
+    /* Resize the dialog to its minimum size */
+    resizeToFit();
+}
+
+void UpdaterWindow::onUpdateAvailable()
+{
+    resetControls();
+    showNormal();
+}
+
+void UpdaterWindow::onNoUpdateAvailalbe()
+{
+    /* Construct the message to display to the user */
+    QString msg = tr ("Congratulations! You are running the latest "
+                      "version of %1 (%2)!");
+
+    /* Show a lovely message box */
+    QMessageBox::information (this, windowTitle(),
+                              msg.arg (qApp->applicationName(),
+                                       qApp->applicationVersion()));
 }
 
 void UpdaterWindow::onCheckFinished (const QString &url)
 {
+    /* Ensure that the controls indicate what is actually happening */
+    resetControls();
+
     /* There is an update available, show the window */
     if (m_updater->getUpdateAvailable (url) && (UPDATES_URL == url))
-        showWindow (url);
+        onUpdateAvailable();
+
+    /* There are no updates available */
+    else
+        onNoUpdateAvailalbe();
+
+
+    show();
 }

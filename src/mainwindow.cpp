@@ -10,6 +10,7 @@
 #include <QShortcut>
 #include <QTextStream>
 #include <QScrollArea>
+#include "updaterwindow.h"
 #include "notewidgetdelegate.h"
 #include "qxtglobalshortcut.h"
 #define FIRST_LINE_MAX 80
@@ -215,6 +216,8 @@ void MainWindow::createActions()
     m_rightToLeftAction->setCheckable(true);
 
     m_checkForUpdatesAction = new QAction("Check For Updates", this);;
+    connect (m_checkForUpdatesAction, SIGNAL (triggered (bool)),
+             this,                      SLOT (checkForUpdates (bool)));
 }
 
 void MainWindow::createMenu()
@@ -225,12 +228,12 @@ void MainWindow::createMenu()
     viewMenu->addAction(m_rightToLeftAction);
 
     m_mainMenu->setStyleSheet("QMenu { "
-                            "  background-color: rgb(247, 247, 247); "
-                            "  border: 1px solid #308CC6; "
-                            "  }"
-                            "QMenu::item:selected { "
-                            "  background: 1px solid #308CC6; "
-                            "  }");
+                              "  background-color: rgb(247, 247, 247); "
+                              "  border: 1px solid #308CC6; "
+                              "  }"
+                              "QMenu::item:selected { "
+                              "  background: 1px solid #308CC6; "
+                              "  }");
 
     int id = QFontDatabase::addApplicationFont(":/fonts/roboto-hinted/Roboto-Regular.ttf");
     QString robotoFontRegular = QFontDatabase::applicationFontFamilies(id).at(0);
@@ -1233,6 +1236,22 @@ void MainWindow::QuitApplication ()
     }
 
     MainWindow::close();
+}
+
+
+/**
+ * Called when the "Check for Updates" menu item is clicked, this function
+ * instructs the updater window to check if there are any updates available
+ *
+ * \note This code won't be executed under Linux builds
+ * \param clicked required by the signal/slot connection, the value is ignored
+ */
+void MainWindow::checkForUpdates (const bool clicked) {
+    Q_UNUSED (clicked);
+
+#if !defined Q_OS_LINUX
+    m_updater.checkForUpdates();
+#endif
 }
 
 /**
