@@ -13,7 +13,9 @@ namespace Ui {
 class UpdaterWindow;
 }
 
+class QNetworkReply;
 class QSimpleUpdater;
+class QNetworkAccessManager;
 
 class UpdaterWindow : public QWidget
 {
@@ -27,16 +29,29 @@ public slots:
     void checkForUpdates();
 
 private slots:
-    void download();
     void resizeToFit();
     void resetControls();
     void onUpdateAvailable();
+    void onDownloadFinished();
     void onNoUpdateAvailable();
+    void onDownloadButtonClicked();
+    void startDownload (const QUrl& url);
+    void openDownload(const QString &path);
     void onCheckFinished (const QString& url);
+    void calculateSizes (qint64 received, qint64 total);
+    void updateProgress (qint64 received, qint64 total);
+    void calculateTimeRemaining (qint64 received, qint64 total);
 
 private:
-    Ui::UpdaterWindow *ui;
+    qreal round (const qreal& input);
+
+private:
+    Ui::UpdaterWindow *m_ui;
     QSimpleUpdater* m_updater;
+
+    uint m_startTime;
+    QNetworkReply* m_reply;
+    QNetworkAccessManager* m_manager;
 };
 
 #endif

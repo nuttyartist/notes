@@ -79,6 +79,7 @@ class QSU_DECL QSimpleUpdater : public QObject {
     bool getDownloaderEnabled (const QString& url) const;
     bool usesCustomInstallProcedures (const QString& url) const;
 
+    QString getOpenUrl (const QString& url) const;
     QString getChangelog (const QString& url) const;
     QString getModuleName (const QString& url) const;
     QString getDownloadUrl (const QString& url) const;
