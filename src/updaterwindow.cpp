@@ -44,7 +44,6 @@ UpdaterWindow::UpdaterWindow (QWidget *parent) : QWidget (parent)
     /* Configure the network manager */
     m_manager = new QNetworkAccessManager (this);
 
-
     /* Connect UI signals/slots */
     connect (m_ui->closeButton,  SIGNAL (clicked()),
              this,               SLOT (close()));
@@ -239,9 +238,13 @@ void UpdaterWindow::startDownload (const QUrl& url)
              this,      SLOT (onDownloadFinished()));
 }
 
+/**
+ * Opens the downloaded file
+ */
 void UpdaterWindow::openDownload (const QString& path)
 {
-
+    if (path.isEmpty())
+        QDesktopServices::openUrl (QUrl ("file:///" + path));
 }
 
 /**
