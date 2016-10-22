@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>272</width>
-    <height>400</height>
+    <height>449</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -194,7 +194,14 @@
        </widget>
       </item>
       <item>
-       <widget class="QTextBrowser" name="changelog"/>
+       <widget class="QTextBrowser" name="changelog">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>128</height>
+         </size>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

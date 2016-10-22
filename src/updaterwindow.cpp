@@ -14,6 +14,7 @@
 #include <QNetworkReply>
 #include <QDesktopServices>
 #include <QSimpleUpdater.h>
+#include <QNetworkConfiguration>
 #include <QNetworkAccessManager>
 
 /**
@@ -167,6 +168,13 @@ void UpdaterWindow::onDownloadFinished()
         return;
     }
 
+    /* Check if we need to redirect */
+    QUrl url = m_reply->attribute (QNetworkRequest::RedirectionTargetAttribute).toUrl();
+    if (!url.isEmpty()) {
+        startDownload (url);
+        return;
+    }
+
     /* Prepare downloads directory for writing */
     QDir dir (QDir::homePath() + "/Downloads/");
     if (!dir.exists())
@@ -228,6 +236,8 @@ void UpdaterWindow::startDownload (const QUrl& url)
 
     /* Show UI controls */
     m_ui->progressControls->show();
+    resizeToFit();
+    showNormal();
 
     /* Update UI when download progress changes or download finishes */
     connect (m_reply, SIGNAL (downloadProgress (qint64, qint64)),
@@ -243,8 +253,11 @@ void UpdaterWindow::startDownload (const QUrl& url)
  */
 void UpdaterWindow::openDownload (const QString& path)
 {
-    if (path.isEmpty())
+    if (!path.isEmpty()) {
         QDesktopServices::openUrl (QUrl ("file:///" + path));
+        m_ui->downloadLabel->setText (tr ("Download finished!"));
+        m_ui->timeLabel->setText (tr ("Opening downloaded file") + "...");
+    }
 }
 
 /**
