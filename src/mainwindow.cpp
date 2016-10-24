@@ -69,6 +69,7 @@ MainWindow::MainWindow (QWidget *parent) :
     setupModelView();
     restoreStates();
     setupSignalsSlots();
+    autoCheckForUpdates();
 
     QTimer::singleShot(200,this, SLOT(InitData()));
 }
@@ -387,6 +388,15 @@ void MainWindow::setupSignalsSlots()
     connect(qApp, &QApplication::applicationStateChanged, this,[this](){
         m_noteView->update(m_noteView->currentIndex());
     });
+}
+
+/**
+ * Checks for updates, if an update is found, then the updater dialog will show
+ * up, otherwise, no notification shall be showed
+ */
+void MainWindow::autoCheckForUpdates()
+{
+    m_updater.checkForUpdates (true);
 }
 
 /**
@@ -1248,10 +1258,7 @@ void MainWindow::QuitApplication ()
  */
 void MainWindow::checkForUpdates (const bool clicked) {
     Q_UNUSED (clicked);
-
-#if !defined Q_OS_LINUX
-    m_updater.checkForUpdates();
-#endif
+    m_updater.checkForUpdates (false);
 }
 
 /**

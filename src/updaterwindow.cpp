@@ -10,6 +10,7 @@
 #include <math.h>
 
 #include <QDir>
+#include <QTimer>
 #include <QMessageBox>
 #include <QNetworkReply>
 #include <QDesktopServices>
@@ -30,6 +31,10 @@ UpdaterWindow::UpdaterWindow (QWidget *parent) : QWidget (parent)
     /* Initialize the UI */
     m_ui = new Ui::UpdaterWindow;
     m_ui->setupUi (this);
+
+    /* Set variables */
+    m_silent = false;
+    m_checkingForUpdates = false;
 
     /* Set window title to app name */
     setWindowTitle (qApp->applicationName() + " " + tr ("Updater"));
@@ -55,6 +60,9 @@ UpdaterWindow::UpdaterWindow (QWidget *parent) : QWidget (parent)
     m_updater = QSimpleUpdater::getInstance();
     connect (m_updater, SIGNAL (checkingFinished (QString)),
              this,      SLOT   (onCheckFinished  (QString)));
+
+    /* Start the UI loops */
+    updateTitleLabel();
 }
 
 /**
@@ -69,8 +77,12 @@ UpdaterWindow::~UpdaterWindow()
  * Instructs the QSimpleUpdater to download and interpret the updater
  * definitions file
  */
-void UpdaterWindow::checkForUpdates()
+void UpdaterWindow::checkForUpdates (bool silent)
 {
+    /* Change the silent flag */
+    m_silent = silent;
+    m_checkingForUpdates = true;
+
     /* Set module properties */
     m_updater->setNotifyOnFinish (UPDATES_URL, false);
     m_updater->setNotifyOnUpdate (UPDATES_URL, false);
@@ -80,6 +92,15 @@ void UpdaterWindow::checkForUpdates()
 
     /* Check for updates */
     m_updater->checkForUpdates (UPDATES_URL);
+
+    /* Show window if silent flag is not set */
+    if (!m_silent) {
+        m_ui->updateButton->setEnabled (false);
+        m_ui->title->setText (tr ("Checking for updates...."));
+
+        resetControls();
+        showNormal();
+    }
 }
 
 /**
@@ -146,6 +167,34 @@ void UpdaterWindow::resetControls()
 }
 
 /**
+ * Changes the number of dots of the title label while the QSimpleUpdater
+ * is downloading and interpreting the update definitions file
+ */
+void UpdaterWindow::updateTitleLabel()
+{
+    if (m_checkingForUpdates) {
+        QString base = tr ("Checking for updates");
+
+        if (m_ui->title->text().endsWith ("...."))
+            m_ui->title->setText (base + "." );
+
+        else if (m_ui->title->text().endsWith ("..."))
+            m_ui->title->setText (base + "....");
+
+        else if (m_ui->title->text().endsWith (".."))
+            m_ui->title->setText (base + "...");
+
+        else if (m_ui->title->text().endsWith ("."))
+            m_ui->title->setText (base + "..");
+
+        else
+            m_ui->title->setText (base + ".");
+    }
+
+    QTimer::singleShot (500, this, SLOT (updateTitleLabel()));
+}
+
+/**
  * Updates the text displayed the the UI controls to reflect the information
  * obtained by the QSimpleUpdater and shows the dialog
  */
@@ -155,6 +204,9 @@ void UpdaterWindow::onUpdateAvailable()
     showNormal();
 }
 
+/**
+ * Saves the downloaded file on the disk or handles an HTTP redirection
+ */
 void UpdaterWindow::onDownloadFinished()
 {
     /* Read the downloaded data */
@@ -268,12 +320,15 @@ void UpdaterWindow::openDownload (const QString& path)
  * that he/she is running the latest version of notes
  */
 void UpdaterWindow::onCheckFinished (const QString &url) {
+    /* Do not allow the title label to change automatically */
+    m_checkingForUpdates = false;
+
     /* There is an update available, show the window */
     if (m_updater->getUpdateAvailable (url) && (UPDATES_URL == url))
         onUpdateAvailable();
 
     /* There are no updates available */
-    else
+    else if (!m_silent)
         onNoUpdateAvailable();
 }
 

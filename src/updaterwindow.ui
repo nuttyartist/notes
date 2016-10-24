@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>272</width>
-    <height>449</height>
+    <width>299</width>
+    <height>470</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -67,7 +67,7 @@
             </font>
            </property>
            <property name="text">
-            <string>A New Version is Available!</string>
+            <string>Checking for updates....</string>
            </property>
           </widget>
          </item>

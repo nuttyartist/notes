@@ -116,6 +116,7 @@ private:
     void setupRightFrame();
     void setupTitleBarButtons();
     void setupSignalsSlots();
+    void autoCheckForUpdates();
     void setupLineEdit();
     void setupTextEdit();
     void setupDatabases();

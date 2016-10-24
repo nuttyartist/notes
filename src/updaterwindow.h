@@ -26,11 +26,12 @@ public:
     ~UpdaterWindow();
 
 public slots:
-    void checkForUpdates();
+    void checkForUpdates (bool silent);
 
 private slots:
     void resizeToFit();
     void resetControls();
+    void updateTitleLabel();
     void onUpdateAvailable();
     void onDownloadFinished();
     void onNoUpdateAvailable();
@@ -49,8 +50,10 @@ private:
     Ui::UpdaterWindow *m_ui;
     QSimpleUpdater* m_updater;
 
+    bool m_silent;
     uint m_startTime;
     QNetworkReply* m_reply;
+    bool m_checkingForUpdates;
     QNetworkAccessManager* m_manager;
 };
 
