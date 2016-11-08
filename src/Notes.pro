@@ -6,8 +6,9 @@
 
 VERSION = 0.9.0
 
-QT += core gui network
+QT += core gui network sql
 QT += gui-private
+QT += concurrent
 
 TARGET    = Notes
 TEMPLATE  = app
@@ -31,7 +32,8 @@ SOURCES += \
     $$PWD/notemodel.cpp \
     $$PWD/noteview.cpp \
     $$PWD/singleinstance.cpp \
-    updaterwindow.cpp
+    updaterwindow.cpp \
+    dbmanager.cpp
 
 HEADERS  += \
     $$PWD/mainwindow.h \
@@ -40,7 +42,8 @@ HEADERS  += \
     $$PWD/notemodel.h \
     $$PWD/noteview.h \
     $$PWD/singleinstance.h \
-    updaterwindow.h
+    updaterwindow.h \
+    dbmanager.h
 
 FORMS += $$PWD/mainwindow.ui \
     updaterwindow.ui

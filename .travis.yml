@@ -7,6 +7,7 @@ env:
   - QT_BASE=56
 
 before_install:
+  - sudo apt-get install software-properties-common
   - if [ "$QT_BASE" = "55" ]; then sudo add-apt-repository ppa:beineri/opt-qt551-trusty -y; fi
   - if [ "$QT_BASE" = "56" ]; then sudo add-apt-repository ppa:beineri/opt-qt561-trusty -y; fi
   - sudo apt-get update -qq

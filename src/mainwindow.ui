@@ -27,12 +27,12 @@
   </property>
   <property name="styleSheet">
    <string notr="true">#frameLeft{
-background-color: rgb(247, 247, 247);
+background-color: rgb(255, 255, 255);
 }
 
 NoteData #container {
   border: none;
-  background-color: rgb(247, 247, 247);
+  background-color: rgb(255, 255, 255);
 }
 NoteData #titleLabel{
   margin-left:8px;
@@ -619,6 +619,9 @@ NoteData #dateLabel{
               <height>25</height>
              </size>
             </property>
+            <property name="focusPolicy">
+             <enum>Qt::TabFocus</enum>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -707,6 +710,9 @@ color: rgb(132, 132, 132);
               <height>25</height>
              </size>
             </property>
+            <property name="focusPolicy">
+             <enum>Qt::TabFocus</enum>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -774,7 +780,7 @@ color: rgb(132, 132, 132);
           <property name="sizeHint" stdset="0">
            <size>
             <width>20</width>
-            <height>9</height>
+            <height>6</height>
            </size>
           </property>
          </spacer>

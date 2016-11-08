@@ -11,9 +11,6 @@ if [ -d "$project" ]; then
     rm -rf "$project"
 fi
 
-# Ensure that submodules are initialized
-git submodule update --init
-
 # Generate folders
 mkdir deb_build
 cd deb_build
@@ -33,7 +30,7 @@ rm -r build
 
 # Copy icon & desktop file
 cp ../../common/LICENSE license.txt
-cp ../../common/notes.png notes.png
+cp -a ../../common/icons .
 cp ../../common/notes.desktop notes.desktop
 
 # Copy debian config to build directory

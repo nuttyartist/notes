@@ -13,7 +13,6 @@
         <file>images/yellowPressed.png</file>
         <file>images/greenPressed.png</file>
         <file>images/greenInPressed.png</file>
-        <file>images/notes_icon.png</file>
         <file>images/newNote_Regular.png</file>
         <file>images/newNote_Pressed.png</file>
         <file>images/newNote_Hovered.png</file>
@@ -24,5 +23,7 @@
         <file>images/3dots_Regular.png</file>
         <file>images/3dots_Pressed.png</file>
         <file>images/3dots_Hovered.png</file>
+        <file>images/notes_system_tray_icon.png</file>
+        <file>images/textEdit_background_pattern.png</file>
     </qresource>
 </RCC>

@@ -26,6 +26,7 @@
 #include "notemodel.h"
 #include "noteview.h"
 #include "updaterwindow.h"
+#include "dbmanager.h"
 
 namespace Ui {
 class MainWindow;
@@ -62,8 +63,6 @@ private:
     QAction* m_checkForUpdatesAction;
 
     QTimer* m_autoSaveTimer;
-    QSettings* m_notesDatabase;
-    QSettings* m_trashDatabase;
     QSettings* m_settingsDatabase;
     QVBoxLayout* m_noteWidgetsContainer;
     QToolButton* m_clearButton;
@@ -89,6 +88,7 @@ private:
     QModelIndex m_currentSelectedNoteProxy;
     QModelIndex m_selectedNoteBeforeSearchingInSource;
     QQueue<QString> m_searchQueue;
+    DBManager* m_dbManager;
 
     UpdaterWindow m_updater;
 
@@ -123,22 +123,26 @@ private:
     void setupModelView();
     void initializeSettingsDatabase();
     void createNewNoteIfEmpty();
-    void deleteNoteFromDataBase(const QModelIndex& noteIndex);
     void setLayoutForScrollArea();
+    void setButtonsAndFieldsEnabled(bool doEnable);
     void restoreStates();
     QString getFirstLine(const QString& str);
     QString getNoteDateEditor (QString dateEdited);
-    NoteData *generateNote(QString noteName, bool isLoadingOrNew);
+    NoteData *generateNote(QString noteName);
     QDateTime getQDateTime(QString date);
     void showNoteInEditor(const QModelIndex& noteIndex);
     void sortNotesList(QStringList &stringNotesList);
     void loadNotes();
     void saveNoteToDB(const QModelIndex& noteIndex);
+    void removeNoteFromDB(const QModelIndex& noteIndex);
     void selectFirstNote();
     void moveNoteToTop();
     void clearSearch();
     void findNotesContain(const QString &keyword);
     void selectNote(const QModelIndex& noteIndex);
+    void checkMigration();
+    void migrateNote(QString notePath);
+    void migrateTrash(QString trashPath);
 
 private slots:
     void InitData();
