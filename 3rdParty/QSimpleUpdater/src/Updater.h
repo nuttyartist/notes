@@ -54,6 +54,7 @@ class QSU_DECL Updater : public QObject {
     ~Updater();
 
     QString url() const;
+    QString openUrl() const;
     QString changelog() const;
     QString moduleName() const;
     QString downloadUrl() const;

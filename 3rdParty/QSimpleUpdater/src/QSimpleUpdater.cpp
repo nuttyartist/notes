@@ -107,6 +107,19 @@ bool QSimpleUpdater::usesCustomInstallProcedures (const QString& url) const {
 }
 
 /**
+ * Returns the URL to open in a web browser of the \c Updater instance
+ * registered with the given \a url.
+ *
+ * \note If the module name is empty, then the \c Updater will use the
+ *       application name as its module name.
+ * \note If an \c Updater instance registered with the given \a url is not
+ *       found, that \c Updater instance will be initialized automatically
+ */
+QString QSimpleUpdater::getOpenUrl (const QString &url) const {
+    return getUpdater (url)->openUrl();
+}
+
+/**
  * Returns the changelog of the \c Updater instance registered with the given
  * \a url.
  *

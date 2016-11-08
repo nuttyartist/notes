@@ -25,6 +25,7 @@
 #include "notedata.h"
 #include "notemodel.h"
 #include "noteview.h"
+#include "updaterwindow.h"
 
 namespace Ui {
 class MainWindow;
@@ -89,6 +90,8 @@ private:
     QModelIndex m_selectedNoteBeforeSearchingInSource;
     QQueue<QString> m_searchQueue;
 
+    UpdaterWindow m_updater;
+
     int m_currentVerticalScrollAreaRange;
     int m_mousePressX;
     int m_mousePressY;
@@ -113,6 +116,7 @@ private:
     void setupRightFrame();
     void setupTitleBarButtons();
     void setupSignalsSlots();
+    void autoCheckForUpdates();
     void setupLineEdit();
     void setupTextEdit();
     void setupDatabases();
@@ -165,6 +169,7 @@ private slots:
     void maximizeWindow();
     void minimizeWindow();
     void QuitApplication();
+    void checkForUpdates (const bool clicked);
 };
 
 #endif // MAINWINDOW_H

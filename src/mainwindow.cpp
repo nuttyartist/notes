@@ -10,6 +10,7 @@
 #include <QShortcut>
 #include <QTextStream>
 #include <QScrollArea>
+#include "updaterwindow.h"
 #include "notewidgetdelegate.h"
 #include "qxtglobalshortcut.h"
 #define FIRST_LINE_MAX 80
@@ -68,6 +69,7 @@ MainWindow::MainWindow (QWidget *parent) :
     setupModelView();
     restoreStates();
     setupSignalsSlots();
+    autoCheckForUpdates();
 
     QTimer::singleShot(200,this, SLOT(InitData()));
 }
@@ -215,6 +217,8 @@ void MainWindow::createActions()
     m_rightToLeftAction->setCheckable(true);
 
     m_checkForUpdatesAction = new QAction("Check For Updates", this);;
+    connect (m_checkForUpdatesAction, SIGNAL (triggered (bool)),
+             this,                      SLOT (checkForUpdates (bool)));
 }
 
 void MainWindow::createMenu()
@@ -225,12 +229,12 @@ void MainWindow::createMenu()
     viewMenu->addAction(m_rightToLeftAction);
 
     m_mainMenu->setStyleSheet("QMenu { "
-                            "  background-color: rgb(247, 247, 247); "
-                            "  border: 1px solid #308CC6; "
-                            "  }"
-                            "QMenu::item:selected { "
-                            "  background: 1px solid #308CC6; "
-                            "  }");
+                              "  background-color: rgb(247, 247, 247); "
+                              "  border: 1px solid #308CC6; "
+                              "  }"
+                              "QMenu::item:selected { "
+                              "  background: 1px solid #308CC6; "
+                              "  }");
 
     int id = QFontDatabase::addApplicationFont(":/fonts/roboto-hinted/Roboto-Regular.ttf");
     QString robotoFontRegular = QFontDatabase::applicationFontFamilies(id).at(0);
@@ -238,7 +242,7 @@ void MainWindow::createMenu()
     viewMenu->setFont(QFont(robotoFontRegular, 10));
 
 #ifndef Q_OS_LINUX
-    m_mainMenu->addAction(checkForUpdatesAction);
+    m_mainMenu->addAction(m_checkForUpdatesAction);
 #endif
 }
 
@@ -384,6 +388,15 @@ void MainWindow::setupSignalsSlots()
     connect(qApp, &QApplication::applicationStateChanged, this,[this](){
         m_noteView->update(m_noteView->currentIndex());
     });
+}
+
+/**
+ * Checks for updates, if an update is found, then the updater dialog will show
+ * up, otherwise, no notification shall be showed
+ */
+void MainWindow::autoCheckForUpdates()
+{
+    m_updater.checkForUpdates (true);
 }
 
 /**
@@ -1233,6 +1246,19 @@ void MainWindow::QuitApplication ()
     }
 
     MainWindow::close();
+}
+
+
+/**
+ * Called when the "Check for Updates" menu item is clicked, this function
+ * instructs the updater window to check if there are any updates available
+ *
+ * \note This code won't be executed under Linux builds
+ * \param clicked required by the signal/slot connection, the value is ignored
+ */
+void MainWindow::checkForUpdates (const bool clicked) {
+    Q_UNUSED (clicked);
+    m_updater.checkForUpdates (false);
 }
 
 /**
