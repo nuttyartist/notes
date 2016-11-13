@@ -21,7 +21,9 @@
 /**
  * Indicates from where we should download the update definitions file
  */
-const QString UPDATES_URL = "https://raw.githubusercontent.com/nuttyartist/notes/dev/UPDATES.json";
+static const QString UPDATES_URL = "https://raw.githubusercontent.com/"
+                                   "nuttyartist/notes/automatic-updates-windows"
+                                   "/UPDATES.json";
 
 /**
  * Initializes the window components and configures the QSimpleUpdater
@@ -39,14 +41,6 @@ UpdaterWindow::UpdaterWindow (QWidget *parent) : QWidget (parent)
     /* Set window title to app name */
     setWindowTitle (qApp->applicationName() + " " + tr ("Updater"));
 
-    /* Setup the color palettes */
-#if defined Q_OS_WIN
-    QPalette pal (palette());
-    pal.setColor (QPalette::Background, QColor (248, 248, 248));
-    setAutoFillBackground (true);
-    setPalette (pal);
-#endif
-
     /* Configure the network manager */
     m_manager = new QNetworkAccessManager (this);
 
@@ -63,6 +57,10 @@ UpdaterWindow::UpdaterWindow (QWidget *parent) : QWidget (parent)
 
     /* Start the UI loops */
     updateTitleLabel();
+
+    /* Set window flags */
+    setWindowModality (Qt::ApplicationModal);
+    setWindowFlags (Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
 }
 
 /**
@@ -104,21 +102,6 @@ void UpdaterWindow::checkForUpdates (bool silent)
 }
 
 /**
- * Resizes the dialog to the smallest possible size, without hiding any
- * user controls
- */
-void UpdaterWindow::resizeToFit()
-{
-    /* Resize window */
-    resize (minimumSizeHint());
-    setFixedSize (minimumSizeHint());
-
-    /* Set window flags */
-    setWindowModality (Qt::ApplicationModal);
-    setWindowFlags (Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
-}
-
-/**
  * Resets the state, text and information displayed the the UI controls
  * to indicate what is happening right now in the QSimpleUpdater
  */
@@ -131,19 +114,13 @@ void UpdaterWindow::resetControls()
     m_ui->installedVersion->setText (qApp->applicationVersion());
 
     /* Set available version label */
-    if (m_updater->getUpdateAvailable (UPDATES_URL))
-        m_ui->availableVersion->setText (m_updater->getLatestVersion (UPDATES_URL));
-    else
-        m_ui->availableVersion->setText (tr ("N/A"));
+    m_ui->availableVersion->setText (m_updater->getLatestVersion (UPDATES_URL));
 
     /* Set title label */
-    if (m_updater->getUpdateAvailable (UPDATES_URL)) {
-        m_ui->title->setText (tr ("An newer version of %1 is available!")
-                              .arg (qApp->applicationName()));
-    } else {
-        m_ui->title->setText (tr ("You are running the latest version of %1!")
-                              .arg (qApp->applicationName()));
-    }
+    if (m_updater->getUpdateAvailable (UPDATES_URL))
+        m_ui->title->setText (tr ("An newer version is available!"));
+    else
+        m_ui->title->setText (tr ("You're up-to-date!"));
 
     /* Reset the progress controls */
     m_ui->progressControls->hide();
@@ -157,13 +134,10 @@ void UpdaterWindow::resetControls()
         m_ui->changelog->setText ("<p>No changelog found...</p>");
 
     /* Enable/disable update button */
-    bool validURL = !m_updater->getOpenUrl (UPDATES_URL).isEmpty() ||
-            !m_updater->getDownloadUrl (UPDATES_URL).isEmpty();
-    bool available= m_updater->getUpdateAvailable (UPDATES_URL);
-    m_ui->updateButton->setEnabled (available && validURL);
-
-    /* Resize the dialog to its minimum size */
-    resizeToFit();
+    bool available = m_updater->getUpdateAvailable (UPDATES_URL);
+    bool validOpenUrl = !m_updater->getOpenUrl (UPDATES_URL).isEmpty();
+    bool validDownUrl = !m_updater->getDownloadUrl (UPDATES_URL).isEmpty();
+    m_ui->updateButton->setEnabled (available && (validOpenUrl || validDownUrl));
 }
 
 /**
@@ -243,22 +217,6 @@ void UpdaterWindow::onDownloadFinished()
 }
 
 /**
- * Displays a message box that informs the user that he/she is running the
- * latest version of the application
- */
-void UpdaterWindow::onNoUpdateAvailable()
-{
-    /* Construct the message to display to the user */
-    QString msg = tr ("Congratulations! You are running the latest "
-                      "version of %1 (%2)!");
-
-    /* Show a lovely message box */
-    QMessageBox::information (this, windowTitle(),
-                              msg.arg (qApp->applicationName(),
-                                       qApp->applicationVersion()));
-}
-
-/**
  * Initializes the download of the update and disables the 'update' button
  */
 void UpdaterWindow::onDownloadButtonClicked()
@@ -288,7 +246,6 @@ void UpdaterWindow::startDownload (const QUrl& url)
 
     /* Show UI controls */
     m_ui->progressControls->show();
-    resizeToFit();
     showNormal();
 
     /* Update UI when download progress changes or download finishes */
@@ -328,8 +285,10 @@ void UpdaterWindow::onCheckFinished (const QString &url) {
         onUpdateAvailable();
 
     /* There are no updates available */
-    else if (!m_silent)
-        onNoUpdateAvailable();
+    else if (!m_silent) {
+        resetControls();
+        showNormal();
+    }
 }
 
 /**
@@ -409,16 +368,32 @@ void UpdaterWindow::calculateTimeRemaining (qint64 received, qint64 total)
 
         if (timeRemaining > 7200) {
             timeRemaining /= 3600;
-            timeString = tr ("About %1 hours").arg (int (timeRemaining + 0.5));
+            int hours = int (timeRemaining + 0.5);
+
+            if (hours > 1)
+                timeString = tr ("about %1 hours").arg (hours);
+            else
+                timeString = tr ("about one hour");
         }
 
         else if (timeRemaining > 60) {
             timeRemaining /= 60;
-            timeString = tr ("About %1 minutes").arg (int (timeRemaining + 0.5));
+            int minutes = int (timeRemaining + 0.5);
+
+            if (minutes > 1)
+                timeString = tr ("about %1 minutes").arg (minutes);
+            else
+                timeString = tr ("about one minute");
         }
 
-        else if (timeRemaining <= 60)
-            timeString = tr ("%1 seconds").arg (int (timeRemaining + 0.5));
+        else if (timeRemaining <= 60) {
+            int seconds = int (timeRemaining + 0.5);
+
+            if (seconds > 1)
+                timeString = tr ("about %1 seconds").arg (seconds);
+            else
+                timeString = tr ("about one second");
+        }
 
         m_ui->timeLabel->setText (tr ("Time remaining") + ": " + timeString);
     }

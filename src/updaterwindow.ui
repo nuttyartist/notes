@@ -6,12 +6,56 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>299</width>
-    <height>470</height>
+    <width>377</width>
+    <height>434</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string/>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget {
+   font: 13pt &quot;Roboto&quot;;
+   background-color: rgb(247, 247, 247);
+}
+
+QTextBrowser {
+   color: rgb(117, 117, 117);
+   border-color: rgb(205, 205, 205);
+   background-color: rgb(251, 251, 251);
+}
+
+QProgressBar {
+   height: 24px;
+   font-weight: bold;
+   border-radius: 5px;
+   border: 1px solid rgb(205, 205, 205);
+   background-color: rgb(251, 251, 251);
+}
+
+QProgressBar::chunk{
+   border-radius: 5px;
+   background-color: rgb(68, 138, 201);
+}
+
+QPushButton {
+   font-weight: bold;
+   border-width: 0px;
+   color: rgb(68, 138, 201);
+   background-color: transparent;
+}
+
+QPushButton:!enabled {
+   color: rgb(117, 117, 117);
+}
+
+QPushButton:hover:!pressed {
+   color: rgb(51, 110, 162);
+}
+
+QPushButton:pressed {
+   color: rgb(39, 85, 125);
+}</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -33,16 +77,6 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="QLabel" name="icon">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="pixmap">
-         <pixmap resource="images.qrc">:/images/notes_icon.png</pixmap>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QWidget" name="titleWidget" native="true">
         <layout class="QVBoxLayout" name="verticalLayout_4">
          <property name="leftMargin">
@@ -61,10 +95,16 @@
           <widget class="QLabel" name="title">
            <property name="font">
             <font>
-             <pointsize>14</pointsize>
+             <family>Roboto</family>
+             <pointsize>18</pointsize>
              <weight>75</weight>
+             <italic>false</italic>
              <bold>true</bold>
             </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">font-size: 18pt;
+font-weight: bold;</string>
            </property>
            <property name="text">
             <string>Checking for updates....</string>
@@ -160,7 +200,7 @@
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
-       <height>20</height>
+       <height>10</height>
       </size>
      </property>
     </spacer>
@@ -184,9 +224,15 @@
        <widget class="QLabel" name="changeslabel">
         <property name="font">
          <font>
+          <family>Roboto</family>
+          <pointsize>13</pointsize>
           <weight>75</weight>
+          <italic>false</italic>
           <bold>true</bold>
          </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">font-weight: bold;</string>
         </property>
         <property name="text">
          <string>What's New:</string>
@@ -200,6 +246,9 @@
           <width>0</width>
           <height>128</height>
          </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
         </property>
        </widget>
       </item>
@@ -217,7 +266,7 @@
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
-       <height>10</height>
+       <height>5</height>
       </size>
      </property>
     </spacer>
@@ -241,9 +290,15 @@
        <widget class="QLabel" name="downloadLabel">
         <property name="font">
          <font>
+          <family>Roboto</family>
+          <pointsize>13</pointsize>
           <weight>75</weight>
+          <italic>false</italic>
           <bold>true</bold>
          </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">font-weight: bold;</string>
         </property>
         <property name="text">
          <string>Downloading Updates...</string>
@@ -254,6 +309,9 @@
        <widget class="QProgressBar" name="progressBar">
         <property name="value">
          <number>24</number>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </item>
@@ -278,7 +336,7 @@
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
-       <height>10</height>
+       <height>5</height>
       </size>
      </property>
     </spacer>
@@ -330,8 +388,6 @@
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="images.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

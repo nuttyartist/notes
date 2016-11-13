@@ -29,12 +29,10 @@ public slots:
     void checkForUpdates (bool silent);
 
 private slots:
-    void resizeToFit();
     void resetControls();
     void updateTitleLabel();
     void onUpdateAvailable();
     void onDownloadFinished();
-    void onNoUpdateAvailable();
     void onDownloadButtonClicked();
     void startDownload (const QUrl& url);
     void openDownload(const QString &path);
