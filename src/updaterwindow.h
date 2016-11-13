@@ -52,18 +52,18 @@ private:
 
 private:
     Ui::UpdaterWindow *m_ui;
-    QSimpleUpdater* m_updater;
 
     QPoint m_dragPosition;
 
+    bool m_silent;
     int m_mousePressX;
     int m_mousePressY;
     bool m_canMoveWindow;
+    bool m_checkingForUpdates;
 
-    bool m_silent;
     uint m_startTime;
     QNetworkReply* m_reply;
-    bool m_checkingForUpdates;
+    QSimpleUpdater* m_updater;
     QNetworkAccessManager* m_manager;
 };
 

@@ -28,33 +28,26 @@ static const QString UPDATES_URL = "https://raw.githubusercontent.com/"
 /**
  * Initializes the window components and configures the QSimpleUpdater
  */
-UpdaterWindow::UpdaterWindow (QWidget *parent) : QWidget (parent)
+UpdaterWindow::UpdaterWindow (QWidget *parent) : QWidget (parent),
+    m_ui (new Ui::UpdaterWindow),
+    m_silent (false),
+    m_canMoveWindow (false),
+    m_checkingForUpdates (false),
+    m_reply (Q_NULLPTR),
+    m_updater (QSimpleUpdater::getInstance()),
+    m_manager (new QNetworkAccessManager (this))
 {
     /* Initialize the UI */
-    m_ui = new Ui::UpdaterWindow;
     m_ui->setupUi (this);
-
-    /* Set variables */
-    m_silent = false;
-    m_canMoveWindow = false;
-    m_checkingForUpdates = false;
-
-    /* Set window title to app name */
     setWindowTitle (qApp->applicationName() + " " + tr ("Updater"));
-
-    /* Configure the network manager */
-    m_manager = new QNetworkAccessManager (this);
 
     /* Connect UI signals/slots */
     connect (m_ui->closeButton,  SIGNAL (clicked()),
-             this,               SLOT (close()));
+             this,                 SLOT (close()));
     connect (m_ui->updateButton, SIGNAL (clicked()),
-             this,               SLOT (onDownloadButtonClicked()));
-
-    /* Connect signals/slots of the QSU */
-    m_updater = QSimpleUpdater::getInstance();
-    connect (m_updater, SIGNAL (checkingFinished (QString)),
-             this,      SLOT   (onCheckFinished  (QString)));
+             this,                 SLOT (onDownloadButtonClicked()));
+    connect (m_updater,          SIGNAL (checkingFinished (QString)),
+             this,                 SLOT (onCheckFinished  (QString)));
 
     /* Start the UI loops */
     updateTitleLabel();
@@ -204,6 +197,10 @@ void UpdaterWindow::onUpdateAvailable()
  */
 void UpdaterWindow::onDownloadFinished()
 {
+    /* Reply is null, abort */
+    if (!m_reply)
+        return;
+
     /* Read the downloaded data */
     QByteArray data = m_reply->readAll();
 
@@ -461,8 +458,7 @@ void UpdaterWindow::mouseMoveEvent (QMouseEvent* event)
  */
 void UpdaterWindow::mouseReleaseEvent (QMouseEvent *event) {
     m_canMoveWindow = false;
-
-    //unsetCursor();
+    unsetCursor();
     event->accept();
 }
 

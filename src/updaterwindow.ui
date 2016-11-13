@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>343</width>
-    <height>441</height>
+    <width>352</width>
+    <height>455</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,14 +15,15 @@
   </property>
   <property name="styleSheet">
    <string notr="true">QWidget {
-   font: 12pt &quot;Roboto&quot;;
+   font: 14pt &quot;Roboto&quot;;
    color: rgb(26, 26, 26);
    background-color: rgb(247, 247, 247);
 }
 
 QTextBrowser {
    color: rgb(117, 117, 117);
-   border-color: rgb(205, 205, 205);
+   font: 14pt &quot;Arimo Regular&quot;;
+   border: 1px solid rgb(205, 205, 205);
    background-color: rgb(251, 251, 251);
 }
 
@@ -40,7 +41,7 @@ QProgressBar::chunk{
 }
 
 QPushButton {
-   font-size: 14pt;
+   font-size: 15pt;
    font-weight: bold;
    border-width: 0px;
    color: rgb(68, 138, 201);
@@ -98,14 +99,14 @@ QPushButton:pressed {
            <property name="font">
             <font>
              <family>Roboto</family>
-             <pointsize>18</pointsize>
+             <pointsize>25</pointsize>
              <weight>75</weight>
              <italic>false</italic>
              <bold>true</bold>
             </font>
            </property>
            <property name="styleSheet">
-            <string notr="true">font-size: 18pt;
+            <string notr="true">font-size: 25pt;
 font-weight: bold;</string>
            </property>
            <property name="text">
@@ -115,6 +116,9 @@ font-weight: bold;</string>
          </item>
          <item>
           <widget class="QWidget" name="versionsWidget" native="true">
+           <property name="styleSheet">
+            <string/>
+           </property>
            <layout class="QGridLayout" name="gridLayout">
             <property name="leftMargin">
              <number>0</number>
@@ -130,6 +134,9 @@ font-weight: bold;</string>
             </property>
             <item row="0" column="1">
              <widget class="QLabel" name="installedVersion">
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
               <property name="text">
                <string>%1</string>
               </property>
@@ -137,6 +144,9 @@ font-weight: bold;</string>
             </item>
             <item row="0" column="0">
              <widget class="QLabel" name="installedVersion_Label">
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
               <property name="text">
                <string>Installed Version: </string>
               </property>
@@ -144,6 +154,9 @@ font-weight: bold;</string>
             </item>
             <item row="1" column="0">
              <widget class="QLabel" name="availableVersion_Label">
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
               <property name="text">
                <string>Available Version:</string>
               </property>
@@ -151,6 +164,9 @@ font-weight: bold;</string>
             </item>
             <item row="1" column="1">
              <widget class="QLabel" name="availableVersion">
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
               <property name="text">
                <string>%1</string>
               </property>
@@ -227,7 +243,7 @@ font-weight: bold;</string>
         <property name="font">
          <font>
           <family>Roboto</family>
-          <pointsize>12</pointsize>
+          <pointsize>14</pointsize>
           <weight>75</weight>
           <italic>false</italic>
           <bold>true</bold>
@@ -251,6 +267,19 @@ font-weight: bold;</string>
         </property>
         <property name="styleSheet">
          <string notr="true"/>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+        <property name="html">
+         <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Arimo Regular'; font-size:14pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
       </item>
@@ -293,7 +322,7 @@ font-weight: bold;</string>
         <property name="font">
          <font>
           <family>Roboto</family>
-          <pointsize>12</pointsize>
+          <pointsize>14</pointsize>
           <weight>75</weight>
           <italic>false</italic>
           <bold>true</bold>
@@ -373,6 +402,9 @@ font-weight: bold;</string>
       </item>
       <item>
        <widget class="QPushButton" name="closeButton">
+        <property name="cursor">
+         <cursorShape>ArrowCursor</cursorShape>
+        </property>
         <property name="text">
          <string>Close</string>
         </property>
@@ -380,6 +412,9 @@ font-weight: bold;</string>
       </item>
       <item>
        <widget class="QPushButton" name="updateButton">
+        <property name="cursor">
+         <cursorShape>ArrowCursor</cursorShape>
+        </property>
         <property name="text">
          <string>Update</string>
         </property>
