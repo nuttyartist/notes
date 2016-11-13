@@ -33,11 +33,11 @@ private slots:
     void resetControls();
     void updateTitleLabel();
     void onUpdateAvailable();
-    void onDownloadFinished();
     void onDownloadButtonClicked();
     void startDownload (const QUrl& url);
-    void openDownload(const QString &path);
+    void openDownload(const QString &file);
     void onCheckFinished (const QString& url);
+    void saveFile (qint64 received, qint64 total);
     void calculateSizes (qint64 received, qint64 total);
     void updateProgress (qint64 received, qint64 total);
     void calculateTimeRemaining (qint64 received, qint64 total);
@@ -51,6 +51,7 @@ private:
     qreal round (const qreal& input);
 
 private:
+    QString m_fileName;
     Ui::UpdaterWindow *m_ui;
 
     QPoint m_dragPosition;

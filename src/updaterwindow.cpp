@@ -11,6 +11,7 @@
 
 #include <QDir>
 #include <QTimer>
+#include <QMessageBox>
 #include <QMouseEvent>
 #include <QNetworkReply>
 #include <QDesktopServices>
@@ -21,14 +22,25 @@
 /**
  * Indicates from where we should download the update definitions file
  */
-static const QString UPDATES_URL = "https://raw.githubusercontent.com/"
-                                   "nuttyartist/notes/automatic-updates-windows"
-                                   "/UPDATES.json";
+static const QString UPDATES_URL ("https://raw.githubusercontent.com/"
+                                  "nuttyartist/notes/automatic-updates-windows"
+                                  "/UPDATES.json");
+
+/**
+ * Extension appended to partial downloads
+ */
+static const QString PARTIAL_DOWN (".part");
+
+/**
+ * Download dir
+ */
+static const QDir DOWNLOAD_DIR (QDir::homePath() + "/Downloads/");
 
 /**
  * Initializes the window components and configures the QSimpleUpdater
  */
 UpdaterWindow::UpdaterWindow (QWidget *parent) : QWidget (parent),
+    m_fileName (""),
     m_ui (new Ui::UpdaterWindow),
     m_silent (false),
     m_canMoveWindow (false),
@@ -193,44 +205,6 @@ void UpdaterWindow::onUpdateAvailable()
 }
 
 /**
- * Saves the downloaded file on the disk or handles an HTTP redirection
- */
-void UpdaterWindow::onDownloadFinished()
-{
-    /* Reply is null, abort */
-    if (!m_reply)
-        return;
-
-    /* Read the downloaded data */
-    QByteArray data = m_reply->readAll();
-
-    /* Data is invalid, abort */
-    if (data.isEmpty())
-        return;
-
-    /* Check if we need to redirect */
-    QUrl url = m_reply->attribute (QNetworkRequest::RedirectionTargetAttribute).toUrl();
-    if (!url.isEmpty()) {
-        startDownload (url);
-        return;
-    }
-
-    /* Prepare downloads directory for writing */
-    QDir dir (QDir::homePath() + "/Downloads/");
-    if (!dir.exists())
-        dir.mkpath (".");
-
-    /* Save downloaded data to disk */
-    QString name = m_reply->url().toString().split ("/").last();
-    QFile file (dir.path() + name);
-    if (file.open (QIODevice::WriteOnly)) {
-        file.write (data);
-        file.close();
-        openDownload (file.fileName());
-    }
-}
-
-/**
  * Initializes the download of the update and disables the 'update' button
  */
 void UpdaterWindow::onDownloadButtonClicked()
@@ -255,13 +229,30 @@ void UpdaterWindow::startDownload (const QUrl& url)
     }
 
     /* Cancel previous download (if any) */
-    if (m_reply)
-        if (m_reply->isRunning())
-            m_reply->abort();
+    if (m_reply) {
+        m_reply->abort();
+        m_reply->deleteLater();
+    }
 
     /* Start download */
     m_startTime = QDateTime::currentDateTime().toTime_t();
     m_reply = m_manager->get (QNetworkRequest (url));
+
+    /* Set file name */
+    m_fileName = m_updater->getDownloadUrl (UPDATES_URL).split ("/").last();
+    if (m_fileName.isEmpty()) {
+        m_fileName = QString ("%1 Update %2.bin")
+                .arg (qApp->applicationName())
+                .arg (m_updater->getLatestVersion (UPDATES_URL));
+    }
+
+    /* Prepare download directory */
+    if (!DOWNLOAD_DIR.exists())
+        DOWNLOAD_DIR.mkpath (".");
+
+    /* Remove previous downloads (if any) */
+    QFile::remove (DOWNLOAD_DIR.filePath (m_fileName));
+    QFile::remove (DOWNLOAD_DIR.filePath (m_fileName + PARTIAL_DOWN));
 
     /* Show UI controls */
     m_ui->progressControls->show();
@@ -272,20 +263,36 @@ void UpdaterWindow::startDownload (const QUrl& url)
              this,      SLOT (updateProgress   (qint64, qint64)));
     connect (m_reply, SIGNAL (redirected       (QUrl)),
              this,      SLOT (startDownload    (QUrl)));
-    connect (m_reply, SIGNAL (finished()),
-             this,      SLOT (onDownloadFinished()));
 }
 
 /**
  * Opens the downloaded file
  */
-void UpdaterWindow::openDownload (const QString& path)
+void UpdaterWindow::openDownload (const QString& file)
 {
-    if (!path.isEmpty()) {
-        QDesktopServices::openUrl (QUrl ("file:///" + path));
-        m_ui->downloadLabel->setText (tr ("Download finished!"));
-        m_ui->timeLabel->setText (tr ("Opening downloaded file") + "...");
+    /* File is empty, abort */
+    if (file.isEmpty())
+        return;
+
+    /* This a redirection request, delete temp file */
+    QUrl url = m_reply->attribute (QNetworkRequest::RedirectionTargetAttribute).toUrl();
+    if (!url.isEmpty()) {
+        startDownload (url);
+        QFile::remove (file);
+        return;
     }
+
+    /* Change labels */
+    m_ui->downloadLabel->setText (tr ("Download finished!"));
+    m_ui->timeLabel->setText (tr ("Opening downloaded file") + "...");
+
+    /* Remove the .part extension */
+    QString new_file = file;
+    new_file = new_file.remove (PARTIAL_DOWN, Qt::CaseInsensitive);
+    QFile::rename (file, new_file);
+
+    /* Open the downloaded file */
+    QDesktopServices::openUrl (QUrl ("file:///" + new_file));
 }
 
 /**
@@ -308,6 +315,22 @@ void UpdaterWindow::onCheckFinished (const QString &url) {
         resetControls();
         showNormal();
     }
+}
+
+/**
+ * Saves the downloaded file to the disk
+ */
+void UpdaterWindow::saveFile (qint64 received, qint64 total) {
+    /* Save downloaded data to disk */
+    QFile file (DOWNLOAD_DIR.filePath (m_fileName + PARTIAL_DOWN));
+    if (file.open (QIODevice::WriteOnly | QIODevice::Append)) {
+        file.write (m_reply->readAll());
+        file.close();
+    }
+
+    /* Open the download */
+    if (received >= total && total > 0)
+        openDownload (file.fileName());
 }
 
 /**
@@ -356,6 +379,7 @@ void UpdaterWindow::updateProgress (qint64 received, qint64 total)
 
         calculateSizes (received, total);
         calculateTimeRemaining (received, total);
+        saveFile (received, total);
     }
 
     else {
