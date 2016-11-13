@@ -118,7 +118,7 @@ void UpdaterWindow::resetControls()
 
     /* Set title label */
     if (m_updater->getUpdateAvailable (UPDATES_URL))
-        m_ui->title->setText (tr ("An newer version is available!"));
+        m_ui->title->setText (tr ("A newer version is available!"));
     else
         m_ui->title->setText (tr ("You're up-to-date!"));
 
