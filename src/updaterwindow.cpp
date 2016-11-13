@@ -240,6 +240,11 @@ void UpdaterWindow::startDownload (const QUrl& url)
         return;
     }
 
+    /* Cancel previous download (if any) */
+    if (m_reply)
+        if (m_reply->isRunning())
+            m_reply->abort();
+
     /* Start download */
     m_startTime = QDateTime::currentDateTime().toTime_t();
     m_reply = m_manager->get (QNetworkRequest (url));

@@ -742,6 +742,9 @@ color: rgb(132, 132, 132);
               <height>25</height>
              </size>
             </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
             <property name="text">
              <string/>
             </property>
