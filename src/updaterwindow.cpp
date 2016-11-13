@@ -11,7 +11,7 @@
 
 #include <QDir>
 #include <QTimer>
-#include <QMessageBox>
+#include <QMouseEvent>
 #include <QNetworkReply>
 #include <QDesktopServices>
 #include <QSimpleUpdater.h>
@@ -36,6 +36,7 @@ UpdaterWindow::UpdaterWindow (QWidget *parent) : QWidget (parent)
 
     /* Set variables */
     m_silent = false;
+    m_canMoveWindow = false;
     m_checkingForUpdates = false;
 
     /* Set window title to app name */
@@ -58,9 +59,17 @@ UpdaterWindow::UpdaterWindow (QWidget *parent) : QWidget (parent)
     /* Start the UI loops */
     updateTitleLabel();
 
+    /* Remove window border */
+#if defined Q_OS_WIN
+    setWindowFlags (Qt::CustomizeWindowHint);
+#elif defined Q_OS_MAC || defined Q_OS_LINUX
+    setWindowFlags (Qt::Window | Qt::FramelessWindowHint);
+#else
+#error "We don't support your OS yet..."
+#endif
+
     /* Set window flags */
     setWindowModality (Qt::ApplicationModal);
-    setWindowFlags (Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
 }
 
 /**
@@ -187,12 +196,8 @@ void UpdaterWindow::onDownloadFinished()
     QByteArray data = m_reply->readAll();
 
     /* Data is invalid, abort */
-    if (data.isEmpty()) {
-        QMessageBox::critical (this,
-                               tr ("Download Error"),
-                               tr ("Received an empty file!"));
+    if (data.isEmpty())
         return;
-    }
 
     /* Check if we need to redirect */
     QUrl url = m_reply->attribute (QNetworkRequest::RedirectionTargetAttribute).toUrl();
@@ -351,7 +356,7 @@ void UpdaterWindow::updateProgress (qint64 received, qint64 total)
         m_ui->downloadLabel->setText (tr ("Downloading Updates") + "...");
         m_ui->timeLabel->setText (QString ("%1: %2")
                                   .arg (tr ("Time Remaining"))
-                                  .arg (tr ("Unknown")));
+                                  .arg (tr ("unknown")));
     }
 }
 
@@ -386,22 +391,67 @@ void UpdaterWindow::calculateTimeRemaining (qint64 received, qint64 total)
             int minutes = int (timeRemaining + 0.5);
 
             if (minutes > 1)
-                timeString = tr ("about %1 minutes").arg (minutes);
+                timeString = tr ("%1 minutes").arg (minutes);
             else
-                timeString = tr ("about one minute");
+                timeString = tr ("1 minute");
         }
 
         else if (timeRemaining <= 60) {
             int seconds = int (timeRemaining + 0.5);
 
             if (seconds > 1)
-                timeString = tr ("about %1 seconds").arg (seconds);
+                timeString = tr ("%1 seconds").arg (seconds);
             else
-                timeString = tr ("about one second");
+                timeString = tr ("1 second");
         }
 
         m_ui->timeLabel->setText (tr ("Time remaining") + ": " + timeString);
     }
+}
+
+/**
+ * Allows the user to move the window and registers the position in which
+ * the user originally clicked to move the window
+ */
+void UpdaterWindow::mousePressEvent (QMouseEvent* event)
+{
+    if (event->button() == Qt::LeftButton) {
+        if (event->pos().x() < width() - 5
+                && event->pos().x() >5
+                && event->pos().y() < height() - 5
+                && event->pos().y() > 5) {
+            m_canMoveWindow = true;
+            m_mousePressX = event->x();
+            m_mousePressY = event->y();
+        }
+    }
+
+    event->accept();
+}
+
+/**
+ * Changes the cursor icon to a hand (to hint the user that he/she is dragging
+ * the window) and moves the window to the desired position of the given
+ * \a event
+ */
+void UpdaterWindow::mouseMoveEvent (QMouseEvent* event)
+{
+    if (m_canMoveWindow) {
+        setCursor (Qt::ClosedHandCursor);
+        int dx = event->globalX() - m_mousePressX;
+        int dy = event->globalY() - m_mousePressY;
+        move (dx, dy);
+    }
+}
+
+/**
+ * Disallows the user to move the window and resets the window cursor
+ */
+void UpdaterWindow::mouseReleaseEvent (QMouseEvent *event) {
+    m_canMoveWindow = false;
+
+    //unsetCursor();
+    event->accept();
 }
 
 /**

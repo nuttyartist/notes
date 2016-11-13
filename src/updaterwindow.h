@@ -13,6 +13,7 @@ namespace Ui {
 class UpdaterWindow;
 }
 
+class QMouseEvent;
 class QNetworkReply;
 class QSimpleUpdater;
 class QNetworkAccessManager;
@@ -41,12 +42,23 @@ private slots:
     void updateProgress (qint64 received, qint64 total);
     void calculateTimeRemaining (qint64 received, qint64 total);
 
+protected:
+    void mouseMoveEvent (QMouseEvent* event) Q_DECL_OVERRIDE;
+    void mousePressEvent (QMouseEvent* event) Q_DECL_OVERRIDE;
+    void mouseReleaseEvent (QMouseEvent *event) Q_DECL_OVERRIDE;
+
 private:
     qreal round (const qreal& input);
 
 private:
     Ui::UpdaterWindow *m_ui;
     QSimpleUpdater* m_updater;
+
+    QPoint m_dragPosition;
+
+    int m_mousePressX;
+    int m_mousePressY;
+    bool m_canMoveWindow;
 
     bool m_silent;
     uint m_startTime;

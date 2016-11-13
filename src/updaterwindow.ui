@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>377</width>
-    <height>434</height>
+    <height>444</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,7 +16,12 @@
   <property name="styleSheet">
    <string notr="true">QWidget {
    font: 13pt &quot;Roboto&quot;;
+   color: rgb(26, 26, 26);
    background-color: rgb(247, 247, 247);
+}
+
+QLabel {
+   color: rgb(26, 26, 26);
 }
 
 QTextBrowser {
