@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>377</width>
-    <height>444</height>
+    <width>343</width>
+    <height>441</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,13 +15,9 @@
   </property>
   <property name="styleSheet">
    <string notr="true">QWidget {
-   font: 13pt &quot;Roboto&quot;;
+   font: 12pt &quot;Roboto&quot;;
    color: rgb(26, 26, 26);
    background-color: rgb(247, 247, 247);
-}
-
-QLabel {
-   color: rgb(26, 26, 26);
 }
 
 QTextBrowser {
@@ -40,10 +36,11 @@ QProgressBar {
 
 QProgressBar::chunk{
    border-radius: 5px;
-   background-color: rgb(68, 138, 201);
+   background-color: rgb(65, 154, 223);
 }
 
 QPushButton {
+   font-size: 14pt;
    font-weight: bold;
    border-width: 0px;
    color: rgb(68, 138, 201);
@@ -51,7 +48,7 @@ QPushButton {
 }
 
 QPushButton:!enabled {
-   color: rgb(117, 117, 117);
+   color: rgb(132, 132, 132);
 }
 
 QPushButton:hover:!pressed {
@@ -230,7 +227,7 @@ font-weight: bold;</string>
         <property name="font">
          <font>
           <family>Roboto</family>
-          <pointsize>13</pointsize>
+          <pointsize>12</pointsize>
           <weight>75</weight>
           <italic>false</italic>
           <bold>true</bold>
@@ -296,7 +293,7 @@ font-weight: bold;</string>
         <property name="font">
          <font>
           <family>Roboto</family>
-          <pointsize>13</pointsize>
+          <pointsize>12</pointsize>
           <weight>75</weight>
           <italic>false</italic>
           <bold>true</bold>

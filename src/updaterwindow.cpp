@@ -147,6 +147,18 @@ void UpdaterWindow::resetControls()
     bool validOpenUrl = !m_updater->getOpenUrl (UPDATES_URL).isEmpty();
     bool validDownUrl = !m_updater->getDownloadUrl (UPDATES_URL).isEmpty();
     m_ui->updateButton->setEnabled (available && (validOpenUrl || validDownUrl));
+
+    /* Resize window */
+    bool showAgain = isVisible(); {
+        int height = minimumSizeHint().height();
+        int width = qMax (minimumSizeHint().width(), (int) (height * 1.2));
+
+        resize (QSize (width, height));
+    }
+
+    /* Re-show the window (if required) */
+    if (showAgain)
+        showNormal();
 }
 
 /**
