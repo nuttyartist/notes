@@ -292,7 +292,7 @@ void UpdaterWindow::openDownload (const QString& file)
     QFile::rename (file, new_file);
 
     /* Open the downloaded file */
-    QDesktopServices::openUrl (QUrl ("file:///" + new_file));
+    QDesktopServices::openUrl (QUrl::fromLocalFile (new_file));
 }
 
 /**
