@@ -51,15 +51,13 @@
           <widget class="QLabel" name="title">
            <property name="font">
             <font>
-             <family>Roboto</family>
-             <pointsize>25</pointsize>
+             <pointsize>-1</pointsize>
              <weight>75</weight>
-             <italic>false</italic>
              <bold>true</bold>
             </font>
            </property>
            <property name="styleSheet">
-            <string notr="true">font-size: 25pt;
+            <string notr="true">font-size: 25px;
 font-weight: bold;</string>
            </property>
            <property name="text">
