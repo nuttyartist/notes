@@ -32,8 +32,8 @@ SOURCES += \
     $$PWD/notemodel.cpp \
     $$PWD/noteview.cpp \
     $$PWD/singleinstance.cpp \
-    updaterwindow.cpp \
-    dbmanager.cpp
+    $$PWD/updaterwindow.cpp \
+    $$PWD/dbmanager.cpp
 
 HEADERS  += \
     $$PWD/mainwindow.h \
@@ -42,14 +42,17 @@ HEADERS  += \
     $$PWD/notemodel.h \
     $$PWD/noteview.h \
     $$PWD/singleinstance.h \
-    updaterwindow.h \
-    dbmanager.h
+    $$PWD/updaterwindow.h \
+    $$PWD/dbmanager.h
 
-FORMS += $$PWD/mainwindow.ui \
-    updaterwindow.ui
+FORMS += \
+    $$PWD/mainwindow.ui \
+    $$PWD/updaterwindow.ui
+
 RESOURCES += \
     $$PWD/images.qrc \
-    $$PWD/fonts.qrc
+    $$PWD/fonts.qrc \
+    $$PWD/styles.qrc
 
 linux:!android {
     isEmpty (PREFIX) {

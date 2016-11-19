@@ -1,0 +1,38 @@
+QWidget {
+    font: 14px 'Roboto';
+    color: rgb(26, 26, 26);
+    background-color: rgb(247, 247, 247);
+}
+QTextBrowser {
+    color: rgb(117, 117, 117);
+    font: 14px 'Arimo Regular';
+    border: 1px solid rgb(205, 205, 205);
+    background-color: rgb(251, 251, 251);
+}
+QProgressBar {
+    height: 24px;
+    font-weight: bold;
+    border-radius: 5px;
+    border: 1px solid rgb(205, 205, 205);
+    background-color: rgb(251, 251, 251);
+}
+QProgressBar::chunk {
+    border-radius: 5px;
+    background-color: rgb(65, 154, 223);
+}
+QPushButton {
+    font-size: 15px;
+    font-weight: bold;
+    border-width: 0px;
+    color: rgb(68, 138, 201);
+    background-color: transparent;
+}
+QPushButton:!enabled {
+    color: rgb(132, 132, 132);
+}
+QPushButton:hover:!pressed {
+    color: rgb(51, 110, 162);
+}
+QPushButton:pressed {
+    color: rgb(39, 85, 125);
+}

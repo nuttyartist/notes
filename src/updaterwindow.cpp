@@ -49,6 +49,13 @@ UpdaterWindow::UpdaterWindow (QWidget *parent) : QWidget (parent),
     m_updater (QSimpleUpdater::getInstance()),
     m_manager (new QNetworkAccessManager (this))
 {
+    /* Load the stylesheet */
+    QFile file (":/styles/style.css");
+    if (file.open (QIODevice::ReadOnly)) {
+        setStyleSheet (QString::fromUtf8 (file.readAll()).toLatin1());
+        file.close();
+    }
+
     /* Initialize the UI */
     m_ui->setupUi (this);
     setWindowTitle (qApp->applicationName() + " " + tr ("Updater"));
