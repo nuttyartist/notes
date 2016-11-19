@@ -6,14 +6,29 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>352</width>
-    <height>455</height>
+    <width>313</width>
+    <height>411</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string/>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>20</number>
+   </property>
+   <property name="topMargin">
+    <number>20</number>
+   </property>
+   <property name="rightMargin">
+    <number>20</number>
+   </property>
+   <property name="bottomMargin">
+    <number>20</number>
+   </property>
    <item>
     <widget class="QWidget" name="headerWidget" native="true">
      <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -49,17 +64,6 @@
          </property>
          <item>
           <widget class="QLabel" name="title">
-           <property name="font">
-            <font>
-             <pointsize>-1</pointsize>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">font-size: 25px;
-font-weight: bold;</string>
-           </property>
            <property name="text">
             <string>Checking for updates....</string>
            </property>
@@ -82,6 +86,12 @@ font-weight: bold;</string>
             </property>
             <property name="bottomMargin">
              <number>0</number>
+            </property>
+            <property name="horizontalSpacing">
+             <number>8</number>
+            </property>
+            <property name="verticalSpacing">
+             <number>2</number>
             </property>
             <item row="0" column="1">
              <widget class="QLabel" name="installedVersion">
@@ -169,7 +179,7 @@ font-weight: bold;</string>
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
-       <height>10</height>
+       <height>19</height>
       </size>
      </property>
     </spacer>
@@ -177,6 +187,9 @@ font-weight: bold;</string>
    <item>
     <widget class="QWidget" name="changesWidget" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_2">
+      <property name="spacing">
+       <number>4</number>
+      </property>
       <property name="leftMargin">
        <number>0</number>
       </property>
@@ -190,19 +203,7 @@ font-weight: bold;</string>
        <number>0</number>
       </property>
       <item>
-       <widget class="QLabel" name="changeslabel">
-        <property name="font">
-         <font>
-          <family>Roboto</family>
-          <pointsize>14</pointsize>
-          <weight>75</weight>
-          <italic>false</italic>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">font-weight: bold;</string>
-        </property>
+       <widget class="QLabel" name="whatsNewLabel">
         <property name="text">
          <string>What's New:</string>
         </property>
@@ -248,7 +249,7 @@ p, li { white-space: pre-wrap; }
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
-       <height>5</height>
+       <height>19</height>
       </size>
      </property>
     </spacer>
@@ -256,6 +257,9 @@ p, li { white-space: pre-wrap; }
    <item>
     <widget class="QWidget" name="progressControls" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_3">
+      <property name="spacing">
+       <number>4</number>
+      </property>
       <property name="leftMargin">
        <number>0</number>
       </property>
@@ -272,20 +276,30 @@ p, li { white-space: pre-wrap; }
        <widget class="QLabel" name="downloadLabel">
         <property name="font">
          <font>
-          <family>Roboto</family>
-          <pointsize>14</pointsize>
-          <weight>75</weight>
-          <italic>false</italic>
-          <bold>true</bold>
+          <weight>50</weight>
+          <bold>false</bold>
          </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">font-weight: bold;</string>
         </property>
         <property name="text">
          <string>Downloading Updates...</string>
         </property>
        </widget>
+      </item>
+      <item>
+       <spacer name="verticalSpacer_4">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::MinimumExpanding</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>8</height>
+         </size>
+        </property>
+       </spacer>
       </item>
       <item>
        <widget class="QProgressBar" name="progressBar">
@@ -318,7 +332,7 @@ p, li { white-space: pre-wrap; }
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
-       <height>5</height>
+       <height>19</height>
       </size>
      </property>
     </spacer>
@@ -357,7 +371,7 @@ p, li { white-space: pre-wrap; }
          <cursorShape>ArrowCursor</cursorShape>
         </property>
         <property name="text">
-         <string>Close</string>
+         <string>Cancel</string>
         </property>
         <property name="flat">
          <bool>true</bool>

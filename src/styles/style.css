@@ -1,17 +1,17 @@
 QWidget {
-    font: 14px 'Roboto';
+    font: 14px "Roboto";
     color: rgb(26, 26, 26);
     background-color: rgb(247, 247, 247);
 }
 QTextBrowser {
+    font: 14px "Arimo";
     color: rgb(117, 117, 117);
-    font: 14px 'Arimo Regular';
     border: 1px solid rgb(205, 205, 205);
     background-color: rgb(251, 251, 251);
 }
 QProgressBar {
     height: 24px;
-    font-weight: bold;
+    font-weight: 500;
     border-radius: 5px;
     border: 1px solid rgb(205, 205, 205);
     background-color: rgb(251, 251, 251);
@@ -22,7 +22,7 @@ QProgressBar::chunk {
 }
 QPushButton {
     font-size: 15px;
-    font-weight: bold;
+    font-weight: 500;
     border-width: 0px;
     color: rgb(68, 138, 201);
     background-color: transparent;
@@ -35,4 +35,13 @@ QPushButton:hover:!pressed {
 }
 QPushButton:pressed {
     color: rgb(39, 85, 125);
+}
+#timeLabel {
+    font: 13px "Roboto";
+}
+#title {
+    font: 500 25px "Roboto";
+}
+#whatsNewLabel, #downloadLabel {
+    font: 500 14px "Roboto";
 }

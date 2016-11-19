@@ -60,6 +60,10 @@ UpdaterWindow::UpdaterWindow (QWidget *parent) : QWidget (parent),
     m_ui->setupUi (this);
     setWindowTitle (qApp->applicationName() + " " + tr ("Updater"));
 
+    /* Change fonts */
+    setFont (QFont ("Roboto"));
+    m_ui->changelog->setFont (QFont ("Arimo"));
+
     /* Connect UI signals/slots */
     connect (m_ui->closeButton,  SIGNAL (clicked()),
              this,                 SLOT (close()));
@@ -139,7 +143,7 @@ void UpdaterWindow::resetControls()
 
     /* Set title label */
     if (m_updater->getUpdateAvailable (UPDATES_URL))
-        m_ui->title->setText (tr ("A newer version is available!"));
+        m_ui->title->setText (tr ("A Newer Version is Available!"));
     else
         m_ui->title->setText (tr ("You're up-to-date!"));
 
