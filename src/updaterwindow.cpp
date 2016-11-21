@@ -303,7 +303,14 @@ void UpdaterWindow::openDownload (const QString& file)
     QFile::rename (file, new_file);
 
     /* Open the downloaded file */
-    QDesktopServices::openUrl (QUrl::fromLocalFile (new_file));
+    bool openUrl = QDesktopServices::openUrl (QUrl::fromLocalFile (new_file));
+
+    /* There was an error opening the file */
+    if (openUrl) {
+        m_ui->timeLabel->setText ("<font color=#f00>" +
+                                  tr ("Cannot open downloaded file!") +
+                                  "</font>");
+    }
 }
 
 /**
