@@ -33,4 +33,7 @@ parts:
       - libqt5core5a
       - libqt5libqgtk2
       - xcursor-themes
-    after: [desktop/qt5]
+    after: [desktop-qt5, indicator-qt5]
+
+  desktop-qt5:
+    stage: [ -./**/lib/*/qt5/**/libappmenu-qt5.so ]
