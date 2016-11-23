@@ -8,6 +8,7 @@ description: |
   source and cross-platform project, and you're welcome to be part
   of it and contribute. We hope you will love it as much as we do.
 confinement: strict
+grade: "stable"
 
 apps:
   notes:
@@ -16,10 +17,10 @@ apps:
 
 parts:
   notes:
-    source: ../../../src
+    source: ../../..
     plugin: qmake
     qt-version: qt5
-    project-files: [Notes.pro]
+    project-files: [src/Notes.pro]
     build-packages:
       - qtbase5-dev
       - qtbase5-dev-tools
