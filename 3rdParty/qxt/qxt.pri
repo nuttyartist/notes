@@ -16,6 +16,7 @@ win32 {
 }
 
 macx {
+    LIBS += -framework Carbon
     SOURCES += $$PWD/qxtglobalshortcut_mac.cpp
 }
 

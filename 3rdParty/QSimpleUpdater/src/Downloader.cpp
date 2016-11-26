@@ -200,9 +200,12 @@ void Downloader::onDownloadFinished() {
     if (!data.isEmpty()) {
         QString name = m_reply->url().toString().split ("/").last();
 
-        /* Handle HTML redirections automatically */
-        if (data.startsWith ("<html") || data.startsWith ("<!DOCTYPE html"))
-            name.append (".html");
+        /* Check if we need to redirect */
+        QUrl url = m_reply->attribute (QNetworkRequest::RedirectionTargetAttribute).toUrl();
+        if (!url.isEmpty()) {
+            startDownload (url);
+            return;
+        }
 
         /* Save downloaded data to disk */
         QFile file (QDir::tempPath() + "/" + name);

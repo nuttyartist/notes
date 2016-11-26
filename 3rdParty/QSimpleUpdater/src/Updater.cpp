@@ -83,6 +83,16 @@ QString Updater::url() const {
 }
 
 /**
+ * Returns the URL that the update definitions file wants us to open in
+ * a web browser.
+ *
+ * \warning You should call \c checkForUpdates() before using this functio
+ */
+QString Updater::openUrl() const {
+    return m_openUrl;
+}
+
+/**
  * Returns the changelog defined by the update definitions file.
  * \warning You should call \c checkForUpdates() before using this function
  */
@@ -308,8 +318,8 @@ void Updater::setUpdateAvailable (const bool& available) {
         box.setDefaultButton   (QMessageBox::Yes);
 
         if (box.exec() == QMessageBox::Yes) {
-            if (!m_openUrl.isEmpty())
-                QDesktopServices::openUrl (QUrl (m_openUrl));
+            if (!openUrl().isEmpty())
+                QDesktopServices::openUrl (QUrl (openUrl()));
 
             else if (downloaderEnabled())
                 m_downloader->startDownload (QUrl (downloadUrl()));
