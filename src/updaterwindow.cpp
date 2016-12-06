@@ -311,8 +311,17 @@ void UpdaterWindow::openDownload (const QString& file)
                                   tr ("Cannot open downloaded file!") +
                                   "</font>");
 
-        QUrl folderPath = QUrl::fromLocalFile (QDir (new_file).absolutePath());
-        QDesktopServices::openUrl (folderPath);
+        /* Obtain folder list */
+        QStringList directories = QDir (new_file).absolutePath().split ("/");
+        directories.removeLast();
+
+        /* Generate file path */
+        QString url;
+        foreach (QString string, directories)
+            url.append ("/" + string);
+
+        /* Open folder */
+        QDesktopServices::openUrl (QUrl::fromLocalFile (QDir (url).absolutePath()));
     }
 }
 
