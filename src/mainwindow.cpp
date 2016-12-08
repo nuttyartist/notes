@@ -184,8 +184,13 @@ void MainWindow::setupFonts()
     id = QFontDatabase::addApplicationFont(":/fonts/roboto-hinted/Roboto-Bold.ttf");
     QString robotoFontBold = QFontDatabase::applicationFontFamilies(id).at(0);
 
+#ifdef __APPLE__
+    m_lineEdit->setFont(QFont("Helvetica Neue", 12));
+    m_editorDateLabel->setFont(QFont("Helvetica Neue", 12, 65));
+#else
     m_lineEdit->setFont(QFont(robotoFontRegular, 10));
     m_editorDateLabel->setFont(QFont(robotoFontBold, 10, QFont::Bold));
+#endif
 }
 
 void MainWindow::setupTrayIcon()
@@ -460,7 +465,11 @@ void MainWindow::setupTextEdit ()
     QString arimoFont = QFontDatabase::applicationFontFamilies(id).at(0);
     m_textEdit->setFont(QFont(arimoFont, 11));
 
+#ifdef __APPLE__
+    m_textEdit->setFont(QFont("Helvetica Neue", 14));
+#else
     m_textEdit->setTextColor(QColor(51, 51, 51));
+#endif
 }
 
 void MainWindow::initializeSettingsDatabase()

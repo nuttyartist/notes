@@ -28,8 +28,14 @@ NoteWidgetDelegate::NoteWidgetDelegate(QObject *parent)
 {
     int id = QFontDatabase::addApplicationFont(":/fonts/roboto-hinted/Roboto-Medium.ttf");
     QString robotoFontMedium = QFontDatabase::applicationFontFamilies(id).at(0);
+
+#ifdef __APPLE__
+    m_titleFont = QFont("Helvetica Neue", 13, 65);
+    m_dateFont = QFont("Helvetica Neue", 13);
+#else
     m_titleFont = QFont(robotoFontMedium, 10, 60);
     m_dateFont = QFont(robotoFontMedium, 10);
+#endif
 
     m_timeLine = new QTimeLine(300, this);
     m_timeLine->setFrameRange(0,m_maxFrame);
