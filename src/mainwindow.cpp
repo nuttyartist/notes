@@ -315,6 +315,21 @@ void MainWindow::setupTitleBarButtons ()
     m_yellowMinimizeButton->setStyleSheet(ss);
     m_greenMaximizeButton->setStyleSheet(ss);
 
+#ifdef _WIN32
+    m_redCloseButton->setIcon(QIcon(":images/windows_close_regular.png"));
+    m_yellowMinimizeButton->setIcon(QIcon(":images/windows_maximize_regular.png"));
+    m_greenMaximizeButton->setIcon(QIcon(":images/windows_minimize_regular.png"));
+
+    m_redCloseButton->setMinimumSize(34, 16);
+    m_yellowMinimizeButton->setMinimumSize(28, 16);
+    m_greenMaximizeButton->setMinimumSize(28, 16);
+
+    ui->horizontalSpacer_leftTrafficLightButtons->changeSize(2, 20);
+    ui->horizontalSpacer_rightRedTrafficLightButton->changeSize(0, 20);
+    ui->horizontalSpacer_rightYellowTrafficLightButton->changeSize(0, 20);
+    ui->verticalSpacer_upLineEdit->changeSize(20, 0);
+#endif
+
     m_redCloseButton->installEventFilter(this);
     m_yellowMinimizeButton->installEventFilter(this);
     m_greenMaximizeButton->installEventFilter(this);
@@ -1160,11 +1175,15 @@ void MainWindow::QuitApplication ()
 */
 void MainWindow::onGreenMaximizeButtonPressed ()
 {
+#ifdef _WIN32
+    m_greenMaximizeButton->setIcon(QIcon(":images/windows_minimize_pressed.png"));
+#else
     if(this->windowState() == Qt::WindowFullScreen){
         m_greenMaximizeButton->setIcon(QIcon(":images/greenInPressed.png"));
     }else{
         m_greenMaximizeButton->setIcon(QIcon(":images/greenPressed.png"));
     }
+#endif
 }
 
 /**
@@ -1173,7 +1192,15 @@ void MainWindow::onGreenMaximizeButtonPressed ()
 */
 void MainWindow::onYellowMinimizeButtonPressed ()
 {
+#ifdef _WIN32
+    if(this->windowState() == Qt::WindowFullScreen){
+        m_yellowMinimizeButton->setIcon(QIcon(":images/windows_de-maximize_pressed.png"));
+    }else{
+        m_yellowMinimizeButton->setIcon(QIcon(":images/windows_maximize_pressed.png"));
+    }
+#else
     m_yellowMinimizeButton->setIcon(QIcon(":images/yellowPressed.png"));
+#endif
 }
 
 /**
@@ -1182,7 +1209,11 @@ void MainWindow::onYellowMinimizeButtonPressed ()
 */
 void MainWindow::onRedCloseButtonPressed ()
 {
+#ifdef _WIN32
+    m_redCloseButton->setIcon(QIcon(":images/windows_close_pressed.png"));
+#else
     m_redCloseButton->setIcon(QIcon(":images/redPressed.png"));
+#endif
 }
 
 /**
@@ -1191,9 +1222,16 @@ void MainWindow::onRedCloseButtonPressed ()
 */
 void MainWindow::onGreenMaximizeButtonClicked()
 {
+#ifdef _WIN32
+    m_greenMaximizeButton->setIcon(QIcon(":images/windows_minimize_regular.png"));
+
+    minimizeWindow();
+    m_restoreAction->setText(tr("&Show Notes"));
+#else
     m_greenMaximizeButton->setIcon(QIcon(":images/green.png"));
 
     fullscreenWindow();
+#endif
 }
 
 /**
@@ -1202,10 +1240,16 @@ void MainWindow::onGreenMaximizeButtonClicked()
 */
 void MainWindow::onYellowMinimizeButtonClicked()
 {
+#ifdef _WIN32
+    m_yellowMinimizeButton->setIcon(QIcon(":images/windows_de-maximize_regular.png"));
+
+    fullscreenWindow();
+#else
     m_yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
 
     minimizeWindow();
     m_restoreAction->setText(tr("&Show Notes"));
+#endif
 }
 
 /**
@@ -1215,7 +1259,12 @@ void MainWindow::onYellowMinimizeButtonClicked()
 */
 void MainWindow::onRedCloseButtonClicked()
 {
+#ifdef _WIN32
+    m_redCloseButton->setIcon(QIcon(":images/windows_close_regular.png"));
+#else
     m_redCloseButton->setIcon(QIcon(":images/red.png"));
+#endif
+
     setMainWindowVisibility(false);
 }
 
@@ -1492,6 +1541,25 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
     switch (event->type()){
     case QEvent::Enter:{
         if(qApp->applicationState() == Qt::ApplicationActive){
+#ifdef _WIN32
+            if(object == m_redCloseButton){
+                m_redCloseButton->setIcon(QIcon(":images/windows_close_hovered.png"));
+            }
+
+            if(object == m_yellowMinimizeButton)
+            {
+                if(this->windowState() == Qt::WindowFullScreen){
+                    m_yellowMinimizeButton->setIcon(QIcon(":images/windows_de-maximize_hovered.png"));
+                }else{
+                    m_yellowMinimizeButton->setIcon(QIcon (":images/windows_maximize_hovered.png"));
+                }
+            }
+
+            if(object == m_greenMaximizeButton)
+            {
+                m_greenMaximizeButton->setIcon(QIcon(":images/windows_minimize_hovered.png"));
+            }
+#else
             // When hovering one of the traffic light buttons (red, yellow, green),
             // set new icons to show their function
             if(object == m_redCloseButton
@@ -1506,6 +1574,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
                     m_greenMaximizeButton->setIcon(QIcon(":images/greenHovered.png"));
                 }
             }
+#endif
 
             if(object == m_newNoteButton){
                 this->setCursor(Qt::PointingHandCursor);
@@ -1526,9 +1595,20 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
                     || object == m_yellowMinimizeButton
                     || object == m_greenMaximizeButton){
 
+#ifdef _WIN32
+                m_redCloseButton->setIcon(QIcon(":images/windows_close_regular.png"));
+                m_greenMaximizeButton->setIcon(QIcon(":images/windows_minimize_regular.png"));
+
+                if(this->windowState() == Qt::WindowFullScreen){
+                    m_yellowMinimizeButton->setIcon(QIcon(":images/windows_de-maximize_regular.png"));
+                }else{
+                    m_yellowMinimizeButton->setIcon(QIcon (":images/windows_maximize_regular.png"));
+                }
+#else
                 m_redCloseButton->setIcon(QIcon(":images/red.png"));
                 m_yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
                 m_greenMaximizeButton->setIcon(QIcon(":images/green.png"));
+#endif
             }
 
             if(object == m_newNoteButton){
@@ -1544,17 +1624,30 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
         break;
     }
     case QEvent::WindowDeactivate:{
+#ifndef _WIN32
         m_redCloseButton->setIcon(QIcon(":images/unfocusedButton"));
         m_yellowMinimizeButton->setIcon(QIcon(":images/unfocusedButton"));
         m_greenMaximizeButton->setIcon(QIcon(":images/unfocusedButton"));
+#endif
         m_newNoteButton->setIcon(QIcon(":/images/newNote_Regular.png"));
         m_trashButton->setIcon(QIcon(":/images/trashCan_Regular.png"));
         break;
     }
     case QEvent::WindowActivate:{
+#ifdef _WIN32
+        m_redCloseButton->setIcon(QIcon(":images/windows_close_regular.png"));
+        m_greenMaximizeButton->setIcon(QIcon(":images/windows_minimize_regular.png"));
+
+        if(this->windowState() == Qt::WindowFullScreen){
+            m_yellowMinimizeButton->setIcon(QIcon(":images/windows_de-maximize_regular.png"));
+        }else{
+            m_yellowMinimizeButton->setIcon(QIcon (":images/windows_maximize_regular.png"));
+        }
+#else
         m_redCloseButton->setIcon(QIcon(":images/red.png"));
         m_yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
         m_greenMaximizeButton->setIcon(QIcon(":images/green.png"));
+#endif
         m_newNoteButton->setIcon(QIcon(":/images/newNote_Regular.png"));
         m_trashButton->setIcon(QIcon(":/images/trashCan_Regular.png"));
         break;
