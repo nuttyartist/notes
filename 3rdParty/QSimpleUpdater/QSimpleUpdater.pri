@@ -33,6 +33,10 @@ QT += widgets
 
 INCLUDEPATH += $$PWD/include
 
+linux:!android {
+    LIBS += -lcrypto -lssl
+}
+
 SOURCES += \
     $$PWD/src/Updater.cpp \
     $$PWD/src/Downloader.cpp \

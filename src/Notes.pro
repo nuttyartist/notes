@@ -32,7 +32,8 @@ SOURCES += \
     $$PWD/notemodel.cpp \
     $$PWD/noteview.cpp \
     $$PWD/singleinstance.cpp \
-    dbmanager.cpp
+    dbmanager.cpp \
+    updaterwindow.cpp
 
 HEADERS  += \
     $$PWD/mainwindow.h \
@@ -41,9 +42,11 @@ HEADERS  += \
     $$PWD/notemodel.h \
     $$PWD/noteview.h \
     $$PWD/singleinstance.h \
-    dbmanager.h
+    dbmanager.h \
+    updaterwindow.h
 
-FORMS += $$PWD/mainwindow.ui
+FORMS += $$PWD/mainwindow.ui \
+    updaterwindow.ui
 RESOURCES += $$PWD/images.qrc \
     fonts.qrc
 
