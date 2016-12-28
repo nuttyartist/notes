@@ -333,7 +333,7 @@ void UpdaterWindow::openDownload(const QString& file)
         }
 
         /* Obtain folder list */
-        QString native_path = QDir::toNativeSeparators (QDir(new_file).absolutePath());
+        QString native_path = QDir::toNativeSeparators(QDir(new_file).absolutePath());
         QStringList directories = native_path.split(QDir::separator());
         directories.removeLast();
 
