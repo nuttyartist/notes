@@ -333,17 +333,19 @@ void UpdaterWindow::openDownload(const QString& file)
         }
 
         /* Obtain folder list */
-        QStringList directories = QDir(new_file).absolutePath().split("/");
+        QString native_path = QDir::toNativeSeparators (QDir(new_file).absolutePath());
+        QStringList directories = native_path.split(QDir::separator());
         directories.removeLast();
 
         /* Generate file path */
-        QString url;
+        QString path;
         foreach(QString string, directories){
-            url.append("/" + string);
+            path.append(QDir::separator() + string);
         }
 
-        /* Open folder */
-        QDesktopServices::openUrl(QUrl::fromLocalFile(QDir(url).absolutePath()));
+        /* Get valid URL and open it */
+        QUrl url = QUrl::fromLocalFile(QDir(path).absolutePath());
+        QDesktopServices::openUrl(url);
     }
 }
 
