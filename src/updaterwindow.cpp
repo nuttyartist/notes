@@ -332,16 +332,13 @@ void UpdaterWindow::openDownload(const QString& file)
                                      QMessageBox::Ok);
         }
 
-        /* Obtain folder list */
+        /* Get the full path list of the downloaded file */
         QString native_path = QDir::toNativeSeparators(QDir(new_file).absolutePath());
         QStringList directories = native_path.split(QDir::separator());
-        directories.removeLast();
 
-        /* Generate file path */
-        QString path;
-        foreach(QString string, directories){
-            path.append(QDir::separator() + string);
-        }
+        /* Remove file name from list to get the folder of the update file */
+        directories.removeLast();
+        QString path = directories.join (QDir::separator());
 
         /* Get valid URL and open it */
         QUrl url = QUrl::fromLocalFile(QDir(path).absolutePath());
