@@ -37,6 +37,8 @@ private slots:
     void startDownload (const QUrl& url);
     void openDownload(const QString &file);
     void onCheckFinished (const QString& url);
+    void onXdgOpenFinished (const int exitCode);
+    void openDownloadFolder (const QString& file);
     void saveFile (qint64 received, qint64 total);
     void calculateSizes (qint64 received, qint64 total);
     void updateProgress (qint64 received, qint64 total);

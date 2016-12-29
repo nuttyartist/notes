@@ -19,6 +19,19 @@
 #include <QNetworkConfiguration>
 #include <QNetworkAccessManager>
 
+#ifdef Q_OS_LINUX
+  #define USE_XDG_OPEN
+#else
+  #ifdef USE_XDG_OPEN
+    #undef USE_XDG_OPEN
+  #endif
+#endif
+
+#ifdef USE_XDG_OPEN
+  #include <QProcess>
+  static QProcess XDGOPEN_PROCESS;
+#endif
+
 /**
  * Indicates from where we should download the update definitions file
  */
@@ -84,6 +97,11 @@ UpdaterWindow::UpdaterWindow(QWidget *parent): QWidget(parent),
 #error "We don't support your OS yet..."
 #endif
 
+    /* React when xdg-open finishes (Linux only) */
+#ifdef USE_XDG_OPEN
+    connect(&XDGOPEN_PROCESS, SIGNAL(finished(int)), this, SLOT(onXdgOpenFinished(int)));
+#endif
+
     /* Set window flags */
     setWindowModality(Qt::ApplicationModal);
 }
@@ -93,6 +111,13 @@ UpdaterWindow::UpdaterWindow(QWidget *parent): QWidget(parent),
  */
 UpdaterWindow::~UpdaterWindow()
 {
+    /* Ensure that xdg-open process is closed */
+#ifdef USE_XDG_OPEN
+    if (XDGOPEN_PROCESS.isOpen())
+        XDGOPEN_PROCESS.close();
+#endif
+
+    /* Delete UI controls */
     delete m_ui;
 }
 
@@ -238,7 +263,7 @@ void UpdaterWindow::startDownload(const QUrl& url)
         return;
     }
 
-    /* Cancel previous download(if any)*/
+    /* Cancel previous download (if any)*/
     if(m_reply){
         m_reply->abort();
         m_reply->deleteLater();
@@ -302,48 +327,18 @@ void UpdaterWindow::openDownload(const QString& file)
     new_file = new_file.remove(PARTIAL_DOWN, Qt::CaseInsensitive);
     QFile::rename(file, new_file);
 
-    /* Open the downloaded file */
+    /* Try to open the downloaded file (Windows & Mac) */
+#ifndef USE_XDG_OPEN
     bool openUrl = QDesktopServices::openUrl(QUrl::fromLocalFile(new_file));
-
-    /* There was an error opening the file, open the folder */
     if(!openUrl){
-        /* Get file extension */
-        QString extension;
-        if (new_file.split(".").count() > 0){
-            extension = new_file.split(".").last();
-        }
-
-        /* The file has an extension, display it on the message box */
-        if (!extension.isEmpty()){
-            QMessageBox::information(this,
-                                     tr("Open Error"),
-                                     tr("It seems that your OS does not have an "
-                                        "application that can handle *.%1 files. "
-                                        "We'll open the downloads folder for you.")
-                                     .arg(extension), QMessageBox::Ok);
-        }
-
-        /* The file does not have any extension */
-        else{
-            QMessageBox::information(this,
-                                     tr("Open Error"),
-                                     tr("We could not open the downloaded file."
-                                        "We'll open the downloads folder for you."),
-                                     QMessageBox::Ok);
-        }
-
-        /* Get the full path list of the downloaded file */
-        QString native_path = QDir::toNativeSeparators(QDir(new_file).absolutePath());
-        QStringList directories = native_path.split(QDir::separator());
-
-        /* Remove file name from list to get the folder of the update file */
-        directories.removeLast();
-        QString path = directories.join (QDir::separator());
-
-        /* Get valid URL and open it */
-        QUrl url = QUrl::fromLocalFile(QDir(path).absolutePath());
-        QDesktopServices::openUrl(url);
+        openDownloadFolder(new_file);
     }
+#endif
+
+    /* On Linux, use xdg-open to know if the file was handled correctly */
+#ifdef USE_XDG_OPEN
+    XDGOPEN_PROCESS.start("xdg-open", QStringList() << new_file);
+#endif
 }
 
 /**
@@ -367,6 +362,66 @@ void UpdaterWindow::onCheckFinished(const QString &url){
         resetControls();
         showNormal();
     }
+}
+
+/**
+ * Called when \c xdg-open finishes with the given \a exitCode.
+ * If \a exitCode is not 0, then we shall try to open the folder in which
+ * the update file was saved
+ */
+void UpdaterWindow::onXdgOpenFinished(const int exitCode) {
+#ifdef USE_XDG_OPEN
+    if (exitCode != 0 && XDGOPEN_PROCESS.arguments().count() > 0) {
+        QString path = XDGOPEN_PROCESS.arguments().first();
+        openDownloadFolder(path);
+    }
+#else
+    Q_UNUSED (exitCode);
+#endif
+}
+
+/**
+ * Notifies the user that there's been an error opening the downloaded
+ * file directly and instructs the operating system to open the folder
+ * in which the \a file is located
+ */
+void UpdaterWindow::openDownloadFolder(const QString &file){
+    /* Get file extension */
+    QString extension;
+    if (file.split(".").count() > 0){
+        extension = file.split(".").last();
+    }
+
+    /* The file has an extension, display it on the message box */
+    if (!extension.isEmpty()){
+        QMessageBox::information(this,
+                                 tr("Open Error"),
+                                 tr("It seems that your OS does not have an "
+                                    "application that can handle *.%1 files. "
+                                    "We'll open the downloads folder for you.")
+                                 .arg(extension), QMessageBox::Ok);
+    }
+
+    /* The file does not have any extension */
+    else{
+        QMessageBox::information(this,
+                                 tr("Open Error"),
+                                 tr("We could not open the downloaded file."
+                                    "We'll open the downloads folder for you."),
+                                 QMessageBox::Ok);
+    }
+
+    /* Get the full path list of the downloaded file */
+    QString native_path = QDir::toNativeSeparators(QDir(file).absolutePath());
+    QStringList directories = native_path.split(QDir::separator());
+
+    /* Remove file name from list to get the folder of the update file */
+    directories.removeLast();
+    QString path = directories.join (QDir::separator());
+
+    /* Get valid URL and open it */
+    QUrl url = QUrl::fromLocalFile(QDir(path).absolutePath());
+    QDesktopServices::openUrl(url);
 }
 
 /**
