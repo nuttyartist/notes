@@ -20,14 +20,14 @@
 #include <QNetworkAccessManager>
 
 #ifdef Q_OS_LINUX
-  #define USE_XDG_OPEN
+  #define UseXdgOpen
 #else
-  #ifdef USE_XDG_OPEN
-    #undef USE_XDG_OPEN
+  #ifdef UseXdgOpen
+    #undef UseXdgOpen
   #endif
 #endif
 
-#ifdef USE_XDG_OPEN
+#ifdef UseXdgOpen
   #include <QProcess>
   static QProcess XDGOPEN_PROCESS;
 #endif
@@ -98,7 +98,7 @@ UpdaterWindow::UpdaterWindow(QWidget *parent): QWidget(parent),
 #endif
 
     /* React when xdg-open finishes (Linux only) */
-#ifdef USE_XDG_OPEN
+#ifdef UseXdgOpen
     connect(&XDGOPEN_PROCESS, SIGNAL(finished(int)), this, SLOT(onXdgOpenFinished(int)));
 #endif
 
@@ -112,7 +112,7 @@ UpdaterWindow::UpdaterWindow(QWidget *parent): QWidget(parent),
 UpdaterWindow::~UpdaterWindow()
 {
     /* Ensure that xdg-open process is closed */
-#ifdef USE_XDG_OPEN
+#ifdef UseXdgOpen
     if (XDGOPEN_PROCESS.isOpen())
         XDGOPEN_PROCESS.close();
 #endif
@@ -201,6 +201,23 @@ void UpdaterWindow::resetControls()
     if(showAgain){
         showNormal();
     }
+}
+
+/**
+ * Notifies the user that it would be wise to quit the application before
+ * installing the update
+ */
+void UpdaterWindow::quitApplication()
+{
+    QMessageBox box;
+    box.setIcon(QMessageBox::Question);
+    box.setWindowTitle(qApp->applicationName());
+    box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    box.setText(tr("It's recommended to quit %1 before installing the update, "
+                   "would you like to close %1?").arg(qApp->applicationName()));
+
+    if (box.exec() == QMessageBox::Yes)
+        qApp->quit();
 }
 
 /**
@@ -328,15 +345,17 @@ void UpdaterWindow::openDownload(const QString& file)
     QFile::rename(file, new_file);
 
     /* Try to open the downloaded file (Windows & Mac) */
-#ifndef USE_XDG_OPEN
+#ifndef UseXdgOpen
     bool openUrl = QDesktopServices::openUrl(QUrl::fromLocalFile(new_file));
     if(!openUrl){
         openDownloadFolder(new_file);
+    } else {
+        quitApplication();
     }
 #endif
 
     /* On Linux, use xdg-open to know if the file was handled correctly */
-#ifdef USE_XDG_OPEN
+#ifdef UseXdgOpen
     XDGOPEN_PROCESS.start("xdg-open", QStringList() << new_file);
 #endif
 }
@@ -370,10 +389,12 @@ void UpdaterWindow::onCheckFinished(const QString &url){
  * the update file was saved
  */
 void UpdaterWindow::onXdgOpenFinished(const int exitCode) {
-#ifdef USE_XDG_OPEN
+#ifdef UseXdgOpen
     if (exitCode != 0 && XDGOPEN_PROCESS.arguments().count() > 0) {
         QString path = XDGOPEN_PROCESS.arguments().first();
         openDownloadFolder(path);
+    } else {
+        quitApplication();
     }
 #else
     Q_UNUSED (exitCode);

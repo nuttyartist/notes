@@ -31,6 +31,7 @@ public slots:
 
 private slots:
     void resetControls();
+    void quitApplication();
     void updateTitleLabel();
     void onUpdateAvailable();
     void onDownloadButtonClicked();
