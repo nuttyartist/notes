@@ -15,9 +15,10 @@
 #include <QMouseEvent>
 #include <QNetworkReply>
 #include <QDesktopServices>
-#include <QSimpleUpdater.h>
 #include <QNetworkConfiguration>
 #include <QNetworkAccessManager>
+
+#include <QSimpleUpdater.h>
 
 #ifdef Q_OS_LINUX
   #define UseXdgOpen
@@ -204,23 +205,6 @@ void UpdaterWindow::resetControls()
 }
 
 /**
- * Notifies the user that it would be wise to quit the application before
- * installing the update
- */
-void UpdaterWindow::quitApplication()
-{
-    QMessageBox box;
-    box.setIcon(QMessageBox::Question);
-    box.setWindowTitle(qApp->applicationName());
-    box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    box.setText(tr("It's recommended to quit %1 before installing the update, "
-                   "would you like to close %1?").arg(qApp->applicationName()));
-
-    if (box.exec() == QMessageBox::Yes)
-        qApp->quit();
-}
-
-/**
  * Changes the number of dots of the title label while the QSimpleUpdater
  * is downloading and interpreting the update definitions file
  */
@@ -350,7 +334,7 @@ void UpdaterWindow::openDownload(const QString& file)
     if(!openUrl){
         openDownloadFolder(new_file);
     } else {
-        quitApplication();
+        qApp->quit();
     }
 #endif
 
@@ -394,7 +378,7 @@ void UpdaterWindow::onXdgOpenFinished(const int exitCode) {
         QString path = XDGOPEN_PROCESS.arguments().first();
         openDownloadFolder(path);
     } else {
-        quitApplication();
+        qApp->quit();
     }
 #else
     Q_UNUSED (exitCode);
