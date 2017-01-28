@@ -375,6 +375,7 @@ void UpdaterWindow::onCheckFinished(const QString &url){
 void UpdaterWindow::onXdgOpenFinished(const int exitCode) {
 #ifdef UseXdgOpen
     if (exitCode != 0 && XDGOPEN_PROCESS.arguments().count() > 0) {
+        qDebug() << exitCode;
         QString path = XDGOPEN_PROCESS.arguments().first();
         openDownloadFolder(path);
     } else {
@@ -588,8 +589,8 @@ void UpdaterWindow::mouseMoveEvent(QMouseEvent* event)
 {
     if(m_canMoveWindow){
         setCursor(Qt::ClosedHandCursor);
-        int dx = event->globalX()- m_mousePressX;
-        int dy = event->globalY()- m_mousePressY;
+        int dx = event->globalX() - m_mousePressX;
+        int dy = event->globalY() - m_mousePressY;
         move(dx, dy);
     }
 }
