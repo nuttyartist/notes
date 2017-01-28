@@ -375,7 +375,6 @@ void UpdaterWindow::onCheckFinished(const QString &url){
 void UpdaterWindow::onXdgOpenFinished(const int exitCode) {
 #ifdef UseXdgOpen
     if (exitCode != 0 && XDGOPEN_PROCESS.arguments().count() > 0) {
-        qDebug() << exitCode;
         QString path = XDGOPEN_PROCESS.arguments().first();
         openDownloadFolder(path);
     } else {
