@@ -1,5 +1,7 @@
 # Notes
 
+[![Join the chat at https://gitter.im/nuttyartist/notes](https://badges.gitter.im/nuttyartist/notes.svg)](https://gitter.im/nuttyartist/notes?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Notes is an open source, cross-platform note taking app which has the potential to be something much bigger, and much better at empowering the people using it.
 This is where you come into play. Be part of making Notes better.
 
