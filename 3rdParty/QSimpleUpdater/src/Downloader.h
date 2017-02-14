@@ -56,14 +56,16 @@ class Downloader : public QWidget {
     bool useCustomInstallProcedures() const;
 
   public slots:
+    void setUrlId (const QString& url);
     void startDownload (const QUrl& url);
-    void setUseCustomInstallProcedures (const bool& custom);
+    void setFileName (const QString& file);
+    void setUseCustomInstallProcedures (const bool custom);
 
   private slots:
     void openDownload();
     void installUpdate();
     void cancelDownload();
-    void onDownloadFinished();
+    void saveFile (qint64 received, qint64 total);
     void calculateSizes (qint64 received, qint64 total);
     void updateProgress (qint64 received, qint64 total);
     void calculateTimeRemaining (qint64 received, qint64 total);
@@ -72,8 +74,9 @@ class Downloader : public QWidget {
     qreal round (const qreal& input);
 
   private:
+    QString m_url;
     uint m_startTime;
-    QString m_filePath;
+    QString m_fileName;
     Ui::Downloader* m_ui;
     QNetworkReply* m_reply;
     bool m_useCustomProcedures;

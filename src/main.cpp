@@ -8,6 +8,7 @@
 #include "singleinstance.h"
 
 #include <QApplication>
+#include <QFontDatabase>
 
 int main(int argc, char *argv[])
 {
@@ -17,6 +18,12 @@ int main(int argc, char *argv[])
     // Set application information
     app.setApplicationName ("Notes");
     app.setApplicationVersion ("0.8.0");
+
+    // Load fonts from resources
+    QFontDatabase::addApplicationFont (":/fonts/arimo/Arimo-Regular.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/roboto-hinted/Roboto-Bold.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/roboto-hinted/Roboto-Medium.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/roboto-hinted/Roboto-Regular.ttf");
 
     // Prevent many instances of the app to be launched
     QString name = "com.awsomeness.notes";

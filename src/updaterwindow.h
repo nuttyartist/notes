@@ -13,6 +13,7 @@ namespace Ui {
 class UpdaterWindow;
 }
 
+class QMouseEvent;
 class QNetworkReply;
 class QSimpleUpdater;
 class QNetworkAccessManager;
@@ -29,31 +30,43 @@ public slots:
     void checkForUpdates (bool silent);
 
 private slots:
-    void resizeToFit();
     void resetControls();
     void updateTitleLabel();
     void onUpdateAvailable();
-    void onDownloadFinished();
-    void onNoUpdateAvailable();
     void onDownloadButtonClicked();
     void startDownload (const QUrl& url);
-    void openDownload(const QString &path);
+    void openDownload(const QString &file);
     void onCheckFinished (const QString& url);
+    void onXdgOpenFinished (const int exitCode);
+    void openDownloadFolder (const QString& file);
     void calculateSizes (qint64 received, qint64 total);
     void updateProgress (qint64 received, qint64 total);
     void calculateTimeRemaining (qint64 received, qint64 total);
+    void onDownloadFinished();
+
+protected:
+    void mouseMoveEvent (QMouseEvent* event) Q_DECL_OVERRIDE;
+    void mousePressEvent (QMouseEvent* event) Q_DECL_OVERRIDE;
+    void mouseReleaseEvent (QMouseEvent *event) Q_DECL_OVERRIDE;
 
 private:
     qreal round (const qreal& input);
 
 private:
+    QString m_fileName;
     Ui::UpdaterWindow *m_ui;
-    QSimpleUpdater* m_updater;
+
+    QPoint m_dragPosition;
 
     bool m_silent;
+    int m_mousePressX;
+    int m_mousePressY;
+    bool m_canMoveWindow;
+    bool m_checkingForUpdates;
+
     uint m_startTime;
     QNetworkReply* m_reply;
-    bool m_checkingForUpdates;
+    QSimpleUpdater* m_updater;
     QNetworkAccessManager* m_manager;
 };
 

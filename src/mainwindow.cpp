@@ -275,10 +275,7 @@ void MainWindow::createMenu()
     QString robotoFontRegular = QFontDatabase::applicationFontFamilies(id).at(0);
     m_mainMenu->setFont(QFont(robotoFontRegular, 10));
     viewMenu->setFont(QFont(robotoFontRegular, 10));
-
-#ifndef Q_OS_LINUX
-    m_mainMenu->addAction(m_checkForUpdatesAction);
-#endif
+    m_mainMenu->addAction (m_checkForUpdatesAction);
 }
 
 /**
