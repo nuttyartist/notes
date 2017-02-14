@@ -39,10 +39,10 @@ private slots:
     void onCheckFinished (const QString& url);
     void onXdgOpenFinished (const int exitCode);
     void openDownloadFolder (const QString& file);
-    void saveFile (qint64 received, qint64 total);
     void calculateSizes (qint64 received, qint64 total);
     void updateProgress (qint64 received, qint64 total);
     void calculateTimeRemaining (qint64 received, qint64 total);
+    void onDownloadFinished();
 
 protected:
     void mouseMoveEvent (QMouseEvent* event) Q_DECL_OVERRIDE;

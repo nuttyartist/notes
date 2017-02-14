@@ -41,11 +41,6 @@ static const QString UPDATES_URL("https://raw.githubusercontent.com/"
                                  "/UPDATES.json");
 
 /**
- * Extension appended to partial downloads
- */
-static const QString PARTIAL_DOWN(".part");
-
-/**
  * Download dir
  */
 static const QDir DOWNLOAD_DIR(QDir::homePath()+ "/Downloads/");
@@ -80,11 +75,11 @@ UpdaterWindow::UpdaterWindow(QWidget *parent): QWidget(parent),
 
     /* Connect UI signals/slots */
     connect(m_ui->closeButton,  SIGNAL(clicked()),
-            this,                 SLOT(close()));
+            this, SLOT(close()));
     connect(m_ui->updateButton, SIGNAL(clicked()),
-            this,                 SLOT(onDownloadButtonClicked()));
-    connect(m_updater,          SIGNAL(checkingFinished(QString)),
-            this,                 SLOT(onCheckFinished (QString)));
+            this, SLOT(onDownloadButtonClicked()));
+    connect(m_updater, SIGNAL(checkingFinished(QString)),
+            this, SLOT(onCheckFinished (QString)));
 
     /* Start the UI loops */
     updateTitleLabel();
@@ -272,12 +267,14 @@ void UpdaterWindow::startDownload(const QUrl& url)
 
     /* Start download */
     m_startTime = QDateTime::currentDateTime().toTime_t();
-    m_reply = m_manager->get(QNetworkRequest(url));
+    QNetworkRequest netReq(url);
+    netReq.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
+    m_reply = m_manager->get(netReq);
 
     /* Set file name */
     m_fileName = m_updater->getDownloadUrl(UPDATES_URL).split("/").last();
     if(m_fileName.isEmpty()){
-        m_fileName = QString("%1 Update %2.bin")
+        m_fileName = QString("%1_Update_%2.bin")
                 .arg(qApp->applicationName())
                 .arg(m_updater->getLatestVersion(UPDATES_URL));
     }
@@ -288,7 +285,6 @@ void UpdaterWindow::startDownload(const QUrl& url)
 
     /* Remove previous downloads(if any)*/
     QFile::remove(DOWNLOAD_DIR.filePath(m_fileName));
-    QFile::remove(DOWNLOAD_DIR.filePath(m_fileName + PARTIAL_DOWN));
 
     /* Show UI controls */
     m_ui->progressControls->show();
@@ -296,9 +292,8 @@ void UpdaterWindow::startDownload(const QUrl& url)
 
     /* Update UI when download progress changes or download finishes */
     connect(m_reply, SIGNAL(downloadProgress(qint64, qint64)),
-            this,      SLOT(updateProgress  (qint64, qint64)));
-    connect(m_reply, SIGNAL(redirected      (QUrl)),
-            this,      SLOT(startDownload   (QUrl)));
+            this, SLOT(updateProgress(qint64, qint64)));
+    connect(m_reply, SIGNAL(finished()), this, SLOT(onDownloadFinished()));
 }
 
 /**
@@ -311,28 +306,19 @@ void UpdaterWindow::openDownload(const QString& file)
         return;
     }
 
-    /* This a redirection request, delete temp file */
-    QUrl url = m_reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
-    if(!url.isEmpty()){
-        startDownload(url);
-        QFile::remove(file);
-        return;
-    }
-
     /* Change labels */
     m_ui->downloadLabel->setText(tr("Download finished!"));
     m_ui->timeLabel->setText(tr("Opening downloaded file")+ "...");
 
-    /* Remove the .part extension */
-    QString new_file = file;
-    new_file = new_file.remove(PARTIAL_DOWN, Qt::CaseInsensitive);
-    QFile::rename(file, new_file);
-
     /* Try to open the downloaded file (Windows & Mac) */
 #ifndef UseXdgOpen
-    bool openUrl = QDesktopServices::openUrl(QUrl::fromLocalFile(new_file));
+    bool openUrl = QDesktopServices::openUrl(QUrl::fromLocalFile(file));
     if(!openUrl){
-        openDownloadFolder(new_file);
+        openDownloadFolder(file);
+        m_ui->progressControls->hide();
+        qApp->processEvents();
+        showNormal();
+        close();
     } else {
         qApp->quit();
     }
@@ -340,7 +326,7 @@ void UpdaterWindow::openDownload(const QString& file)
 
     /* On Linux, use xdg-open to know if the file was handled correctly */
 #ifdef UseXdgOpen
-    XDGOPEN_PROCESS.start("xdg-open", QStringList() << new_file);
+    XDGOPEN_PROCESS.start("xdg-open", QStringList() << file);
 #endif
 }
 
@@ -351,17 +337,15 @@ void UpdaterWindow::openDownload(const QString& file)
  * This function decides whenever to show the dialog or just notify the user
  * that he/she is running the latest version of notes
  */
-void UpdaterWindow::onCheckFinished(const QString &url){
+void UpdaterWindow::onCheckFinished(const QString &url)
+{
     /* Do not allow the title label to change automatically */
     m_checkingForUpdates = false;
 
     /* There is an update available, show the window */
     if(m_updater->getUpdateAvailable(url)&&(UPDATES_URL == url)){
         onUpdateAvailable();
-    }
-
-    /* There are no updates available */
-    else if(!m_silent){
+    }else if(!m_silent){
         resetControls();
         showNormal();
     }
@@ -372,7 +356,8 @@ void UpdaterWindow::onCheckFinished(const QString &url){
  * If \a exitCode is not 0, then we shall try to open the folder in which
  * the update file was saved
  */
-void UpdaterWindow::onXdgOpenFinished(const int exitCode) {
+void UpdaterWindow::onXdgOpenFinished(const int exitCode)
+{
 #ifdef UseXdgOpen
     if (exitCode != 0 && XDGOPEN_PROCESS.arguments().count() > 0) {
         QString path = XDGOPEN_PROCESS.arguments().first();
@@ -390,31 +375,16 @@ void UpdaterWindow::onXdgOpenFinished(const int exitCode) {
  * file directly and instructs the operating system to open the folder
  * in which the \a file is located
  */
-void UpdaterWindow::openDownloadFolder(const QString &file){
-    /* Get file extension */
-    QString extension;
-    if (file.split(".").count() > 0){
-        extension = file.split(".").last();
-    }
-
-    /* The file has an extension, display it on the message box */
-    if (!extension.isEmpty()){
-        QMessageBox::information(this,
-                                 tr("Open Error"),
-                                 tr("It seems that your OS does not have an "
-                                    "application that can handle *.%1 files. "
-                                    "We'll open the downloads folder for you.")
-                                 .arg(extension), QMessageBox::Ok);
-    }
-
-    /* The file does not have any extension */
-    else{
-        QMessageBox::information(this,
-                                 tr("Open Error"),
-                                 tr("We could not open the downloaded file."
-                                    "We'll open the downloads folder for you."),
-                                 QMessageBox::Ok);
-    }
+void UpdaterWindow::openDownloadFolder(const QString &file)
+{
+    /* Notify the user of the problem */
+    QString extension = file.split(".").last();
+    QMessageBox::information(this,
+                             tr("Open Error"),
+                             tr("It seems that your OS does not have an "
+                                "application that can handle *.%1 files. "
+                                "We'll open the downloads folder for you.")
+                             .arg(extension), QMessageBox::Ok);
 
     /* Get the full path list of the downloaded file */
     QString native_path = QDir::toNativeSeparators(QDir(file).absolutePath());
@@ -427,23 +397,6 @@ void UpdaterWindow::openDownloadFolder(const QString &file){
     /* Get valid URL and open it */
     QUrl url = QUrl::fromLocalFile(QDir(path).absolutePath());
     QDesktopServices::openUrl(url);
-}
-
-/**
- * Saves the downloaded file to the disk
- */
-void UpdaterWindow::saveFile(qint64 received, qint64 total){
-    /* Save downloaded data to disk */
-    QFile file(DOWNLOAD_DIR.filePath(m_fileName + PARTIAL_DOWN));
-    if(file.open(QIODevice::WriteOnly | QIODevice::Append)){
-        file.write(m_reply->readAll());
-        file.close();
-    }
-
-    /* Open the download */
-    if(received >= total && total > 0){
-        openDownload(file.fileName());
-    }
 }
 
 /**
@@ -493,10 +446,7 @@ void UpdaterWindow::updateProgress(qint64 received, qint64 total)
 
         calculateSizes(received, total);
         calculateTimeRemaining(received, total);
-        saveFile(received, total);
-    }
-
-    else{
+    }else{
         m_ui->progressBar->setMinimum(0);
         m_ui->progressBar->setMaximum(0);
         m_ui->progressBar->setValue(-1);
@@ -517,7 +467,7 @@ void UpdaterWindow::updateProgress(qint64 received, qint64 total)
  */
 void UpdaterWindow::calculateTimeRemaining(qint64 received, qint64 total)
 {
-    uint difference = QDateTime::currentDateTime().toTime_t()- m_startTime;
+    uint difference = QDateTime::currentDateTime().toTime_t() - m_startTime;
 
     if(difference > 0){
         QString timeString;
@@ -532,9 +482,7 @@ void UpdaterWindow::calculateTimeRemaining(qint64 received, qint64 total)
             }else{
                 timeString = tr("about one hour");
             }
-        }
-
-        else if(timeRemaining > 60){
+        }else if(timeRemaining > 60){
             timeRemaining /= 60;
             int minutes = int(timeRemaining + 0.5);
 
@@ -543,9 +491,7 @@ void UpdaterWindow::calculateTimeRemaining(qint64 received, qint64 total)
             }else{
                 timeString = tr("1 minute");
             }
-        }
-
-        else if(timeRemaining <= 60){
+        }else if(timeRemaining <= 60){
             int seconds = int(timeRemaining + 0.5);
 
             if(seconds > 1){
@@ -559,6 +505,19 @@ void UpdaterWindow::calculateTimeRemaining(qint64 received, qint64 total)
     }
 }
 
+void UpdaterWindow::onDownloadFinished()
+{
+    QString filePath = DOWNLOAD_DIR.filePath(m_fileName);
+    QFile file(filePath);
+    if(file.open(QIODevice::WriteOnly | QIODevice::Append)){
+        file.write(m_reply->readAll());
+        file.close();
+        qApp->processEvents();
+    }
+
+    openDownload(filePath);
+}
+
 /**
  * Allows the user to move the window and registers the position in which
  * the user originally clicked to move the window
@@ -566,9 +525,9 @@ void UpdaterWindow::calculateTimeRemaining(qint64 received, qint64 total)
 void UpdaterWindow::mousePressEvent(QMouseEvent* event)
 {
     if(event->button()== Qt::LeftButton){
-        if(event->pos().x()< width()- 5
+        if(event->pos().x()< width() - 5
                 && event->pos().x()>5
-                && event->pos().y()< height()- 5
+                && event->pos().y()< height() - 5
                 && event->pos().y()> 5){
             m_canMoveWindow = true;
             m_mousePressX = event->x();
@@ -597,7 +556,8 @@ void UpdaterWindow::mouseMoveEvent(QMouseEvent* event)
 /**
  * Disallows the user to move the window and resets the window cursor
  */
-void UpdaterWindow::mouseReleaseEvent(QMouseEvent *event){
+void UpdaterWindow::mouseReleaseEvent(QMouseEvent *event)
+{
     m_canMoveWindow = false;
     unsetCursor();
     event->accept();
@@ -606,6 +566,7 @@ void UpdaterWindow::mouseReleaseEvent(QMouseEvent *event){
 /**
  * Rounds the given \a input to two decimal places
  */
-qreal UpdaterWindow::round(const qreal& input){
+qreal UpdaterWindow::round(const qreal& input)
+{
     return roundf(input * 100)/ 100;
 }

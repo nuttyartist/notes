@@ -25,7 +25,6 @@ QPushButton {
     font-weight: 500;
     border-width: 0px;
     color: rgb(68, 138, 201);
-    background-color: transparent;
 }
 QPushButton:!enabled {
     color: rgb(132, 132, 132);
