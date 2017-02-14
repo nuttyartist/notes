@@ -337,7 +337,8 @@ void UpdaterWindow::openDownload(const QString& file)
  * This function decides whenever to show the dialog or just notify the user
  * that he/she is running the latest version of notes
  */
-void UpdaterWindow::onCheckFinished(const QString &url){
+void UpdaterWindow::onCheckFinished(const QString &url)
+{
     /* Do not allow the title label to change automatically */
     m_checkingForUpdates = false;
 
@@ -355,7 +356,8 @@ void UpdaterWindow::onCheckFinished(const QString &url){
  * If \a exitCode is not 0, then we shall try to open the folder in which
  * the update file was saved
  */
-void UpdaterWindow::onXdgOpenFinished(const int exitCode) {
+void UpdaterWindow::onXdgOpenFinished(const int exitCode)
+{
 #ifdef UseXdgOpen
     if (exitCode != 0 && XDGOPEN_PROCESS.arguments().count() > 0) {
         QString path = XDGOPEN_PROCESS.arguments().first();
@@ -369,15 +371,20 @@ void UpdaterWindow::onXdgOpenFinished(const int exitCode) {
 }
 
 /**
- * Show the installer in folder browser
- * when it can't be opened.
+ * Notifies the user that there's been an error opening the downloaded
+ * file directly and instructs the operating system to open the folder
+ * in which the \a file is located
  */
-void UpdaterWindow::openDownloadFolder(const QString &file){
-    /* Get file extension */
-    QString extension;
-    if (file.split(".").count() > 0){
-        extension = file.split(".").last();
-    }
+void UpdaterWindow::openDownloadFolder(const QString &file)
+{
+    /* Notify the user of the problem */
+    QString extension = file.split(".").last();
+    QMessageBox::information(this,
+                             tr("Open Error"),
+                             tr("It seems that your OS does not have an "
+                                "application that can handle *.%1 files. "
+                                "We'll open the downloads folder for you.")
+                             .arg(extension), QMessageBox::Ok);
 
     /* Get the full path list of the downloaded file */
     QString native_path = QDir::toNativeSeparators(QDir(file).absolutePath());
@@ -549,7 +556,8 @@ void UpdaterWindow::mouseMoveEvent(QMouseEvent* event)
 /**
  * Disallows the user to move the window and resets the window cursor
  */
-void UpdaterWindow::mouseReleaseEvent(QMouseEvent *event){
+void UpdaterWindow::mouseReleaseEvent(QMouseEvent *event)
+{
     m_canMoveWindow = false;
     unsetCursor();
     event->accept();
@@ -558,6 +566,7 @@ void UpdaterWindow::mouseReleaseEvent(QMouseEvent *event){
 /**
  * Rounds the given \a input to two decimal places
  */
-qreal UpdaterWindow::round(const qreal& input){
+qreal UpdaterWindow::round(const qreal& input)
+{
     return roundf(input * 100)/ 100;
 }
