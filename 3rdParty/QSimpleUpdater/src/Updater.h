@@ -48,12 +48,14 @@ class QSU_DECL Updater : public QObject {
   signals:
     void checkingFinished (const QString& url);
     void downloadFinished (const QString& url, const QString& filepath);
+    void appcastDownloaded (const QString& url, const QByteArray& data);
 
   public:
     Updater();
     ~Updater();
 
     QString url() const;
+    QString openUrl() const;
     QString changelog() const;
     QString moduleName() const;
     QString downloadUrl() const;
@@ -61,6 +63,7 @@ class QSU_DECL Updater : public QObject {
     QString moduleVersion() const;
     QString latestVersion() const;
 
+    bool customAppcast() const;
     bool notifyOnUpdate() const;
     bool notifyOnFinish() const;
     bool updateAvailable() const;
@@ -71,16 +74,17 @@ class QSU_DECL Updater : public QObject {
     void checkForUpdates();
     void setUrl (const QString& url);
     void setModuleName (const QString& name);
-    void setNotifyOnUpdate (const bool& notify);
-    void setNotifyOnFinish (const bool& notify);
+    void setNotifyOnUpdate (const bool notify);
+    void setNotifyOnFinish (const bool notify);
     void setModuleVersion (const QString& version);
-    void setDownloaderEnabled (const bool& enabled);
+    void setDownloaderEnabled (const bool enabled);
     void setPlatformKey (const QString& platformKey);
-    void setUseCustomInstallProcedures (const bool& custom);
+    void setUseCustomAppcast (const bool customAppcast);
+    void setUseCustomInstallProcedures (const bool custom);
 
   private slots:
     void onReply (QNetworkReply* reply);
-    void setUpdateAvailable (const bool& available);
+    void setUpdateAvailable (const bool available);
 
   private:
     bool compare (const QString& x, const QString& y);
@@ -88,6 +92,7 @@ class QSU_DECL Updater : public QObject {
   private:
     QString m_url;
 
+    bool m_customAppcast;
     bool m_notifyOnUpdate;
     bool m_notifyOnFinish;
     bool m_updateAvailable;

@@ -28,7 +28,8 @@ class Window : public QMainWindow {
   public slots:
     void resetFields();
     void checkForUpdates();
-    void updateChangelog (QString url);
+    void updateChangelog (const QString& url);
+    void displayAppcast (const QString& url, const QByteArray& reply);
 
   private:
     Ui::Window* m_ui;

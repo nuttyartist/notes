@@ -35,6 +35,10 @@ static QList<Updater*> UPDATERS;
 
 QSimpleUpdater::~QSimpleUpdater() {
     URLS.clear();
+
+    foreach (Updater* updater, UPDATERS)
+        updater->deleteLater();
+
     UPDATERS.clear();
 }
 
@@ -44,6 +48,18 @@ QSimpleUpdater::~QSimpleUpdater() {
 QSimpleUpdater* QSimpleUpdater::getInstance() {
     static QSimpleUpdater updater;
     return &updater;
+}
+
+/**
+ * Returns \c true if the \c Updater instance registered with the given \a url
+ * uses a custom appcast format and/or allows the application to read and
+ * interpret the downloaded appcast file
+ *
+ * \note If an \c Updater instance registered with the given \a url is not
+ *       found, that \c Updater instance will be initialized automatically
+ */
+bool QSimpleUpdater::usesCustomAppcast (const QString& url) const {
+    return getUpdater (url)->customAppcast();
 }
 
 /**
@@ -104,6 +120,19 @@ bool QSimpleUpdater::getDownloaderEnabled (const QString& url) const {
  */
 bool QSimpleUpdater::usesCustomInstallProcedures (const QString& url) const {
     return getUpdater (url)->useCustomInstallProcedures();
+}
+
+/**
+ * Returns the URL to open in a web browser of the \c Updater instance
+ * registered with the given \a url.
+ *
+ * \note If the module name is empty, then the \c Updater will use the
+ *       application name as its module name.
+ * \note If an \c Updater instance registered with the given \a url is not
+ *       found, that \c Updater instance will be initialized automatically
+ */
+QString QSimpleUpdater::getOpenUrl (const QString& url) const {
+    return getUpdater (url)->openUrl();
 }
 
 /**
@@ -217,7 +246,7 @@ void QSimpleUpdater::setModuleName (const QString& url, const QString& name) {
  *       found, that \c Updater instance will be initialized automatically
  */
 void QSimpleUpdater::setNotifyOnUpdate (const QString& url,
-                                        const bool& notify) {
+                                        const bool notify) {
     getUpdater (url)->setNotifyOnUpdate (notify);
 }
 
@@ -230,7 +259,7 @@ void QSimpleUpdater::setNotifyOnUpdate (const QString& url,
  *       found, that \c Updater instance will be initialized automatically
  */
 void QSimpleUpdater::setNotifyOnFinish (const QString& url,
-                                        const bool& notify) {
+                                        const bool notify) {
     getUpdater (url)->setNotifyOnFinish (notify);
 }
 
@@ -275,8 +304,22 @@ void QSimpleUpdater::setModuleVersion (const QString& url,
  *       found, that \c Updater instance will be initialized automatically
  */
 void QSimpleUpdater::setDownloaderEnabled (const QString& url,
-                                           const bool& enabled) {
+        const bool enabled) {
     getUpdater (url)->setDownloaderEnabled (enabled);
+}
+
+/**
+ * If the \a customAppcast parameter is set to \c true, then the \c Updater
+ * will not try to read the network reply from the server, instead, it will
+ * emit the \c appcastDownloaded() signal, which allows the application to
+ * read and interpret the appcast file by itself.
+ *
+ * \note If an \c Updater instance registered with the given \a url is not
+ *       found, that \c Updater instance will be initialized automatically
+ */
+void QSimpleUpdater::setUseCustomAppcast (const QString& url,
+        const bool customAppcast) {
+    getUpdater (url)->setUseCustomAppcast (customAppcast);
 }
 
 /**
@@ -291,7 +334,7 @@ void QSimpleUpdater::setDownloaderEnabled (const QString& url,
  *       found, that \c Updater instance will be initialized automatically
  */
 void QSimpleUpdater::setUseCustomInstallProcedures (const QString& url,
-        const bool& custom) {
+        const bool custom) {
     getUpdater (url)->setUseCustomInstallProcedures (custom);
 }
 
@@ -309,10 +352,12 @@ Updater* QSimpleUpdater::getUpdater (const QString& url) const {
         URLS.append (url);
         UPDATERS.append (updater);
 
-        connect (updater, SIGNAL (checkingFinished (QString)),
-                 this,    SIGNAL (checkingFinished (QString)));
-        connect (updater, SIGNAL (downloadFinished (QString, QString)),
-                 this,    SIGNAL (downloadFinished (QString, QString)));
+        connect (updater, SIGNAL (checkingFinished  (QString)),
+                 this,    SIGNAL (checkingFinished  (QString)));
+        connect (updater, SIGNAL (downloadFinished  (QString, QString)),
+                 this,    SIGNAL (downloadFinished  (QString, QString)));
+        connect (updater, SIGNAL (appcastDownloaded (QString, QByteArray)),
+                 this,    SIGNAL (appcastDownloaded (QString, QByteArray)));
     }
 
     return UPDATERS.at (URLS.indexOf (url));
