@@ -43,6 +43,7 @@ Updater::Updater() {
     m_changelog = "";
     m_downloadUrl = "";
     m_latestVersion = "";
+    m_customAppcast = false;
     m_notifyOnUpdate = true;
     m_notifyOnFinish = false;
     m_updateAvailable = false;
@@ -80,6 +81,16 @@ Updater::~Updater() {
  */
 QString Updater::url() const {
     return m_url;
+}
+
+/**
+ * Returns the URL that the update definitions file wants us to open in
+ * a web browser.
+ *
+ * \warning You should call \c checkForUpdates() before using this functio
+ */
+QString Updater::openUrl() const {
+    return m_openUrl;
 }
 
 /**
@@ -132,6 +143,15 @@ QString Updater::latestVersion() const {
  */
 QString Updater::moduleVersion() const {
     return m_moduleVersion;
+}
+
+/**
+ * Returns \c true if the updater should NOT interpret the downloaded appcast.
+ * This is useful if you need to store more variables (or information) in the
+ * JSON file or use another appcast format (e.g. XML)
+ */
+bool Updater::customAppcast() const {
+    return m_customAppcast;
 }
 
 /**
@@ -208,7 +228,7 @@ void Updater::setModuleName (const QString& name) {
  * If \a notify is set to \c true, then the \c Updater will notify the user
  * when an update is available.
  */
-void Updater::setNotifyOnUpdate (const bool& notify) {
+void Updater::setNotifyOnUpdate (const bool notify) {
     m_notifyOnUpdate = notify;
 }
 
@@ -216,7 +236,7 @@ void Updater::setNotifyOnUpdate (const bool& notify) {
  * If \a notify is set to \c true, then the \c Updater will notify the user
  * when it has finished interpreting the update definitions file.
  */
-void Updater::setNotifyOnFinish (const bool& notify) {
+void Updater::setNotifyOnFinish (const bool notify) {
     m_notifyOnFinish = notify;
 }
 
@@ -234,7 +254,7 @@ void Updater::setModuleVersion (const QString& version) {
  * If the \a enabled parameter is set to \c true, the \c Updater will open the
  * integrated downloader if the user agrees to install the update (if any)
  */
-void Updater::setDownloaderEnabled (const bool& enabled) {
+void Updater::setDownloaderEnabled (const bool enabled) {
     m_downloaderEnabled = enabled;
 }
 
@@ -252,11 +272,21 @@ void Updater::setPlatformKey (const QString& platformKey) {
 }
 
 /**
+ * If the \a customAppcast parameter is set to \c true, then the \c Updater
+ * will not try to read the network reply from the server, instead, it will
+ * emit the \c appcastDownloaded() signal, which allows the application to
+ * read and interpret the appcast file by itself
+ */
+void Updater::setUseCustomAppcast (const bool customAppcast) {
+    m_customAppcast = customAppcast;
+}
+
+/**
  * If the \a custom parameter is set to \c true, the \c Updater will not try
  * to open the downloaded file. Use the signals fired by the \c QSimpleUpdater
  * to install the update from the downloaded file by yourself.
  */
-void Updater::setUseCustomInstallProcedures (const bool& custom) {
+void Updater::setUseCustomInstallProcedures (const bool custom) {
     m_downloader->setUseCustomInstallProcedures (custom);
 }
 
@@ -264,23 +294,44 @@ void Updater::setUseCustomInstallProcedures (const bool& custom) {
  * Called when the download of the update definitions file is finished.
  */
 void Updater::onReply (QNetworkReply* reply) {
-    if (reply->error() == QNetworkReply::NoError) {
-        QJsonDocument document = QJsonDocument::fromJson (reply->readAll());
-
-        if (document.isNull())
-            return;
-
-        QJsonObject updates = document.object().value ("updates").toObject();
-        QJsonObject platform = updates.value (platformKey()).toObject();
-
-        m_openUrl = platform.value ("open-url").toString();
-        m_changelog = platform.value ("changelog").toString();
-        m_downloadUrl = platform.value ("download-url").toString();
-        m_latestVersion = platform.value ("latest-version").toString();
-
-        setUpdateAvailable (compare (latestVersion(), moduleVersion()));
+    /* Check if we need to redirect */
+    QUrl redirect = reply->attribute (
+                        QNetworkRequest::RedirectionTargetAttribute).toUrl();
+    if (!redirect.isEmpty()) {
+        setUrl (redirect.toString());
+        checkForUpdates();
+        return;
     }
 
+    /* There was a network error */
+    if (reply->error() != QNetworkReply::NoError)
+        return;
+
+    /* The application wants to interpret the appcast by itself */
+    if (customAppcast()) {
+        emit appcastDownloaded (url(), reply->readAll());
+        return;
+    }
+
+    /* Try to create a JSON document from downloaded data */
+    QJsonDocument document = QJsonDocument::fromJson (reply->readAll());
+
+    /* JSON is invalid */
+    if (document.isNull())
+        return;
+
+    /* Get the platform information */
+    QJsonObject updates = document.object().value ("updates").toObject();
+    QJsonObject platform = updates.value (platformKey()).toObject();
+
+    /* Get update information */
+    m_openUrl = platform.value ("open-url").toString();
+    m_changelog = platform.value ("changelog").toString();
+    m_downloadUrl = platform.value ("download-url").toString();
+    m_latestVersion = platform.value ("latest-version").toString();
+
+    /* Compare latest and current version */
+    setUpdateAvailable (compare (latestVersion(), moduleVersion()));
     emit checkingFinished (url());
 }
 
@@ -288,7 +339,7 @@ void Updater::onReply (QNetworkReply* reply) {
  * Prompts the user based on the value of the \a available parameter and the
  * settings of this instance of the \c Updater class.
  */
-void Updater::setUpdateAvailable (const bool& available) {
+void Updater::setUpdateAvailable (const bool available) {
     m_updateAvailable = available;
 
     QMessageBox box;
@@ -308,11 +359,14 @@ void Updater::setUpdateAvailable (const bool& available) {
         box.setDefaultButton   (QMessageBox::Yes);
 
         if (box.exec() == QMessageBox::Yes) {
-            if (!m_openUrl.isEmpty())
-                QDesktopServices::openUrl (QUrl (m_openUrl));
+            if (!openUrl().isEmpty())
+                QDesktopServices::openUrl (QUrl (openUrl()));
 
-            else if (downloaderEnabled())
+            else if (downloaderEnabled()) {
+                m_downloader->setUrlId (url());
+                m_downloader->setFileName (downloadUrl().split ("/").last());
                 m_downloader->startDownload (QUrl (downloadUrl()));
+            }
 
             else
                 QDesktopServices::openUrl (QUrl (downloadUrl()));

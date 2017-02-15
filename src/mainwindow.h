@@ -25,6 +25,7 @@
 #include "notedata.h"
 #include "notemodel.h"
 #include "noteview.h"
+#include "updaterwindow.h"
 #include "dbmanager.h"
 
 namespace Ui {
@@ -56,6 +57,11 @@ private:
 
     Ui::MainWindow* ui;
 
+    QMenu* m_mainMenu;
+
+    QAction* m_rightToLeftAction;
+    QAction* m_checkForUpdatesAction;
+
     QTimer* m_autoSaveTimer;
     QSettings* m_settingsDatabase;
     QVBoxLayout* m_noteWidgetsContainer;
@@ -65,6 +71,7 @@ private:
     QPushButton* m_yellowMinimizeButton;
     QPushButton* m_newNoteButton;
     QPushButton* m_trashButton;
+    QPushButton* m_dotsButton;
     QTextEdit* m_textEdit;
     QLineEdit* m_lineEdit;
     QLabel* m_editorDateLabel;
@@ -83,6 +90,8 @@ private:
     QQueue<QString> m_searchQueue;
     DBManager* m_dbManager;
 
+    UpdaterWindow m_updater;
+
     int m_currentVerticalScrollAreaRange;
     int m_mousePressX;
     int m_mousePressY;
@@ -96,6 +105,8 @@ private:
     bool m_isOperationRunning;
 
     void setupMainWindow();
+    void createActions();
+    void createMenu();
     void setupFonts();
     void setupTrayIcon();
     void setupKeyboardShortcuts();
@@ -105,6 +116,7 @@ private:
     void setupRightFrame();
     void setupTitleBarButtons();
     void setupSignalsSlots();
+    void autoCheckForUpdates();
     void setupLineEdit();
     void setupTextEdit();
     void setupDatabases();
@@ -138,6 +150,8 @@ private slots:
     void onNewNoteButtonClicked();
     void onTrashButtonPressed();
     void onTrashButtonClicked();
+    void onDotsButtonPressed();
+    void onDotsButtonClicked();
     void onNotePressed(const QModelIndex &index);
     void onTextEditTextChanged();
     void onLineEditTextChanged(const QString& keyword);
@@ -159,6 +173,7 @@ private slots:
     void maximizeWindow();
     void minimizeWindow();
     void QuitApplication();
+    void checkForUpdates (const bool clicked);
 };
 
 #endif // MAINWINDOW_H
