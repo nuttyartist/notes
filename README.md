@@ -8,7 +8,7 @@ Notes is an open source, cross-platform note taking app which has the potential 
 This is where you come into play. Be part of making Notes better.
 
 ### Screenshot
-![notes](https://cloud.githubusercontent.com/assets/16375940/14313739/ea9fc8fa-fbfb-11e5-95bb-fb10c59770a8.png)
+![notes_screenshot](https://cloud.githubusercontent.com/assets/16375940/21028061/2658710a-bd9c-11e6-8ecb-44ca41e21aca.png)
 
 ### How to clone
 Use this command to clone the repository:

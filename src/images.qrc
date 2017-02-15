@@ -25,5 +25,17 @@
         <file>images/3dots_Hovered.png</file>
         <file>images/notes_system_tray_icon.png</file>
         <file>images/textEdit_background_pattern.png</file>
+        <file>images/windows_close_hovered.png</file>
+        <file>images/windows_close_pressed.png</file>
+        <file>images/windows_close_regular.png</file>
+        <file>images/windows_de-maximize_hovered.png</file>
+        <file>images/windows_de-maximize_pressed.png</file>
+        <file>images/windows_de-maximize_regular.png</file>
+        <file>images/windows_maximize_hovered.png</file>
+        <file>images/windows_maximize_pressed.png</file>
+        <file>images/windows_maximize_regular.png</file>
+        <file>images/windows_minimize_hovered.png</file>
+        <file>images/windows_minimize_pressed.png</file>
+        <file>images/windows_minimize_regular.png</file>
     </qresource>
 </RCC>
