@@ -34,6 +34,9 @@ QPushButton:hover:!pressed {
 }
 QPushButton:pressed {
     color: rgb(39, 85, 125);
+    border: 1px solid rgb(170, 170, 170);
+    border-radius: 5px;
+    background-color: rgb(227, 227, 227);
 }
 #timeLabel {
     font: 13px "Roboto";
