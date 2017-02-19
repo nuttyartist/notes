@@ -39,6 +39,21 @@ class MainWindow : public QMainWindow
     friend class tst_MainWindow;
 
 public:
+
+    enum class StretchSide{
+        None = 0,
+        Left,
+        Right,
+        Top,
+        Bottom,
+        TopLeft,
+        TopRight,
+        BottomLeft,
+        BottomRight
+        };
+
+    Q_ENUM(StretchSide)
+
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
@@ -91,6 +106,7 @@ private:
     DBManager* m_dbManager;
 
     UpdaterWindow m_updater;
+    StretchSide m_stretchSide;
 
     int m_currentVerticalScrollAreaRange;
     int m_mousePressX;
@@ -98,7 +114,9 @@ private:
     int m_textEditLeftPadding;
     int m_noteCounter;
     int m_trashCounter;
+    int m_layoutMargin;
     bool m_canMoveWindow;
+    bool m_canStretchWindow;
     bool m_isTemp;
     bool m_isListViewScrollBarHidden;
     bool m_isContentModified;

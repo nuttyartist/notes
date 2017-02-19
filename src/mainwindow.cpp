@@ -16,6 +16,7 @@
 #include <QScrollArea>
 #include <QtConcurrent>
 #include <QProgressDialog>
+#include <QDesktopWidget>
 #define FIRST_LINE_MAX 80
 
 /**
@@ -47,7 +48,9 @@ MainWindow::MainWindow (QWidget *parent) :
     m_dbManager(Q_NULLPTR),
     m_noteCounter(0),
     m_trashCounter(0),
+    m_layoutMargin(10),
     m_canMoveWindow(false),
+    m_canStretchWindow(false),
     m_isTemp(false),
     m_isListViewScrollBarHidden(true),
     m_isContentModified(false),
@@ -154,10 +157,12 @@ void MainWindow::setupMainWindow ()
 {
 #ifdef Q_OS_LINUX
     this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+    this->setAttribute(Qt::WA_TranslucentBackground);
 #elif _WIN32
     this->setWindowFlags(Qt::CustomizeWindowHint);
 #elif __APPLE__
     this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+    this->setAttribute(Qt::WA_TranslucentBackground);
 #else
 #error "We don't support that version yet..."
 #endif
@@ -172,6 +177,14 @@ void MainWindow::setupMainWindow ()
     m_textEdit = ui->textEdit;
     m_editorDateLabel = ui->editorDateLabel;
     m_splitter = ui->splitter;
+
+#ifndef _WIN32
+    QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
+    ui->centralWidget->layout()->setContentsMargins(margins);
+#endif
+    ui->frame->installEventFilter(this);
+    ui->centralWidget->setMouseTracking(true);
+    this->setMouseTracking(true);
 
     QPalette pal(palette());
     pal.setColor(QPalette::Background, QColor(248, 248, 248));
@@ -1212,11 +1225,26 @@ void MainWindow::selectNoteDown ()
 */
 void MainWindow::fullscreenWindow ()
 {
-    if(this->windowState() == Qt::WindowFullScreen){
-        this->setWindowState(Qt::WindowNoState);
+#ifndef _WIN32
+    QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
+
+    if(isFullScreen()){
+        if(!isMaximized())
+            ui->centralWidget->layout()->setContentsMargins(margins);
+
+        setWindowState(windowState() & ~Qt::WindowFullScreen);
     }else{
-        this->setWindowState(Qt::WindowFullScreen);
+        setWindowState(windowState() | Qt::WindowFullScreen);
+        ui->centralWidget->layout()->setContentsMargins(0,0,0,0);
     }
+
+#else
+    if(isFullScreen()){
+        showNormal();
+    }else{
+        showFullScreen();
+    }
+#endif
 }
 
 /**
@@ -1225,11 +1253,32 @@ void MainWindow::fullscreenWindow ()
 */
 void MainWindow::maximizeWindow ()
 {
-    if(this->windowState() == Qt::WindowMaximized || this->windowState() == Qt::WindowFullScreen){
-        this->setWindowState(Qt::WindowNoState);
+#ifndef _WIN32
+    QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
+
+    if(isMaximized()){
+        if(!isFullScreen()){
+            ui->centralWidget->layout()->setContentsMargins(margins);
+            setWindowState(windowState() & ~Qt::WindowMaximized);
+        }else{
+            setWindowState(windowState() & ~Qt::WindowFullScreen);
+        }
+
     }else{
-        this->setWindowState(Qt::WindowMaximized);
+        setWindowState(windowState() | Qt::WindowMaximized);
+        ui->centralWidget->layout()->setContentsMargins(0,0,0,0);
     }
+#else
+    if(isMaximized()){
+        setWindowState(windowState() & ~Qt::WindowMaximized);
+    }else if(isFullScreen()){
+        setWindowState((windowState() | Qt::WindowMaximized) & ~Qt::WindowFullScreen);
+        setGeometry(qApp->primaryScreen()->availableGeometry());
+    }else{
+        setWindowState(windowState() | Qt::WindowMaximized);
+        setGeometry(qApp->primaryScreen()->availableGeometry());
+    }
+#endif
 }
 
 /**
@@ -1238,7 +1287,13 @@ void MainWindow::maximizeWindow ()
 */
 void MainWindow::minimizeWindow ()
 {
-    this->setWindowState(Qt::WindowMinimized);
+#ifndef _WIN32
+    QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
+    ui->centralWidget->layout()->setContentsMargins(margins);
+#endif
+
+    // BUG : QTBUG-57902 minimize doesn't store the window state before minimizing
+    showMinimized();
 }
 
 /**
@@ -1385,12 +1440,223 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
     QWidget::closeEvent(event);
 }
-
+#ifndef _WIN32
 /**
 * @brief
 * Set variables to the position of the window when the mouse is pressed
 */
-void MainWindow::mousePressEvent (QMouseEvent* event)
+void MainWindow::mousePressEvent(QMouseEvent* event)
+{
+    m_mousePressX = event->x();
+    m_mousePressY = event->y();
+
+    if(m_mousePressX < this->width() - m_layoutMargin
+            && m_mousePressX >m_layoutMargin
+            && m_mousePressY < this->height() - m_layoutMargin
+            && m_mousePressY > m_layoutMargin){
+
+        m_canMoveWindow = true;
+    }else{
+        m_canStretchWindow = true;
+        if((m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin)
+                && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)){
+            m_stretchSide = StretchSide::TopRight;
+        }else if((m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin)
+                 && (m_mousePressY < this->height() && m_mousePressY > this->height() - m_layoutMargin)){
+            m_stretchSide = StretchSide::BottomRight;
+        }else if((m_mousePressX < m_layoutMargin && m_mousePressX > 0)
+                 && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)){
+            m_stretchSide = StretchSide::TopLeft;
+        }else if((m_mousePressX < m_layoutMargin && m_mousePressX > 0)
+                 && (m_mousePressY < this->height() && m_mousePressY > this->height() - m_layoutMargin)){
+            m_stretchSide = StretchSide::BottomLeft;
+        }else if(m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin){
+            m_stretchSide = StretchSide::Right;
+        }else if(m_mousePressX < m_layoutMargin && m_mousePressX > 0){
+            m_stretchSide = StretchSide::Left;
+        }else if(m_mousePressY < this->height() && m_mousePressY > this->height() - m_layoutMargin){
+            m_stretchSide = StretchSide::Bottom;
+        }else if(m_mousePressY < m_layoutMargin && m_mousePressY > 0){
+            m_stretchSide = StretchSide::Top;
+        }else{
+            m_stretchSide = StretchSide::None;
+        }
+    }
+
+    event->accept();
+}
+
+/**
+* @brief
+* Move the window according to the mouse positions
+*/
+void MainWindow::mouseMoveEvent(QMouseEvent* event)
+{
+    if(!m_canStretchWindow && !m_canMoveWindow){
+        m_mousePressX = event->x();
+        m_mousePressY = event->y();
+
+        if((m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin)
+                && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)){
+            m_stretchSide = StretchSide::TopRight;
+        }else if((m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin)
+                 && (m_mousePressY < this->height() && m_mousePressY > this->height() - m_layoutMargin)){
+            m_stretchSide = StretchSide::BottomRight;
+        }else if((m_mousePressX < m_layoutMargin && m_mousePressX > 0)
+                 && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)){
+            m_stretchSide = StretchSide::TopLeft;
+        }else if((m_mousePressX < m_layoutMargin && m_mousePressX > 0)
+                 && (m_mousePressY < this->height() && m_mousePressY > this->height() - m_layoutMargin)){
+            m_stretchSide = StretchSide::BottomLeft;
+        }else if(m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin){
+            m_stretchSide = StretchSide::Right;
+        }else if(m_mousePressX < m_layoutMargin && m_mousePressX > 0){
+            m_stretchSide = StretchSide::Left;
+        }else if(m_mousePressY < this->height() && m_mousePressY > this->height() - m_layoutMargin){
+            m_stretchSide = StretchSide::Bottom;
+        }else if(m_mousePressY < m_layoutMargin && m_mousePressY > 0){
+            m_stretchSide = StretchSide::Top;
+        }else{
+            m_stretchSide = StretchSide::None;
+        }
+    }
+
+    if(!m_canMoveWindow){
+        switch (m_stretchSide) {
+        case StretchSide::Right:
+        case StretchSide::Left:
+            ui->centralWidget->setCursor(Qt::SizeHorCursor);
+            break;
+        case StretchSide::Top:
+        case StretchSide::Bottom:
+            ui->centralWidget->setCursor(Qt::SizeVerCursor);
+            break;
+        case StretchSide::TopRight:
+        case StretchSide::BottomLeft:
+            ui->centralWidget->setCursor(Qt::SizeBDiagCursor);
+            break;
+        case StretchSide::TopLeft:
+        case StretchSide::BottomRight:
+            ui->centralWidget->setCursor(Qt::SizeFDiagCursor);
+            break;
+        default:
+            if(!m_canStretchWindow)
+                ui->centralWidget->setCursor(Qt::ArrowCursor);
+            break;
+        }
+    }
+
+    if(m_canMoveWindow){
+        int dx = event->globalX() - m_mousePressX;
+        int dy = event->globalY() - m_mousePressY;
+        move (dx, dy);
+
+    }else if(m_canStretchWindow && !isMaximized() && !isFullScreen()){
+        int newX = x();
+        int newY = y();
+        int newWidth = width();
+        int newHeight = height();
+
+        int minY =  QApplication::desktop()->availableGeometry().y();
+
+        switch (m_stretchSide) {
+        case StretchSide::Right:
+            newWidth = abs(event->globalX()-this->x()+1);
+            newWidth = newWidth < minimumWidth() ? minimumWidth() : newWidth;
+            break;
+        case StretchSide::Left:
+            newX = event->globalX() - m_mousePressX;
+            newX = newX > 0 ? newX : 0;
+            newX = newX > geometry().bottomRight().x() - minimumWidth() ? geometry().bottomRight().x() - minimumWidth() : newX;
+            newWidth = geometry().topRight().x() - newX + 1;
+            newWidth = newWidth < minimumWidth() ? minimumWidth() : newWidth;
+            break;
+        case StretchSide::Top:
+            newY = event->globalY() - m_mousePressY;
+            newY = newY < minY ? minY : newY;
+            newY = newY > geometry().bottomRight().y() - minimumHeight() ? geometry().bottomRight().y() - minimumHeight() : newY;
+            newHeight = geometry().bottomLeft().y() - newY + 1;
+            newHeight = newHeight < minimumHeight() ? minimumHeight() : newHeight ;
+
+            break;
+        case StretchSide::Bottom:
+            newHeight = abs(event->globalY()-y()+1);
+            newHeight = newHeight < minimumHeight() ? minimumHeight() : newHeight;
+
+            break;
+        case StretchSide::TopLeft:
+            newX = event->globalX() - m_mousePressX;
+            newX = newX < 0 ? 0: newX;
+            newX = newX > geometry().bottomRight().x() - minimumWidth() ? geometry().bottomRight().x()-minimumWidth() : newX;
+
+            newY = event->globalY() - m_mousePressY;
+            newY = newY < minY ? minY : newY;
+            newY = newY > geometry().bottomRight().y() - minimumHeight() ? geometry().bottomRight().y() - minimumHeight() : newY;
+
+            newWidth = geometry().bottomRight().x() - newX + 1;
+            newWidth = newWidth < minimumWidth() ? minimumWidth() : newWidth;
+
+            newHeight = geometry().bottomRight().y() - newY + 1;
+            newHeight = newHeight < minimumHeight() ? minimumHeight() : newHeight;
+
+            break;
+        case StretchSide::BottomLeft:
+            newX = event->globalX() - m_mousePressX;
+            newX = newX < 0 ? 0: newX;
+            newX = newX > geometry().bottomRight().x() - minimumWidth() ? geometry().bottomRight().x()-minimumWidth() : newX;
+
+            newWidth = geometry().bottomRight().x() - newX + 1;
+            newWidth = newWidth < minimumWidth() ? minimumWidth() : newWidth;
+
+            newHeight = event->globalY() - y() + 1;
+            newHeight = newHeight < minimumHeight() ? minimumHeight() : newHeight;
+
+            break;
+        case StretchSide::TopRight:
+            newY = event->globalY() - m_mousePressY;
+            newY = newY > geometry().bottomRight().y() - minimumHeight() ? geometry().bottomRight().y() - minimumHeight() : newY;
+            newY = newY < minY ? minY : newY;
+
+            newWidth = event->globalX() - x() + 1;
+            newWidth = newWidth < minimumWidth() ? minimumWidth() : newWidth;
+
+            newHeight = geometry().bottomRight().y() - newY + 1;
+            newHeight = newHeight < minimumHeight() ? minimumHeight() : newHeight;
+
+            break;
+        case StretchSide::BottomRight:
+            newWidth = event->globalX() - x() + 1;
+            newWidth = newWidth < minimumWidth() ? minimumWidth() : newWidth;
+
+            newHeight = event->globalY() - y() + 1;
+            newHeight = newHeight < minimumHeight() ? minimumHeight() : newHeight;
+
+            break;
+        default:
+            break;
+        }
+
+        setGeometry(newX, newY, newWidth, newHeight);
+    }
+    event->accept();
+}
+
+/**
+* @brief
+  * Initialize flags
+ */
+void MainWindow::mouseReleaseEvent(QMouseEvent *event)
+{
+    m_canMoveWindow = false;
+    m_canStretchWindow = false;
+    event->accept();
+}
+#else
+/**
+* @brief
+* Set variables to the position of the window when the mouse is pressed
+*/
+void MainWindow::mousePressEvent(QMouseEvent* event)
 {
     if (event->button() == Qt::LeftButton){
         if(event->pos().x() < this->width() - 5
@@ -1411,7 +1677,7 @@ void MainWindow::mousePressEvent (QMouseEvent* event)
 * @brief
 * Move the window according to the mouse positions
 */
-void MainWindow::mouseMoveEvent (QMouseEvent* event)
+void MainWindow::mouseMoveEvent(QMouseEvent* event)
 {
     if(m_canMoveWindow){
         this->setCursor(Qt::ClosedHandCursor);
@@ -1426,12 +1692,13 @@ void MainWindow::mouseMoveEvent (QMouseEvent* event)
 * @brief
   * Initialize flags
  */
-void MainWindow::mouseReleaseEvent (QMouseEvent *event)
+void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
     m_canMoveWindow = false;
     this->unsetCursor();
     event->accept();
 }
+#endif
 
 /**
  * @brief MainWindow::moveNoteToTop : moves the current note Widget
@@ -1641,8 +1908,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
                 m_redCloseButton->setIcon(QIcon(":images/windows_close_hovered.png"));
             }
 
-            if(object == m_yellowMinimizeButton)
-            {
+            if(object == m_yellowMinimizeButton){
                 if(this->windowState() == Qt::WindowFullScreen){
                     m_yellowMinimizeButton->setIcon(QIcon(":images/windows_de-maximize_hovered.png"));
                 }else{
@@ -1650,8 +1916,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
                 }
             }
 
-            if(object == m_greenMaximizeButton)
-            {
+            if(object == m_greenMaximizeButton){
                 m_greenMaximizeButton->setIcon(QIcon(":images/windows_minimize_hovered.png"));
             }
 #else
@@ -1686,6 +1951,11 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
                 m_dotsButton->setIcon(QIcon(":/images/3dots_Hovered.png"));
             }
         }
+
+        if(object == ui->frame){
+            ui->centralWidget->setCursor(Qt::ArrowCursor);
+        }
+
         break;
     }
     case QEvent::Leave:{
