@@ -289,10 +289,16 @@ void MainWindow::createMenu()
                               "  background: 1px solid #308CC6; "
                               "  }");
 
+#ifdef __APPLE__
+    m_mainMenu->setFont(QFont("Helvetica Neue", 13));
+    viewMenu->setFont(QFont("Helvetica Neue", 13));
+#else
     int id = QFontDatabase::addApplicationFont(":/fonts/roboto-hinted/Roboto-Regular.ttf");
     QString robotoFontRegular = QFontDatabase::applicationFontFamilies(id).at(0);
     m_mainMenu->setFont(QFont(robotoFontRegular, 10));
     viewMenu->setFont(QFont(robotoFontRegular, 10));
+#endif
+
     m_mainMenu->addAction (m_checkForUpdatesAction);
 }
 
@@ -336,7 +342,11 @@ void MainWindow::setupSplitter()
 */
 void MainWindow::setupLine ()
 {
+#ifdef __APPLE__
+    ui->line->setStyleSheet("border: 0px solid rgb(221, 221, 221)");
+#else
     ui->line->setStyleSheet("border: 1px solid rgb(221, 221, 221)");
+#endif
 }
 
 /**
