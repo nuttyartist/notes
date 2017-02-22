@@ -1331,6 +1331,7 @@ void MainWindow::expandNoteList()
 {
     QList<int> sizes = m_splitter->sizes();
     sizes[0] = m_noteListWidth;
+    sizes[1] = m_splitter->width() - m_noteListWidth;
     m_splitter->setSizes(sizes);
 }
 
