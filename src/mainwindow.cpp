@@ -197,18 +197,12 @@ void MainWindow::setupMainWindow ()
 
 void MainWindow::setupFonts()
 {
-    int id = QFontDatabase::addApplicationFont(":/fonts/roboto-hinted/Roboto-Regular.ttf");
-    QString robotoFontRegular = QFontDatabase::applicationFontFamilies(id).at(0);
-
-    id = QFontDatabase::addApplicationFont(":/fonts/roboto-hinted/Roboto-Bold.ttf");
-    QString robotoFontBold = QFontDatabase::applicationFontFamilies(id).at(0);
-
 #ifdef __APPLE__
     m_lineEdit->setFont(QFont("Helvetica Neue", 12));
     m_editorDateLabel->setFont(QFont("Helvetica Neue", 12, 65));
 #else
-    m_lineEdit->setFont(QFont(robotoFontRegular, 10));
-    m_editorDateLabel->setFont(QFont(robotoFontBold, 10, QFont::Bold));
+    m_lineEdit->setFont(QFont(QStringLiteral("Roboto"), 10));
+    m_editorDateLabel->setFont(QFont(QStringLiteral("Roboto"), 10, QFont::Bold));
 #endif
 }
 
@@ -293,8 +287,8 @@ void MainWindow::setupNewNoteButtonAndTrahButton ()
 */
 void MainWindow::setupSplitter()
 {
-    m_splitter->setStretchFactor(1, 1);
-    m_splitter->setStretchFactor(2, 0);
+    m_splitter->setCollapsible(0, false);
+    m_splitter->setCollapsible(1, false);
 }
 
 /**
@@ -515,10 +509,7 @@ void MainWindow::setupTextEdit ()
 
     m_textEdit->installEventFilter(this);
     m_textEdit->verticalScrollBar()->installEventFilter(this);
-
-    int id = QFontDatabase::addApplicationFont(":/fonts/arimo/Arimo-Regular.ttf");
-    QString arimoFont = QFontDatabase::applicationFontFamilies(id).at(0);
-    m_textEdit->setFont(QFont(arimoFont, 11));
+    m_textEdit->setFont(QFont(QStringLiteral("Arimo"), 11, QFont::Normal));
 
     // This is done because for now where we're only handling plain text,
     // and we don't want people to past rich text and get something wrong.
