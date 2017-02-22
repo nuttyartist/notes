@@ -49,6 +49,7 @@ MainWindow::MainWindow (QWidget *parent) :
     m_noteCounter(0),
     m_trashCounter(0),
     m_layoutMargin(10),
+    m_noteListWidth(200),
     m_canMoveWindow(false),
     m_canStretchWindow(false),
     m_isTemp(false),
@@ -58,8 +59,6 @@ MainWindow::MainWindow (QWidget *parent) :
 {
     ui->setupUi(this);
     setupMainWindow();
-    createActions();
-    createMenu();
     setupFonts();
     setupTrayIcon();
     setupKeyboardShortcuts();
@@ -262,44 +261,6 @@ void MainWindow::setupKeyboardShortcuts ()
         m_textEdit->setDisabled(false);
         m_lineEdit->setDisabled(false);
     });
-}
-
-void MainWindow::createActions()
-{
-    m_rightToLeftAction = new QAction("Right-To-Left Layout", this);;
-    m_rightToLeftAction->setCheckable(true);
-
-    m_checkForUpdatesAction = new QAction("Check For Updates", this);;
-    connect (m_checkForUpdatesAction, SIGNAL (triggered (bool)),
-             this,                      SLOT (checkForUpdates (bool)));
-}
-
-void MainWindow::createMenu()
-{
-    m_mainMenu = new QMenu(this);
-    QMenu* viewMenu = m_mainMenu->addMenu("View");
-
-    viewMenu->addAction(m_rightToLeftAction);
-
-    m_mainMenu->setStyleSheet("QMenu { "
-                              "  background-color: rgb(247, 247, 247); "
-                              "  border: 1px solid #308CC6; "
-                              "  }"
-                              "QMenu::item:selected { "
-                              "  background: 1px solid #308CC6; "
-                              "  }");
-
-#ifdef __APPLE__
-    m_mainMenu->setFont(QFont("Helvetica Neue", 13));
-    viewMenu->setFont(QFont("Helvetica Neue", 13));
-#else
-    int id = QFontDatabase::addApplicationFont(":/fonts/roboto-hinted/Roboto-Regular.ttf");
-    QString robotoFontRegular = QFontDatabase::applicationFontFamilies(id).at(0);
-    m_mainMenu->setFont(QFont(robotoFontRegular, 10));
-    viewMenu->setFont(QFont(robotoFontRegular, 10));
-#endif
-
-    m_mainMenu->addAction (m_checkForUpdatesAction);
 }
 
 /**
@@ -899,7 +860,43 @@ void MainWindow::onDotsButtonClicked()
 {
     m_dotsButton->setIcon(QIcon(":/images/3dots_Regular.png"));
 
-    m_mainMenu->exec(m_dotsButton->mapToGlobal(QPoint(0, m_dotsButton->height())));
+    QMenu mainMenu;
+    QMenu* viewMenu = mainMenu.addMenu("View");
+
+    mainMenu.setStyleSheet("QMenu { "
+                              "  background-color: rgb(247, 247, 247); "
+                              "  border: 1px solid #308CC6; "
+                              "  }"
+                              "QMenu::item:selected { "
+                              "  background: 1px solid #308CC6; "
+                              "  }");
+
+#ifdef __APPLE__
+    mainMenu.setFont(QFont("Helvetica Neue", 13));
+    viewMenu->setFont(QFont("Helvetica Neue", 13));
+#else
+    mainMenu.setFont(QFont(QStringLiteral("Roboto"), 10, QFont::Normal));
+    viewMenu->setFont(QFont(QStringLiteral("Roboto"), 10, QFont::Normal));
+#endif
+
+    // note list visiblity action
+    bool isCollapsed = (m_splitter->sizes().at(0) == 0);
+    QString actionLabel = isCollapsed? tr("Show note list side")
+                                     : tr("Hide note list side");
+
+    QAction* noteListVisbilityAction = viewMenu->addAction(actionLabel);
+    if(isCollapsed){
+        connect(noteListVisbilityAction, SIGNAL(triggered(bool)), this, SLOT(expandNoteList()));
+    }else{
+        connect(noteListVisbilityAction, SIGNAL(triggered(bool)), this, SLOT(collapseNoteList()));
+    }
+
+    // Check for update action
+    QAction* checkForUpdatesAction = mainMenu.addAction (tr("Check For Updates"));
+    connect (checkForUpdatesAction, SIGNAL (triggered (bool)),
+             this, SLOT (checkForUpdates (bool)));
+
+    mainMenu.exec(m_dotsButton->mapToGlobal(QPoint(0, m_dotsButton->height())));
 }
 
 
@@ -1327,6 +1324,23 @@ void MainWindow::QuitApplication ()
 void MainWindow::checkForUpdates (const bool clicked) {
     Q_UNUSED (clicked);
     m_updater.checkForUpdates (false);
+}
+
+void MainWindow::collapseNoteList()
+{
+    m_splitter->setCollapsible(0, true);
+    QList<int> sizes = m_splitter->sizes();
+    m_noteListWidth = sizes.at(0);
+    sizes[0] = 0;
+    m_splitter->setSizes(sizes);
+    m_splitter->setCollapsible(0, false);
+}
+
+void MainWindow::expandNoteList()
+{
+    QList<int> sizes = m_splitter->sizes();
+    sizes[0] = m_noteListWidth;
+    m_splitter->setSizes(sizes);
 }
 
 /**

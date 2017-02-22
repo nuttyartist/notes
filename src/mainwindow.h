@@ -72,11 +72,6 @@ private:
 
     Ui::MainWindow* ui;
 
-    QMenu* m_mainMenu;
-
-    QAction* m_rightToLeftAction;
-    QAction* m_checkForUpdatesAction;
-
     QTimer* m_autoSaveTimer;
     QSettings* m_settingsDatabase;
     QVBoxLayout* m_noteWidgetsContainer;
@@ -115,6 +110,7 @@ private:
     int m_noteCounter;
     int m_trashCounter;
     int m_layoutMargin;
+    int m_noteListWidth;
     bool m_canMoveWindow;
     bool m_canStretchWindow;
     bool m_isTemp;
@@ -123,8 +119,6 @@ private:
     bool m_isOperationRunning;
 
     void setupMainWindow();
-    void createActions();
-    void createMenu();
     void setupFonts();
     void setupTrayIcon();
     void setupKeyboardShortcuts();
@@ -192,6 +186,8 @@ private slots:
     void minimizeWindow();
     void QuitApplication();
     void checkForUpdates (const bool clicked);
+    void collapseNoteList();
+    void expandNoteList();
 };
 
 #endif // MAINWINDOW_H
