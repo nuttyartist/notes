@@ -34,6 +34,7 @@ script:
   - cd .. 
   - wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/3/linuxdeployqt-3-x86_64.AppImage" 
   - chmod a+x linuxdeployqt*.AppImage 
+  - unset QTDIR
   - ./linuxdeployqt*.AppImage ./appdir/usr/bin/notes -bundle-non-qt-libs
   - ./linuxdeployqt*.AppImage ./appdir/usr/bin/notes -appimage 
   - curl --upload-file ./Notes-*.AppImage https://transfer.sh/notes-qt$QT_BASE-x86_64.AppImage 
