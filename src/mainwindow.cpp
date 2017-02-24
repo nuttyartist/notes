@@ -49,6 +49,7 @@ MainWindow::MainWindow (QWidget *parent) :
     m_noteCounter(0),
     m_trashCounter(0),
     m_layoutMargin(10),
+    m_noteListWidth(200),
     m_canMoveWindow(false),
     m_canStretchWindow(false),
     m_isTemp(false),
@@ -58,8 +59,6 @@ MainWindow::MainWindow (QWidget *parent) :
 {
     ui->setupUi(this);
     setupMainWindow();
-    createActions();
-    createMenu();
     setupFonts();
     setupTrayIcon();
     setupKeyboardShortcuts();
@@ -198,18 +197,12 @@ void MainWindow::setupMainWindow ()
 
 void MainWindow::setupFonts()
 {
-    int id = QFontDatabase::addApplicationFont(":/fonts/roboto-hinted/Roboto-Regular.ttf");
-    QString robotoFontRegular = QFontDatabase::applicationFontFamilies(id).at(0);
-
-    id = QFontDatabase::addApplicationFont(":/fonts/roboto-hinted/Roboto-Bold.ttf");
-    QString robotoFontBold = QFontDatabase::applicationFontFamilies(id).at(0);
-
 #ifdef __APPLE__
     m_lineEdit->setFont(QFont("Helvetica Neue", 12));
     m_editorDateLabel->setFont(QFont("Helvetica Neue", 12, 65));
 #else
-    m_lineEdit->setFont(QFont(robotoFontRegular, 10));
-    m_editorDateLabel->setFont(QFont(robotoFontBold, 10, QFont::Bold));
+    m_lineEdit->setFont(QFont(QStringLiteral("Roboto"), 10));
+    m_editorDateLabel->setFont(QFont(QStringLiteral("Roboto"), 10, QFont::Bold));
 #endif
 }
 
@@ -264,44 +257,6 @@ void MainWindow::setupKeyboardShortcuts ()
     });
 }
 
-void MainWindow::createActions()
-{
-    m_rightToLeftAction = new QAction("Right-To-Left Layout", this);;
-    m_rightToLeftAction->setCheckable(true);
-
-    m_checkForUpdatesAction = new QAction("Check For Updates", this);;
-    connect (m_checkForUpdatesAction, SIGNAL (triggered (bool)),
-             this,                      SLOT (checkForUpdates (bool)));
-}
-
-void MainWindow::createMenu()
-{
-    m_mainMenu = new QMenu(this);
-    QMenu* viewMenu = m_mainMenu->addMenu("View");
-
-    viewMenu->addAction(m_rightToLeftAction);
-
-    m_mainMenu->setStyleSheet("QMenu { "
-                              "  background-color: rgb(247, 247, 247); "
-                              "  border: 1px solid #308CC6; "
-                              "  }"
-                              "QMenu::item:selected { "
-                              "  background: 1px solid #308CC6; "
-                              "  }");
-
-#ifdef __APPLE__
-    m_mainMenu->setFont(QFont("Helvetica Neue", 13));
-    viewMenu->setFont(QFont("Helvetica Neue", 13));
-#else
-    int id = QFontDatabase::addApplicationFont(":/fonts/roboto-hinted/Roboto-Regular.ttf");
-    QString robotoFontRegular = QFontDatabase::applicationFontFamilies(id).at(0);
-    m_mainMenu->setFont(QFont(robotoFontRegular, 10));
-    viewMenu->setFont(QFont(robotoFontRegular, 10));
-#endif
-
-    m_mainMenu->addAction (m_checkForUpdatesAction);
-}
-
 /**
 * @brief
 * We need to set up some different values when using apple os x
@@ -332,8 +287,8 @@ void MainWindow::setupNewNoteButtonAndTrahButton ()
 */
 void MainWindow::setupSplitter()
 {
-    m_splitter->setStretchFactor(1, 1);
-    m_splitter->setStretchFactor(2, 0);
+    m_splitter->setCollapsible(0, false);
+    m_splitter->setCollapsible(1, false);
 }
 
 /**
@@ -554,10 +509,7 @@ void MainWindow::setupTextEdit ()
 
     m_textEdit->installEventFilter(this);
     m_textEdit->verticalScrollBar()->installEventFilter(this);
-
-    int id = QFontDatabase::addApplicationFont(":/fonts/arimo/Arimo-Regular.ttf");
-    QString arimoFont = QFontDatabase::applicationFontFamilies(id).at(0);
-    m_textEdit->setFont(QFont(arimoFont, 11));
+    m_textEdit->setFont(QFont(QStringLiteral("Arimo"), 11, QFont::Normal));
 
     // This is done because for now where we're only handling plain text,
     // and we don't want people to past rich text and get something wrong.
@@ -899,7 +851,43 @@ void MainWindow::onDotsButtonClicked()
 {
     m_dotsButton->setIcon(QIcon(":/images/3dots_Regular.png"));
 
-    m_mainMenu->exec(m_dotsButton->mapToGlobal(QPoint(0, m_dotsButton->height())));
+    QMenu mainMenu;
+    QMenu* viewMenu = mainMenu.addMenu("View");
+
+    mainMenu.setStyleSheet("QMenu { "
+                              "  background-color: rgb(247, 247, 247); "
+                              "  border: 1px solid #308CC6; "
+                              "  }"
+                              "QMenu::item:selected { "
+                              "  background: 1px solid #308CC6; "
+                              "  }");
+
+#ifdef __APPLE__
+    mainMenu.setFont(QFont("Helvetica Neue", 13));
+    viewMenu->setFont(QFont("Helvetica Neue", 13));
+#else
+    mainMenu.setFont(QFont(QStringLiteral("Roboto"), 10, QFont::Normal));
+    viewMenu->setFont(QFont(QStringLiteral("Roboto"), 10, QFont::Normal));
+#endif
+
+    // note list visiblity action
+    bool isCollapsed = (m_splitter->sizes().at(0) == 0);
+    QString actionLabel = isCollapsed? tr("Show notes list")
+                                     : tr("Hide notes list");
+
+    QAction* noteListVisbilityAction = viewMenu->addAction(actionLabel);
+    if(isCollapsed){
+        connect(noteListVisbilityAction, SIGNAL(triggered(bool)), this, SLOT(expandNoteList()));
+    }else{
+        connect(noteListVisbilityAction, SIGNAL(triggered(bool)), this, SLOT(collapseNoteList()));
+    }
+
+    // Check for update action
+    QAction* checkForUpdatesAction = mainMenu.addAction (tr("Check For Updates"));
+    connect (checkForUpdatesAction, SIGNAL (triggered (bool)),
+             this, SLOT (checkForUpdates (bool)));
+
+    mainMenu.exec(m_dotsButton->mapToGlobal(QPoint(0, m_dotsButton->height())));
 }
 
 
@@ -1327,6 +1315,24 @@ void MainWindow::QuitApplication ()
 void MainWindow::checkForUpdates (const bool clicked) {
     Q_UNUSED (clicked);
     m_updater.checkForUpdates (false);
+}
+
+void MainWindow::collapseNoteList()
+{
+    m_splitter->setCollapsible(0, true);
+    QList<int> sizes = m_splitter->sizes();
+    m_noteListWidth = sizes.at(0);
+    sizes[0] = 0;
+    m_splitter->setSizes(sizes);
+    m_splitter->setCollapsible(0, false);
+}
+
+void MainWindow::expandNoteList()
+{
+    QList<int> sizes = m_splitter->sizes();
+    sizes[0] = m_noteListWidth;
+    sizes[1] = m_splitter->width() - m_noteListWidth;
+    m_splitter->setSizes(sizes);
 }
 
 /**
