@@ -37,7 +37,7 @@ script:
   - unset QTDIR; unset QT_PLUGIN_PATH ; unset LD_LIBRARY_PATH
   - ./linuxdeployqt*.AppImage ./appdir/usr/bin/notes -bundle-non-qt-libs
   - ./linuxdeployqt*.AppImage ./appdir/usr/bin/notes -appimage 
-  - curl --upload-file ./Notes-*.AppImage https://transfer.sh/notes-qt$QT_BASE-x86_64.AppImage 
+  - curl --upload-file ./Notes-*.AppImage https://transfer.sh/notes-git$(git rev-parse --short HEAD).qt$QT_BASE-x86_64.AppImage 
   
 notifications:
   email: false
