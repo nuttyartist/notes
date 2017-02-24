@@ -3,8 +3,8 @@ dist: trusty
 language: cpp
 
 env:
-#  - QT_BASE=56
-#  - QT_BASE=57
+  - QT_BASE=56
+  - QT_BASE=57
   - QT_BASE=58
 
 before_install:
@@ -36,7 +36,7 @@ script:
   - chmod a+x linuxdeployqt*.AppImage 
   - ./linuxdeployqt*.AppImage ./appdir/usr/bin/notes -bundle-non-qt-libs
   - ./linuxdeployqt*.AppImage ./appdir/usr/bin/notes -appimage 
-  - curl --upload-file ./Notes-*.AppImage https://transfer.sh/notes-x86_64.AppImage 
+  - curl --upload-file ./Notes-*.AppImage https://transfer.sh/notes-qt$QT_BASE-x86_64.AppImage 
   
 notifications:
   email: false
