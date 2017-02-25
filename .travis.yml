@@ -41,7 +41,7 @@ script:
   - wget -c https://github.com/probonopd/AppImageKit/raw/master/desktopintegration -O ./appdir/usr/bin/notes.wrappper
   - chmod a+x ./appdir/usr/bin/notes.wrappper
   - sed -i -e 's|^Version=0.9$|Version=1.0|g' ./appdir/notes.desktop # Bugifx, see https://standards.freedesktop.org/desktop-entry-spec/latest/
-  - ( cd ./appdir/ ; rm AppRun ; ln -s ./usr/bin/notes.wrapper AppRun )
+  - ( cd ./appdir/ ; rm AppRun ; ln -s ./usr/bin/notes.wrappper AppRun )
   - ./squashfs-root/usr/bin/appimagetool ./appdir/
   - curl --upload-file ./Notes-*.AppImage https://transfer.sh/notes-git.$(git rev-parse --short HEAD).qt$QT_BASE-x86_64.AppImage 
   
