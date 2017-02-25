@@ -23,8 +23,28 @@ install:
 script:
   - mkdir build
   - cd build
-  - qmake .. && make
+  - qmake PREFIX=/usr .. && make
   - xvfb-run -a -s "-screen 0 800x600x24" tests/test
-
+  - sudo apt-get -y install checkinstall
+  - sudo checkinstall --pkgname=app --pkgversion="1" --backup=no --fstrans=no --default --deldoc 
+  - mkdir appdir ; cd appdir
+  - dpkg -x ../app_1-1_amd64.deb . ; find .
+  - cp ../../packaging/linux/common/notes.desktop .
+  - cp ../../packaging/linux/common/icons/256x256/notes.png .
+  - mkdir -p ./usr/share/icons/default/256x256/apps/ ; cp ../../packaging/linux/common/icons/256x256/notes.png ./usr/share/icons/default/256x256/apps/
+  - cd .. 
+  - wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/3/linuxdeployqt-3-x86_64.AppImage" 
+  - chmod a+x linuxdeployqt*.AppImage 
+  - unset QTDIR; unset QT_PLUGIN_PATH ; unset LD_LIBRARY_PATH
+  - ./linuxdeployqt*.AppImage ./appdir/usr/bin/notes -bundle-non-qt-libs
+  - ./linuxdeployqt*.AppImage ./appdir/usr/bin/notes -bundle-non-qt-libs 
+  - ./linuxdeployqt*.AppImage --appimage-extract
+  - wget -c https://github.com/probonopd/AppImageKit/raw/master/desktopintegration -O ./appdir/usr/bin/notes.wrapper
+  - chmod a+x ./appdir/usr/bin/notes.wrapper
+  - sed -i -e 's|^Version=0.9$|Version=1.0|g' ./appdir/notes.desktop # Bugifx, see https://standards.freedesktop.org/desktop-entry-spec/latest/
+  - ( cd ./appdir/ ; rm AppRun ; ln -s ./usr/bin/notes.wrapper AppRun )
+  - ./squashfs-root/usr/bin/appimagetool ./appdir/
+  - curl --upload-file ./Notes-*.AppImage https://transfer.sh/notes-git.$(git rev-parse --short HEAD).qt$QT_BASE-x86_64.AppImage 
+  
 notifications:
   email: false
