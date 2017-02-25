@@ -37,7 +37,7 @@ script:
   - unset QTDIR; unset QT_PLUGIN_PATH ; unset LD_LIBRARY_PATH
   - ./linuxdeployqt*.AppImage ./appdir/usr/bin/notes -bundle-non-qt-libs
   - ./linuxdeployqt*.AppImage ./appdir/usr/bin/notes -bundle-non-qt-libs 
-  - ./linuxdeployqt*.AppImage --appimage-extract "usr/bin/appimagetool" # https://github.com/probonopd/AppImageKit/issues/363
+  - ./linuxdeployqt*.AppImage --appimage-extract
   - wget -c https://github.com/probonopd/AppImageKit/raw/master/desktopintegration -O ./appdir/usr/bin/notes.wrapper
   - chmod a+x ./appdir/usr/bin/notes.wrapper
   - sed -i -e 's|^Version=0.9$|Version=1.0|g' ./appdir/notes.desktop # Bugifx, see https://standards.freedesktop.org/desktop-entry-spec/latest/
