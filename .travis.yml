@@ -31,6 +31,7 @@ script:
   - dpkg -x ../app_1-1_amd64.deb . ; find .
   - cp ../../packaging/linux/common/notes.desktop .
   - cp ../../packaging/linux/common/icons/256x256/notes.png .
+  - mkdir -p ./usr/share/icons/default/256x256/apps/ ; cp ../../packaging/linux/common/icons/256x256/notes.png ./usr/share/icons/default/256x256/apps/
   - cd .. 
   - wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/3/linuxdeployqt-3-x86_64.AppImage" 
   - chmod a+x linuxdeployqt*.AppImage 
