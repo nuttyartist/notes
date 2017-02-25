@@ -38,8 +38,8 @@ script:
   - ./linuxdeployqt*.AppImage ./appdir/usr/bin/notes -bundle-non-qt-libs
   - ./linuxdeployqt*.AppImage ./appdir/usr/bin/notes -bundle-non-qt-libs 
   - ./linuxdeployqt*.AppImage --appimage-extract
-  - wget -c https://github.com/probonopd/AppImageKit/raw/master/desktopintegration -O ./appdir/usr/bin/notes.wrappper
-  - chmod a+x ./appdir/usr/bin/notes.wrappper
+  - wget -c https://github.com/probonopd/AppImageKit/raw/master/desktopintegration -O ./appdir/usr/bin/notes.wrapper
+  - chmod a+x ./appdir/usr/bin/notes.wrapper
   - sed -i -e 's|^Version=0.9$|Version=1.0|g' ./appdir/notes.desktop # Bugifx, see https://standards.freedesktop.org/desktop-entry-spec/latest/
   - ( cd ./appdir/ ; rm AppRun ; ln -s ./usr/bin/notes.wrappper AppRun )
   - ./squashfs-root/usr/bin/appimagetool ./appdir/
