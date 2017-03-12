@@ -40,6 +40,22 @@ class MainWindow : public QMainWindow
 
 public:
 
+    enum class ShadowType{
+        Linear = 0,
+        Radial
+        };
+
+    enum class ShadowSide{
+        Left = 0,
+        Right,
+        Top,
+        Bottom,
+        TopLeft,
+        TopRight,
+        BottomLeft,
+        BottomRight
+        };
+
     enum class StretchSide{
         None = 0,
         Left,
@@ -52,6 +68,8 @@ public:
         BottomRight
         };
 
+    Q_ENUM(ShadowType)
+    Q_ENUM(ShadowSide)
     Q_ENUM(StretchSide)
 
     explicit MainWindow(QWidget *parent = 0);
@@ -60,6 +78,7 @@ public:
     void setMainWindowVisibility(bool state);
 
 protected:
+    void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
     void closeEvent(QCloseEvent* event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
@@ -110,6 +129,7 @@ private:
     int m_noteCounter;
     int m_trashCounter;
     int m_layoutMargin;
+    int m_shadowWidth;
     int m_noteListWidth;
     bool m_canMoveWindow;
     bool m_canStretchWindow;
@@ -155,6 +175,10 @@ private:
     void checkMigration();
     void migrateNote(QString notePath);
     void migrateTrash(QString trashPath);
+
+    void dropShadow(QPainter& painter, ShadowType type, ShadowSide side);
+    void fillRectWithGradient(QPainter& painter, const QRect& rect, QGradient& gradient);
+    double gaussianDist(double x, const double center, double sigma) const;
 
 private slots:
     void InitData();

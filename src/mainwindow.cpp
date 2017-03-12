@@ -49,6 +49,7 @@ MainWindow::MainWindow (QWidget *parent) :
     m_noteCounter(0),
     m_trashCounter(0),
     m_layoutMargin(10),
+    m_shadowWidth(10),
     m_noteListWidth(200),
     m_canMoveWindow(false),
     m_canStretchWindow(false),
@@ -136,6 +137,28 @@ void MainWindow::setMainWindowVisibility(bool state)
         m_restoreAction->setText(tr("&Show Notes"));
         hide();
     }
+}
+
+void MainWindow::paintEvent(QPaintEvent* event)
+{
+    QPainter painter(this);
+    painter.save();
+
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(Qt::NoPen);
+
+    dropShadow(painter, ShadowType::Linear, ShadowSide::Left  );
+    dropShadow(painter, ShadowType::Linear, ShadowSide::Top   );
+    dropShadow(painter, ShadowType::Linear, ShadowSide::Right );
+    dropShadow(painter, ShadowType::Linear, ShadowSide::Bottom);
+
+    dropShadow(painter, ShadowType::Radial, ShadowSide::TopLeft    );
+    dropShadow(painter, ShadowType::Radial, ShadowSide::TopRight   );
+    dropShadow(painter, ShadowType::Radial, ShadowSide::BottomRight);
+    dropShadow(painter, ShadowType::Radial, ShadowSide::BottomLeft );
+
+    painter.restore();
+    QMainWindow::paintEvent(event);
 }
 
 /**
@@ -855,12 +878,12 @@ void MainWindow::onDotsButtonClicked()
     QMenu* viewMenu = mainMenu.addMenu("View");
 
     mainMenu.setStyleSheet("QMenu { "
-                              "  background-color: rgb(247, 247, 247); "
-                              "  border: 1px solid #308CC6; "
-                              "  }"
-                              "QMenu::item:selected { "
-                              "  background: 1px solid #308CC6; "
-                              "  }");
+                           "  background-color: rgb(247, 247, 247); "
+                           "  border: 1px solid #308CC6; "
+                           "  }"
+                           "QMenu::item:selected { "
+                           "  background: 1px solid #308CC6; "
+                           "  }");
 
 #ifdef __APPLE__
     mainMenu.setFont(QFont("Helvetica Neue", 13));
@@ -1893,6 +1916,120 @@ void MainWindow::migrateTrash(QString trashPath)
 
     QFile oldTrashDBFile(trashPath);
     oldTrashDBFile.rename(QFileInfo(trashPath).dir().path() + "/oldTrash.ini");
+}
+
+void MainWindow::dropShadow(QPainter& painter, ShadowType type, MainWindow::ShadowSide side)
+{
+
+    int resizedShadowWidth = m_shadowWidth > m_layoutMargin ? m_layoutMargin : m_shadowWidth;
+
+    QRect mainRect   = rect();
+
+    QRect innerRect(m_layoutMargin,
+                    m_layoutMargin,
+                    mainRect.width() - 2 * resizedShadowWidth,
+                    mainRect.height() - 2 * resizedShadowWidth);
+    QRect outerRect(innerRect.x() - resizedShadowWidth,
+                    innerRect.y() - resizedShadowWidth,
+                    innerRect.width() + 2* resizedShadowWidth,
+                    innerRect.height() + 2* resizedShadowWidth);
+
+    QPoint center;
+    QPoint topLeft;
+    QPoint bottomRight;
+    QPoint shadowStart;
+    QPoint shadowStop;
+    QRadialGradient radialGradient;
+    QLinearGradient linearGradient;
+
+    switch (side) {
+    case ShadowSide::Left :
+        topLeft     = QPoint(outerRect.left(), innerRect.top() + 1);
+        bottomRight = QPoint(innerRect.left(), innerRect.bottom() - 1);
+        shadowStart = QPoint(innerRect.left(), innerRect.top() + 1);
+        shadowStop  = QPoint(outerRect.left(), innerRect.top() + 1);
+        break;
+    case ShadowSide::Top :
+        topLeft     = QPoint(innerRect.left() + 1, outerRect.top());
+        bottomRight = QPoint(innerRect.right() - 1, innerRect.top());
+        shadowStart = QPoint(innerRect.left() + 1, innerRect.top());
+        shadowStop  = QPoint(innerRect.left() + 1, outerRect.top());
+        break;
+    case ShadowSide::Right :
+        topLeft     = QPoint(innerRect.right(), innerRect.top() + 1);
+        bottomRight = QPoint(outerRect.right(), innerRect.bottom() - 1);
+        shadowStart = QPoint(innerRect.right(), innerRect.top() + 1);
+        shadowStop  = QPoint(outerRect.right(), innerRect.top() + 1);
+        break;
+    case ShadowSide::Bottom :
+        topLeft     = QPoint(innerRect.left() + 1, innerRect.bottom());
+        bottomRight = QPoint(innerRect.right() - 1, outerRect.bottom());
+        shadowStart = QPoint(innerRect.left() + 1, innerRect.bottom());
+        shadowStop  = QPoint(innerRect.left() + 1, outerRect.bottom());
+        break;
+    case ShadowSide::TopLeft:
+        topLeft     = outerRect.topLeft();
+        bottomRight = innerRect.topLeft();
+        center      = innerRect.topLeft();
+        break;
+    case ShadowSide::TopRight:
+        topLeft     = QPoint(innerRect.right(), outerRect.top());
+        bottomRight = QPoint(outerRect.right(), innerRect.top());
+        center      = innerRect.topRight();
+        break;
+    case ShadowSide::BottomRight:
+        topLeft     = innerRect.bottomRight();
+        bottomRight = outerRect.bottomRight();
+        center      = innerRect.bottomRight();
+        break;
+    case ShadowSide::BottomLeft:
+        topLeft     = QPoint(outerRect.left(), innerRect.bottom());
+        bottomRight = QPoint(innerRect.left(), outerRect.bottom());
+        center      = innerRect.bottomLeft();
+        break;
+    default:
+        break;
+    }
+
+
+    QRect zone(topLeft, bottomRight);
+    radialGradient = QRadialGradient(center, resizedShadowWidth, center);
+
+    linearGradient.setStart(shadowStart);
+    linearGradient.setFinalStop(shadowStop);
+
+    switch (type) {
+    case ShadowType::Radial :
+        fillRectWithGradient(painter, zone, radialGradient);
+        break;
+    case ShadowType::Linear :
+        fillRectWithGradient(painter, zone, linearGradient);
+        break;
+    default:
+        break;
+    }
+}
+
+void MainWindow::fillRectWithGradient(QPainter& painter, const QRect& rect, QGradient& gradient)
+{
+    double variance = 0.5;
+    double xMax = 3;
+    double q = 255.0/gaussianDist(0, 0, sqrt(variance));
+    double nPt = 100.0;
+
+    for(int i=0; i<=nPt; i++){
+        double v = gaussianDist(i*xMax/nPt, 0, sqrt(variance));
+
+        QColor c(168, 168, 168, q*v);
+        gradient.setColorAt(i/nPt, c);
+    }
+
+    painter.fillRect(rect, gradient);
+}
+
+double MainWindow::gaussianDist(double x, const double center, double sigma) const
+{
+    return (1.0 / (2 * M_PI * pow(sigma, 2)) * exp( - pow(x - center, 2) / (2 * pow(sigma, 2))));
 }
 
 /**
