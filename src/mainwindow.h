@@ -93,7 +93,6 @@ private:
 
     QTimer* m_autoSaveTimer;
     QSettings* m_settingsDatabase;
-    QVBoxLayout* m_noteWidgetsContainer;
     QToolButton* m_clearButton;
     QPushButton* m_greenMaximizeButton;
     QPushButton* m_redCloseButton;

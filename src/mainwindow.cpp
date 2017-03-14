@@ -27,7 +27,6 @@ MainWindow::MainWindow (QWidget *parent) :
     ui (new Ui::MainWindow),
     m_autoSaveTimer(new QTimer(this)),
     m_settingsDatabase(Q_NULLPTR),
-    m_noteWidgetsContainer(Q_NULLPTR),
     m_clearButton(Q_NULLPTR),
     m_greenMaximizeButton(Q_NULLPTR),
     m_redCloseButton(Q_NULLPTR),
@@ -1497,6 +1496,11 @@ void MainWindow::mousePressEvent(QMouseEvent* event)
         m_canMoveWindow = true;
     }else{
         m_canStretchWindow = true;
+
+        int currentWidth = m_splitter->sizes().at(0);
+        if(currentWidth != 0)
+            m_noteListWidth = currentWidth;
+
         if((m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin)
                 && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)){
             m_stretchSide = StretchSide::TopRight;
@@ -1676,6 +1680,12 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
         }
 
         setGeometry(newX, newY, newWidth, newHeight);
+        QList<int> sizes = m_splitter->sizes();
+        if(sizes[0] != 0){
+            sizes[0] = m_noteListWidth;
+            sizes[1] = m_splitter->width() - m_noteListWidth;
+            m_splitter->setSizes(sizes);
+        }
     }
     event->accept();
 }
