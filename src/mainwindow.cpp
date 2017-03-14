@@ -1937,8 +1937,8 @@ void MainWindow::dropShadow(QPainter& painter, ShadowType type, MainWindow::Shad
 
     QRect innerRect(m_layoutMargin,
                     m_layoutMargin,
-                    mainRect.width() - 2 * resizedShadowWidth,
-                    mainRect.height() - 2 * resizedShadowWidth);
+                    mainRect.width() - 2 * resizedShadowWidth + 1,
+                    mainRect.height() - 2 * resizedShadowWidth + 1);
     QRect outerRect(innerRect.x() - resizedShadowWidth,
                     innerRect.y() - resizedShadowWidth,
                     innerRect.width() + 2* resizedShadowWidth,
