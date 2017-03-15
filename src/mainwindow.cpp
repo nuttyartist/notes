@@ -425,6 +425,7 @@ void MainWindow::setupSignalsSlots()
     connect(m_noteModel, &NoteModel::rowsMoved, m_noteView, &NoteView::rowsMoved);
     // auto save timer
     connect(m_autoSaveTimer, &QTimer::timeout, [this](){
+        m_autoSaveTimer->stop();
         saveNoteToDB(m_currentSelectedNoteProxy);
     });
     // clear button
