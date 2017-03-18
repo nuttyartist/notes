@@ -98,3 +98,21 @@ void NoteData::setCreationDateTime(const QDateTime&creationDateTime)
 {
     m_creationDateTime = creationDateTime;
 }
+
+NoteExport NoteData::exportNote() {
+    NoteExport noteExport;
+    noteExport.id = m_id;
+    noteExport.fullTitle = m_fullTitle;
+    noteExport.creationDateTime = m_creationDateTime;
+    noteExport.lastModificationDateTime = m_lastModificationDateTime;
+    noteExport.content = m_content;
+    return noteExport;
+}
+
+QDataStream &operator<<(QDataStream &stream, const NoteExport &noteExport) {
+    return stream << noteExport.id << noteExport.fullTitle << noteExport.creationDateTime << noteExport.lastModificationDateTime<< noteExport.content;
+}
+
+QDataStream &operator>>(QDataStream &stream, NoteExport &noteExport) {
+    return stream >> noteExport.id >> noteExport.fullTitle >> noteExport.creationDateTime >> noteExport.lastModificationDateTime >> noteExport.content;
+}

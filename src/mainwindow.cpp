@@ -17,6 +17,9 @@
 #include <QtConcurrent>
 #include <QProgressDialog>
 #include <QDesktopWidget>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QList>
 #define FIRST_LINE_MAX 80
 
 /**
@@ -853,6 +856,7 @@ void MainWindow::onDotsButtonClicked()
 
     QMenu mainMenu;
     QMenu* viewMenu = mainMenu.addMenu("View");
+    QMenu* importExportNotesMenu = mainMenu.addMenu("Import/Export Notes");
 
     mainMenu.setStyleSheet("QMenu { "
                               "  background-color: rgb(247, 247, 247); "
@@ -865,9 +869,11 @@ void MainWindow::onDotsButtonClicked()
 #ifdef __APPLE__
     mainMenu.setFont(QFont("Helvetica Neue", 13));
     viewMenu->setFont(QFont("Helvetica Neue", 13));
+    importExportNotesMenu->setFont(QFont("Helvetica Neue", 13));
 #else
     mainMenu.setFont(QFont(QStringLiteral("Roboto"), 10, QFont::Normal));
     viewMenu->setFont(QFont(QStringLiteral("Roboto"), 10, QFont::Normal));
+    importExportNotesMenu->setFont(QFont(QStringLiteral("Roboto"), 10, QFont::Normal));
 #endif
 
     // note list visiblity action
@@ -887,9 +893,23 @@ void MainWindow::onDotsButtonClicked()
     connect (checkForUpdatesAction, SIGNAL (triggered (bool)),
              this, SLOT (checkForUpdates (bool)));
 
+    // Import notes action
+    QAction* importNotesFileAction = importExportNotesMenu->addAction (tr("Import"));
+    connect (importNotesFileAction, SIGNAL (triggered (bool)),
+             this, SLOT (importNotesFile (bool)));
+
+    // Export notes action
+    QAction* exportNotesFileAction = importExportNotesMenu->addAction (tr("Export"));
+    connect (exportNotesFileAction, SIGNAL (triggered (bool)),
+             this, SLOT (exportNotesFile (bool)));
+
+    // Export disabled if no notes exist
+    if(m_noteModel->rowCount() < 1){
+        exportNotesFileAction->setDisabled(true);
+    }
+
     mainMenu.exec(m_dotsButton->mapToGlobal(QPoint(0, m_dotsButton->height())));
 }
-
 
 /**
 * @brief
@@ -1315,6 +1335,113 @@ void MainWindow::QuitApplication ()
 void MainWindow::checkForUpdates (const bool clicked) {
     Q_UNUSED (clicked);
     m_updater.checkForUpdates (false);
+}
+
+/**
+ * Called when the "Import Notes" menu button is clicked. this function will
+ * prompt the user to select a file, attempt to load the file, and update the DB
+ * if valid.
+ * The user is presented with a dialog box if the upload/import fails for any reason.
+ *
+ * @brief MainWindow::importNotesFile
+ * @param clicked
+ */
+void MainWindow::importNotesFile (const bool clicked) {
+    Q_UNUSED (clicked);
+    QString fileName = QFileDialog::getOpenFileName(this,
+            tr("Open Notes Backup File"), "",
+            tr("Notes Backup File (*.nbk)"));
+
+    if (fileName.isEmpty()) {
+        return;
+    } else {
+        QFile file(fileName);
+        if (!file.open(QIODevice::ReadOnly)) {
+            QMessageBox::information(this, tr("Unable to open file"), file.errorString());
+            return;
+        }
+        QList<NoteExport> noteList;
+        QDataStream in(&file);
+        in.setVersion(QDataStream::Qt_5_6);
+        try {
+            in >> noteList;
+        } catch (...) {
+            // Any exception deserializing will result in an empty note list and  the user will be notified
+        }
+
+        if (noteList.isEmpty()) {
+            QMessageBox::information(this, tr("Invalid file"), "Please select a valid notes export file");
+            return;
+        }
+
+        QProgressDialog* pd = new QProgressDialog("Importing Notes...", "", 0, 0, this);
+        pd->setCancelButton(0);
+        pd->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+        pd->setMinimumDuration(0);
+        pd->show();
+
+        setButtonsAndFieldsEnabled(false);
+
+        QFutureWatcher<void>* watcher = new QFutureWatcher<void>(this);
+        connect(watcher, &QFutureWatcher<void>::finished, this, [&, pd](){
+            pd->deleteLater();
+
+            setButtonsAndFieldsEnabled(true);
+
+            m_noteModel->clearNotes();
+            loadNotes();
+            createNewNoteIfEmpty();
+            selectFirstNote();
+        });
+
+        QFuture<void> migration = QtConcurrent::run(this, &MainWindow::importNotes, noteList);
+        watcher->setFuture(migration);
+    }
+}
+
+void MainWindow::importNotes(QList<NoteExport> noteList) {
+
+    QList<QFuture<void>> futures;
+    for (int i = 0; i < noteList.size(); ++i) {
+        futures <<  QtConcurrent::run(this, &MainWindow::importNote, noteList[i]);
+    }
+    for (int i = 0; i < futures.size(); ++i) {
+        while (!futures[i].isFinished()) {
+            // block until all threads complete
+        }
+    }
+}
+
+void MainWindow::importNote(NoteExport note) {
+    m_dbManager->importNote(note);
+}
+
+/**
+ * Called when the "Export Notes" menu button is clicked. this function will
+ * prompt the user to select a location for the export file, and then builds
+ * the file.
+ * The user is presented with a dialog box if the file cannot be opened for any reason.
+ *
+ * @brief MainWindow::exportNotesFile
+ * @param clicked
+ */
+void MainWindow::exportNotesFile (const bool clicked) {
+    Q_UNUSED (clicked);
+    QString fileName = QFileDialog::getSaveFileName(this,
+            tr("Save Notes"), "notes.nbk",
+            tr("Notes Backup File (*.nbk)"));
+    if (fileName.isEmpty()) {
+        return;
+    } else {
+        QFile file(fileName);
+        if (!file.open(QIODevice::WriteOnly)) {
+            QMessageBox::information(this, tr("Unable to open file"), file.errorString());
+            return;
+        }
+        QDataStream out(&file);
+        out.setVersion(QDataStream::Qt_5_6);
+        out << m_dbManager->exportNotes();
+    }
 }
 
 void MainWindow::collapseNoteList()

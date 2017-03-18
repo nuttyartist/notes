@@ -21,6 +21,7 @@
 #include <QSplitter>
 #include <QSystemTrayIcon>
 #include <QMenu>
+#include <QProgressDialog>
 #include <qaction.h>
 #include "notedata.h"
 #include "notemodel.h"
@@ -153,6 +154,8 @@ private:
     void findNotesContain(const QString &keyword);
     void selectNote(const QModelIndex& noteIndex);
     void checkMigration();
+    void importNote(NoteExport note);
+    void importNotes(QList<NoteExport> noteList);
     void migrateNote(QString notePath);
     void migrateTrash(QString trashPath);
 
@@ -188,6 +191,8 @@ private slots:
     void checkForUpdates (const bool clicked);
     void collapseNoteList();
     void expandNoteList();
+    void importNotesFile(const bool clicked);
+    void exportNotesFile(const bool clicked);
 };
 
 #endif // MAINWINDOW_H
