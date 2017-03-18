@@ -1361,7 +1361,7 @@ void MainWindow::importNotesFile (const bool clicked) {
         }
         QList<NoteExport> noteList;
         QDataStream in(&file);
-        in.setVersion(QDataStream::Qt_5_8);
+        in.setVersion(QDataStream::Qt_5_6);
         try {
             in >> noteList;
         } catch (...) {
@@ -1404,7 +1404,7 @@ void MainWindow::exportNotesFile (const bool clicked) {
             return;
         }
         QDataStream out(&file);
-        out.setVersion(QDataStream::Qt_5_8);
+        out.setVersion(QDataStream::Qt_5_6);
         out << m_dbManager->getBackup();
     }
 }
