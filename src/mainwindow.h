@@ -188,6 +188,8 @@ private slots:
     void checkForUpdates (const bool clicked);
     void collapseNoteList();
     void expandNoteList();
+    void importNotesFile(const bool clicked);
+    void exportNotesFile(const bool clicked);
 };
 
 #endif // MAINWINDOW_H

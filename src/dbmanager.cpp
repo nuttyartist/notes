@@ -57,6 +57,42 @@ bool DBManager::isNoteExist(NoteData* note)
     return query.value(0).toInt() == 1;
 }
 
+/**
+ * Returns true if an existing note has the same id, title, and content, otherwise returns false.
+ * This is used by the import process to determine whether or not a message should be created or updated.
+ * @brief DBManager::isDuplicate
+ * @param note
+ * @return
+ */
+bool DBManager::isDuplicate(NoteData* note) {
+    QSqlQuery query;
+    QString queryStr = QStringLiteral("SELECT EXISTS(SELECT 1 FROM active_notes WHERE full_title = '%1' AND content = '%2' LIMIT 1 )")
+            .arg(note->fullTitle())
+            .arg(note->content());
+    query.exec(queryStr);
+    query.next();
+    return query.value(0).toInt() == 1;
+}
+
+/**
+ * Returns true if an existing note has the same id and title, otherwise returns false.
+ * This is used by the import process to determine whether or not a message should be created or updated.
+ * @brief DBManager::isDuplicate
+ * @param note
+ * @return
+ */
+bool DBManager::titleAndIDMatch(NoteData* note) {
+    QSqlQuery query;
+    int id = note->id().split('_')[1].toInt();
+    QString queryStr = QStringLiteral("SELECT EXISTS(SELECT 1 FROM active_notes WHERE id = %1 AND full_title = '%2' LIMIT 1 )")
+            .arg(id)
+            .arg(note->fullTitle());
+    query.exec(queryStr);
+    query.next();
+
+    return query.value(0).toInt() == 1;
+}
+
 QList<NoteData *> DBManager::getAllNotes()
 {
     QList<NoteData *> noteList;
@@ -241,4 +277,34 @@ int DBManager::getLastRowID()
     query.exec("SELECT seq from SQLITE_SEQUENCE WHERE name='active_notes';");
     query.next();
     return query.value(0).toInt();
+}
+
+QList<NoteExport> DBManager::getBackup() {
+    QList<NoteExport> noteExports;
+    QList<NoteData*> noteList = getAllNotes();
+    for (int i = 0; i < noteList.size(); ++i) {
+        noteExports << noteList[i]->exportNote();
+    }
+    return noteExports;
+}
+
+void DBManager::restore(QList<NoteExport> noteList) {
+    for (int i = 0; i < noteList.size(); ++i) {
+        NoteData* note = new NoteData(this);
+        note->setId(noteList[i].id);
+        note->setFullTitle(noteList[i].fullTitle);
+        note->setCreationDateTime(noteList[i].creationDateTime);
+        note->setLastModificationDateTime(noteList[i].lastModificationDateTime);
+        note->setContent(noteList[i].content);
+
+        if (isDuplicate(note)) {
+            // record exists with the same title and content. Skip it.
+        } else if(titleAndIDMatch(note)) {
+            // record exists with the same title and id. Update content.
+            modifyNote(note);
+        } else {
+            // no match. Add it.
+            addNote(note);
+        }
+    }
 }
