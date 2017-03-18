@@ -414,7 +414,7 @@ NoteData #dateLabel{
                  </property>
                  <property name="minimumSize">
                   <size>
-                   <width>175</width>
+                   <width>0</width>
                    <height>22</height>
                   </size>
                  </property>

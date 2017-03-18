@@ -65,7 +65,7 @@ MainWindow::MainWindow (QWidget *parent) :
     setupNewNoteButtonAndTrahButton();
     setupSplitter();
     setupLine();
-    setupRightFrame ();
+    setupRightFrame();
     setupTitleBarButtons();
     setupLineEdit();
     setupTextEdit();
@@ -549,19 +549,29 @@ void MainWindow::setupTextEdit ()
 void MainWindow::initializeSettingsDatabase()
 {
     if(m_settingsDatabase->value("version", "NULL") == "NULL")
-        m_settingsDatabase->setValue("version", "0.8.0");
+        m_settingsDatabase->setValue("version", qApp->applicationVersion());
 
     if(m_settingsDatabase->value("defaultWindowWidth", "NULL") == "NULL")
-        m_settingsDatabase->setValue("defaultWindowWidth", 757);
+        m_settingsDatabase->setValue("defaultWindowWidth", 640);
 
     if(m_settingsDatabase->value("defaultWindowHeight", "NULL") == "NULL")
-        m_settingsDatabase->setValue("defaultWindowHeight", 341);
+        m_settingsDatabase->setValue("defaultWindowHeight", 480);
 
-    if(m_settingsDatabase->value("windowGeometry", "NULL") == "NULL")
+    if(m_settingsDatabase->value("windowGeometry", "NULL") == "NULL"){
+        QPoint center = qApp->desktop()->geometry().center();
+        QRect rect(center.x() - 320, center.y() - 240, 640, 480);
+        setGeometry(rect);
         m_settingsDatabase->setValue("windowGeometry", saveGeometry());
+    }
 
-    if(m_settingsDatabase->value("splitterSizes", "NULL") == "NULL")
+    if(m_settingsDatabase->value("splitterSizes", "NULL") == "NULL"){
+        m_splitter->resize(width()-2*m_layoutMargin, height()-2*m_layoutMargin);
+        QList<int> sizes = m_splitter->sizes();
+        sizes[0] = m_noteListWidth;
+        sizes[1] = m_splitter->width() - m_noteListWidth;
+        m_splitter->setSizes(sizes);
         m_settingsDatabase->setValue("splitterSizes", m_splitter->saveState());
+    }
 }
 
 /**
@@ -623,19 +633,14 @@ void MainWindow::setupModelView()
 */
 void MainWindow::restoreStates()
 {
-    this->restoreGeometry(m_settingsDatabase->value("windowGeometry").toByteArray());
+    if(m_settingsDatabase->value("windowGeometry", "NULL") != "NULL")
+        this->restoreGeometry(m_settingsDatabase->value("windowGeometry").toByteArray());
 
-    m_splitter->restoreState(m_settingsDatabase->value("splitterSizes").toByteArray());
 
-    // If scrollArea is collapsed
-    if(m_splitter->sizes().at(0) == 0){
-        ui->verticalLayout_scrollArea->removeItem(ui->horizontalLayout_scrollArea_2);
-        ui->verticalLayout_textEdit->insertLayout(0, ui->horizontalLayout_scrollArea_2, 0);
-
-        ui->verticalLayout_scrollArea->removeItem(ui->verticalSpacer_upLineEdit);
-        ui->verticalLayout_textEdit->insertItem(0, ui->verticalSpacer_upLineEdit);
-        ui->verticalSpacer_upEditorDateLabel->changeSize(20, 5);
-    }
+    m_splitter->setCollapsible(0, true);
+    if(m_settingsDatabase->value("splitterSizes", "NULL") != "NULL")
+        m_splitter->restoreState(m_settingsDatabase->value("splitterSizes").toByteArray());
+    m_splitter->setCollapsible(0, false);
 }
 
 /**
