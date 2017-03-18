@@ -17,6 +17,9 @@
 #include <QtConcurrent>
 #include <QProgressDialog>
 #include <QDesktopWidget>
+#include <QMessageBox>
+#include <QWidgetAction>
+
 #define FIRST_LINE_MAX 80
 
 /**
@@ -882,13 +885,17 @@ void MainWindow::onDotsButtonClicked()
     QMenu mainMenu;
     QMenu* viewMenu = mainMenu.addMenu("View");
 
-    mainMenu.setStyleSheet("QMenu { "
-                           "  background-color: rgb(247, 247, 247); "
-                           "  border: 1px solid #308CC6; "
-                           "  }"
-                           "QMenu::item:selected { "
-                           "  background: 1px solid #308CC6; "
-                           "  }");
+    mainMenu.setStyleSheet(QStringLiteral("QMenu { "
+                                          "  background-color: rgb(247, 247, 247); "
+                                          "  border: 1px solid #308CC6; "
+                                          "  }"
+                                          "QMenu::item:selected { "
+                                          "  background: 1px solid #308CC6; "
+                                          "}"
+                                          "QMessageBox{"
+                                          "   background-color: rgb(247, 247, 247);"
+                                          "}")
+                           );
 
 #ifdef __APPLE__
     mainMenu.setFont(QFont("Helvetica Neue", 13));
@@ -905,15 +912,20 @@ void MainWindow::onDotsButtonClicked()
 
     QAction* noteListVisbilityAction = viewMenu->addAction(actionLabel);
     if(isCollapsed){
-        connect(noteListVisbilityAction, SIGNAL(triggered(bool)), this, SLOT(expandNoteList()));
+        connect(noteListVisbilityAction, &QAction::triggered, this, &MainWindow::expandNoteList);
     }else{
-        connect(noteListVisbilityAction, SIGNAL(triggered(bool)), this, SLOT(collapseNoteList()));
+        connect(noteListVisbilityAction, &QAction::triggered, this, &MainWindow::collapseNoteList);
     }
 
     // Check for update action
-    QAction* checkForUpdatesAction = mainMenu.addAction (tr("Check For Updates"));
-    connect (checkForUpdatesAction, SIGNAL (triggered (bool)),
-             this, SLOT (checkForUpdates (bool)));
+    QAction* checkForUpdatesAction = mainMenu.addAction(tr("Check For Updates"));
+    connect (checkForUpdatesAction, &QAction::triggered, this, &MainWindow::checkForUpdates);
+
+    mainMenu.addSeparator();
+
+    // Close the app
+    QAction* quitAppAction = mainMenu.addAction(tr("Quit"));
+    connect (quitAppAction, &QAction::triggered, this, &MainWindow::QuitApplication);
 
     mainMenu.exec(m_dotsButton->mapToGlobal(QPoint(0, m_dotsButton->height())));
 }
