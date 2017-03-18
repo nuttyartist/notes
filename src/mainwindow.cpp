@@ -2028,9 +2028,9 @@ void MainWindow::dropShadow(QPainter& painter, ShadowType type, MainWindow::Shad
 
 void MainWindow::fillRectWithGradient(QPainter& painter, const QRect& rect, QGradient& gradient)
 {
-    double variance = 0.5;
-    double xMax = 3;
-    double q = 255.0/gaussianDist(0, 0, sqrt(variance));
+    double variance = 0.2;
+    double xMax = 1.10;
+    double q = 70/gaussianDist(0, 0, sqrt(variance));
     double nPt = 100.0;
 
     for(int i=0; i<=nPt; i++){
