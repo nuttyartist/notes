@@ -155,7 +155,7 @@ private:
     void selectNote(const QModelIndex& noteIndex);
     void checkMigration();
     void importNote(NoteExport note);
-    void importNotes(QList<NoteExport> noteList, QProgressDialog* pd);
+    void importNotes(QList<NoteExport> noteList);
     void migrateNote(QString notePath);
     void migrateTrash(QString trashPath);
 

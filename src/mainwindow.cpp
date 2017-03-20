@@ -1374,7 +1374,7 @@ void MainWindow::importNotesFile (const bool clicked) {
             return;
         }
 
-        QProgressDialog* pd = new QProgressDialog("Importing Notes, please wait.", "", 0, noteList.size(), this);
+        QProgressDialog* pd = new QProgressDialog("Importing Notes...", "", 0, 0, this);
         pd->setCancelButton(0);
         pd->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
         pd->setMinimumDuration(0);
@@ -1394,51 +1394,27 @@ void MainWindow::importNotesFile (const bool clicked) {
             selectFirstNote();
         });
 
-//        QList<QFuture<void>> futures;
-//        for (int i = 0; i < noteList.size(); ++i) {
-//            //QProgressDialog
-//            futures <<  QtConcurrent::run(m_dbManager, &DBManager::importNote, noteList[i]);
-//        }
-
-//        for (int i = 0; i < futures.size(); ++i) {
-//                if (pd->wasCanceled()) {
-//                    break;
-//                }
-//                pd->setValue(i);
-//            while (!futures[i].isFinished()) {
-//                // block
-//            }
-//        }
-//        pd->setValue(noteList.size());
-
-
-        QFuture<void> migration = QtConcurrent::run(this, &MainWindow::importNotes, noteList, pd);
+        QFuture<void> migration = QtConcurrent::run(this, &MainWindow::importNotes, noteList);
         watcher->setFuture(migration);
     }
 }
-void MainWindow::importNotes(QList<NoteExport> noteList, QProgressDialog* pd) {
+
+void MainWindow::importNotes(QList<NoteExport> noteList) {
+
     QList<QFuture<void>> futures;
     for (int i = 0; i < noteList.size(); ++i) {
-        //QProgressDialog
-        futures <<  QtConcurrent::run(this->thread(), &MainWindow::importNote, noteList[i]);
+        futures <<  QtConcurrent::run(this, &MainWindow::importNote, noteList[i]);
     }
-
     for (int i = 0; i < futures.size(); ++i) {
-            if (pd->wasCanceled()) {
-                break;
-            }
-            pd->setValue(i);
         while (!futures[i].isFinished()) {
-            // block
+            // block until all threads complete
         }
     }
-    pd->setValue(noteList.size());
 }
 
 void MainWindow::importNote(NoteExport note) {
     m_dbManager->importNote(note);
 }
-
 
 /**
  * Called when the "Export Notes" menu button is clicked. this function will
