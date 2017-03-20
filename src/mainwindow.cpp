@@ -19,6 +19,7 @@
 #include <QDesktopWidget>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QList>
 #define FIRST_LINE_MAX 80
 
 /**
@@ -1372,26 +1373,72 @@ void MainWindow::importNotesFile (const bool clicked) {
             QMessageBox::information(this, tr("Invalid file"), "Please select a valid notes export file");
             return;
         }
-        //m_dbManager->restore(noteList);
-        QList<QFuture<void>> futures;
-        for (int i = 0; i < noteList.size(); ++i) {
-            futures <<  QtConcurrent::run(this, &MainWindow::importNote, noteList[i]);
-        }
-        for (int i = 0; i < futures.size(); ++i) {
-            futures[i].isFinished();
-        }
 
-        m_noteModel->clearNotes();
-        loadNotes();
-        createNewNoteIfEmpty();
-        selectFirstNote();
+        QProgressDialog* pd = new QProgressDialog("Importing Notes, please wait.", "", 0, noteList.size(), this);
+        pd->setCancelButton(0);
+        pd->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+        pd->setMinimumDuration(0);
+        pd->show();
+
+        setButtonsAndFieldsEnabled(false);
+
+        QFutureWatcher<void>* watcher = new QFutureWatcher<void>(this);
+        connect(watcher, &QFutureWatcher<void>::finished, this, [&, pd](){
+            pd->deleteLater();
+
+            setButtonsAndFieldsEnabled(true);
+
+            m_noteModel->clearNotes();
+            loadNotes();
+            createNewNoteIfEmpty();
+            selectFirstNote();
+        });
+
+//        QList<QFuture<void>> futures;
+//        for (int i = 0; i < noteList.size(); ++i) {
+//            //QProgressDialog
+//            futures <<  QtConcurrent::run(m_dbManager, &DBManager::importNote, noteList[i]);
+//        }
+
+//        for (int i = 0; i < futures.size(); ++i) {
+//                if (pd->wasCanceled()) {
+//                    break;
+//                }
+//                pd->setValue(i);
+//            while (!futures[i].isFinished()) {
+//                // block
+//            }
+//        }
+//        pd->setValue(noteList.size());
+
+
+        QFuture<void> migration = QtConcurrent::run(this, &MainWindow::importNotes, noteList, pd);
+        watcher->setFuture(migration);
     }
 }
+void MainWindow::importNotes(QList<NoteExport> noteList, QProgressDialog* pd) {
+    QList<QFuture<void>> futures;
+    for (int i = 0; i < noteList.size(); ++i) {
+        //QProgressDialog
+        futures <<  QtConcurrent::run(this->thread(), &MainWindow::importNote, noteList[i]);
+    }
 
-void MainWindow::importNote(NoteExport noteExport) {
-    qInfo() << "XXXX test" << noteExport.id;
-    m_dbManager->importNote(noteExport);
+    for (int i = 0; i < futures.size(); ++i) {
+            if (pd->wasCanceled()) {
+                break;
+            }
+            pd->setValue(i);
+        while (!futures[i].isFinished()) {
+            // block
+        }
+    }
+    pd->setValue(noteList.size());
 }
+
+void MainWindow::importNote(NoteExport note) {
+    m_dbManager->importNote(note);
+}
+
 
 /**
  * Called when the "Export Notes" menu button is clicked. this function will
@@ -1404,7 +1451,6 @@ void MainWindow::importNote(NoteExport noteExport) {
  */
 void MainWindow::exportNotesFile (const bool clicked) {
     Q_UNUSED (clicked);
-    qInfo( "Export clicked" );
     QString fileName = QFileDialog::getSaveFileName(this,
             tr("Save Notes"), "notes.nbk",
             tr("Notes Backup File (*.nbk)"));
@@ -1418,7 +1464,7 @@ void MainWindow::exportNotesFile (const bool clicked) {
         }
         QDataStream out(&file);
         out.setVersion(QDataStream::Qt_5_6);
-        out << m_dbManager->getBackup();
+        out << m_dbManager->exportNotes();
     }
 }
 

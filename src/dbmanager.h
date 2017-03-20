@@ -10,14 +10,18 @@ class DBManager : public QObject
     Q_OBJECT
 public:
     explicit DBManager(const QString& path, bool doCreate = false, QObject *parent = 0);
-
     bool isNoteExist(NoteData* note);
-    NoteData* getNote(QString id);
+    QList<NoteExport> exportNotes();
+//    void importNotes(QList<NoteExport> noteList);
+    void importNote(NoteExport noteExport);
 
 private:
     QSqlDatabase m_db;
-    bool isDuplicate(NoteData* note);
-    bool titleAndIDMatch(NoteData* note);
+    NoteData* getNote(QString id);
+    NoteExport buildNote(QSqlQuery query);
+    bool addImportedNote(NoteExport* note);
+    bool updateImportedNote(NoteExport* note);
+    NoteExport* getNoteExport(QString id);
 
 signals:
     void notesReceived(QList<NoteData*> noteList);
@@ -30,8 +34,6 @@ public slots:
     bool migrateNote(NoteData* note);
     bool migrateTrash(NoteData* note);
     int getLastRowID();
-    QList<NoteExport> getBackup();
-    void importNote(NoteExport noteExport);
 };
 
 #endif // DBMANAGER_H
