@@ -2,7 +2,6 @@
 #define DBMANAGER_H
 
 #include "notedata.h"
-
 #include <QObject>
 #include <QtSql/QSqlDatabase>
 
@@ -13,6 +12,7 @@ public:
     explicit DBManager(const QString& path, bool doCreate = false, QObject *parent = 0);
 
     bool isNoteExist(NoteData* note);
+    NoteData* getNote(QString id);
 
 private:
     QSqlDatabase m_db;
@@ -31,7 +31,7 @@ public slots:
     bool migrateTrash(NoteData* note);
     int getLastRowID();
     QList<NoteExport> getBackup();
-    void restore(QList<NoteExport> noteList);
+    void importNote(NoteExport noteExport);
 };
 
 #endif // DBMANAGER_H

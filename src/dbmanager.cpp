@@ -57,6 +57,33 @@ bool DBManager::isNoteExist(NoteData* note)
     return query.value(0).toInt() == 1;
 }
 
+NoteData* DBManager::getNote(QString id) {
+    QSqlQuery query;
+
+    int parsedId = id.split('_')[1].toInt();
+    QString queryStr = QStringLiteral("SELECT * FROM active_notes WHERE id = %1 LIMIT 1").arg(parsedId);
+    query.exec(queryStr);
+
+    if (query.first()) {
+        NoteData* note = new NoteData(this);
+        int id =  query.value(0).toInt();
+        qint64 epochDateTimeCreation = query.value(1).toLongLong();
+        QDateTime dateTimeCreation = QDateTime::fromMSecsSinceEpoch(epochDateTimeCreation, QTimeZone::systemTimeZone());
+        qint64 epochDateTimeModification= query.value(2).toLongLong();
+        QDateTime dateTimeModification = QDateTime::fromMSecsSinceEpoch(epochDateTimeModification, QTimeZone::systemTimeZone());
+        QString content = query.value(4).toString();
+        QString fullTitle = query.value(5).toString();
+
+        note->setId(QStringLiteral("noteID_%1").arg(id));
+        note->setCreationDateTime(dateTimeCreation);
+        note->setLastModificationDateTime(dateTimeModification);
+        note->setContent(content);
+        note->setFullTitle(fullTitle);
+        return note;
+    }
+    return NULL;
+}
+
 /**
  * Returns true if an existing note has the same id, title, and content, otherwise returns false.
  * This is used by the import process to determine whether or not a message should be created or updated.
@@ -288,23 +315,36 @@ QList<NoteExport> DBManager::getBackup() {
     return noteExports;
 }
 
-void DBManager::restore(QList<NoteExport> noteList) {
-    for (int i = 0; i < noteList.size(); ++i) {
-        NoteData* note = new NoteData(this);
-        note->setId(noteList[i].id);
-        note->setFullTitle(noteList[i].fullTitle);
-        note->setCreationDateTime(noteList[i].creationDateTime);
-        note->setLastModificationDateTime(noteList[i].lastModificationDateTime);
-        note->setContent(noteList[i].content);
-
-        if (isDuplicate(note)) {
-            // record exists with the same title and content. Skip it.
-        } else if(titleAndIDMatch(note)) {
-            // record exists with the same title and id. Update content.
-            modifyNote(note);
+void DBManager::importNote(NoteExport noteExport) {
+    NoteData* note = getNote(noteExport.id);
+    if (note == NULL) {
+        // Note doesn't exist, create it
+        note = new NoteData(this);
+        note->setId(noteExport.id);
+    } else {
+        // Note with this ID exists
+        if (note->creationDateTime() == noteExport.creationDateTime) {
+            // Note is the same
+            if (note->lastModificationdateTime() == noteExport.lastModificationDateTime) {
+                // note has not been updated, skip it
+                return;
+            }
+            // Note has been updated, create a new one
+            note->setId(QString());
         } else {
-            // no match. Add it.
-            addNote(note);
+            // note is different, remove the ID to create a new one
+            note->setId(QString());
         }
+    }
+
+    note->setFullTitle(noteExport.fullTitle);
+    note->setCreationDateTime(noteExport.creationDateTime);
+    note->setLastModificationDateTime(noteExport.lastModificationDateTime);
+    note->setContent(noteExport.content);
+
+    if (note->id().isNull()) {
+        addNote(note);
+    } else {
+        modifyNote(note);
     }
 }

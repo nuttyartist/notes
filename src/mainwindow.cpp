@@ -1372,12 +1372,25 @@ void MainWindow::importNotesFile (const bool clicked) {
             QMessageBox::information(this, tr("Invalid file"), "Please select a valid notes export file");
             return;
         }
-        m_dbManager->restore(noteList);
+        //m_dbManager->restore(noteList);
+        QList<QFuture<void>> futures;
+        for (int i = 0; i < noteList.size(); ++i) {
+            futures <<  QtConcurrent::run(this, &MainWindow::importNote, noteList[i]);
+        }
+        for (int i = 0; i < futures.size(); ++i) {
+            futures[i].isFinished();
+        }
+
         m_noteModel->clearNotes();
         loadNotes();
         createNewNoteIfEmpty();
         selectFirstNote();
     }
+}
+
+void MainWindow::importNote(NoteExport noteExport) {
+    qInfo() << "XXXX test" << noteExport.id;
+    m_dbManager->importNote(noteExport);
 }
 
 /**

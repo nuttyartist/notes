@@ -190,6 +190,7 @@ private slots:
     void expandNoteList();
     void importNotesFile(const bool clicked);
     void exportNotesFile(const bool clicked);
+    void importNote(NoteExport noteExport);
 };
 
 #endif // MAINWINDOW_H
