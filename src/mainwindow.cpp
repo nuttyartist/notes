@@ -1360,9 +1360,10 @@ void MainWindow::importNotesFile (const bool clicked) {
             QMessageBox::information(this, tr("Unable to open file"), file.errorString());
             return;
         }
-        QList<NoteExport> noteList;
+        QList<NoteData*> noteList;
         QDataStream in(&file);
         in.setVersion(QDataStream::Qt_5_6);
+        qInfo() << "XXXXXXXXXXXXX 222";
         try {
             in >> noteList;
         } catch (...) {
@@ -1373,6 +1374,7 @@ void MainWindow::importNotesFile (const bool clicked) {
             QMessageBox::information(this, tr("Invalid file"), "Please select a valid notes export file");
             return;
         }
+        qInfo() << "XXXXXXXXXXXXX 333";
 
         QProgressDialog* pd = new QProgressDialog("Importing Notes...", "", 0, 0, this);
         pd->setCancelButton(0);
@@ -1400,8 +1402,9 @@ void MainWindow::importNotesFile (const bool clicked) {
     }
 }
 
-void MainWindow::importNotes(QList<NoteExport> noteList) {
-    QtConcurrent::blockingMap(noteList, [this] (const NoteExport& note) { m_dbManager->importNote(note); });
+void MainWindow::importNotes(QList<NoteData*> noteList) {
+    qInfo() << "XXXXXXXXXXXXX 111";
+    QtConcurrent::blockingMap(noteList, [this] (NoteData* note) { m_dbManager->importNote(note); });
 }
 
 /**
@@ -1428,7 +1431,7 @@ void MainWindow::exportNotesFile (const bool clicked) {
         }
         QDataStream out(&file);
         out.setVersion(QDataStream::Qt_5_6);
-        out << m_dbManager->exportNotes();
+        out << m_dbManager->getAllNotes();
     }
 }
 

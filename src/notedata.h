@@ -65,5 +65,7 @@ private:
 
 QDataStream &operator<<(QDataStream &stream, const NoteExport &noteExport);
 QDataStream &operator>>(QDataStream &stream, NoteExport &noteExport);
+QDataStream &operator<<(QDataStream &stream, const NoteData * noteData);
+QDataStream &operator>>(QDataStream &stream, NoteData* &noteData);
 
 #endif // NOTEDATA_H
