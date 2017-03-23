@@ -12,8 +12,7 @@ public:
     explicit DBManager(const QString& path, bool doCreate = false, QObject *parent = 0);
     bool isNoteExist(NoteData* note);
     QList<NoteExport> exportNotes();
-//    void importNotes(QList<NoteExport> noteList);
-    void importNote(NoteExport noteExport);
+    void importNote(const NoteExport& noteExport);
 
 private:
     QSqlDatabase m_db;

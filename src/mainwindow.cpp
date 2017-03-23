@@ -1379,6 +1379,7 @@ void MainWindow::importNotesFile (const bool clicked) {
         pd->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
         pd->setMinimumDuration(0);
         pd->show();
+        pd->setValue(1);
 
         setButtonsAndFieldsEnabled(false);
 
@@ -1400,20 +1401,7 @@ void MainWindow::importNotesFile (const bool clicked) {
 }
 
 void MainWindow::importNotes(QList<NoteExport> noteList) {
-
-    QList<QFuture<void>> futures;
-    for (int i = 0; i < noteList.size(); ++i) {
-        futures <<  QtConcurrent::run(this, &MainWindow::importNote, noteList[i]);
-    }
-    for (int i = 0; i < futures.size(); ++i) {
-        while (!futures[i].isFinished()) {
-            // block until all threads complete
-        }
-    }
-}
-
-void MainWindow::importNote(NoteExport note) {
-    m_dbManager->importNote(note);
+    QtConcurrent::blockingMap(noteList, [this] (const NoteExport& note) { m_dbManager->importNote(note); });
 }
 
 /**

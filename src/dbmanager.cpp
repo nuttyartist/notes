@@ -81,7 +81,7 @@ NoteData* DBManager::getNote(QString id) {
         note->setFullTitle(fullTitle);
         return note;
     }
-    return NULL;
+    return Q_NULLPTR;
 }
 
 NoteExport* DBManager::getNoteExport(QString id) {
@@ -108,7 +108,7 @@ NoteExport* DBManager::getNoteExport(QString id) {
         note->fullTitle = fullTitle;
         return note;
     }
-    return NULL;
+    return Q_NULLPTR;
 }
 
 
@@ -365,10 +365,10 @@ NoteExport DBManager::buildNote(QSqlQuery query) {
     return note;
 }
 
-void DBManager::importNote(NoteExport noteExport) {
+void DBManager::importNote(const NoteExport& noteExport) {
     NoteExport* note = getNoteExport(noteExport.id);
     bool isNew = false;
-    if (note == NULL) {
+    if (note == Q_NULLPTR) {
         // Note doesn't exist, create it
         note = new NoteExport();
         note->id = noteExport.id;
@@ -399,4 +399,5 @@ void DBManager::importNote(NoteExport noteExport) {
     } else {
         updateImportedNote(note);
     }
+    delete note;
 }
