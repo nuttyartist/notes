@@ -155,7 +155,6 @@ private:
     void selectNote(const QModelIndex& noteIndex);
     void checkMigration();
     void importNotes(QList<NoteData*> noteList);
-    void importNotesA(QList<NoteData> noteList);
     void migrateNote(QString notePath);
     void migrateTrash(QString trashPath);
 

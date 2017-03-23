@@ -1,6 +1,5 @@
 #include "notedata.h"
 #include <QDataStream>
-#include <iostream>
 
 NoteData::NoteData(QObject *parent)
     : QObject(parent),
