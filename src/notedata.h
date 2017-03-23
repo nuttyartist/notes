@@ -4,15 +4,6 @@
 #include <QObject>
 #include <QDateTime>
 
-struct NoteExport
-{
-    QString id;
-    QString fullTitle;
-    QDateTime lastModificationDateTime;
-    QDateTime creationDateTime;
-    QString content;
-};
-
 class NoteData : public QObject
 {
     Q_OBJECT
@@ -49,7 +40,6 @@ public:
     QDateTime deletionDateTime() const;
     void setDeletionDateTime(const QDateTime& deletionDateTime);
 
-    NoteExport exportNote();
 
 private:
     QString m_id;
@@ -63,9 +53,7 @@ private:
     int m_scrollBarPosition;
 };
 
-QDataStream &operator<<(QDataStream &stream, const NoteExport &noteExport);
-QDataStream &operator>>(QDataStream &stream, NoteExport &noteExport);
-QDataStream &operator<<(QDataStream &stream, const NoteData * noteData);
-QDataStream &operator>>(QDataStream &stream, NoteData* &noteData);
+QDataStream &operator<<(QDataStream &stream, const NoteData* noteData);
+QDataStream &operator>>(QDataStream &stream, NoteData *&noteData);
 
 #endif // NOTEDATA_H

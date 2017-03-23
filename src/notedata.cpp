@@ -1,5 +1,6 @@
 #include "notedata.h"
 #include <QDataStream>
+#include <iostream>
 
 NoteData::NoteData(QObject *parent)
     : QObject(parent),
@@ -100,29 +101,12 @@ void NoteData::setCreationDateTime(const QDateTime&creationDateTime)
     m_creationDateTime = creationDateTime;
 }
 
-NoteExport NoteData::exportNote() {
-    NoteExport noteExport;
-    noteExport.id = m_id;
-    noteExport.fullTitle = m_fullTitle;
-    noteExport.creationDateTime = m_creationDateTime;
-    noteExport.lastModificationDateTime = m_lastModificationDateTime;
-    noteExport.content = m_content;
-    return noteExport;
+QDataStream &operator<<(QDataStream &stream, const NoteData* noteData) {
+    return stream << noteData->id() << noteData->fullTitle() << noteData->creationDateTime() << noteData->lastModificationdateTime() << noteData->content();
 }
 
-QDataStream &operator<<(QDataStream &stream, const NoteExport &noteExport) {
-    return stream << noteExport.id << noteExport.fullTitle << noteExport.creationDateTime << noteExport.lastModificationDateTime<< noteExport.content;
-}
-
-QDataStream &operator>>(QDataStream &stream, NoteExport &noteExport) {
-    return stream >> noteExport.id >> noteExport.fullTitle >> noteExport.creationDateTime >> noteExport.lastModificationDateTime >> noteExport.content;
-}
-
-QDataStream &operator<<(QDataStream &stream, const NoteData * noteData) {
-  return stream << noteData->id() << noteData->fullTitle() << noteData->creationDateTime() << noteData->lastModificationdateTime() << noteData->content();
-}
-
-QDataStream &operator>>(QDataStream &stream, NoteData* & noteData){
+QDataStream &operator>>(QDataStream &stream, NoteData* &noteData){
+    noteData = new NoteData();
     QString id;
     QString fullTitle;
     QDateTime lastModificationDateTime;
@@ -136,3 +120,4 @@ QDataStream &operator>>(QDataStream &stream, NoteData* & noteData){
     noteData->setContent(content);
     return stream;
 }
+
