@@ -65,7 +65,7 @@ NoteData* DBManager::getNote(QString id) {
     query.exec(queryStr);
 
     if (query.first()) {
-        NoteData* note = new NoteData(this);
+        NoteData* note = new NoteData();
         int id =  query.value(0).toInt();
         qint64 epochDateTimeCreation = query.value(1).toLongLong();
         QDateTime dateTimeCreation = QDateTime::fromMSecsSinceEpoch(epochDateTimeCreation, QTimeZone::systemTimeZone());
