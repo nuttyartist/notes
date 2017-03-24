@@ -1369,6 +1369,7 @@ void MainWindow::importNotesFile (const bool clicked) {
         } catch (...) {
             // Any exception deserializing will result in an empty note list and  the user will be notified
         }
+        file.close();
 
         if (noteList.isEmpty()) {
             QMessageBox::information(this, tr("Invalid file"), "Please select a valid notes export file");
@@ -1430,6 +1431,7 @@ void MainWindow::exportNotesFile (const bool clicked) {
         QDataStream out(&file);
         out.setVersion(QDataStream::Qt_5_6);
         out << m_dbManager->getAllNotes();
+        file.close();
     }
 }
 
