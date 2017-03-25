@@ -124,6 +124,12 @@ NoteData #dateLabel{
           <number>0</number>
          </property>
          <widget class="QFrame" name="frameLeft">
+          <property name="minimumSize">
+           <size>
+            <width>196</width>
+            <height>0</height>
+           </size>
+          </property>
           <layout class="QHBoxLayout" name="horizontalLayout_scrollArea">
            <property name="spacing">
             <number>0</number>

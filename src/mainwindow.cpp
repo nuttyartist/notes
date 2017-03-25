@@ -163,6 +163,19 @@ void MainWindow::paintEvent(QPaintEvent* event)
     QMainWindow::paintEvent(event);
 }
 
+void MainWindow::resizeEvent(QResizeEvent* event)
+{
+    //restore note list width
+    QList<int> sizes = m_splitter->sizes();
+    if(sizes.at(0) != 0){
+        sizes[0] = m_noteListWidth;
+        sizes[1] = m_splitter->width() - m_noteListWidth;
+        m_splitter->setSizes(sizes);
+    }
+
+    QMainWindow::resizeEvent(event);
+}
+
 /**
 * @brief
 * Deconstructor of the class
@@ -453,7 +466,8 @@ void MainWindow::setupSignalsSlots()
  */
 void MainWindow::autoCheckForUpdates()
 {
-    m_updater.checkForUpdates (true);
+    m_updater.installEventFilter(this);
+    m_updater.checkForUpdates(true);
 }
 
 /**
@@ -562,7 +576,7 @@ void MainWindow::initializeSettingsDatabase()
 
     if(m_settingsDatabase->value("windowGeometry", "NULL") == "NULL"){
         QPoint center = qApp->desktop()->geometry().center();
-        QRect rect(center.x() - 320, center.y() - 240, 640, 480);
+        QRect rect(center.x() - 757/2, center.y() - 341/2, 757, 341);
         setGeometry(rect);
         m_settingsDatabase->setValue("windowGeometry", saveGeometry());
     }
@@ -641,8 +655,10 @@ void MainWindow::restoreStates()
 
 
     m_splitter->setCollapsible(0, true);
+    m_splitter->resize(width() - m_layoutMargin, height() - m_layoutMargin);
     if(m_settingsDatabase->value("splitterSizes", "NULL") != "NULL")
         m_splitter->restoreState(m_settingsDatabase->value("splitterSizes").toByteArray());
+    m_noteListWidth = m_splitter->sizes().at(0);
     m_splitter->setCollapsible(0, false);
 }
 
@@ -891,9 +907,6 @@ void MainWindow::onDotsButtonClicked()
                                           "  }"
                                           "QMenu::item:selected { "
                                           "  background: 1px solid #308CC6; "
-                                          "}"
-                                          "QMessageBox{"
-                                          "   background-color: rgb(247, 247, 247);"
                                           "}")
                            );
 
@@ -1263,6 +1276,8 @@ void MainWindow::selectNoteDown ()
 */
 void MainWindow::fullscreenWindow ()
 {
+    m_noteListWidth = m_splitter->sizes().at(0) != 0 ? m_splitter->sizes().at(0) : m_noteListWidth;
+
 #ifndef _WIN32
     QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
 
@@ -1291,6 +1306,9 @@ void MainWindow::fullscreenWindow ()
 */
 void MainWindow::maximizeWindow ()
 {
+
+    m_noteListWidth = m_splitter->sizes().at(0) != 0 ? m_splitter->sizes().at(0) : m_noteListWidth;
+
 #ifndef _WIN32
     QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
 
@@ -1369,9 +1387,12 @@ void MainWindow::collapseNoteList()
 
 void MainWindow::expandNoteList()
 {
+    int minWidth = ui->frameLeft->minimumWidth();
+    int leftWidth = m_noteListWidth < minWidth ? minWidth : m_noteListWidth;
+
     QList<int> sizes = m_splitter->sizes();
-    sizes[0] = m_noteListWidth;
-    sizes[1] = m_splitter->width() - m_noteListWidth;
+    sizes[0] = leftWidth;
+    sizes[1] = m_splitter->width() - leftWidth;
     m_splitter->setSizes(sizes);
 }
 
@@ -1512,6 +1533,9 @@ void MainWindow::mousePressEvent(QMouseEvent* event)
             && m_mousePressY > m_layoutMargin){
 
         m_canMoveWindow = true;
+
+        QApplication::setOverrideCursor(QCursor(Qt::ClosedHandCursor));
+
     }else{
         m_canStretchWindow = true;
 
@@ -1716,6 +1740,7 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
     m_canMoveWindow = false;
     m_canStretchWindow = false;
+    QApplication::restoreOverrideCursor();
     event->accept();
 }
 #else
@@ -2180,6 +2205,11 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
         break;
     }
     case QEvent::WindowDeactivate:{
+
+        m_canMoveWindow = false;
+        m_canStretchWindow = false;
+        QApplication::restoreOverrideCursor();
+
 #ifndef _WIN32
         m_redCloseButton->setIcon(QIcon(":images/unfocusedButton"));
         m_yellowMinimizeButton->setIcon(QIcon(":images/unfocusedButton"));
@@ -2313,6 +2343,20 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
         }
         break;
     }
+    case QEvent::Show:
+        if(object == &m_updater){
+
+            QRect rect = m_updater.geometry();
+            QRect appRect = geometry();
+            int titleBarHeight = 28 ;
+
+            int x = appRect.x() + (appRect.width() - rect.width())/2.0;
+            int y = appRect.y() + titleBarHeight  + (appRect.height() - rect.height())/2.0;
+
+            m_updater.setGeometry(QRect(x, y, rect.width(), rect.height()));
+            rect = m_updater.geometry();
+        }
+        break;
     default:
         break;
     }
