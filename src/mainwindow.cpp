@@ -20,6 +20,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QList>
+#include <QMessageBox>
 #define FIRST_LINE_MAX 80
 
 /**
@@ -121,6 +122,10 @@ void MainWindow::InitData()
         loadNotes();
         createNewNoteIfEmpty();
         selectFirstNote();
+    }
+
+    for (int ii = 1; ii < 2000; ii++) {
+
     }
 }
 
@@ -893,15 +898,20 @@ void MainWindow::onDotsButtonClicked()
     connect (checkForUpdatesAction, SIGNAL (triggered (bool)),
              this, SLOT (checkForUpdates (bool)));
 
+    // Export notes action
+    QAction* exportNotesFileAction = importExportNotesMenu->addAction (tr("Export"));
+    connect (exportNotesFileAction, SIGNAL (triggered (bool)),
+             this, SLOT (exportNotesFile (bool)));
+
     // Import notes action
     QAction* importNotesFileAction = importExportNotesMenu->addAction (tr("Import"));
     connect (importNotesFileAction, SIGNAL (triggered (bool)),
              this, SLOT (importNotesFile (bool)));
 
-    // Export notes action
-    QAction* exportNotesFileAction = importExportNotesMenu->addAction (tr("Export"));
-    connect (exportNotesFileAction, SIGNAL (triggered (bool)),
-             this, SLOT (exportNotesFile (bool)));
+    // Restore notes action
+    QAction* restoreNotesFileAction = importExportNotesMenu->addAction (tr("Restore"));
+    connect (restoreNotesFileAction, SIGNAL (triggered (bool)),
+             this, SLOT (restoreNotesFile (bool)));
 
     // Export disabled if no notes exist
     if(m_noteModel->rowCount() < 1){
@@ -1348,6 +1358,30 @@ void MainWindow::checkForUpdates (const bool clicked) {
  */
 void MainWindow::importNotesFile (const bool clicked) {
     Q_UNUSED (clicked);
+    executeImport(false);
+}
+
+/**
+ * Called when the "Restore Notes" menu button is clicked. this function will
+ * prompt the user to select a file, attempt to load the file, and update the DB
+ * if valid.
+ * The user is presented with a dialog box if the upload/import/restore fails for any reason.
+ *
+ * @brief MainWindow::restoreNotesFile
+ * @param clicked
+ */
+void MainWindow::restoreNotesFile (const bool clicked) {
+    Q_UNUSED (clicked);
+    executeImport(true);
+}
+
+/**
+ * Executes the note import process. if replace is true all current notes will be
+ * removed otherwise current notes will be kept.
+ * @brief MainWindow::importNotes
+ * @param replace
+ */
+void MainWindow::executeImport(const bool replace) {
     QString fileName = QFileDialog::getOpenFileName(this,
             tr("Open Notes Backup File"), "",
             tr("Notes Backup File (*.nbk)"));
@@ -1376,7 +1410,18 @@ void MainWindow::importNotesFile (const bool clicked) {
             return;
         }
 
-        QProgressDialog* pd = new QProgressDialog("Importing Notes...", "", 0, 0, this);
+        if (replace && m_noteModel->rowCount() > 0) {
+            QMessageBox msgBox;
+            msgBox.setText("Warning: All current notes will be lost. Make sure to create a backup copy before proceeding.");
+            msgBox.setInformativeText("Would you like to continue?");
+            msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+            msgBox.setDefaultButton(QMessageBox::Ok);
+            if  (msgBox.exec() != QMessageBox::Ok) {
+                return;
+            }
+        }
+
+        QProgressDialog* pd = new QProgressDialog(replace ? "Restoring Notes..." : "Importing Notes...", "", 0, 0, this);
         pd->setCancelButton(0);
         pd->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
         pd->setMinimumDuration(0);
@@ -1397,13 +1442,8 @@ void MainWindow::importNotesFile (const bool clicked) {
             selectFirstNote();
         });
 
-        QFuture<void> migration = QtConcurrent::run(this, &MainWindow::importNotes, noteList);
-        watcher->setFuture(migration);
+        watcher->setFuture(QtConcurrent::run(m_dbManager, replace ? &DBManager::restoreNotes : &DBManager::importNotes, noteList));
     }
-}
-
-void MainWindow::importNotes(QList<NoteData*> noteList) {
-    QtConcurrent::blockingMap(noteList, [this] (NoteData* note) { m_dbManager->importNote(note); });
 }
 
 /**

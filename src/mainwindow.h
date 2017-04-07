@@ -154,7 +154,7 @@ private:
     void findNotesContain(const QString &keyword);
     void selectNote(const QModelIndex& noteIndex);
     void checkMigration();
-    void importNotes(QList<NoteData*> noteList);
+    void executeImport(const bool replace);
     void migrateNote(QString notePath);
     void migrateTrash(QString trashPath);
 
@@ -192,6 +192,7 @@ private slots:
     void expandNoteList();
     void importNotesFile(const bool clicked);
     void exportNotesFile(const bool clicked);
+    void restoreNotesFile (const bool clicked);
 };
 
 #endif // MAINWINDOW_H

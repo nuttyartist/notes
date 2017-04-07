@@ -3,6 +3,7 @@
 #include <QTimeZone>
 #include <QDateTime>
 #include <QDebug>
+#include <QtConcurrent>
 
 DBManager::DBManager(const QString& path, bool doCreate, QObject *parent) : QObject(parent)
 {
@@ -41,7 +42,6 @@ DBManager::DBManager(const QString& path, bool doCreate, QObject *parent) : QObj
                           "full_title TEXT)";
         query.exec(deleted);
     }
-
 }
 
 bool DBManager::isNoteExist(NoteData* note)
@@ -65,7 +65,7 @@ NoteData* DBManager::getNote(QString id) {
     query.exec(queryStr);
 
     if (query.first()) {
-        NoteData* note = new NoteData();
+        NoteData* note = new NoteData(this->parent() == Q_NULLPTR ? Q_NULLPTR : this);
         int id =  query.value(0).toInt();
         qint64 epochDateTimeCreation = query.value(1).toLongLong();
         QDateTime dateTimeCreation = QDateTime::fromMSecsSinceEpoch(epochDateTimeCreation, QTimeZone::systemTimeZone());
@@ -141,8 +141,11 @@ bool DBManager::addNote(NoteData* note)
                        .arg(fullTitle);
 
     query.exec(queryStr);
-    return (query.numRowsAffected() == 1);
 
+    if (this->parent() == Q_NULLPTR) {
+        delete note;
+    }
+    return (query.numRowsAffected() == 1);
 }
 
 bool DBManager::removeNote(NoteData* note)
@@ -181,6 +184,11 @@ bool DBManager::removeNote(NoteData* note)
     bool addedToTrashDB = (query.numRowsAffected() == 1);
 
     return (removed && addedToTrashDB);
+}
+
+bool DBManager::permanantlyRemoveAllNotes() {
+    QSqlQuery query;
+    return query.exec(QString("DELETE FROM active_notes"));
 }
 
 bool DBManager::modifyNote(NoteData* note)
@@ -273,26 +281,13 @@ int DBManager::getLastRowID()
     return query.value(0).toInt();
 }
 
-void DBManager::importNote(NoteData* noteExport) {
-    NoteData* note = getNote(noteExport->id());
-    if (note == Q_NULLPTR) {
-        // Note doesn't exist, create it
-        addNote(noteExport);
-    } else {
-        // Note with this ID exists
-        if (note->creationDateTime() == noteExport->creationDateTime()) {
-            // Note is the same
-            if (note->lastModificationdateTime() == noteExport->lastModificationdateTime()) {
-                // note has not been updated, skip it
-                return;
-            }
-            // Note has been updated, create a new one
-            addNote(noteExport);
-        } else {
-            // note is different, create a new one
-            addNote(noteExport);
-        }
-        delete note;
-    }
-    delete noteExport;
+void DBManager::importNotes(QList<NoteData*> noteList) {
+    QSqlDatabase::database().transaction();
+    QtConcurrent::blockingMap(noteList, [this] (NoteData* note) { this->addNote(note); });
+    QSqlDatabase::database().commit();
+}
+
+void DBManager::restoreNotes(QList<NoteData*> noteList) {
+    this->permanantlyRemoveAllNotes();
+    this->importNotes(noteList);
 }

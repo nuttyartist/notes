@@ -11,11 +11,13 @@ class DBManager : public QObject
 public:
     explicit DBManager(const QString& path, bool doCreate = false, QObject *parent = 0);
     bool isNoteExist(NoteData* note);
-    void importNote(NoteData* noteExport);
+    void importNotes(QList<NoteData*> noteList);
+    void restoreNotes(QList<NoteData*> noteList);
 
 private:
     QSqlDatabase m_db;
     NoteData* getNote(QString id);
+    bool permanantlyRemoveAllNotes();
 
 signals:
     void notesReceived(QList<NoteData*> noteList);
