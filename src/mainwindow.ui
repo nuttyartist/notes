@@ -45,7 +45,10 @@ NoteData #dateLabel{
   margin-left:7px;
   color: rgb(132, 132, 132);
 }
-</string>
+
+#textEdit{
+	color : rgb(47, 47, 47);
+}</string>
   </property>
   <property name="documentMode">
    <bool>false</bool>
@@ -126,7 +129,7 @@ NoteData #dateLabel{
          <widget class="QFrame" name="frameLeft">
           <property name="minimumSize">
            <size>
-            <width>196</width>
+            <width>185</width>
             <height>0</height>
            </size>
           </property>

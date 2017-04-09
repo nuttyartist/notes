@@ -558,8 +558,6 @@ void MainWindow::setupTextEdit ()
 
 #ifdef __APPLE__
     m_textEdit->setFont(QFont("Helvetica Neue", 14));
-#else
-    m_textEdit->setTextColor(QColor(26, 26, 26));
 #endif
 }
 
