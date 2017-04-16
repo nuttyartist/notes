@@ -1525,48 +1525,52 @@ void MainWindow::mousePressEvent(QMouseEvent* event)
     m_mousePressX = event->x();
     m_mousePressY = event->y();
 
-    if(m_mousePressX < this->width() - m_layoutMargin
-            && m_mousePressX >m_layoutMargin
-            && m_mousePressY < this->height() - m_layoutMargin
-            && m_mousePressY > m_layoutMargin){
+    if(event->buttons() == Qt::LeftButton){
+        if(m_mousePressX < this->width() - m_layoutMargin
+                && m_mousePressX >m_layoutMargin
+                && m_mousePressY < this->height() - m_layoutMargin
+                && m_mousePressY > m_layoutMargin){
 
-        m_canMoveWindow = true;
+                m_canMoveWindow = true;
+                QApplication::setOverrideCursor(QCursor(Qt::ClosedHandCursor));
 
-        QApplication::setOverrideCursor(QCursor(Qt::ClosedHandCursor));
+        }else{
+            m_canStretchWindow = true;
+
+            int currentWidth = m_splitter->sizes().at(0);
+            if(currentWidth != 0)
+                m_noteListWidth = currentWidth;
+
+            if((m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin)
+                    && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)){
+                m_stretchSide = StretchSide::TopRight;
+            }else if((m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin)
+                     && (m_mousePressY < this->height() && m_mousePressY > this->height() - m_layoutMargin)){
+                m_stretchSide = StretchSide::BottomRight;
+            }else if((m_mousePressX < m_layoutMargin && m_mousePressX > 0)
+                     && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)){
+                m_stretchSide = StretchSide::TopLeft;
+            }else if((m_mousePressX < m_layoutMargin && m_mousePressX > 0)
+                     && (m_mousePressY < this->height() && m_mousePressY > this->height() - m_layoutMargin)){
+                m_stretchSide = StretchSide::BottomLeft;
+            }else if(m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin){
+                m_stretchSide = StretchSide::Right;
+            }else if(m_mousePressX < m_layoutMargin && m_mousePressX > 0){
+                m_stretchSide = StretchSide::Left;
+            }else if(m_mousePressY < this->height() && m_mousePressY > this->height() - m_layoutMargin){
+                m_stretchSide = StretchSide::Bottom;
+            }else if(m_mousePressY < m_layoutMargin && m_mousePressY > 0){
+                m_stretchSide = StretchSide::Top;
+            }else{
+                m_stretchSide = StretchSide::None;
+            }
+        }
+
+        event->accept();
 
     }else{
-        m_canStretchWindow = true;
-
-        int currentWidth = m_splitter->sizes().at(0);
-        if(currentWidth != 0)
-            m_noteListWidth = currentWidth;
-
-        if((m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin)
-                && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)){
-            m_stretchSide = StretchSide::TopRight;
-        }else if((m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin)
-                 && (m_mousePressY < this->height() && m_mousePressY > this->height() - m_layoutMargin)){
-            m_stretchSide = StretchSide::BottomRight;
-        }else if((m_mousePressX < m_layoutMargin && m_mousePressX > 0)
-                 && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)){
-            m_stretchSide = StretchSide::TopLeft;
-        }else if((m_mousePressX < m_layoutMargin && m_mousePressX > 0)
-                 && (m_mousePressY < this->height() && m_mousePressY > this->height() - m_layoutMargin)){
-            m_stretchSide = StretchSide::BottomLeft;
-        }else if(m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin){
-            m_stretchSide = StretchSide::Right;
-        }else if(m_mousePressX < m_layoutMargin && m_mousePressX > 0){
-            m_stretchSide = StretchSide::Left;
-        }else if(m_mousePressY < this->height() && m_mousePressY > this->height() - m_layoutMargin){
-            m_stretchSide = StretchSide::Bottom;
-        }else if(m_mousePressY < m_layoutMargin && m_mousePressY > 0){
-            m_stretchSide = StretchSide::Top;
-        }else{
-            m_stretchSide = StretchSide::None;
-        }
+        QMainWindow::mousePressEvent(event);
     }
-
-    event->accept();
 }
 
 /**
