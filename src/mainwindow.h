@@ -137,6 +137,7 @@ private:
     bool m_isListViewScrollBarHidden;
     bool m_isContentModified;
     bool m_isOperationRunning;
+    bool m_dontShowUpdateWindow;
 
     void setupMainWindow();
     void setupFonts();

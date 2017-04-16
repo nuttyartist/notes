@@ -58,7 +58,8 @@ MainWindow::MainWindow (QWidget *parent) :
     m_isTemp(false),
     m_isListViewScrollBarHidden(true),
     m_isContentModified(false),
-    m_isOperationRunning(false)
+    m_isOperationRunning(false),
+    m_dontShowUpdateWindow(false)
 {
     ui->setupUi(this);
     setupMainWindow();
@@ -397,6 +398,7 @@ void MainWindow::setupTitleBarButtons ()
  */
 void MainWindow::setupSignalsSlots()
 {
+    connect(&m_updater, &UpdaterWindow::dontShowUpdateWindowChanged, [=](bool state){m_dontShowUpdateWindow = state;});
     // actions
     // connect(rightToLeftActionion, &QAction::triggered, this, );
     //connect(checkForUpdatesAction, &QAction::triggered, this, );
@@ -467,7 +469,8 @@ void MainWindow::setupSignalsSlots()
 void MainWindow::autoCheckForUpdates()
 {
     m_updater.installEventFilter(this);
-    m_updater.checkForUpdates(true);
+    m_updater.setShowWindowDisable(m_dontShowUpdateWindow);
+    m_updater.checkForUpdates(false);
 }
 
 /**
@@ -572,6 +575,10 @@ void MainWindow::initializeSettingsDatabase()
     if(m_settingsDatabase->value("defaultWindowHeight", "NULL") == "NULL")
         m_settingsDatabase->setValue("defaultWindowHeight", 480);
 
+    if(m_settingsDatabase->value("dontShowUpdateWindow", "NULL") == "NULL")
+        m_settingsDatabase->setValue("dontShowUpdateWindow", m_dontShowUpdateWindow);
+
+
     if(m_settingsDatabase->value("windowGeometry", "NULL") == "NULL"){
         QPoint center = qApp->desktop()->geometry().center();
         QRect rect(center.x() - 757/2, center.y() - 341/2, 757, 341);
@@ -651,6 +658,8 @@ void MainWindow::restoreStates()
     if(m_settingsDatabase->value("windowGeometry", "NULL") != "NULL")
         this->restoreGeometry(m_settingsDatabase->value("windowGeometry").toByteArray());
 
+    if(m_settingsDatabase->value("dontShowUpdateWindow", "NULL") != "NULL")
+        m_dontShowUpdateWindow = m_settingsDatabase->value("dontShowUpdateWindow").toBool();
 
     m_splitter->setCollapsible(0, true);
     m_splitter->resize(width() - m_layoutMargin, height() - m_layoutMargin);
@@ -1370,7 +1379,7 @@ void MainWindow::QuitApplication ()
  */
 void MainWindow::checkForUpdates (const bool clicked) {
     Q_UNUSED (clicked);
-    m_updater.checkForUpdates (false);
+    m_updater.checkForUpdates(true);
 }
 
 void MainWindow::collapseNoteList()
@@ -1509,6 +1518,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
         saveNoteToDB(m_currentSelectedNoteProxy);
     }
+
+    m_settingsDatabase->setValue("dontShowUpdateWindow", m_dontShowUpdateWindow);
 
     m_settingsDatabase->setValue("splitterSizes", m_splitter->saveState());
     m_settingsDatabase->sync();

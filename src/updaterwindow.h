@@ -26,8 +26,13 @@ public:
     explicit UpdaterWindow (QWidget *parent = 0);
     ~UpdaterWindow();
 
+    void setShowWindowDisable(const bool dontShowWindow);
+
 public slots:
-    void checkForUpdates (bool silent);
+    void checkForUpdates (bool force);
+
+signals:
+    void dontShowUpdateWindowChanged(bool state);
 
 private slots:
     void resetControls();
@@ -58,11 +63,12 @@ private:
 
     QPoint m_dragPosition;
 
-    bool m_silent;
+    bool m_force;
     int m_mousePressX;
     int m_mousePressY;
     bool m_canMoveWindow;
     bool m_checkingForUpdates;
+    bool m_dontShowUpdateWindow;
 
     uint m_startTime;
     QNetworkReply* m_reply;
