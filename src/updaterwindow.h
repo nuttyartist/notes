@@ -63,7 +63,6 @@ private:
 
     QPoint m_dragPosition;
 
-    bool m_force;
     int m_mousePressX;
     int m_mousePressY;
     bool m_canMoveWindow;

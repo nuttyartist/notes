@@ -52,7 +52,6 @@ UpdaterWindow::UpdaterWindow(QWidget *parent) :
     QWidget(parent),
     m_fileName(""),
     m_ui(new Ui::UpdaterWindow),
-    m_force(false),
     m_canMoveWindow(false),
     m_checkingForUpdates(false),
     m_dontShowUpdateWindow(false),
@@ -130,7 +129,6 @@ void UpdaterWindow::setShowWindowDisable(const bool dontShowWindow)
 void UpdaterWindow::checkForUpdates(bool force)
 {
     /* Change the silent flag */
-    m_force = force;
     m_checkingForUpdates = true;
 
     /* Set module properties */
@@ -144,7 +142,7 @@ void UpdaterWindow::checkForUpdates(bool force)
     m_updater->checkForUpdates(UPDATES_URL);
 
     /* Show window if silent flag is not set */
-    if(m_force){
+    if(force){
         m_ui->updateButton->setEnabled(false);
         m_ui->title->setText(tr("Checking for updates...."));
 
@@ -347,16 +345,12 @@ void UpdaterWindow::openDownload(const QString& file)
  */
 void UpdaterWindow::onCheckFinished(const QString &url)
 {
+    Q_UNUSED(url)
+
     /* Do not allow the title label to change automatically */
     m_checkingForUpdates = false;
 
-    /* There is an update available, show the window */
-    if(m_updater->getUpdateAvailable(url)&&(UPDATES_URL == url)){
-        onUpdateAvailable();
-    }else if(!m_force){
-        resetControls();
-        showNormal();
-    }
+    onUpdateAvailable();
 }
 
 /**
