@@ -908,13 +908,14 @@ void MainWindow::onDotsButtonClicked()
     QMenu mainMenu;
     QMenu* viewMenu = mainMenu.addMenu("View");
 
-    mainMenu.setStyleSheet(QStringLiteral("QMenu { "
-                                          "  background-color: rgb(247, 247, 247); "
-                                          "  border: 1px solid #308CC6; "
-                                          "  }"
-                                          "QMenu::item:selected { "
-                                          "  background: 1px solid #308CC6; "
-                                          "}")
+    mainMenu.setStyleSheet(QStringLiteral(
+                               "QMenu { "
+                               "  background-color: rgb(255, 255, 255); "
+                               "  border: 1px solid #C7C7C7; "
+                               "  }"
+                               "QMenu::item:selected { "
+                               "  background: 1px solid #308CC6; "
+                               "}")
                            );
 
 #ifdef __APPLE__
