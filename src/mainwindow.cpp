@@ -904,12 +904,12 @@ void MainWindow::onDotsButtonClicked()
              this, SLOT (exportNotesFile (bool)));
 
     // Import notes action
-    QAction* importNotesFileAction = importExportNotesMenu->addAction (tr("Import"));
+    QAction* importNotesFileAction = importExportNotesMenu->addAction (tr("Import   - (Add notes from file)"));
     connect (importNotesFileAction, SIGNAL (triggered (bool)),
              this, SLOT (importNotesFile (bool)));
 
     // Restore notes action
-    QAction* restoreNotesFileAction = importExportNotesMenu->addAction (tr("Restore"));
+    QAction* restoreNotesFileAction = importExportNotesMenu->addAction (tr("Restore - (Replace with notes from file)"));
     connect (restoreNotesFileAction, SIGNAL (triggered (bool)),
              this, SLOT (restoreNotesFile (bool)));
 
