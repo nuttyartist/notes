@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>313</width>
+    <width>493</width>
     <height>515</height>
    </rect>
   </property>
@@ -119,7 +119,7 @@
                <string notr="true"/>
               </property>
               <property name="text">
-               <string>Available Version:</string>
+               <string>Latest Version    :</string>
               </property>
              </widget>
             </item>

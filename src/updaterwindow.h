@@ -68,6 +68,7 @@ private:
     bool m_canMoveWindow;
     bool m_checkingForUpdates;
     bool m_dontShowUpdateWindow;
+    bool m_forced;
 
     uint m_startTime;
     QNetworkReply* m_reply;

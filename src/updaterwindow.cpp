@@ -55,6 +55,7 @@ UpdaterWindow::UpdaterWindow(QWidget *parent) :
     m_canMoveWindow(false),
     m_checkingForUpdates(false),
     m_dontShowUpdateWindow(false),
+    m_forced(false),
     m_reply(Q_NULLPTR),
     m_updater(QSimpleUpdater::getInstance()),
     m_manager(new QNetworkAccessManager(this))
@@ -129,22 +130,28 @@ void UpdaterWindow::setShowWindowDisable(const bool dontShowWindow)
 void UpdaterWindow::checkForUpdates(bool force)
 {
     /* Change the silent flag */
-    m_checkingForUpdates = true;
+    if(!m_updater->getUpdateAvailable(UPDATES_URL)){
+        m_checkingForUpdates = true;
 
-    /* Set module properties */
-    m_updater->setNotifyOnFinish(UPDATES_URL, false);
-    m_updater->setNotifyOnUpdate(UPDATES_URL, false);
-    m_updater->setDownloaderEnabled(UPDATES_URL, false);
-    m_updater->setUseCustomInstallProcedures(UPDATES_URL, true);
-    m_updater->setModuleVersion(UPDATES_URL, qApp->applicationVersion());
+        m_forced = force;
 
-    /* Check for updates */
-    m_updater->checkForUpdates(UPDATES_URL);
+        /* Set module properties */
+        m_updater->setNotifyOnFinish(UPDATES_URL, false);
+        m_updater->setNotifyOnUpdate(UPDATES_URL, false);
+        m_updater->setDownloaderEnabled(UPDATES_URL, false);
+        m_updater->setUseCustomInstallProcedures(UPDATES_URL, true);
+        m_updater->setModuleVersion(UPDATES_URL, qApp->applicationVersion());
 
-    /* Show window if silent flag is not set */
+        /* Check for updates */
+        m_updater->checkForUpdates(UPDATES_URL);
+    }
+
+    /* Show window if force flag is set */
     if(force){
-        m_ui->updateButton->setEnabled(false);
-        m_ui->title->setText(tr("Checking for updates...."));
+        if(!m_updater->getUpdateAvailable(UPDATES_URL)){
+            m_ui->updateButton->setEnabled(false);
+            m_ui->title->setText(tr("Checking for updates...."));
+        }
 
         resetControls();
         showNormal();
@@ -350,7 +357,15 @@ void UpdaterWindow::onCheckFinished(const QString &url)
     /* Do not allow the title label to change automatically */
     m_checkingForUpdates = false;
 
-    onUpdateAvailable();
+
+    /* There is an update available, show the window */
+    if(m_updater->getUpdateAvailable(url)&&(UPDATES_URL == url)){
+        onUpdateAvailable();
+    }else if(m_forced){
+        m_forced = false;
+        resetControls();
+        showNormal();
+    }
 }
 
 /**

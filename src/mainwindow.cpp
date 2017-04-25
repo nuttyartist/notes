@@ -1375,10 +1375,9 @@ void MainWindow::QuitApplication ()
  * Called when the "Check for Updates" menu item is clicked, this function
  * instructs the updater window to check if there are any updates available
  *
- * \note This code won't be executed under Linux builds
  * \param clicked required by the signal/slot connection, the value is ignored
  */
-void MainWindow::checkForUpdates (const bool clicked) {
+void MainWindow::checkForUpdates(const bool clicked) {
     Q_UNUSED (clicked);
     m_updater.checkForUpdates(true);
 }
