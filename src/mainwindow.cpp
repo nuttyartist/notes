@@ -2367,7 +2367,6 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
             int y = appRect.y() + titleBarHeight  + (appRect.height() - rect.height())/2.0;
 
             m_updater.setGeometry(QRect(x, y, rect.width(), rect.height()));
-            rect = m_updater.geometry();
         }
         break;
     default:
