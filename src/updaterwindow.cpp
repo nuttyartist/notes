@@ -281,7 +281,11 @@ void UpdaterWindow::startDownload(const QUrl& url)
     /* Start download */
     m_startTime = QDateTime::currentDateTime().toTime_t();
     QNetworkRequest netReq(url);
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     netReq.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
+#endif
+
     m_reply = m_manager->get(netReq);
 
     /* Set file name */
@@ -304,9 +308,8 @@ void UpdaterWindow::startDownload(const QUrl& url)
     showNormal();
 
     /* Update UI when download progress changes or download finishes */
-    connect(m_reply, SIGNAL(downloadProgress(qint64, qint64)),
-            this, SLOT(updateProgress(qint64, qint64)));
-    connect(m_reply, SIGNAL(finished()), this, SLOT(onDownloadFinished()));
+    connect(m_reply, &QNetworkReply::downloadProgress, this, &UpdaterWindow::updateProgress);
+    connect(m_reply, &QNetworkReply::finished, this, &UpdaterWindow::onDownloadFinished);
 }
 
 /**
@@ -524,15 +527,22 @@ void UpdaterWindow::calculateTimeRemaining(qint64 received, qint64 total)
 
 void UpdaterWindow::onDownloadFinished()
 {
-    QString filePath = DOWNLOAD_DIR.filePath(m_fileName);
-    QFile file(filePath);
-    if(file.open(QIODevice::WriteOnly | QIODevice::Append)){
-        file.write(m_reply->readAll());
-        file.close();
-        qApp->processEvents();
-    }
+   QString redirectedUrl = m_reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
 
-    openDownload(filePath);
+   if(redirectedUrl.isEmpty()){
+
+        QString filePath = DOWNLOAD_DIR.filePath(m_fileName);
+        QFile file(filePath);
+        if(file.open(QIODevice::WriteOnly | QIODevice::Append)){
+            file.write(m_reply->readAll());
+            file.close();
+            qApp->processEvents();
+        }
+
+        openDownload(filePath);
+   }else{
+       startDownload(redirectedUrl);
+   }
 }
 
 /**
