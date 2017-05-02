@@ -904,12 +904,12 @@ void MainWindow::onDotsButtonClicked()
              this, SLOT (exportNotesFile (bool)));
 
     // Import notes action
-    QAction* importNotesFileAction = importExportNotesMenu->addAction (tr("Import   - (Add notes from file)"));
+    QAction* importNotesFileAction = importExportNotesMenu->addAction (tr("Import   - (Add notes from a file)"));
     connect (importNotesFileAction, SIGNAL (triggered (bool)),
              this, SLOT (importNotesFile (bool)));
 
     // Restore notes action
-    QAction* restoreNotesFileAction = importExportNotesMenu->addAction (tr("Restore - (Replace with notes from file)"));
+    QAction* restoreNotesFileAction = importExportNotesMenu->addAction (tr("Restore - (Replace all notes with notes from a file)"));
     connect (restoreNotesFileAction, SIGNAL (triggered (bool)),
              this, SLOT (restoreNotesFile (bool)));
 
@@ -1372,6 +1372,17 @@ void MainWindow::importNotesFile (const bool clicked) {
  */
 void MainWindow::restoreNotesFile (const bool clicked) {
     Q_UNUSED (clicked);
+
+    if (m_noteModel->rowCount() > 0) {
+        QMessageBox msgBox;
+        msgBox.setText("Warning: All current notes will be lost. Make sure to create a backup copy before proceeding.");
+        msgBox.setInformativeText("Would you like to continue?");
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+        msgBox.setDefaultButton(QMessageBox::No);
+        if  (msgBox.exec() != QMessageBox::Yes) {
+            return;
+        }
+    }
     executeImport(true);
 }
 
@@ -1408,17 +1419,6 @@ void MainWindow::executeImport(const bool replace) {
         if (noteList.isEmpty()) {
             QMessageBox::information(this, tr("Invalid file"), "Please select a valid notes export file");
             return;
-        }
-
-        if (replace && m_noteModel->rowCount() > 0) {
-            QMessageBox msgBox;
-            msgBox.setText("Warning: All current notes will be lost. Make sure to create a backup copy before proceeding.");
-            msgBox.setInformativeText("Would you like to continue?");
-            msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-            msgBox.setDefaultButton(QMessageBox::Ok);
-            if  (msgBox.exec() != QMessageBox::Ok) {
-                return;
-            }
         }
 
         QProgressDialog* pd = new QProgressDialog(replace ? "Restoring Notes..." : "Importing Notes...", "", 0, 0, this);
