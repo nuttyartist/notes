@@ -40,6 +40,7 @@ public:
     QDateTime deletionDateTime() const;
     void setDeletionDateTime(const QDateTime& deletionDateTime);
 
+
 private:
     QString m_id;
     QString m_fullTitle;
@@ -52,5 +53,7 @@ private:
     int m_scrollBarPosition;
 };
 
+QDataStream &operator<<(QDataStream &stream, const NoteData* noteData);
+QDataStream &operator>>(QDataStream &stream, NoteData *&noteData);
 
 #endif // NOTEDATA_H
