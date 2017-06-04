@@ -1,13 +1,13 @@
 QWidget {
     font: 14px "Roboto";
     color: rgb(26, 26, 26);
-    background-color: rgb(247, 247, 247);
+    background-color: rgb(255, 255, 255);
 }
 QTextBrowser {
     font: 14px "Arimo";
     color: rgb(117, 117, 117);
     border: 1px solid rgb(205, 205, 205);
-    background-color: rgb(251, 251, 251);
+    background-color: rgb(255, 255, 252);
 }
 QProgressBar {
     height: 24px;
@@ -36,7 +36,6 @@ QPushButton:pressed {
     color: rgb(39, 85, 125);
     border: 1px solid rgb(170, 170, 170);
     border-radius: 5px;
-    background-color: rgb(227, 227, 227);
 }
 #timeLabel {
     font: 13px "Roboto";

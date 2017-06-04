@@ -3,6 +3,7 @@
 #include <QTimeZone>
 #include <QDateTime>
 #include <QDebug>
+#include <QtConcurrent>
 
 DBManager::DBManager(const QString& path, bool doCreate, QObject *parent) : QObject(parent)
 {
@@ -41,7 +42,6 @@ DBManager::DBManager(const QString& path, bool doCreate, QObject *parent) : QObj
                           "full_title TEXT)";
         query.exec(deleted);
     }
-
 }
 
 bool DBManager::isNoteExist(NoteData* note)
@@ -55,6 +55,33 @@ bool DBManager::isNoteExist(NoteData* note)
     query.next();
 
     return query.value(0).toInt() == 1;
+}
+
+NoteData* DBManager::getNote(QString id) {
+    QSqlQuery query;
+
+    int parsedId = id.split('_')[1].toInt();
+    QString queryStr = QStringLiteral("SELECT * FROM active_notes WHERE id = %1 LIMIT 1").arg(parsedId);
+    query.exec(queryStr);
+
+    if (query.first()) {
+        NoteData* note = new NoteData(this->parent() == Q_NULLPTR ? Q_NULLPTR : this);
+        int id =  query.value(0).toInt();
+        qint64 epochDateTimeCreation = query.value(1).toLongLong();
+        QDateTime dateTimeCreation = QDateTime::fromMSecsSinceEpoch(epochDateTimeCreation, QTimeZone::systemTimeZone());
+        qint64 epochDateTimeModification= query.value(2).toLongLong();
+        QDateTime dateTimeModification = QDateTime::fromMSecsSinceEpoch(epochDateTimeModification, QTimeZone::systemTimeZone());
+        QString content = query.value(4).toString();
+        QString fullTitle = query.value(5).toString();
+
+        note->setId(QStringLiteral("noteID_%1").arg(id));
+        note->setCreationDateTime(dateTimeCreation);
+        note->setLastModificationDateTime(dateTimeModification);
+        note->setContent(content);
+        note->setFullTitle(fullTitle);
+        return note;
+    }
+    return Q_NULLPTR;
 }
 
 QList<NoteData *> DBManager::getAllNotes()
@@ -104,15 +131,21 @@ bool DBManager::addNote(NoteData* note)
                         .replace("'","''")
                         .replace(QChar('\x0'), emptyStr);
 
+    qint64 epochTimeDateLastModified = note->lastModificationdateTime().isNull() ? epochTimeDateCreated :  note->lastModificationdateTime().toMSecsSinceEpoch();
+
     QString queryStr = QString("INSERT INTO active_notes (creation_date, modification_date, deletion_date, content, full_title) "
-                               "VALUES (%1, %1, -1, '%2', '%3');")
+                               "VALUES (%1, %2, -1, '%3', '%4');")
                        .arg(epochTimeDateCreated)
+                       .arg(epochTimeDateLastModified)
                        .arg(content)
                        .arg(fullTitle);
 
     query.exec(queryStr);
-    return (query.numRowsAffected() == 1);
 
+    if (this->parent() == Q_NULLPTR) {
+        delete note;
+    }
+    return (query.numRowsAffected() == 1);
 }
 
 bool DBManager::removeNote(NoteData* note)
@@ -151,6 +184,11 @@ bool DBManager::removeNote(NoteData* note)
     bool addedToTrashDB = (query.numRowsAffected() == 1);
 
     return (removed && addedToTrashDB);
+}
+
+bool DBManager::permanantlyRemoveAllNotes() {
+    QSqlQuery query;
+    return query.exec(QString("DELETE FROM active_notes"));
 }
 
 bool DBManager::modifyNote(NoteData* note)
@@ -241,4 +279,15 @@ int DBManager::getLastRowID()
     query.exec("SELECT seq from SQLITE_SEQUENCE WHERE name='active_notes';");
     query.next();
     return query.value(0).toInt();
+}
+
+void DBManager::importNotes(QList<NoteData*> noteList) {
+    QSqlDatabase::database().transaction();
+    QtConcurrent::blockingMap(noteList, [this] (NoteData* note) { this->addNote(note); });
+    QSqlDatabase::database().commit();
+}
+
+void DBManager::restoreNotes(QList<NoteData*> noteList) {
+    this->permanantlyRemoveAllNotes();
+    this->importNotes(noteList);
 }
