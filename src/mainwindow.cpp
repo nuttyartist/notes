@@ -959,16 +959,19 @@ void MainWindow::onDotsButtonClicked()
 
     // Export notes action
     QAction* exportNotesFileAction = importExportNotesMenu->addAction (tr("Export"));
+    exportNotesFileAction->setToolTip(tr("Save notes to a file"));
     connect (exportNotesFileAction, SIGNAL (triggered (bool)),
              this, SLOT (exportNotesFile (bool)));
 
     // Import notes action
-    QAction* importNotesFileAction = importExportNotesMenu->addAction (tr("Import   - (Add notes from a file)"));
+    QAction* importNotesFileAction = importExportNotesMenu->addAction (tr("Import"));
+    importNotesFileAction->setToolTip(tr("Add notes from a file"));
     connect (importNotesFileAction, SIGNAL (triggered (bool)),
              this, SLOT (importNotesFile (bool)));
 
     // Restore notes action
-    QAction* restoreNotesFileAction = importExportNotesMenu->addAction (tr("Restore - (Replace all notes with notes from a file)"));
+    QAction* restoreNotesFileAction = importExportNotesMenu->addAction (tr("Restore"));
+    restoreNotesFileAction->setToolTip(tr("Replace all notes with notes from a file"));
     connect (restoreNotesFileAction, SIGNAL (triggered (bool)),
              this, SLOT (restoreNotesFile (bool)));
 
@@ -1470,7 +1473,13 @@ void MainWindow::executeImport(const bool replace) {
         }
         QList<NoteData*> noteList;
         QDataStream in(&file);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
         in.setVersion(QDataStream::Qt_5_6);
+#elif QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+        in.setVersion(QDataStream::Qt_5_4);
+#elif QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
+        in.setVersion(QDataStream::Qt_5_2);
+#endif
 
         try {
             in >> noteList;
@@ -1532,7 +1541,13 @@ void MainWindow::exportNotesFile (const bool clicked) {
             return;
         }
         QDataStream out(&file);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
         out.setVersion(QDataStream::Qt_5_6);
+#elif QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+        out.setVersion(QDataStream::Qt_5_4);
+#elif QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
+        out.setVersion(QDataStream::Qt_5_2);
+#endif
         out << m_dbManager->getAllNotes();
         file.close();
     }
