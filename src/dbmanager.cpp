@@ -68,9 +68,9 @@ NoteData* DBManager::getNote(QString id) {
         NoteData* note = new NoteData(this->parent() == Q_NULLPTR ? Q_NULLPTR : this);
         int id =  query.value(0).toInt();
         qint64 epochDateTimeCreation = query.value(1).toLongLong();
-        QDateTime dateTimeCreation = QDateTime::fromMSecsSinceEpoch(epochDateTimeCreation, QTimeZone::systemTimeZone());
+        QDateTime dateTimeCreation = QDateTime::fromMSecsSinceEpoch(epochDateTimeCreation);
         qint64 epochDateTimeModification= query.value(2).toLongLong();
-        QDateTime dateTimeModification = QDateTime::fromMSecsSinceEpoch(epochDateTimeModification, QTimeZone::systemTimeZone());
+        QDateTime dateTimeModification = QDateTime::fromMSecsSinceEpoch(epochDateTimeModification);
         QString content = query.value(4).toString();
         QString fullTitle = query.value(5).toString();
 
