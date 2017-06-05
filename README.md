@@ -7,26 +7,43 @@
 Notes is an open source, cross-platform note taking app which has the potential to be something much bigger, and much better at empowering the people using it.
 This is where you come into play. Be part of making Notes better.
 
-### Screenshot
+## Screenshot
 ![notes_screenshot](https://cloud.githubusercontent.com/assets/16375940/21028061/2658710a-bd9c-11e6-8ecb-44ca41e21aca.png)
 
-### How to clone
+
+## How to clone
 Use this command to clone the repository:
 
+```shell
+$> git clone https://github.com/nuttyartist/notes.git
 ```
-git clone https://github.com/nuttyartist/notes.git
+
+## Dependencies
+Make sure the Qt (>= 5.2.1) development libraries are installed:
+
+- Debian/Ubuntu : qt5-default build-essential qtbase5-private-dev sqlite3
+
+## Compiling
+
+```shell
+$> mkdir build
+$> cd build
+$> qmake ../src
+$> make -j4
 ```
 
-### Where the notes are stored:
+## Notes
 
-**Windows:** C:\Users\user\AppData\Roaming\Awesomeness  
-**Linux:** /home/user/.config/Awesomeness/ **or** /home/snap/notes/x1/.config/Awesomeness **(for Ubuntu 16.04)**  
-**Mac:** /home/.config/Awesomeness/  
+The notes database and settings file are stored:
 
-### Information for Contributors
+**Windows** : ```C:\Users\user\AppData\Roaming\Awesomeness```&nbsp;
+**Linux** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: ```/home/user/.config/Awesomeness/``` **or** ```/home/snap/notes/x1/.config/Awesomeness``` **(for Ubuntu 16.04 using snap)**&nbsp;
+**Mac** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: ```/home/.config/Awesomeness/```&nbsp;
+
+## Information for Contributors
 
 Check out our [wiki](https://github.com/nuttyartist/notes/wiki), we discuss there our philosophy, our current state and the future version of Notes.
 
-### Information for End Users
+## Information for End Users
 
 You can find more info about Notes and how to download it here: <a href="http://get-notes.com" target="_blank">get-notes.com</a>
