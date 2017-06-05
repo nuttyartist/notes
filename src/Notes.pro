@@ -54,7 +54,7 @@ RESOURCES += \
     $$PWD/fonts.qrc \
     $$PWD/styles.qrc
 
-inux:!android {
+linux:!android {
     isEmpty (PREFIX) {
         PREFIX = /usr
     }
