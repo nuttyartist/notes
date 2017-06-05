@@ -36,19 +36,21 @@ script:
   - mkdir build
   - cd build;
   - if [ "$QT_BASE" == "xenial" ] || [ "$QT_BASE" == "snap" ]; then
-        docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/docker-snapcraft-qt:qt55 qmake ../src/;
-        if [ "$QT_BASE" == "xenial" ]; then
-            docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/docker-snapcraft-qt:qt55 make -j4;
-            docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/docker-snapcraft-qt:qt55 make deb;
-            docker run --rm -it --privileged -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/docker-snapcraft-qt:qt55 make appimage;
-        elif [ "$QT_BASE" == "snap" ]; then
-            docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/docker-snapcraft-qt:qt55 make snap;
-        fi
-    else
-      qmake ../src;
-      make -j4;
-      make deb;
-    fi
+        docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/docker-snapcraft-qt:qt55 qmake ../src/; fi
+  - if [ "$QT_BASE" == "xenial" ]; then
+        docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/docker-snapcraft-qt:qt55 make -j4; fi
+  - if [ "$QT_BASE" == "xenial" ]; then
+        docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/docker-snapcraft-qt:qt55 make deb; fi
+  - if [ "$QT_BASE" == "xenial" ]; then
+        docker run --rm -it --privileged -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/docker-snapcraft-qt:qt55 make appimage; fi
+  - if [ "$QT_BASE" == "snap" ]; then
+        docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/docker-snapcraft-qt:qt55 make snap; fi
+  - if [ "$QT_BASE" != "xenial" ] && [ "$QT_BASE" != "snap" ]; then
+        qmake ../src; fi
+  - if [ "$QT_BASE" != "xenial" ] && [ "$QT_BASE" != "snap" ]; then
+        make -j4; fi
+  - if [ "$QT_BASE" != "xenial" ] && [ "$QT_BASE" != "snap" ]; then
+        make deb; fi
 
 after_success:
   - if [ "$QT_BASE" == "trusty" ] || [ "$QT_BASE" == "xenial" ]; then
