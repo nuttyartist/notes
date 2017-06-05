@@ -5,4 +5,4 @@ export DH_VERBOSE=1
 export QT_SELECT := qt5
 
 %:
-    dh $@
+	dh $@
