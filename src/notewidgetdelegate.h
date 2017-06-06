@@ -42,6 +42,7 @@ private:
     QString parseDateTime(const QDateTime& dateTime) const;
 
     QFont m_titleFont;
+    QFont m_titleSelectedFont;
     QFont m_dateFont;
     QColor m_titleColor;
     QColor m_dateColor;

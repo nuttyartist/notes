@@ -10,8 +10,15 @@
 
 NoteWidgetDelegate::NoteWidgetDelegate(QObject *parent)
     : QStyledItemDelegate(parent),
-      m_titleFont(),
-      m_dateFont(),
+#ifdef __APPLE__
+      m_titleFont(QStringLiteral("Helvetica Neue"), 13, 65),
+      m_titleSelectedFont(QStringLiteral("Helvetica Neue"), 13),
+      m_dateFont(QStringLiteral("Helvetica Neue"), 13),
+#else
+      m_titleFont(QStringLiteral("Roboto"), 10, 60),
+      m_titleSelectedFont(QStringLiteral("Roboto"), 10),
+      m_dateFont(QStringLiteral("Roboto"), 10),
+#endif
       m_titleColor(26, 26, 26),
       m_dateColor(132, 132, 132),
       m_ActiveColor(218, 233, 239),
@@ -26,17 +33,6 @@ NoteWidgetDelegate::NoteWidgetDelegate(QObject *parent)
       m_state(Normal),
       m_isActive(false)
 {
-    int id = QFontDatabase::addApplicationFont(":/fonts/roboto-hinted/Roboto-Medium.ttf");
-    QString robotoFontMedium = QFontDatabase::applicationFontFamilies(id).at(0);
-
-#ifdef __APPLE__
-    m_titleFont = QFont("Helvetica Neue", 13, 65);
-    m_dateFont = QFont("Helvetica Neue", 13);
-#else
-    m_titleFont = QFont(robotoFontMedium, 10, 60);
-    m_dateFont = QFont(robotoFontMedium, 10);
-#endif
-
     m_timeLine = new QTimeLine(300, this);
     m_timeLine->setFrameRange(0,m_maxFrame);
     m_timeLine->setUpdateInterval(10);
@@ -171,7 +167,8 @@ void NoteWidgetDelegate::paintLabels(QPainter* painter, const QStyleOptionViewIt
     const int spaceY = 1;       // space between title and date
 
     QString title{index.data(NoteModel::NoteFullTitle).toString()};
-    QFontMetrics fmTitle(m_titleFont);
+    QFont titleFont = (option.state & QStyle::State_Selected) == QStyle::State_Selected ? m_titleSelectedFont : m_titleFont;
+    QFontMetrics fmTitle(titleFont);
     QRect fmRectTitle = fmTitle.boundingRect(title);
 
     QString date = parseDateTime(index.data(NoteModel::NoteLastModificationDateTime).toDateTime());
@@ -233,7 +230,7 @@ void NoteWidgetDelegate::paintLabels(QPainter* painter, const QStyleOptionViewIt
 
     // draw title & date
     title = fmTitle.elidedText(title, Qt::ElideRight, titleRectWidth);
-    drawStr(titleRectPosX, titleRectPosY, titleRectWidth, titleRectHeight, m_titleColor, m_titleFont, title);
+    drawStr(titleRectPosX, titleRectPosY, titleRectWidth, titleRectHeight, m_titleColor, titleFont, title);
     drawStr(dateRectPosX, dateRectPosY, dateRectWidth, dateRectHeight, m_dateColor, m_dateFont, date);
 }
 

@@ -1,5 +1,6 @@
 notes  /usr/bin
 notes.desktop /usr/share/applications
+copyright usr/share/doc/notes/
 icons/128x128/notes.png usr/share/pixmaps
 icons/16x16/notes.png usr/share/icons/hicolor/16x16/apps
 icons/22x22/notes.png usr/share/icons/hicolor/22x22/apps

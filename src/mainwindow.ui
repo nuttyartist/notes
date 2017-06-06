@@ -18,8 +18,8 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>640</width>
-    <height>360</height>
+    <width>520</width>
+    <height>265</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -45,7 +45,10 @@ NoteData #dateLabel{
   margin-left:7px;
   color: rgb(132, 132, 132);
 }
-</string>
+
+#textEdit{
+	color : rgb(47, 47, 47);
+}</string>
   </property>
   <property name="documentMode">
    <bool>false</bool>
@@ -59,12 +62,6 @@ NoteData #dateLabel{
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
-   </property>
-   <property name="minimumSize">
-    <size>
-     <width>505</width>
-     <height>260</height>
-    </size>
    </property>
    <layout class="QGridLayout" name="gridLayout">
     <property name="leftMargin">
@@ -84,14 +81,8 @@ NoteData #dateLabel{
     </property>
     <item row="0" column="0">
      <widget class="QFrame" name="frame">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>100</height>
-       </size>
-      </property>
       <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
+       <enum>QFrame::NoFrame</enum>
       </property>
       <property name="frameShadow">
        <enum>QFrame::Raised</enum>
@@ -136,6 +127,12 @@ NoteData #dateLabel{
           <number>0</number>
          </property>
          <widget class="QFrame" name="frameLeft">
+          <property name="minimumSize">
+           <size>
+            <width>185</width>
+            <height>0</height>
+           </size>
+          </property>
           <layout class="QHBoxLayout" name="horizontalLayout_scrollArea">
            <property name="spacing">
             <number>0</number>
@@ -426,7 +423,7 @@ NoteData #dateLabel{
                  </property>
                  <property name="minimumSize">
                   <size>
-                   <width>175</width>
+                   <width>0</width>
                    <height>22</height>
                   </size>
                  </property>

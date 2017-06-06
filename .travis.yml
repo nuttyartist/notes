@@ -3,48 +3,66 @@ dist: trusty
 language: cpp
 
 env:
+  - QT_BASE=55
   - QT_BASE=56
   - QT_BASE=57
   - QT_BASE=58
+  - QT_BASE=trusty
+  - QT_BASE=xenial
+  - QT_BASE=snap
+
+service:
+  - docker
 
 before_install:
+  - git fetch --unshallow
   - sudo apt-get install software-properties-common
+  - if [ "$QT_BASE" = "55" ]; then sudo add-apt-repository ppa:beineri/opt-qt551-trusty -y; fi
   - if [ "$QT_BASE" = "56" ]; then sudo add-apt-repository ppa:beineri/opt-qt562-trusty -y; fi
   - if [ "$QT_BASE" = "57" ]; then sudo add-apt-repository ppa:beineri/opt-qt571-trusty -y; fi
   - if [ "$QT_BASE" = "58" ]; then sudo add-apt-repository ppa:beineri/opt-qt58-trusty -y; fi
+  - if [ "$QT_BASE" = "xenial" ]; then docker pull theshadowx/docker-snapcraft-qt:qt55; fi
   - sudo apt-get update -qq
 
 install:
-  - sudo apt-get -y install xvfb
-  - if [ "$QT_BASE" = "56" ]; then sudo apt-get install -qq qt56base; source /opt/qt56/bin/qt56-env.sh; fi
-  - if [ "$QT_BASE" = "57" ]; then sudo apt-get install -qq qt57base; source /opt/qt57/bin/qt57-env.sh; fi
-  - if [ "$QT_BASE" = "58" ]; then sudo apt-get install -qq qt58base; source /opt/qt58/bin/qt58-env.sh; fi
+  - sudo apt-get -y install checkinstall xvfb dh-make
+  - if [ "$QT_BASE" == "55" ]; then sudo apt-get install -qq qt55base; source /opt/qt55/bin/qt55-env.sh; fi
+  - if [ "$QT_BASE" == "56" ]; then sudo apt-get install -qq qt56base; source /opt/qt56/bin/qt56-env.sh; fi
+  - if [ "$QT_BASE" == "57" ]; then sudo apt-get install -qq qt57base; source /opt/qt57/bin/qt57-env.sh; fi
+  - if [ "$QT_BASE" == "58" ]; then sudo apt-get install -qq qt58base; source /opt/qt58/bin/qt58-env.sh; fi
+  - if [ "$QT_BASE" == "trusty" ]; then sudo apt-get install -y qt5-default qtbase5-private-dev; fi
 
 script:
   - mkdir build
-  - cd build
-  - qmake PREFIX=/usr .. && make
-  - xvfb-run -a -s "-screen 0 800x600x24" tests/test
-  - sudo apt-get -y install checkinstall
-  - sudo checkinstall --pkgname=app --pkgversion="1" --backup=no --fstrans=no --default --deldoc 
-  - mkdir appdir ; cd appdir
-  - dpkg -x ../app_1-1_amd64.deb . ; find .
-  - cp ../../packaging/linux/common/notes.desktop .
-  - cp ../../packaging/linux/common/icons/256x256/notes.png .
-  - mkdir -p ./usr/share/icons/default/256x256/apps/ ; cp ../../packaging/linux/common/icons/256x256/notes.png ./usr/share/icons/default/256x256/apps/
-  - cd .. 
-  - wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/3/linuxdeployqt-3-x86_64.AppImage" 
-  - chmod a+x linuxdeployqt*.AppImage 
-  - unset QTDIR; unset QT_PLUGIN_PATH ; unset LD_LIBRARY_PATH
-  - ./linuxdeployqt*.AppImage ./appdir/usr/bin/notes -bundle-non-qt-libs
-  - ./linuxdeployqt*.AppImage ./appdir/usr/bin/notes -bundle-non-qt-libs 
-  - ./linuxdeployqt*.AppImage --appimage-extract
-  - wget -c https://github.com/probonopd/AppImageKit/raw/master/desktopintegration -O ./appdir/usr/bin/notes.wrapper
-  - chmod a+x ./appdir/usr/bin/notes.wrapper
-  - sed -i -e 's|^Version=0.9$|Version=1.0|g' ./appdir/notes.desktop # Bugifx, see https://standards.freedesktop.org/desktop-entry-spec/latest/
-  - ( cd ./appdir/ ; rm AppRun ; ln -s ./usr/bin/notes.wrapper AppRun )
-  - ./squashfs-root/usr/bin/appimagetool ./appdir/
-  - curl --upload-file ./Notes-*.AppImage https://transfer.sh/notes-git.$(git rev-parse --short HEAD).qt$QT_BASE-x86_64.AppImage 
-  
+  - cd build;
+  - if [ "$QT_BASE" == "xenial" ] || [ "$QT_BASE" == "snap" ]; then
+        docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/docker-snapcraft-qt:qt55 qmake ../src/; fi
+  - if [ "$QT_BASE" == "xenial" ]; then
+        docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/docker-snapcraft-qt:qt55 make -j4; fi
+  - if [ "$QT_BASE" == "xenial" ]; then
+        docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/docker-snapcraft-qt:qt55 make deb; fi
+  - if [ "$QT_BASE" == "xenial" ]; then
+        docker run --rm -it --privileged -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/docker-snapcraft-qt:qt55 make appimage; fi
+  - if [ "$QT_BASE" == "snap" ]; then
+        docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/docker-snapcraft-qt:qt55 make snap; fi
+  - if [ "$QT_BASE" != "xenial" ] && [ "$QT_BASE" != "snap" ]; then
+        qmake ../src; fi
+  - if [ "$QT_BASE" != "xenial" ] && [ "$QT_BASE" != "snap" ]; then
+        make -j4; fi
+  - if [ "$QT_BASE" != "xenial" ] && [ "$QT_BASE" != "snap" ]; then
+        make deb; fi
+
+after_success:
+  - if [ "$QT_BASE" == "trusty" ] || [ "$QT_BASE" == "xenial" ]; then
+        curl --upload-file deb/notes*.deb https://transfer.sh/notes_$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')-git$(git rev-parse --short HEAD)_amd64-$QT_BASE.deb ;
+    elif [ "$QT_BASE" == "snap" ]; then
+        curl --upload-file snap/notes*.snap https://transfer.sh/notes_$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')-git$(git rev-parse --short HEAD)_amd64-xenial.snap ;
+    fi
+  - if [ "$QT_BASE" == "xenial" ]; then
+        curl --upload-file ./Notes-*.AppImage https://transfer.sh/notes_$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')-git$(git rev-parse --short HEAD)_amd64.AppImage;
+    fi
+
+
 notifications:
   email: false
+

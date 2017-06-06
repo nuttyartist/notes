@@ -20,7 +20,8 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QList>
-#include <QMessageBox>
+#include <QWidgetAction>
+
 #define FIRST_LINE_MAX 80
 
 /**
@@ -31,7 +32,6 @@ MainWindow::MainWindow (QWidget *parent) :
     ui (new Ui::MainWindow),
     m_autoSaveTimer(new QTimer(this)),
     m_settingsDatabase(Q_NULLPTR),
-    m_noteWidgetsContainer(Q_NULLPTR),
     m_clearButton(Q_NULLPTR),
     m_greenMaximizeButton(Q_NULLPTR),
     m_redCloseButton(Q_NULLPTR),
@@ -53,13 +53,15 @@ MainWindow::MainWindow (QWidget *parent) :
     m_noteCounter(0),
     m_trashCounter(0),
     m_layoutMargin(10),
+    m_shadowWidth(10),
     m_noteListWidth(200),
     m_canMoveWindow(false),
     m_canStretchWindow(false),
     m_isTemp(false),
     m_isListViewScrollBarHidden(true),
     m_isContentModified(false),
-    m_isOperationRunning(false)
+    m_isOperationRunning(false),
+    m_dontShowUpdateWindow(false)
 {
     ui->setupUi(this);
     setupMainWindow();
@@ -69,7 +71,7 @@ MainWindow::MainWindow (QWidget *parent) :
     setupNewNoteButtonAndTrahButton();
     setupSplitter();
     setupLine();
-    setupRightFrame ();
+    setupRightFrame();
     setupTitleBarButtons();
     setupLineEdit();
     setupTextEdit();
@@ -144,6 +146,41 @@ void MainWindow::setMainWindowVisibility(bool state)
         m_restoreAction->setText(tr("&Show Notes"));
         hide();
     }
+}
+
+void MainWindow::paintEvent(QPaintEvent* event)
+{
+    QPainter painter(this);
+    painter.save();
+
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(Qt::NoPen);
+
+    dropShadow(painter, ShadowType::Linear, ShadowSide::Left  );
+    dropShadow(painter, ShadowType::Linear, ShadowSide::Top   );
+    dropShadow(painter, ShadowType::Linear, ShadowSide::Right );
+    dropShadow(painter, ShadowType::Linear, ShadowSide::Bottom);
+
+    dropShadow(painter, ShadowType::Radial, ShadowSide::TopLeft    );
+    dropShadow(painter, ShadowType::Radial, ShadowSide::TopRight   );
+    dropShadow(painter, ShadowType::Radial, ShadowSide::BottomRight);
+    dropShadow(painter, ShadowType::Radial, ShadowSide::BottomLeft );
+
+    painter.restore();
+    QMainWindow::paintEvent(event);
+}
+
+void MainWindow::resizeEvent(QResizeEvent* event)
+{
+    //restore note list width
+    QList<int> sizes = m_splitter->sizes();
+    if(sizes.at(0) != 0){
+        sizes[0] = m_noteListWidth;
+        sizes[1] = m_splitter->width() - m_noteListWidth;
+        m_splitter->setSizes(sizes);
+    }
+
+    QMainWindow::resizeEvent(event);
 }
 
 /**
@@ -367,6 +404,7 @@ void MainWindow::setupTitleBarButtons ()
  */
 void MainWindow::setupSignalsSlots()
 {
+    connect(&m_updater, &UpdaterWindow::dontShowUpdateWindowChanged, [=](bool state){m_dontShowUpdateWindow = state;});
     // actions
     // connect(rightToLeftActionion, &QAction::triggered, this, );
     //connect(checkForUpdatesAction, &QAction::triggered, this, );
@@ -411,6 +449,7 @@ void MainWindow::setupSignalsSlots()
     connect(m_noteModel, &NoteModel::rowsMoved, m_noteView, &NoteView::rowsMoved);
     // auto save timer
     connect(m_autoSaveTimer, &QTimer::timeout, [this](){
+        m_autoSaveTimer->stop();
         saveNoteToDB(m_currentSelectedNoteProxy);
     });
     // clear button
@@ -435,7 +474,9 @@ void MainWindow::setupSignalsSlots()
  */
 void MainWindow::autoCheckForUpdates()
 {
-    m_updater.checkForUpdates (true);
+    m_updater.installEventFilter(this);
+    m_updater.setShowWindowDisable(m_dontShowUpdateWindow);
+    m_updater.checkForUpdates(false);
 }
 
 /**
@@ -526,27 +567,39 @@ void MainWindow::setupTextEdit ()
 
 #ifdef __APPLE__
     m_textEdit->setFont(QFont("Helvetica Neue", 14));
-#else
-    m_textEdit->setTextColor(QColor(26, 26, 26));
 #endif
 }
 
 void MainWindow::initializeSettingsDatabase()
 {
     if(m_settingsDatabase->value("version", "NULL") == "NULL")
-        m_settingsDatabase->setValue("version", "0.8.0");
+        m_settingsDatabase->setValue("version", qApp->applicationVersion());
 
     if(m_settingsDatabase->value("defaultWindowWidth", "NULL") == "NULL")
-        m_settingsDatabase->setValue("defaultWindowWidth", 757);
+        m_settingsDatabase->setValue("defaultWindowWidth", 640);
 
     if(m_settingsDatabase->value("defaultWindowHeight", "NULL") == "NULL")
-        m_settingsDatabase->setValue("defaultWindowHeight", 341);
+        m_settingsDatabase->setValue("defaultWindowHeight", 480);
 
-    if(m_settingsDatabase->value("windowGeometry", "NULL") == "NULL")
+    if(m_settingsDatabase->value("dontShowUpdateWindow", "NULL") == "NULL")
+        m_settingsDatabase->setValue("dontShowUpdateWindow", m_dontShowUpdateWindow);
+
+
+    if(m_settingsDatabase->value("windowGeometry", "NULL") == "NULL"){
+        QPoint center = qApp->desktop()->geometry().center();
+        QRect rect(center.x() - 757/2, center.y() - 341/2, 757, 341);
+        setGeometry(rect);
         m_settingsDatabase->setValue("windowGeometry", saveGeometry());
+    }
 
-    if(m_settingsDatabase->value("splitterSizes", "NULL") == "NULL")
+    if(m_settingsDatabase->value("splitterSizes", "NULL") == "NULL"){
+        m_splitter->resize(width()-2*m_layoutMargin, height()-2*m_layoutMargin);
+        QList<int> sizes = m_splitter->sizes();
+        sizes[0] = m_noteListWidth;
+        sizes[1] = m_splitter->width() - m_noteListWidth;
+        m_splitter->setSizes(sizes);
         m_settingsDatabase->setValue("splitterSizes", m_splitter->saveState());
+    }
 }
 
 /**
@@ -608,19 +661,18 @@ void MainWindow::setupModelView()
 */
 void MainWindow::restoreStates()
 {
-    this->restoreGeometry(m_settingsDatabase->value("windowGeometry").toByteArray());
+    if(m_settingsDatabase->value("windowGeometry", "NULL") != "NULL")
+        this->restoreGeometry(m_settingsDatabase->value("windowGeometry").toByteArray());
 
-    m_splitter->restoreState(m_settingsDatabase->value("splitterSizes").toByteArray());
+    if(m_settingsDatabase->value("dontShowUpdateWindow", "NULL") != "NULL")
+        m_dontShowUpdateWindow = m_settingsDatabase->value("dontShowUpdateWindow").toBool();
 
-    // If scrollArea is collapsed
-    if(m_splitter->sizes().at(0) == 0){
-        ui->verticalLayout_scrollArea->removeItem(ui->horizontalLayout_scrollArea_2);
-        ui->verticalLayout_textEdit->insertLayout(0, ui->horizontalLayout_scrollArea_2, 0);
-
-        ui->verticalLayout_scrollArea->removeItem(ui->verticalSpacer_upLineEdit);
-        ui->verticalLayout_textEdit->insertItem(0, ui->verticalSpacer_upLineEdit);
-        ui->verticalSpacer_upEditorDateLabel->changeSize(20, 5);
-    }
+    m_splitter->setCollapsible(0, true);
+    m_splitter->resize(width() - m_layoutMargin, height() - m_layoutMargin);
+    if(m_settingsDatabase->value("splitterSizes", "NULL") != "NULL")
+        m_splitter->restoreState(m_settingsDatabase->value("splitterSizes").toByteArray());
+    m_noteListWidth = m_splitter->sizes().at(0);
+    m_splitter->setCollapsible(0, false);
 }
 
 /**
@@ -863,13 +915,15 @@ void MainWindow::onDotsButtonClicked()
     QMenu* viewMenu = mainMenu.addMenu("View");
     QMenu* importExportNotesMenu = mainMenu.addMenu("Import/Export Notes");
 
-    mainMenu.setStyleSheet("QMenu { "
-                              "  background-color: rgb(247, 247, 247); "
-                              "  border: 1px solid #308CC6; "
-                              "  }"
-                              "QMenu::item:selected { "
-                              "  background: 1px solid #308CC6; "
-                              "  }");
+    mainMenu.setStyleSheet(QStringLiteral(
+                               "QMenu { "
+                               "  background-color: rgb(255, 255, 255); "
+                               "  border: 1px solid #C7C7C7; "
+                               "  }"
+                               "QMenu::item:selected { "
+                               "  background: 1px solid #308CC6; "
+                               "}")
+                           );
 
 #ifdef __APPLE__
     mainMenu.setFont(QFont("Helvetica Neue", 13));
@@ -888,28 +942,36 @@ void MainWindow::onDotsButtonClicked()
 
     QAction* noteListVisbilityAction = viewMenu->addAction(actionLabel);
     if(isCollapsed){
-        connect(noteListVisbilityAction, SIGNAL(triggered(bool)), this, SLOT(expandNoteList()));
+        connect(noteListVisbilityAction, &QAction::triggered, this, &MainWindow::expandNoteList);
     }else{
-        connect(noteListVisbilityAction, SIGNAL(triggered(bool)), this, SLOT(collapseNoteList()));
+        connect(noteListVisbilityAction, &QAction::triggered, this, &MainWindow::collapseNoteList);
     }
 
     // Check for update action
-    QAction* checkForUpdatesAction = mainMenu.addAction (tr("Check For Updates"));
-    connect (checkForUpdatesAction, SIGNAL (triggered (bool)),
-             this, SLOT (checkForUpdates (bool)));
+    QAction* checkForUpdatesAction = mainMenu.addAction(tr("Check For Updates"));
+    connect (checkForUpdatesAction, &QAction::triggered, this, &MainWindow::checkForUpdates);
+
+    mainMenu.addSeparator();
+
+    // Close the app
+    QAction* quitAppAction = mainMenu.addAction(tr("Quit"));
+    connect (quitAppAction, &QAction::triggered, this, &MainWindow::QuitApplication);
 
     // Export notes action
     QAction* exportNotesFileAction = importExportNotesMenu->addAction (tr("Export"));
+    exportNotesFileAction->setToolTip(tr("Save notes to a file"));
     connect (exportNotesFileAction, SIGNAL (triggered (bool)),
              this, SLOT (exportNotesFile (bool)));
 
     // Import notes action
-    QAction* importNotesFileAction = importExportNotesMenu->addAction (tr("Import   - (Add notes from a file)"));
+    QAction* importNotesFileAction = importExportNotesMenu->addAction (tr("Import"));
+    importNotesFileAction->setToolTip(tr("Add notes from a file"));
     connect (importNotesFileAction, SIGNAL (triggered (bool)),
              this, SLOT (importNotesFile (bool)));
 
     // Restore notes action
-    QAction* restoreNotesFileAction = importExportNotesMenu->addAction (tr("Restore - (Replace all notes with notes from a file)"));
+    QAction* restoreNotesFileAction = importExportNotesMenu->addAction (tr("Restore"));
+    restoreNotesFileAction->setToolTip(tr("Replace all notes with notes from a file"));
     connect (restoreNotesFileAction, SIGNAL (triggered (bool)),
              this, SLOT (restoreNotesFile (bool)));
 
@@ -1253,6 +1315,8 @@ void MainWindow::selectNoteDown ()
 */
 void MainWindow::fullscreenWindow ()
 {
+    m_noteListWidth = m_splitter->sizes().at(0) != 0 ? m_splitter->sizes().at(0) : m_noteListWidth;
+
 #ifndef _WIN32
     QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
 
@@ -1281,6 +1345,9 @@ void MainWindow::fullscreenWindow ()
 */
 void MainWindow::maximizeWindow ()
 {
+
+    m_noteListWidth = m_splitter->sizes().at(0) != 0 ? m_splitter->sizes().at(0) : m_noteListWidth;
+
 #ifndef _WIN32
     QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
 
@@ -1339,12 +1406,11 @@ void MainWindow::QuitApplication ()
  * Called when the "Check for Updates" menu item is clicked, this function
  * instructs the updater window to check if there are any updates available
  *
- * \note This code won't be executed under Linux builds
  * \param clicked required by the signal/slot connection, the value is ignored
  */
-void MainWindow::checkForUpdates (const bool clicked) {
+void MainWindow::checkForUpdates(const bool clicked) {
     Q_UNUSED (clicked);
-    m_updater.checkForUpdates (false);
+    m_updater.checkForUpdates(true);
 }
 
 /**
@@ -1407,7 +1473,13 @@ void MainWindow::executeImport(const bool replace) {
         }
         QList<NoteData*> noteList;
         QDataStream in(&file);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
         in.setVersion(QDataStream::Qt_5_6);
+#elif QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+        in.setVersion(QDataStream::Qt_5_4);
+#elif QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
+        in.setVersion(QDataStream::Qt_5_2);
+#endif
 
         try {
             in >> noteList;
@@ -1469,7 +1541,13 @@ void MainWindow::exportNotesFile (const bool clicked) {
             return;
         }
         QDataStream out(&file);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
         out.setVersion(QDataStream::Qt_5_6);
+#elif QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+        out.setVersion(QDataStream::Qt_5_4);
+#elif QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
+        out.setVersion(QDataStream::Qt_5_2);
+#endif
         out << m_dbManager->getAllNotes();
         file.close();
     }
@@ -1487,9 +1565,12 @@ void MainWindow::collapseNoteList()
 
 void MainWindow::expandNoteList()
 {
+    int minWidth = ui->frameLeft->minimumWidth();
+    int leftWidth = m_noteListWidth < minWidth ? minWidth : m_noteListWidth;
+
     QList<int> sizes = m_splitter->sizes();
-    sizes[0] = m_noteListWidth;
-    sizes[1] = m_splitter->width() - m_noteListWidth;
+    sizes[0] = leftWidth;
+    sizes[1] = m_splitter->width() - leftWidth;
     m_splitter->setSizes(sizes);
 }
 
@@ -1609,6 +1690,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
         saveNoteToDB(m_currentSelectedNoteProxy);
     }
 
+    m_settingsDatabase->setValue("dontShowUpdateWindow", m_dontShowUpdateWindow);
+
     m_settingsDatabase->setValue("splitterSizes", m_splitter->saveState());
     m_settingsDatabase->sync();
 
@@ -1624,40 +1707,52 @@ void MainWindow::mousePressEvent(QMouseEvent* event)
     m_mousePressX = event->x();
     m_mousePressY = event->y();
 
-    if(m_mousePressX < this->width() - m_layoutMargin
-            && m_mousePressX >m_layoutMargin
-            && m_mousePressY < this->height() - m_layoutMargin
-            && m_mousePressY > m_layoutMargin){
+    if(event->buttons() == Qt::LeftButton){
+        if(m_mousePressX < this->width() - m_layoutMargin
+                && m_mousePressX >m_layoutMargin
+                && m_mousePressY < this->height() - m_layoutMargin
+                && m_mousePressY > m_layoutMargin){
 
-        m_canMoveWindow = true;
-    }else{
-        m_canStretchWindow = true;
-        if((m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin)
-                && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)){
-            m_stretchSide = StretchSide::TopRight;
-        }else if((m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin)
-                 && (m_mousePressY < this->height() && m_mousePressY > this->height() - m_layoutMargin)){
-            m_stretchSide = StretchSide::BottomRight;
-        }else if((m_mousePressX < m_layoutMargin && m_mousePressX > 0)
-                 && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)){
-            m_stretchSide = StretchSide::TopLeft;
-        }else if((m_mousePressX < m_layoutMargin && m_mousePressX > 0)
-                 && (m_mousePressY < this->height() && m_mousePressY > this->height() - m_layoutMargin)){
-            m_stretchSide = StretchSide::BottomLeft;
-        }else if(m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin){
-            m_stretchSide = StretchSide::Right;
-        }else if(m_mousePressX < m_layoutMargin && m_mousePressX > 0){
-            m_stretchSide = StretchSide::Left;
-        }else if(m_mousePressY < this->height() && m_mousePressY > this->height() - m_layoutMargin){
-            m_stretchSide = StretchSide::Bottom;
-        }else if(m_mousePressY < m_layoutMargin && m_mousePressY > 0){
-            m_stretchSide = StretchSide::Top;
+                m_canMoveWindow = true;
+                QApplication::setOverrideCursor(QCursor(Qt::ClosedHandCursor));
+
         }else{
-            m_stretchSide = StretchSide::None;
-        }
-    }
+            m_canStretchWindow = true;
 
-    event->accept();
+            int currentWidth = m_splitter->sizes().at(0);
+            if(currentWidth != 0)
+                m_noteListWidth = currentWidth;
+
+            if((m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin)
+                    && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)){
+                m_stretchSide = StretchSide::TopRight;
+            }else if((m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin)
+                     && (m_mousePressY < this->height() && m_mousePressY > this->height() - m_layoutMargin)){
+                m_stretchSide = StretchSide::BottomRight;
+            }else if((m_mousePressX < m_layoutMargin && m_mousePressX > 0)
+                     && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)){
+                m_stretchSide = StretchSide::TopLeft;
+            }else if((m_mousePressX < m_layoutMargin && m_mousePressX > 0)
+                     && (m_mousePressY < this->height() && m_mousePressY > this->height() - m_layoutMargin)){
+                m_stretchSide = StretchSide::BottomLeft;
+            }else if(m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin){
+                m_stretchSide = StretchSide::Right;
+            }else if(m_mousePressX < m_layoutMargin && m_mousePressX > 0){
+                m_stretchSide = StretchSide::Left;
+            }else if(m_mousePressY < this->height() && m_mousePressY > this->height() - m_layoutMargin){
+                m_stretchSide = StretchSide::Bottom;
+            }else if(m_mousePressY < m_layoutMargin && m_mousePressY > 0){
+                m_stretchSide = StretchSide::Top;
+            }else{
+                m_stretchSide = StretchSide::None;
+            }
+        }
+
+        event->accept();
+
+    }else{
+        QMainWindow::mousePressEvent(event);
+    }
 }
 
 /**
@@ -1811,6 +1906,12 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
         }
 
         setGeometry(newX, newY, newWidth, newHeight);
+        QList<int> sizes = m_splitter->sizes();
+        if(sizes[0] != 0){
+            sizes[0] = m_noteListWidth;
+            sizes[1] = m_splitter->width() - m_noteListWidth;
+            m_splitter->setSizes(sizes);
+        }
     }
     event->accept();
 }
@@ -1823,6 +1924,7 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
     m_canMoveWindow = false;
     m_canStretchWindow = false;
+    QApplication::restoreOverrideCursor();
     event->accept();
 }
 #else
@@ -2053,6 +2155,120 @@ void MainWindow::migrateTrash(QString trashPath)
     oldTrashDBFile.rename(QFileInfo(trashPath).dir().path() + "/oldTrash.ini");
 }
 
+void MainWindow::dropShadow(QPainter& painter, ShadowType type, MainWindow::ShadowSide side)
+{
+
+    int resizedShadowWidth = m_shadowWidth > m_layoutMargin ? m_layoutMargin : m_shadowWidth;
+
+    QRect mainRect   = rect();
+
+    QRect innerRect(m_layoutMargin,
+                    m_layoutMargin,
+                    mainRect.width() - 2 * resizedShadowWidth + 1,
+                    mainRect.height() - 2 * resizedShadowWidth + 1);
+    QRect outerRect(innerRect.x() - resizedShadowWidth,
+                    innerRect.y() - resizedShadowWidth,
+                    innerRect.width() + 2* resizedShadowWidth,
+                    innerRect.height() + 2* resizedShadowWidth);
+
+    QPoint center;
+    QPoint topLeft;
+    QPoint bottomRight;
+    QPoint shadowStart;
+    QPoint shadowStop;
+    QRadialGradient radialGradient;
+    QLinearGradient linearGradient;
+
+    switch (side) {
+    case ShadowSide::Left :
+        topLeft     = QPoint(outerRect.left(), innerRect.top() + 1);
+        bottomRight = QPoint(innerRect.left(), innerRect.bottom() - 1);
+        shadowStart = QPoint(innerRect.left(), innerRect.top() + 1);
+        shadowStop  = QPoint(outerRect.left(), innerRect.top() + 1);
+        break;
+    case ShadowSide::Top :
+        topLeft     = QPoint(innerRect.left() + 1, outerRect.top());
+        bottomRight = QPoint(innerRect.right() - 1, innerRect.top());
+        shadowStart = QPoint(innerRect.left() + 1, innerRect.top());
+        shadowStop  = QPoint(innerRect.left() + 1, outerRect.top());
+        break;
+    case ShadowSide::Right :
+        topLeft     = QPoint(innerRect.right(), innerRect.top() + 1);
+        bottomRight = QPoint(outerRect.right(), innerRect.bottom() - 1);
+        shadowStart = QPoint(innerRect.right(), innerRect.top() + 1);
+        shadowStop  = QPoint(outerRect.right(), innerRect.top() + 1);
+        break;
+    case ShadowSide::Bottom :
+        topLeft     = QPoint(innerRect.left() + 1, innerRect.bottom());
+        bottomRight = QPoint(innerRect.right() - 1, outerRect.bottom());
+        shadowStart = QPoint(innerRect.left() + 1, innerRect.bottom());
+        shadowStop  = QPoint(innerRect.left() + 1, outerRect.bottom());
+        break;
+    case ShadowSide::TopLeft:
+        topLeft     = outerRect.topLeft();
+        bottomRight = innerRect.topLeft();
+        center      = innerRect.topLeft();
+        break;
+    case ShadowSide::TopRight:
+        topLeft     = QPoint(innerRect.right(), outerRect.top());
+        bottomRight = QPoint(outerRect.right(), innerRect.top());
+        center      = innerRect.topRight();
+        break;
+    case ShadowSide::BottomRight:
+        topLeft     = innerRect.bottomRight();
+        bottomRight = outerRect.bottomRight();
+        center      = innerRect.bottomRight();
+        break;
+    case ShadowSide::BottomLeft:
+        topLeft     = QPoint(outerRect.left(), innerRect.bottom());
+        bottomRight = QPoint(innerRect.left(), outerRect.bottom());
+        center      = innerRect.bottomLeft();
+        break;
+    default:
+        break;
+    }
+
+
+    QRect zone(topLeft, bottomRight);
+    radialGradient = QRadialGradient(center, resizedShadowWidth, center);
+
+    linearGradient.setStart(shadowStart);
+    linearGradient.setFinalStop(shadowStop);
+
+    switch (type) {
+    case ShadowType::Radial :
+        fillRectWithGradient(painter, zone, radialGradient);
+        break;
+    case ShadowType::Linear :
+        fillRectWithGradient(painter, zone, linearGradient);
+        break;
+    default:
+        break;
+    }
+}
+
+void MainWindow::fillRectWithGradient(QPainter& painter, const QRect& rect, QGradient& gradient)
+{
+    double variance = 0.2;
+    double xMax = 1.10;
+    double q = 70/gaussianDist(0, 0, sqrt(variance));
+    double nPt = 100.0;
+
+    for(int i=0; i<=nPt; i++){
+        double v = gaussianDist(i*xMax/nPt, 0, sqrt(variance));
+
+        QColor c(168, 168, 168, q*v);
+        gradient.setColorAt(i/nPt, c);
+    }
+
+    painter.fillRect(rect, gradient);
+}
+
+double MainWindow::gaussianDist(double x, const double center, double sigma) const
+{
+    return (1.0 / (2 * M_PI * pow(sigma, 2)) * exp( - pow(x - center, 2) / (2 * pow(sigma, 2))));
+}
+
 /**
 * @brief
 * When the blank area at the top of window is double-clicked the window get maximized
@@ -2173,6 +2389,11 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
         break;
     }
     case QEvent::WindowDeactivate:{
+
+        m_canMoveWindow = false;
+        m_canStretchWindow = false;
+        QApplication::restoreOverrideCursor();
+
 #ifndef _WIN32
         m_redCloseButton->setIcon(QIcon(":images/unfocusedButton"));
         m_yellowMinimizeButton->setIcon(QIcon(":images/unfocusedButton"));
@@ -2306,6 +2527,19 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
         }
         break;
     }
+    case QEvent::Show:
+        if(object == &m_updater){
+
+            QRect rect = m_updater.geometry();
+            QRect appRect = geometry();
+            int titleBarHeight = 28 ;
+
+            int x = appRect.x() + (appRect.width() - rect.width())/2.0;
+            int y = appRect.y() + titleBarHeight  + (appRect.height() - rect.height())/2.0;
+
+            m_updater.setGeometry(QRect(x, y, rect.width(), rect.height()));
+        }
+        break;
     default:
         break;
     }

@@ -48,12 +48,14 @@ static const QDir DOWNLOAD_DIR(QDir::homePath()+ "/Downloads/");
 /**
  * Initializes the window components and configures the QSimpleUpdater
  */
-UpdaterWindow::UpdaterWindow(QWidget *parent): QWidget(parent),
+UpdaterWindow::UpdaterWindow(QWidget *parent) :
+    QWidget(parent),
     m_fileName(""),
     m_ui(new Ui::UpdaterWindow),
-    m_silent(false),
     m_canMoveWindow(false),
     m_checkingForUpdates(false),
+    m_dontShowUpdateWindow(false),
+    m_forced(false),
     m_reply(Q_NULLPTR),
     m_updater(QSimpleUpdater::getInstance()),
     m_manager(new QNetworkAccessManager(this))
@@ -74,12 +76,10 @@ UpdaterWindow::UpdaterWindow(QWidget *parent): QWidget(parent),
     m_ui->changelog->setFont(QFont("Arimo"));
 
     /* Connect UI signals/slots */
-    connect(m_ui->closeButton,  SIGNAL(clicked()),
-            this, SLOT(close()));
-    connect(m_ui->updateButton, SIGNAL(clicked()),
-            this, SLOT(onDownloadButtonClicked()));
-    connect(m_updater, SIGNAL(checkingFinished(QString)),
-            this, SLOT(onCheckFinished (QString)));
+    connect(m_ui->closeButton,  &QPushButton::clicked, this, &UpdaterWindow::close);
+    connect(m_ui->updateButton, &QPushButton::clicked, this, &UpdaterWindow::onDownloadButtonClicked);
+    connect(m_updater, &QSimpleUpdater::checkingFinished,this, &UpdaterWindow::onCheckFinished);
+    connect(m_ui->checkBox, &QCheckBox::toggled, this ,&UpdaterWindow::dontShowUpdateWindowChanged);
 
     /* Start the UI loops */
     updateTitleLabel();
@@ -117,30 +117,41 @@ UpdaterWindow::~UpdaterWindow()
     delete m_ui;
 }
 
+void UpdaterWindow::setShowWindowDisable(const bool dontShowWindow)
+{
+    m_dontShowUpdateWindow = dontShowWindow;
+    m_ui->checkBox->setChecked(m_dontShowUpdateWindow);
+}
+
 /**
  * Instructs the QSimpleUpdater to download and interpret the updater
  * definitions file
  */
-void UpdaterWindow::checkForUpdates(bool silent)
+void UpdaterWindow::checkForUpdates(bool force)
 {
     /* Change the silent flag */
-    m_silent = silent;
-    m_checkingForUpdates = true;
+    if(!m_updater->getUpdateAvailable(UPDATES_URL)){
+        m_checkingForUpdates = true;
 
-    /* Set module properties */
-    m_updater->setNotifyOnFinish(UPDATES_URL, false);
-    m_updater->setNotifyOnUpdate(UPDATES_URL, false);
-    m_updater->setDownloaderEnabled(UPDATES_URL, false);
-    m_updater->setUseCustomInstallProcedures(UPDATES_URL, true);
-    m_updater->setModuleVersion(UPDATES_URL, qApp->applicationVersion());
+        m_forced = force;
 
-    /* Check for updates */
-    m_updater->checkForUpdates(UPDATES_URL);
+        /* Set module properties */
+        m_updater->setNotifyOnFinish(UPDATES_URL, false);
+        m_updater->setNotifyOnUpdate(UPDATES_URL, false);
+        m_updater->setDownloaderEnabled(UPDATES_URL, false);
+        m_updater->setUseCustomInstallProcedures(UPDATES_URL, true);
+        m_updater->setModuleVersion(UPDATES_URL, qApp->applicationVersion());
 
-    /* Show window if silent flag is not set */
-    if(!m_silent){
-        m_ui->updateButton->setEnabled(false);
-        m_ui->title->setText(tr("Checking for updates...."));
+        /* Check for updates */
+        m_updater->checkForUpdates(UPDATES_URL);
+    }
+
+    /* Show window if force flag is set */
+    if(force){
+        if(!m_updater->getUpdateAvailable(UPDATES_URL)){
+            m_ui->updateButton->setEnabled(false);
+            m_ui->title->setText(tr("Checking for updates...."));
+        }
 
         resetControls();
         showNormal();
@@ -231,8 +242,10 @@ void UpdaterWindow::updateTitleLabel()
  */
 void UpdaterWindow::onUpdateAvailable()
 {
-    resetControls();
-    showNormal();
+    if(!m_dontShowUpdateWindow){
+        resetControls();
+        showNormal();
+    }
 }
 
 /**
@@ -268,7 +281,11 @@ void UpdaterWindow::startDownload(const QUrl& url)
     /* Start download */
     m_startTime = QDateTime::currentDateTime().toTime_t();
     QNetworkRequest netReq(url);
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     netReq.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
+#endif
+
     m_reply = m_manager->get(netReq);
 
     /* Set file name */
@@ -291,9 +308,8 @@ void UpdaterWindow::startDownload(const QUrl& url)
     showNormal();
 
     /* Update UI when download progress changes or download finishes */
-    connect(m_reply, SIGNAL(downloadProgress(qint64, qint64)),
-            this, SLOT(updateProgress(qint64, qint64)));
-    connect(m_reply, SIGNAL(finished()), this, SLOT(onDownloadFinished()));
+    connect(m_reply, &QNetworkReply::downloadProgress, this, &UpdaterWindow::updateProgress);
+    connect(m_reply, &QNetworkReply::finished, this, &UpdaterWindow::onDownloadFinished);
 }
 
 /**
@@ -339,13 +355,17 @@ void UpdaterWindow::openDownload(const QString& file)
  */
 void UpdaterWindow::onCheckFinished(const QString &url)
 {
+    Q_UNUSED(url)
+
     /* Do not allow the title label to change automatically */
     m_checkingForUpdates = false;
+
 
     /* There is an update available, show the window */
     if(m_updater->getUpdateAvailable(url)&&(UPDATES_URL == url)){
         onUpdateAvailable();
-    }else if(!m_silent){
+    }else if(m_forced){
+        m_forced = false;
         resetControls();
         showNormal();
     }
@@ -507,15 +527,22 @@ void UpdaterWindow::calculateTimeRemaining(qint64 received, qint64 total)
 
 void UpdaterWindow::onDownloadFinished()
 {
-    QString filePath = DOWNLOAD_DIR.filePath(m_fileName);
-    QFile file(filePath);
-    if(file.open(QIODevice::WriteOnly | QIODevice::Append)){
-        file.write(m_reply->readAll());
-        file.close();
-        qApp->processEvents();
-    }
+   QString redirectedUrl = m_reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
 
-    openDownload(filePath);
+   if(redirectedUrl.isEmpty()){
+
+        QString filePath = DOWNLOAD_DIR.filePath(m_fileName);
+        QFile file(filePath);
+        if(file.open(QIODevice::WriteOnly | QIODevice::Append)){
+            file.write(m_reply->readAll());
+            file.close();
+            qApp->processEvents();
+        }
+
+        openDownload(filePath);
+   }else{
+       startDownload(redirectedUrl);
+   }
 }
 
 /**

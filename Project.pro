@@ -1,8 +1,7 @@
 TEMPLATE = subdirs
 
 SUBDIRS = \
-    src \
-    tests
+    src
 
 CONFIG += ordered
 

@@ -1,8 +1,9 @@
 #!/bin/sh
 
 # Variables
-license=custom
+license=gpl2
 project="notes-0.9.0"
+#project="notes-$(git describe --tags HEAD | cut -d- -f1 | sed 's/^v//')~git$(git rev-parse --short HEAD)"
 authorEmail="awesomeness.notes@gmail.com"
 
 # Remove old build
@@ -12,30 +13,26 @@ if [ -d "$project" ]; then
 fi
 
 # Generate folders
-mkdir deb_build
-cd deb_build
-mkdir $project
-cd $project
+mkdir -p deb_build/$project
+cd deb_build/$project
 
 # Build binary
 mkdir build
 cd build
-qmake -qt5 ../../../../../src/Notes.pro
+qmake ../../../../../src/Notes.pro
 make -j4
 mv notes ../
 cd ..
 rm -r build
 
-#
-
 # Copy icon & desktop file
 cp ../../common/LICENSE license.txt
 cp -a ../../common/icons .
 cp ../../common/notes.desktop notes.desktop
-
+cp ../../debian/copyright copyright
 # Copy debian config to build directory
 cp -avr ../../debian debian
 
 # Generate source build & debian package"
-dh_make -s -c $license --copyrightfile license.txt -e $authorEmail --createorig
-dpkg-buildpackage
+DEBFULLNAME="Nutty Artist" EMAIL="awesomeness.notes@gmail.com" dh_make -y -s -c $license --createorig
+dpkg-buildpackage -us -uc

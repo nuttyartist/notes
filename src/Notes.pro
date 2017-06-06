@@ -61,17 +61,18 @@ linux:!android {
 
     BINDIR  = $$PREFIX/bin
 
-    target.path = $$BINDIR
-    icon.path =  $$PREFIX/share/pixmaps
-    desktop.path =  $$PREFIX/share/applications
-    icon.files += $$PWD/packaging/linux/common/notes.png
+    target.path    = $$BINDIR
+    icon.path      = $$PREFIX/share/pixmaps
+    desktop.path   = $$PREFIX/share/applications
+    icon.files    += $$PWD/packaging/linux/common/notes.png
     desktop.files += $$PWD/packaging/linux/common/notes.desktop
 
-    TARGET = notes
+    TARGET    = notes
     INSTALLS += target desktop icon
 
+    # SNAP  --------------------------------------------------------------------------------
     GIT_REV = $$system(git rev-parse --short HEAD)
-    SNAPDIR = $$PWD/../packaging/linux/snap
+    SNAPDIR = $$_PRO_FILE_PWD_/../packaging/linux/snap
 
     # This command bumps the version in the final snap every time it is built,
     # appending the git version of the latest commit to the VERSION variable
@@ -82,13 +83,74 @@ linux:!android {
     # Note: while it is planned to make snapcraft work across distros at the
     # time of writing `snapcraft` only works on Ubuntu. This means the snap
     # needs to be built from an Ubuntu host.
-    snap.commands = cd $$SNAPDIR && \
-        snapcraft clean && snapcraft
+    snap.commands = rm -rf snap &&\
+                    mkdir snap &&\
+                    cd snap &&\
+                    ln -s $$SNAPDIR/snapcraft.yaml ./snapcraft.yaml &&\
+                    cp -r $$_PRO_FILE_PWD_/../../notes /tmp/ && rm -r /tmp/notes/build && cp -r /tmp/notes . &&\
+                    sed -i \"s@^\\( *source: *\\).*@\\1./notes/@g\" snapcraft.yaml &&\
+                    snapcraft clean && snapcraft
+
     snap.depends = snap_bump_version
 
-    QMAKE_EXTRA_TARGETS   += \
-        snap \
-        snap_bump_version
+    # Debian -------------------------------------------------------------------------------
+
+    License = gpl2
+    Project = "$$TARGET-$$VERSION"
+
+    AuthorEmail = \"awesomeness.notes@gmail.com\"
+    AuthorName = \"Nutty Artist\"
+
+    deb.target   = deb
+    deb.depends  = $$TARGET
+    deb.depends  = fix_deb_dependencies
+    deb.commands = rm -rf deb &&\
+                   mkdir -p deb/$$Project &&\
+                   cp $$TARGET deb/$$Project &&\
+                   cp $$_PRO_FILE_PWD_/../packaging/linux/common/LICENSE deb/$$Project/license.txt &&\
+                   cp -a $$_PRO_FILE_PWD_/../packaging/linux/common/icons deb/$$Project/ &&\
+                   cp $$_PRO_FILE_PWD_/../packaging/linux/common/notes.desktop deb/$$Project/notes.desktop &&\
+                   cp $$_PRO_FILE_PWD_/../packaging/linux/debian/copyright deb/$$Project/copyright &&\
+                   cp -avr $$_PRO_FILE_PWD_/../packaging/linux/debian deb/$$Project/debian &&\
+                   cd deb/$$Project/ &&\
+                   DEBFULLNAME=$$AuthorName EMAIL=$$AuthorEmail dh_make -y -s -c $$License --createorig; \
+                   dpkg-buildpackage -uc -us
+
+    fix_deb_dependencies.commands = \
+        sed -i -- 's/5.2/$$QT_MAJOR_VERSION\.$$QT_MINOR_VERSION/g'  $$_PRO_FILE_PWD_/../packaging/linux/debian/control
+
+    # AppImage -------------------------------------------------------------------------------
+
+    appimage.target   = appimage
+    appimage.depends  = deb
+    appimage.commands = rm -rf appdir &&\
+                        mkdir appdir &&\
+                        cd appdir &&\
+                        dpkg -x ../deb/*.deb . &&\
+                        cp $$_PRO_FILE_PWD_/../packaging/linux/common/notes.desktop . &&\
+                        cp $$_PRO_FILE_PWD_/../packaging/linux/common/icons/256x256/notes.png . &&\
+                        mkdir -p ./usr/share/icons/default/256x256/apps/ &&\
+                        cp $$_PRO_FILE_PWD_/../packaging/linux/common/icons/256x256/notes.png ./usr/share/icons/default/256x256/apps/  &&\
+                        cd .. &&\
+                        wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/4/linuxdeployqt-4-x86_64.AppImage"  &&\
+                        chmod a+x linuxdeployqt*.AppImage  &&\
+                        unset QTDIR; unset QT_PLUGIN_PATH &&\
+                        unset LD_LIBRARY_PATH  &&\
+                        ./linuxdeployqt*.AppImage ./appdir/usr/bin/notes -bundle-non-qt-libs  &&\
+                        ./linuxdeployqt*.AppImage ./appdir/usr/bin/notes -bundle-non-qt-libs  &&\
+                        ./linuxdeployqt*.AppImage --appimage-extract  &&\
+                        wget -c https://github.com/probonopd/AppImageKit/raw/master/desktopintegration -O ./appdir/usr/bin/notes.wrapper  &&\
+                        chmod a+x ./appdir/usr/bin/notes.wrapper  &&\
+                        (cd ./appdir/ ; rm AppRun ; ln -s ./usr/bin/notes.wrapper AppRun)  &&\
+                        ./squashfs-root/usr/bin/appimagetool ./appdir/
+
+    # EXTRA --------------------------------------------------------------------------------
+    QMAKE_EXTRA_TARGETS += \
+                           snap                 \
+                           snap_bump_version    \
+                           deb                  \
+                           fix_deb_dependencies \
+                           appimage
 }
 
 macx {

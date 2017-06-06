@@ -41,6 +41,22 @@ class MainWindow : public QMainWindow
 
 public:
 
+    enum class ShadowType{
+        Linear = 0,
+        Radial
+        };
+
+    enum class ShadowSide{
+        Left = 0,
+        Right,
+        Top,
+        Bottom,
+        TopLeft,
+        TopRight,
+        BottomLeft,
+        BottomRight
+        };
+
     enum class StretchSide{
         None = 0,
         Left,
@@ -53,7 +69,11 @@ public:
         BottomRight
         };
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
+    Q_ENUM(ShadowType)
+    Q_ENUM(ShadowSide)
     Q_ENUM(StretchSide)
+#endif
 
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
@@ -61,6 +81,8 @@ public:
     void setMainWindowVisibility(bool state);
 
 protected:
+    void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
+    void resizeEvent(QResizeEvent* event) Q_DECL_OVERRIDE;
     void closeEvent(QCloseEvent* event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
@@ -75,7 +97,6 @@ private:
 
     QTimer* m_autoSaveTimer;
     QSettings* m_settingsDatabase;
-    QVBoxLayout* m_noteWidgetsContainer;
     QToolButton* m_clearButton;
     QPushButton* m_greenMaximizeButton;
     QPushButton* m_redCloseButton;
@@ -111,6 +132,7 @@ private:
     int m_noteCounter;
     int m_trashCounter;
     int m_layoutMargin;
+    int m_shadowWidth;
     int m_noteListWidth;
     bool m_canMoveWindow;
     bool m_canStretchWindow;
@@ -118,6 +140,7 @@ private:
     bool m_isListViewScrollBarHidden;
     bool m_isContentModified;
     bool m_isOperationRunning;
+    bool m_dontShowUpdateWindow;
 
     void setupMainWindow();
     void setupFonts();
@@ -157,6 +180,10 @@ private:
     void executeImport(const bool replace);
     void migrateNote(QString notePath);
     void migrateTrash(QString trashPath);
+
+    void dropShadow(QPainter& painter, ShadowType type, ShadowSide side);
+    void fillRectWithGradient(QPainter& painter, const QRect& rect, QGradient& gradient);
+    double gaussianDist(double x, const double center, double sigma) const;
 
 private slots:
     void InitData();

@@ -17,9 +17,11 @@ qrc_images.cpp
 *.snap
 *.swp
 __pycache__
+packaging/linux/deb_build/
 packaging/linux/snap/stage
 packaging/linux/snap/snap
 packaging/linux/snap/parts/notes
 packaging/linux/snap/parts/desktop
 prime/
 squashfs-root/
+build/
