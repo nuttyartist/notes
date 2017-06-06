@@ -914,6 +914,9 @@ void MainWindow::onDotsButtonClicked()
     QMenu mainMenu;
     QMenu* viewMenu = mainMenu.addMenu("View");
     QMenu* importExportNotesMenu = mainMenu.addMenu("Import/Export Notes");
+    importExportNotesMenu->setToolTipsVisible(true);
+    viewMenu->setToolTipsVisible(true);
+    mainMenu.setToolTipsVisible(true);
 
     mainMenu.setStyleSheet(QStringLiteral(
                                "QMenu { "
