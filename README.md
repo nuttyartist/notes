@@ -36,9 +36,9 @@ $> make -j4
 
 The notes database and settings file are stored:
 
-**Windows** : ```C:\Users\user\AppData\Roaming\Awesomeness```&nbsp;
-**Linux** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: ```/home/user/.config/Awesomeness/``` **or** ```/home/snap/notes/x1/.config/Awesomeness``` **(for Ubuntu 16.04 using snap)**&nbsp;
-**Mac** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: ```/home/.config/Awesomeness/```&nbsp;
+**Windows** : ```C:\Users\user\AppData\Roaming\Awesomeness```  
+**Linux** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: ```/home/user/.config/Awesomeness/``` **or** ```/home/snap/notes/x1/.config/Awesomeness``` **(using snap)**  
+**Mac** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: ```/home/.config/Awesomeness/```  
 
 ## Information for Contributors
 
