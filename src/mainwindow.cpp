@@ -579,19 +579,14 @@ void MainWindow::initializeSettingsDatabase()
     if(m_settingsDatabase->value("version", "NULL") == "NULL")
         m_settingsDatabase->setValue("version", qApp->applicationVersion());
 
-    if(m_settingsDatabase->value("defaultWindowWidth", "NULL") == "NULL")
-        m_settingsDatabase->setValue("defaultWindowWidth", 640);
-
-    if(m_settingsDatabase->value("defaultWindowHeight", "NULL") == "NULL")
-        m_settingsDatabase->setValue("defaultWindowHeight", 480);
-
     if(m_settingsDatabase->value("dontShowUpdateWindow", "NULL") == "NULL")
         m_settingsDatabase->setValue("dontShowUpdateWindow", m_dontShowUpdateWindow);
 
-
     if(m_settingsDatabase->value("windowGeometry", "NULL") == "NULL"){
+        int initWidth = 757;
+        int initHeight = 341;
         QPoint center = qApp->desktop()->geometry().center();
-        QRect rect(center.x() - 757/2, center.y() - 341/2, 757, 341);
+        QRect rect(center.x() - initWidth/2, center.y() - initHeight/2, initWidth, initHeight);
         setGeometry(rect);
         m_settingsDatabase->setValue("windowGeometry", saveGeometry());
     }
