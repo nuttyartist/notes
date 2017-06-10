@@ -42,10 +42,12 @@ MainWindow::MainWindow (QWidget *parent) :
     m_textEdit(Q_NULLPTR),
     m_lineEdit(Q_NULLPTR),
     m_editorDateLabel(Q_NULLPTR),
+    m_splitter(Q_NULLPTR),
     m_trayIcon(new QSystemTrayIcon(this)),
     m_restoreAction(new QAction(tr("&Hide Notes"), this)),
     m_quitAction(new QAction(tr("&Quit"), this)),
     m_trayIconMenu(new QMenu(this)),
+    m_noteView(Q_NULLPTR),
     m_noteModel(new NoteModel(this)),
     m_deletedNotesModel(new NoteModel(this)),
     m_proxyModel(new QSortFilterProxyModel(this)),
@@ -172,12 +174,14 @@ void MainWindow::paintEvent(QPaintEvent* event)
 
 void MainWindow::resizeEvent(QResizeEvent* event)
 {
-    //restore note list width
-    QList<int> sizes = m_splitter->sizes();
-    if(sizes.at(0) != 0){
-        sizes[0] = m_noteListWidth;
-        sizes[1] = m_splitter->width() - m_noteListWidth;
-        m_splitter->setSizes(sizes);
+    if(m_splitter != Q_NULLPTR){
+        //restore note list width
+        QList<int> sizes = m_splitter->sizes();
+        if(sizes.at(0) != 0){
+            sizes[0] = m_noteListWidth;
+            sizes[1] = m_splitter->width() - m_noteListWidth;
+            m_splitter->setSizes(sizes);
+        }
     }
 
     QMainWindow::resizeEvent(event);
@@ -620,21 +624,25 @@ void MainWindow::initializeSettingsDatabase()
 */
 void MainWindow::setupDatabases ()
 {
-    m_settingsDatabase = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Awesomeness", "Settings", this);
+    m_settingsDatabase = new QSettings(QSettings::IniFormat, QSettings::UserScope,
+                                       QStringLiteral("Awesomeness"), QStringLiteral("Settings"), this);
     m_settingsDatabase->setFallbacksEnabled(false);
     initializeSettingsDatabase();
 
     bool doCreate = false;
     QFileInfo fi(m_settingsDatabase->fileName());
     QDir dir(fi.absolutePath());
-    QString noteDBFilePath(dir.path() + "/notes.db");
+    bool folderCreated = dir.mkpath(QStringLiteral("."));
+    if(!folderCreated)
+         qFatal("ERROR: Can't create settings folder : %s", dir.absolutePath().toStdString().c_str());
+
+    QString noteDBFilePath(dir.path() + QDir::separator() + QStringLiteral("notes.db"));
 
     if(!QFile::exists(noteDBFilePath)){
         QFile noteDBFile(noteDBFilePath);
-        if(!noteDBFile.open(QIODevice::WriteOnly)){
-            qDebug() << "can't create db file";
-            qApp->exit(-1);
-        }
+        if(!noteDBFile.open(QIODevice::WriteOnly))
+            qFatal("ERROR : Can't create database file");
+
         noteDBFile.close();
         doCreate = true;
     }
