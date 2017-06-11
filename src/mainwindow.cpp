@@ -583,8 +583,8 @@ void MainWindow::initializeSettingsDatabase()
         m_settingsDatabase->setValue("dontShowUpdateWindow", m_dontShowUpdateWindow);
 
     if(m_settingsDatabase->value("windowGeometry", "NULL") == "NULL"){
-        int initWidth = 757;
-        int initHeight = 341;
+        int initWidth = 733;
+        int initHeight = 336;
         QPoint center = qApp->desktop()->geometry().center();
         QRect rect(center.x() - initWidth/2, center.y() - initHeight/2, initWidth, initHeight);
         setGeometry(rect);
