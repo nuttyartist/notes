@@ -231,7 +231,7 @@ void MainWindow::setupMainWindow ()
     ui->centralWidget->layout()->setContentsMargins(margins);
 #else
     ui->verticalSpacer->changeSize(0, 7, QSizePolicy::Fixed, QSizePolicy::Fixed);
-    ui->verticalSpacer_upEditorDateLabel->changeSize(0, 30, QSizePolicy::Fixed, QSizePolicy::Fixed);
+    ui->verticalSpacer_upEditorDateLabel->changeSize(0, 27, QSizePolicy::Fixed, QSizePolicy::Fixed);
 #endif
     ui->frame->installEventFilter(this);
     ui->centralWidget->setMouseTracking(true);
