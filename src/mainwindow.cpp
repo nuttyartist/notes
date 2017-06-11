@@ -594,6 +594,7 @@ void MainWindow::initializeSettingsDatabase()
     if(m_settingsDatabase->value("splitterSizes", "NULL") == "NULL"){
         m_splitter->resize(width()-2*m_layoutMargin, height()-2*m_layoutMargin);
         QList<int> sizes = m_splitter->sizes();
+        m_noteListWidth = ui->frameLeft->minimumWidth() != 0 ? ui->frameLeft->minimumWidth() : m_noteListWidth;
         sizes[0] = m_noteListWidth;
         sizes[1] = m_splitter->width() - m_noteListWidth;
         m_splitter->setSizes(sizes);
