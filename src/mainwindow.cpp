@@ -229,6 +229,9 @@ void MainWindow::setupMainWindow ()
 #ifndef _WIN32
     QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
     ui->centralWidget->layout()->setContentsMargins(margins);
+#else
+    ui->verticalSpacer->changeSize(0, 7, QSizePolicy::Fixed, QSizePolicy::Fixed);
+    ui->verticalSpacer_upEditorDateLabel->changeSize(0, 27, QSizePolicy::Fixed, QSizePolicy::Fixed);
 #endif
     ui->frame->installEventFilter(this);
     ui->centralWidget->setMouseTracking(true);
@@ -579,19 +582,14 @@ void MainWindow::initializeSettingsDatabase()
     if(m_settingsDatabase->value("version", "NULL") == "NULL")
         m_settingsDatabase->setValue("version", qApp->applicationVersion());
 
-    if(m_settingsDatabase->value("defaultWindowWidth", "NULL") == "NULL")
-        m_settingsDatabase->setValue("defaultWindowWidth", 640);
-
-    if(m_settingsDatabase->value("defaultWindowHeight", "NULL") == "NULL")
-        m_settingsDatabase->setValue("defaultWindowHeight", 480);
-
     if(m_settingsDatabase->value("dontShowUpdateWindow", "NULL") == "NULL")
         m_settingsDatabase->setValue("dontShowUpdateWindow", m_dontShowUpdateWindow);
 
-
     if(m_settingsDatabase->value("windowGeometry", "NULL") == "NULL"){
+        int initWidth = 733;
+        int initHeight = 336;
         QPoint center = qApp->desktop()->geometry().center();
-        QRect rect(center.x() - 757/2, center.y() - 341/2, 757, 341);
+        QRect rect(center.x() - initWidth/2, center.y() - initHeight/2, initWidth, initHeight);
         setGeometry(rect);
         m_settingsDatabase->setValue("windowGeometry", saveGeometry());
     }
@@ -599,6 +597,7 @@ void MainWindow::initializeSettingsDatabase()
     if(m_settingsDatabase->value("splitterSizes", "NULL") == "NULL"){
         m_splitter->resize(width()-2*m_layoutMargin, height()-2*m_layoutMargin);
         QList<int> sizes = m_splitter->sizes();
+        m_noteListWidth = ui->frameLeft->minimumWidth() != 0 ? ui->frameLeft->minimumWidth() : m_noteListWidth;
         sizes[0] = m_noteListWidth;
         sizes[1] = m_splitter->width() - m_noteListWidth;
         m_splitter->setSizes(sizes);
