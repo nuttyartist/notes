@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 
     // Set application information
     app.setApplicationName ("Notes");
-    app.setApplicationVersion ("0.9.0");
+    app.setApplicationVersion ("1.0.0");
 
     // Load fonts from resources
     QFontDatabase::addApplicationFont (":/fonts/arimo/Arimo-Regular.ttf");
