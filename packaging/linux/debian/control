@@ -1,0 +1,18 @@
+source: notes
+Section: utils
+Priority: optional
+Maintainer: Nutty Artist <awesomeness.notes@gmail.com>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 3.9.6
+Vcs-Git: https://github.com/nuttyartist/notes.git
+Vcs-browser: https://github.com/nuttyartist/notes
+Homepage: http://www.get-notes.com/
+
+Package: notes
+Architecture: amd64
+Depends: libqt5widgets5 (>= 5.2), libqt5gui5 (>= 5.2), libqt5network5 (>= 5.2), libqt5sql5 (>= 5.2), libqt5core5a (>= 5.2), sqlite3, ${misc:Depends}, ${shlibs:Depends}
+Description: Note taking application, write down your thoughts.
+ Notes is a tool for the things you need to write down off your
+ brain. It is your place of expressing yourself. Notes is an open
+ source and cross-platform project, and you're welcome to be part
+ of it and contribute. We hope you will love it as much as we do.

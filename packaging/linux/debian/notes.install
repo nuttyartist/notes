@@ -1,0 +1,14 @@
+notes  /usr/bin
+notes.desktop /usr/share/applications
+copyright usr/share/doc/notes/
+icons/128x128/notes.png usr/share/pixmaps
+icons/16x16/notes.png usr/share/icons/hicolor/16x16/apps
+icons/22x22/notes.png usr/share/icons/hicolor/22x22/apps
+icons/24x24/notes.png usr/share/icons/hicolor/24x24/apps
+icons/32x32/notes.png usr/share/icons/hicolor/32x32/apps
+icons/48x48/notes.png usr/share/icons/hicolor/48x48/apps
+icons/64x64/notes.png usr/share/icons/hicolor/64x64/apps
+icons/128x128/notes.png usr/share/icons/hicolor/128x128/apps
+icons/256x256/notes.png usr/share/icons/hicolor/256x256/apps
+icons/512x512/notes.png usr/share/icons/hicolor/512x512/apps
+icons/scalable/notes.svg usr/share/icons/hicolor/scalable/apps

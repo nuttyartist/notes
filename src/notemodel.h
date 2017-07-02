@@ -6,6 +6,9 @@
 
 class NoteModel : public QAbstractListModel
 {
+
+    friend class tst_NoteModel;
+
 public:
 
     enum NoteRoles{
@@ -23,11 +26,12 @@ public:
 
     QModelIndex addNote(NoteData* note);
     QModelIndex insertNote(NoteData* note, int row);
+    NoteData* getNote(const QModelIndex& index);
     void addListNote(QList<NoteData*> noteList);
-    NoteData* removeNote(const QModelIndex &noteIndex);
-    bool moveRow(const QModelIndex &sourceParent,
+    NoteData* removeNote(const QModelIndex& noteIndex);
+    bool moveRow(const QModelIndex& sourceParent,
                  int sourceRow,
-                 const QModelIndex &destinationParent,
+                 const QModelIndex& destinationParent,
                  int destinationChild);
 
     void clearNotes();

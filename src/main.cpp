@@ -5,22 +5,34 @@
 *********************************************************************************************/
 
 #include "mainwindow.h"
-#include <QApplication>
 #include "singleinstance.h"
+
+#include <QApplication>
+#include <QFontDatabase>
 
 int main(int argc, char *argv[])
 {
     QApplication::setDesktopSettingsAware(false);
-    QApplication a(argc, argv);
+    QApplication app (argc, argv);
+
+    // Set application information
+    app.setApplicationName ("Notes");
+    app.setApplicationVersion ("1.0.0");
+
+    // Load fonts from resources
+    QFontDatabase::addApplicationFont (":/fonts/arimo/Arimo-Regular.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/roboto-hinted/Roboto-Bold.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/roboto-hinted/Roboto-Medium.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/roboto-hinted/Roboto-Regular.ttf");
 
     // Prevent many instances of the app to be launched
     QString name = "com.awsomeness.notes";
     SingleInstance instance;
-    if(instance.hasPrevious(name)){
-        return 0;
+    if (instance.hasPrevious (name)){
+        return EXIT_SUCCESS;
     }
 
-    instance.listen(name);
+    instance.listen (name);
 
     // Create and Show the app
     MainWindow w;
@@ -28,16 +40,8 @@ int main(int argc, char *argv[])
 
     // Bring the Notes window to the front
     QObject::connect(&instance, &SingleInstance::newInstance, [&](){
-
-        (&w)->hide();
-        (&w)->setWindowState(Qt::WindowMinimized);
-        qApp->processEvents();
-        (&w)->setWindowState(Qt::WindowNoState);
-        qApp->processEvents();
-        (&w)->show();
-        (&w)->setWindowState(Qt::WindowActive);
-
+        (&w)->setMainWindowVisibility(true);
     });
 
-    return a.exec();
+    return app.exec();
 }

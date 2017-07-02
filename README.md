@@ -1,15 +1,49 @@
 # Notes
 
+[![Join the chat at https://gitter.im/nuttyartist/notes](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/nuttyartist/notes?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://travis-ci.org/nuttyartist/notes.svg?branch=dev)](https://travis-ci.org/nuttyartist/notes)
+[![Build status](https://ci.appveyor.com/api/projects/status/rgque4o6x2y0i92i?svg=true)](https://ci.appveyor.com/project/nuttyartist/notes)
+
 Notes is an open source, cross-platform note taking app which has the potential to be something much bigger, and much better at empowering the people using it.
 This is where you come into play. Be part of making Notes better.
 
-# Screenshot
-![notes](https://cloud.githubusercontent.com/assets/16375940/14313739/ea9fc8fa-fbfb-11e5-95bb-fb10c59770a8.png)
+## Screenshot
+![notes_screenshot](https://cloud.githubusercontent.com/assets/16375940/21028061/2658710a-bd9c-11e6-8ecb-44ca41e21aca.png)
 
-# Information for End Users
+
+## How to clone
+Use this command to clone the repository:
+
+```shell
+$> git clone https://github.com/nuttyartist/notes.git
+```
+
+## Dependencies
+Make sure the Qt (>= 5.2.1) development libraries are installed:
+
+- Debian/Ubuntu : qt5-default build-essential qtbase5-private-dev sqlite3
+
+## Compiling
+
+```shell
+$> mkdir build
+$> cd build
+$> qmake ../src
+$> make -j4
+```
+
+## Notes
+
+The notes database and settings file are stored:
+
+**Windows** : ```C:\Users\user\AppData\Roaming\Awesomeness```  
+**Linux** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: ```/home/user/.config/Awesomeness/``` **or** ```/home/snap/notes/x1/.config/Awesomeness``` **(using snap)**  
+**Mac** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: ```/home/.config/Awesomeness/```  
+
+## Information for Contributors
+
+Check out our [wiki](https://github.com/nuttyartist/notes/wiki), we discuss there our philosophy, our current state and the future version of Notes.
+
+## Information for End Users
 
 You can find more info about Notes and how to download it here: <a href="http://get-notes.com" target="_blank">get-notes.com</a>
-
-# Information for Contributors
-
-We're making things simple. You can find all you need on the <a href="http://www.get-notes.com">website</a> on the <a href="http://www.get-notes.com/#!contribute/cve1">Contribute</a> page.

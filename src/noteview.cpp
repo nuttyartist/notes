@@ -170,8 +170,9 @@ void NoteView::mouseReleaseEvent(QMouseEvent*e)
 
 bool NoteView::viewportEvent(QEvent*e)
 {
-    if(e->type() == QEvent::Leave){
-        if(model() != Q_NULLPTR){
+    if(model() != Q_NULLPTR){
+        switch (e->type()) {
+        case QEvent::Leave:{
             QPoint pt = mapFromGlobal(QCursor::pos());
             QModelIndex index = indexAt(QPoint(10, pt.y()));
             if(index.row() > 0){
@@ -182,6 +183,18 @@ bool NoteView::viewportEvent(QEvent*e)
                     viewport()->update(visualRect(index));
                 }
             }
+            break;
+        }
+        case QEvent::MouseButtonPress:{
+            QPoint pt = mapFromGlobal(QCursor::pos());
+            QModelIndex index = indexAt(QPoint(10, pt.y()));
+            if(!index.isValid())
+                emit viewportPressed();
+
+            break;
+        }
+        default:
+            break;
         }
     }
 
@@ -280,7 +293,7 @@ void NoteView::setupSignalsSlots()
  */
 void NoteView::setupStyleSheet()
 {
-    QString ss = QString("QListView QWidget{background-color:white;} "
+    QString ss = QString("QListView {background-color: rgb(255, 255, 255);} "
                          "QScrollBar {margin-right: 2px; background: transparent;} "
                          "QScrollBar:hover { background-color: rgb(217, 217, 217);}"
                          "QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
