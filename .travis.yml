@@ -53,13 +53,22 @@ script:
         make deb; fi
 
 after_success:
-  - if [ "$QT_BASE" == "trusty" ] || [ "$QT_BASE" == "xenial" ]; then
+  - if [ "$QT_BASE" == "trusty" ] && [ "$TRAVIS_BRANCH" != "master" ]; then
         curl --upload-file deb/notes*.deb https://transfer.sh/notes_$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')-git$(git rev-parse --short HEAD)_amd64-$QT_BASE.deb ;
-    elif [ "$QT_BASE" == "snap" ]; then
-        curl --upload-file snap/notes*.snap https://transfer.sh/notes_$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')-git$(git rev-parse --short HEAD)_amd64-xenial.snap ;
+    elif [ "$QT_BASE" == "trusty" ] && [ "$TRAVIS_BRANCH" == "master" ]; then
+        curl --upload-file deb/notes*.deb https://transfer.sh/notes_$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')_amd64-trusty.deb ;
     fi
-  - if [ "$QT_BASE" == "xenial" ]; then
+  - if [ "$QT_BASE" == "xenial" ] && [ "$TRAVIS_BRANCH" != "master" ]; then
+        curl --upload-file deb/notes*.deb https://transfer.sh/notes_$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')-git$(git rev-parse --short HEAD)_amd64-$QT_BASE.deb ;
         curl --upload-file ./Notes-*.AppImage https://transfer.sh/notes_$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')-git$(git rev-parse --short HEAD)_amd64.AppImage;
+    elif [ "$QT_BASE" == "xenial" ] && [ "$TRAVIS_BRANCH" == "master" ]; then
+        curl --upload-file deb/notes*.deb https://transfer.sh/notes_$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')_amd64-xenial.deb ;
+        curl --upload-file ./Notes-*.AppImage https://transfer.sh/notes_$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')_amd64-xenial.AppImage;
+    fi
+  - if [ "$QT_BASE" == "snap" ] && [ "$TRAVIS_BRANCH" != "master" ]; then
+        curl --upload-file snap/notes*.snap https://transfer.sh/notes_$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')-git$(git rev-parse --short HEAD)_amd64-xenial.snap ;
+    elif [ "$QT_BASE" == "snap" ] && [ "$TRAVIS_BRANCH" == "master" ]; then
+        curl --upload-file snap/notes*.snap https://transfer.sh/notes_$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')_amd64-xenial.snap ;
     fi
 
 
