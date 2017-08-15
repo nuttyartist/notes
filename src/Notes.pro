@@ -108,8 +108,8 @@ linux:!android {
     AuthorName = \"Nutty Artist\"
 
     deb.target   = deb
-    deb.depends  = $$TARGET
     deb.depends  = fix_deb_dependencies
+    deb.depends += $$TARGET
     deb.commands = rm -rf deb &&\
                    mkdir -p deb/$$Project &&\
                    cp $$TARGET deb/$$Project &&\
@@ -127,28 +127,22 @@ linux:!android {
 
     # AppImage -------------------------------------------------------------------------------
 
-    appimage.target   = appimage
-    appimage.depends  = deb
-    appimage.commands = rm -rf appdir &&\
-                        mkdir appdir &&\
-                        cd appdir &&\
-                        dpkg -x ../deb/*.deb . &&\
-                        cp $$_PRO_FILE_PWD_/../packaging/linux/common/notes.desktop . &&\
-                        cp $$_PRO_FILE_PWD_/../packaging/linux/common/icons/256x256/notes.png . &&\
-                        mkdir -p ./usr/share/icons/default/256x256/apps/ &&\
-                        cp $$_PRO_FILE_PWD_/../packaging/linux/common/icons/256x256/notes.png ./usr/share/icons/default/256x256/apps/  &&\
-                        cd .. &&\
-                        wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/4/linuxdeployqt-4-x86_64.AppImage"  &&\
-                        chmod a+x linuxdeployqt*.AppImage  &&\
-                        unset QTDIR; unset QT_PLUGIN_PATH &&\
-                        unset LD_LIBRARY_PATH  &&\
-                        ./linuxdeployqt*.AppImage ./appdir/usr/bin/notes -bundle-non-qt-libs  &&\
-                        ./linuxdeployqt*.AppImage ./appdir/usr/bin/notes -bundle-non-qt-libs  &&\
-                        ./linuxdeployqt*.AppImage --appimage-extract  &&\
-                        wget -c https://github.com/probonopd/AppImageKit/raw/master/desktopintegration -O ./appdir/usr/bin/notes.wrapper  &&\
-                        chmod a+x ./appdir/usr/bin/notes.wrapper  &&\
-                        (cd ./appdir/ ; rm AppRun ; ln -s ./usr/bin/notes.wrapper AppRun)  &&\
-                        ./squashfs-root/usr/bin/appimagetool ./appdir/
+    appimage.target    = appimage
+    appimage.depends   = $$TARGET
+    appimage.commands  = mkdir -p Notes/usr/bin;
+    appimage.commands += cp $$TARGET Notes/usr/bin;
+    appimage.commands += mkdir -p Notes/usr/share/applications/;
+    appimage.commands += cp $$_PRO_FILE_PWD_/../packaging/linux/common/notes.desktop Notes/usr/share/applications/;
+    appimage.commands += cp $$_PRO_FILE_PWD_/../packaging/linux/common/icons/256x256/notes.png Notes;
+    appimage.commands += mkdir -p Notes/usr/share/icons/default/256x256/apps/;
+    appimage.commands += cp $$_PRO_FILE_PWD_/../packaging/linux/common/icons/256x256/notes.png Notes/usr/share/icons/default/256x256/apps/;
+    appimage.commands += wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage";
+    appimage.commands += chmod a+x linuxdeployqt*.AppImage;
+    appimage.commands += unset QTDIR; unset QT_PLUGIN_PATH; unset LD_LIBRARY_PATH;
+    appimage.commands += ./linuxdeployqt*.AppImage Notes/usr/share/applications/*.desktop -bundle-non-qt-libs;
+    appimage.commands += cp /usr/lib/x86_64-linux-gnu/libstdc++.so.6 Notes/usr/lib;
+    appimage.commands += ./linuxdeployqt*.AppImage Notes/usr/share/applications/*.desktop -appimage;
+    appimage.commands += find Notes -executable -type f -exec ldd {} \; | grep \" => /usr\" | cut -d \" \" -f 2-3 | sort | uniq;
 
     # EXTRA --------------------------------------------------------------------------------
     QMAKE_EXTRA_TARGETS += \
