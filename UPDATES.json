@@ -1,21 +1,21 @@
 {
   "updates": {
     "windows": {
-      "open-url": "https://github.com/nuttyartist/notes/releases/download/v0.9.0/NotesSetup.exe",
-      "latest-version": "0.9.0",
-      "download-url": "https://github.com/nuttyartist/notes/releases/download/v0.9.0/NotesSetup.exe",
+      "open-url": "https://github.com/nuttyartist/notes/releases/download/v1.0.0/NotesSetup.exe",
+      "latest-version": "1.0.0",
+      "download-url": "https://github.com/nuttyartist/notes/releases/download/v1.0.0/NotesSetup.exe",
       "changelog": ""
     },
     "osx": {
-      "open-url": "https://github.com/nuttyartist/notes/releases/download/v0.9.0/Notes.Better.dmg",
-      "latest-version": "0.9.0",
-      "download-url": "https://github.com/nuttyartist/notes/releases/download/v0.9.0/Notes.Better.dmg",
+      "open-url": "https://github.com/nuttyartist/notes/releases/download/v1.0.0/Notes.Better.dmg",
+      "latest-version": "1.0.0",
+      "download-url": "https://github.com/nuttyartist/notes/releases/download/v1.0.0/Notes.Better.dmg",
       "changelog": ""
     },
     "linux": {
-      "open-url": "https://github.com/nuttyartist/notes/releases/download/v0.9.0/notes_0.9.0_amd64.deb",
-      "latest-version": "0.9.0",
-      "download-url": "https://github.com/nuttyartist/notes/releases/download/v0.9.0/notes_0.9.0_amd64.deb",
+      "open-url": "https://github.com/nuttyartist/notes/releases/download/v1.0.0/notes_1.0.0_amd64.deb",
+      "latest-version": "1.0.0",
+      "download-url": "https://github.com/nuttyartist/notes/releases/download/v1.0.0/notes_1.0.0_amd64.deb",
       "changelog": ""
     }
   }
