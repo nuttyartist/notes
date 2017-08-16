@@ -36,9 +36,7 @@
 /**
  * Indicates from where we should download the update definitions file
  */
-static const QString UPDATES_URL("https://raw.githubusercontent.com/"
-                                 "nuttyartist/notes/automatic-updates-windows"
-                                 "/UPDATES.json");
+static const QString UPDATES_URL("https://raw.githubusercontent.com/nuttyartist/notes/master/UPDATES.json");
 
 /**
  * Download dir
