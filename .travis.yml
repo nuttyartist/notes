@@ -94,7 +94,7 @@ after_success:
             curl --upload-file deb/notes*.deb https://transfer.sh/notes_$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')_amd64-trusty.deb ;
         elif [ "$QT_BASE" == "xenial" ]; then
             curl --upload-file deb/notes*.deb https://transfer.sh/notes_$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')_amd64-xenial.deb ;
-        elif [ "$QT_BASE" == "yakketi" ]; then
+        elif [ "$QT_BASE" == "yakkety" ]; then
             curl --upload-file deb/notes*.deb https://transfer.sh/notes_$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')_amd64-yakkety.deb ;
         elif [ "$QT_BASE" == "zesty" ]; then
             curl --upload-file deb/notes*.deb https://transfer.sh/notes_$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')_amd64-zesty.deb ;
