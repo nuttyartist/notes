@@ -13,9 +13,9 @@
       "changelog": ""
     },
     "linux": {
-      "open-url": "https://github.com/nuttyartist/notes/releases/download/v1.0.0/notes_1.0.0_amd64.deb",
+      "open-url": "https://github.com/nuttyartist/notes/releases/download/v1.0.0/notes_1.0.0_amd64-trusty.deb",
       "latest-version": "1.0.0",
-      "download-url": "https://github.com/nuttyartist/notes/releases/download/v1.0.0/notes_1.0.0_amd64.deb",
+      "download-url": "https://github.com/nuttyartist/notes/releases/download/v1.0.0/notes_1.0.0_amd64-trusty.deb",
       "changelog": ""
     }
   }
