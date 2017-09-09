@@ -279,6 +279,16 @@ int DBManager::getLastRowID()
     return query.value(0).toInt();
 }
 
+bool DBManager::forceLastRowIndexValue(const int indexValue)
+{
+    QSqlQuery query;
+    QString queryStr = QStringLiteral("UPDATE SQLITE_SEQUENCE "
+                                      "SET seq=%1 "
+                                      "WHERE name='active_notes';").arg(indexValue);
+    query.exec(queryStr);
+    return query.numRowsAffected() == 1;
+}
+
 void DBManager::importNotes(QList<NoteData*> noteList) {
     QSqlDatabase::database().transaction();
     QtConcurrent::blockingMap(noteList, [this] (NoteData* note) { this->addNote(note); });
