@@ -10,12 +10,12 @@ NoteData::NoteData(QObject *parent)
 
 }
 
-QString NoteData::id() const
+int NoteData::id() const
 {
     return m_id;
 }
 
-void NoteData::setId(const QString &id)
+void NoteData::setId(const int &id)
 {
     m_id = id;
 }
@@ -106,7 +106,7 @@ QDataStream &operator<<(QDataStream &stream, const NoteData* noteData) {
 
 QDataStream &operator>>(QDataStream &stream, NoteData* &noteData){
     noteData = new NoteData();
-    QString id;
+    int id;
     QString fullTitle;
     QDateTime lastModificationDateTime;
     QDateTime creationDateTime;

@@ -726,10 +726,10 @@ QString MainWindow::getNoteDateEditor (QString dateEdited)
 * @brief
 * @brief generate a new note
 */
-NoteData *MainWindow::generateNote(QString noteName)
+NoteData *MainWindow::generateNote(const int noteID)
 {
     NoteData* newNote = new NoteData(this);
-    newNote->setId(noteName);
+    newNote->setId(noteID);
 
     QDateTime noteDate = QDateTime::currentDateTime();
     newNote->setCreationDateTime(noteDate);
@@ -1165,8 +1165,7 @@ void MainWindow::createNewNote ()
 
         if(!m_isTemp){
             ++m_noteCounter;
-            QString noteID = QString("noteID_%1").arg(m_noteCounter);
-            NoteData* tmpNote = generateNote(noteID);
+            NoteData* tmpNote = generateNote(m_noteCounter);
             m_isTemp = true;
 
             // insert the new note to NoteModel
@@ -2107,16 +2106,10 @@ void MainWindow::migrateNote(QString notePath)
     auto it = dbKeys.begin();
     for(; it < dbKeys.end()-1; it += 3){
         QString noteName = it->split("/")[0];
+        int id = noteName.split("_")[1].toInt();
 
         NoteData* newNote = new NoteData();
-        newNote->setId(noteName);
-
-        QString cntStr = notesIni.value("notesCounter", "NULL").toString();
-        if(cntStr == "NULL"){
-            m_noteCounter = 0;
-        }else{
-            m_noteCounter = cntStr.toInt();
-        }
+        newNote->setId(id);
 
         QString createdDateDB = notesIni.value(noteName + "/dateCreated", "Error").toString();
         newNote->setCreationDateTime(QDateTime::fromString(createdDateDB, Qt::ISODate));
@@ -2144,9 +2137,10 @@ void MainWindow::migrateTrash(QString trashPath)
     auto it = dbKeys.begin();
     for(; it < dbKeys.end()-1; it += 3){
         QString noteName = it->split("/")[0];
+        int id = noteName.split("_")[1].toInt();
 
         NoteData* newNote = new NoteData();
-        newNote->setId(noteName);
+        newNote->setId(id);
 
         QString createdDateDB = trashIni.value(noteName + "/dateCreated", "Error").toString();
         newNote->setCreationDateTime(QDateTime::fromString(createdDateDB, Qt::ISODate));

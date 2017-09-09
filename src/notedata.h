@@ -13,8 +13,8 @@ class NoteData : public QObject
 public:
     explicit NoteData(QObject *parent = Q_NULLPTR);
 
-    QString id() const;
-    void setId(const QString &id);
+    int id() const;
+    void setId(const int& id);
 
     QString fullTitle() const;
     void setFullTitle(const QString &fullTitle);
@@ -42,7 +42,7 @@ public:
 
 
 private:
-    QString m_id;
+    int m_id;
     QString m_fullTitle;
     QDateTime m_lastModificationDateTime;
     QDateTime m_creationDateTime;
