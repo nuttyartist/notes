@@ -30,6 +30,7 @@ public slots:
     bool migrateNote(NoteData* note);
     bool migrateTrash(NoteData* note);
     int getLastRowID();
+    bool forceLastRowIndexValue(const int indexValue);
 };
 
 #endif // DBMANAGER_H
