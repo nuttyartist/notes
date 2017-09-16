@@ -122,14 +122,9 @@ void MainWindow::InitData()
         watcher->setFuture(migration);
 
     }else{
-
         loadNotes();
         createNewNoteIfEmpty();
         selectFirstNote();
-    }
-
-    for (int ii = 1; ii < 2000; ii++) {
-
     }
 }
 
@@ -726,10 +721,10 @@ QString MainWindow::getNoteDateEditor (QString dateEdited)
 * @brief
 * @brief generate a new note
 */
-NoteData *MainWindow::generateNote(QString noteName)
+NoteData *MainWindow::generateNote(const int noteID)
 {
     NoteData* newNote = new NoteData(this);
-    newNote->setId(noteName);
+    newNote->setId(noteID);
 
     QDateTime noteDate = QDateTime::currentDateTime();
     newNote->setCreationDateTime(noteDate);
@@ -844,6 +839,7 @@ void MainWindow::setButtonsAndFieldsEnabled(bool doEnable)
     m_trashButton->setEnabled(doEnable);
     m_lineEdit->setEnabled(doEnable);
     m_textEdit->setEnabled(doEnable);
+    m_dotsButton->setEnabled(doEnable);
 }
 
 /**
@@ -1072,6 +1068,7 @@ void MainWindow::onLineEditTextChanged (const QString &keyword)
         m_isOperationRunning = true;
         if(m_isTemp){
             m_isTemp = false;
+            --m_noteCounter;
             // prevent the line edit from emitting signal
             // while animation for deleting the new note is running
             m_lineEdit->blockSignals(true);
@@ -1165,8 +1162,7 @@ void MainWindow::createNewNote ()
 
         if(!m_isTemp){
             ++m_noteCounter;
-            QString noteID = QString("noteID_%1").arg(m_noteCounter);
-            NoteData* tmpNote = generateNote(noteID);
+            NoteData* tmpNote = generateNote(m_noteCounter);
             m_isTemp = true;
 
             // insert the new note to NoteModel
@@ -1204,6 +1200,7 @@ void MainWindow::deleteNote(const QModelIndex &noteIndex, bool isFromUser)
 
         if(m_isTemp){
             m_isTemp = false;
+            --m_noteCounter;
         }else{
             noteTobeRemoved->setDeletionDateTime(QDateTime::currentDateTime());
             QtConcurrent::run(m_dbManager, &DBManager::removeNote, noteTobeRemoved);
@@ -2097,26 +2094,27 @@ void MainWindow::checkMigration()
     QString oldTrashDBPath(dir.path() + "/Trash.ini");
     if(QFile::exists(oldTrashDBPath))
         migrateTrash(oldTrashDBPath);
+
+    m_dbManager->forceLastRowIndexValue(m_noteCounter);
 }
 
 void MainWindow::migrateNote(QString notePath)
 {
-    QSettings notesIni(QSettings::IniFormat, QSettings::UserScope, "Awesomeness", "Notes");
+    QSettings notesIni(notePath, QSettings::IniFormat);
     QStringList dbKeys = notesIni.allKeys();
+
+    m_noteCounter = notesIni.value("notesCounter", "0").toInt();
 
     auto it = dbKeys.begin();
     for(; it < dbKeys.end()-1; it += 3){
         QString noteName = it->split("/")[0];
+        int id = noteName.split("_")[1].toInt();
+
+        // sync db index with biggest notes id
+        m_noteCounter = m_noteCounter < id ? id : m_noteCounter;
 
         NoteData* newNote = new NoteData();
-        newNote->setId(noteName);
-
-        QString cntStr = notesIni.value("notesCounter", "NULL").toString();
-        if(cntStr == "NULL"){
-            m_noteCounter = 0;
-        }else{
-            m_noteCounter = cntStr.toInt();
-        }
+        newNote->setId(id);
 
         QString createdDateDB = notesIni.value(noteName + "/dateCreated", "Error").toString();
         newNote->setCreationDateTime(QDateTime::fromString(createdDateDB, Qt::ISODate));
@@ -2137,16 +2135,19 @@ void MainWindow::migrateNote(QString notePath)
 
 void MainWindow::migrateTrash(QString trashPath)
 {
-    QSettings trashIni(QSettings::IniFormat, QSettings::UserScope, "Awesomeness", "Trash");
-
+    QSettings trashIni(trashPath, QSettings::IniFormat);
     QStringList dbKeys = trashIni.allKeys();
 
     auto it = dbKeys.begin();
     for(; it < dbKeys.end()-1; it += 3){
         QString noteName = it->split("/")[0];
+        int id = noteName.split("_")[1].toInt();
+
+        // sync db index with biggest notes id
+        m_noteCounter = m_noteCounter < id ? id : m_noteCounter;
 
         NoteData* newNote = new NoteData();
-        newNote->setId(noteName);
+        newNote->setId(id);
 
         QString createdDateDB = trashIni.value(noteName + "/dateCreated", "Error").toString();
         newNote->setCreationDateTime(QDateTime::fromString(createdDateDB, Qt::ISODate));

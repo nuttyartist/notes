@@ -48,7 +48,7 @@ bool DBManager::isNoteExist(NoteData* note)
 {
     QSqlQuery query;
 
-    int id = note->id().split('_')[1].toInt();
+    int id = note->id();
     QString queryStr = QStringLiteral("SELECT EXISTS(SELECT 1 FROM active_notes WHERE id = %1 LIMIT 1 )")
                        .arg(id);
     query.exec(queryStr);
@@ -74,7 +74,7 @@ NoteData* DBManager::getNote(QString id) {
         QString content = query.value(4).toString();
         QString fullTitle = query.value(5).toString();
 
-        note->setId(QStringLiteral("noteID_%1").arg(id));
+        note->setId(id);
         note->setCreationDateTime(dateTimeCreation);
         note->setLastModificationDateTime(dateTimeModification);
         note->setContent(content);
@@ -102,7 +102,7 @@ QList<NoteData *> DBManager::getAllNotes()
             QString content = query.value(4).toString();
             QString fullTitle = query.value(5).toString();
 
-            note->setId(QStringLiteral("noteID_%1").arg(id));
+            note->setId(id);
             note->setCreationDateTime(dateTimeCreation);
             note->setLastModificationDateTime(dateTimeModification);
             note->setContent(content);
@@ -153,11 +153,9 @@ bool DBManager::removeNote(NoteData* note)
     QSqlQuery query;
     QString emptyStr;
 
-    int id = note->id().split('_')[1].toInt();
-
+    int id = note->id();
     QString queryStr = QStringLiteral("DELETE FROM active_notes "
-                                      "WHERE id=%1")
-                       .arg(id);
+                                      "WHERE id=%1").arg(id);
     query.exec(queryStr);
     bool removed = (query.numRowsAffected() == 1);
 
@@ -196,7 +194,7 @@ bool DBManager::modifyNote(NoteData* note)
     QSqlQuery query;
     QString emptyStr;
 
-    int id = note->id().split('_')[1].toInt();
+    int id = note->id();
     qint64 epochTimeDateModified = note->lastModificationdateTime().toMSecsSinceEpoch();
     QString content = note->content()
                       .replace("'","''")
@@ -222,7 +220,7 @@ bool DBManager::migrateNote(NoteData* note)
 
     QString emptyStr;
 
-    int id = note->id().split('_')[1].toInt();
+    int id = note->id();
     qint64 epochTimeDateCreated = note->creationDateTime().toMSecsSinceEpoch();
     qint64 epochTimeDateModified = note->lastModificationdateTime().toMSecsSinceEpoch();
     QString content = note->content()
@@ -249,7 +247,7 @@ bool DBManager::migrateTrash(NoteData* note)
     QSqlQuery query;
     QString emptyStr;
 
-    int id = note->id().split('_')[1].toInt();
+    int id = note->id();
     qint64 epochTimeDateCreated = note->creationDateTime().toMSecsSinceEpoch();
     qint64 epochTimeDateModified = note->lastModificationdateTime().toMSecsSinceEpoch();
     qint64 epochTimeDateDeleted = note->deletionDateTime().toMSecsSinceEpoch();
@@ -279,6 +277,16 @@ int DBManager::getLastRowID()
     query.exec("SELECT seq from SQLITE_SEQUENCE WHERE name='active_notes';");
     query.next();
     return query.value(0).toInt();
+}
+
+bool DBManager::forceLastRowIndexValue(const int indexValue)
+{
+    QSqlQuery query;
+    QString queryStr = QStringLiteral("UPDATE SQLITE_SEQUENCE "
+                                      "SET seq=%1 "
+                                      "WHERE name='active_notes';").arg(indexValue);
+    query.exec(queryStr);
+    return query.numRowsAffected() == 1;
 }
 
 void DBManager::importNotes(QList<NoteData*> noteList) {
