@@ -222,6 +222,7 @@ private slots:
     void exportNotesFile(const bool clicked);
     void restoreNotesFile (const bool clicked);
     void stayOnTop(bool checked);
+    void toggleStayOnTop();
 };
 
 #endif // MAINWINDOW_H

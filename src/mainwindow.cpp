@@ -288,6 +288,7 @@ void MainWindow::setupKeyboardShortcuts ()
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_L), this, SLOT(maximizeWindow()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_M), this, SLOT(minimizeWindow()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q), this, SLOT(QuitApplication()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_K), this, SLOT(toggleStayOnTop()));
 
     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
     shortcut->setShortcut(QKeySequence("META+N"));
@@ -2584,4 +2585,8 @@ void MainWindow::stayOnTop(bool checked) {
     }
     this->setWindowFlags(flags);
     setMainWindowVisibility(true);
+}
+
+void MainWindow::toggleStayOnTop() {
+    this->stayOnTop(!m_alwaysStayOnTop);
 }
