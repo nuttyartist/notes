@@ -288,6 +288,7 @@ void MainWindow::setupKeyboardShortcuts ()
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_L), this, SLOT(maximizeWindow()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_M), this, SLOT(minimizeWindow()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q), this, SLOT(QuitApplication()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_K), this, SLOT(toggleStayOnTop()));
 
     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
     shortcut->setShortcut(QKeySequence("META+N"));
@@ -985,6 +986,13 @@ void MainWindow::onDotsButtonClicked()
     if(m_noteModel->rowCount() < 1){
         exportNotesFileAction->setDisabled(true);
     }
+
+    // Stay on top action
+    QAction* stayOnTopAction = viewMenu->addAction(tr("Always stay on top"));
+    stayOnTopAction->setToolTip(tr("Always keep the notes application on top of all windows"));
+    stayOnTopAction->setCheckable(true);
+    stayOnTopAction->setChecked(m_alwaysStayOnTop);
+    connect(stayOnTopAction, SIGNAL(triggered(bool)), this, SLOT(stayOnTop(bool)));
 
     mainMenu.exec(m_dotsButton->mapToGlobal(QPoint(0, m_dotsButton->height())));
 }
@@ -2556,4 +2564,29 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
     }
 
     return QObject::eventFilter(object, event);
+}
+
+void MainWindow::stayOnTop(bool checked) {
+    Qt::WindowFlags flags;
+#ifdef Q_OS_LINUX
+    flags = Qt::Window | Qt::FramelessWindowHint;
+#elif _WIN32
+    flags = Qt::CustomizeWindowHint;
+#elif __APPLE__
+    flags = Qt::Window | Qt::FramelessWindowHint;
+#else
+#error "We don't support that version yet..."
+#endif
+    if (checked) {
+        flags |= Qt::WindowStaysOnTopHint;
+        m_alwaysStayOnTop = true;
+    } else {
+        m_alwaysStayOnTop = false;
+    }
+    this->setWindowFlags(flags);
+    setMainWindowVisibility(true);
+}
+
+void MainWindow::toggleStayOnTop() {
+    this->stayOnTop(!m_alwaysStayOnTop);
 }

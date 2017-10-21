@@ -141,6 +141,7 @@ private:
     bool m_isContentModified;
     bool m_isOperationRunning;
     bool m_dontShowUpdateWindow;
+    bool m_alwaysStayOnTop;
 
     void setupMainWindow();
     void setupFonts();
@@ -220,6 +221,8 @@ private slots:
     void importNotesFile(const bool clicked);
     void exportNotesFile(const bool clicked);
     void restoreNotesFile (const bool clicked);
+    void stayOnTop(bool checked);
+    void toggleStayOnTop();
 };
 
 #endif // MAINWINDOW_H
