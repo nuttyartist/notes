@@ -396,11 +396,6 @@ void MainWindow::setupTitleBarButtons ()
     m_redCloseButton->setMinimumSize(34, 16);
     m_yellowMinimizeButton->setMinimumSize(28, 16);
     m_greenMaximizeButton->setMinimumSize(28, 16);
-
-    ui->horizontalSpacer_leftTrafficLightButtons->changeSize(2, 20);
-    ui->horizontalSpacer_rightRedTrafficLightButton->changeSize(0, 20);
-    ui->horizontalSpacer_rightYellowTrafficLightButton->changeSize(0, 20);
-    ui->verticalSpacer_upLineEdit->changeSize(20, 0);
 #endif
 
     m_redCloseButton->installEventFilter(this);
