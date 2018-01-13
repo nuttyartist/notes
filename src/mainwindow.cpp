@@ -47,6 +47,7 @@ MainWindow::MainWindow (QWidget *parent) :
     m_restoreAction(new QAction(tr("&Hide Notes"), this)),
     m_quitAction(new QAction(tr("&Quit"), this)),
     m_trayIconMenu(new QMenu(this)),
+    m_trafficLightLayout(new QHBoxLayout(this)),
     m_noteView(Q_NULLPTR),
     m_noteModel(new NoteModel(this)),
     m_deletedNotesModel(new NoteModel(this)),
@@ -210,9 +211,13 @@ void MainWindow::setupMainWindow ()
 #error "We don't support that version yet..."
 #endif
 
-    m_greenMaximizeButton = ui->greenMaximizeButton;
-    m_redCloseButton = ui->redCloseButton;
-    m_yellowMinimizeButton = ui->yellowMinimizeButton;
+    m_greenMaximizeButton = new QPushButton(this);
+    m_redCloseButton = new QPushButton(this);
+    m_yellowMinimizeButton = new QPushButton(this);
+    m_trafficLightLayout->addWidget(m_redCloseButton);
+    m_trafficLightLayout->addWidget(m_yellowMinimizeButton);
+    m_trafficLightLayout->addWidget(m_greenMaximizeButton);
+
     m_newNoteButton = ui->newNoteButton;
     m_trashButton = ui->trashButton;
     m_dotsButton = ui->dotsButton;
@@ -223,7 +228,7 @@ void MainWindow::setupMainWindow ()
 
 #ifndef _WIN32
     QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
-    ui->centralWidget->layout()->setContentsMargins(margins);
+    setMargins(margins);
 #else
     ui->verticalSpacer->changeSize(0, 7, QSizePolicy::Fixed, QSizePolicy::Fixed);
     ui->verticalSpacer_upEditorDateLabel->changeSize(0, 27, QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -289,6 +294,7 @@ void MainWindow::setupKeyboardShortcuts ()
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_M), this, SLOT(minimizeWindow()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q), this, SLOT(QuitApplication()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_K), this, SLOT(toggleStayOnTop()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_J), this, SLOT(toggleNoteList()));
 
     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
     shortcut->setShortcut(QKeySequence("META+N"));
@@ -666,6 +672,11 @@ void MainWindow::restoreStates()
 {
     if(m_settingsDatabase->value("windowGeometry", "NULL") != "NULL")
         this->restoreGeometry(m_settingsDatabase->value("windowGeometry").toByteArray());
+
+    /// Set margine to zero if the window is maximized
+    if (isMaximized()) {
+        setMargins(QMargins(0,0,0,0));
+    }
 
     if(m_settingsDatabase->value("dontShowUpdateWindow", "NULL") != "NULL")
         m_dontShowUpdateWindow = m_settingsDatabase->value("dontShowUpdateWindow").toBool();
@@ -1330,19 +1341,19 @@ void MainWindow::selectNoteDown ()
 */
 void MainWindow::fullscreenWindow ()
 {
-    m_noteListWidth = m_splitter->sizes().at(0) != 0 ? m_splitter->sizes().at(0) : m_noteListWidth;
-
 #ifndef _WIN32
-    QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
-
     if(isFullScreen()){
-        if(!isMaximized())
-            ui->centralWidget->layout()->setContentsMargins(margins);
+        if(!isMaximized()) {
+            m_noteListWidth = m_splitter->sizes().at(0) != 0 ? m_splitter->sizes().at(0) : m_noteListWidth;
+            QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
+
+            setMargins(margins);
+        }
 
         setWindowState(windowState() & ~Qt::WindowFullScreen);
     }else{
         setWindowState(windowState() | Qt::WindowFullScreen);
-        ui->centralWidget->layout()->setContentsMargins(0,0,0,0);
+        setMargins(QMargins(0,0,0,0));
     }
 
 #else
@@ -1360,15 +1371,13 @@ void MainWindow::fullscreenWindow ()
 */
 void MainWindow::maximizeWindow ()
 {
-
-    m_noteListWidth = m_splitter->sizes().at(0) != 0 ? m_splitter->sizes().at(0) : m_noteListWidth;
-
 #ifndef _WIN32
-    QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
-
     if(isMaximized()){
         if(!isFullScreen()){
-            ui->centralWidget->layout()->setContentsMargins(margins);
+            m_noteListWidth = m_splitter->sizes().at(0) != 0 ? m_splitter->sizes().at(0) : m_noteListWidth;
+            QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
+
+            setMargins(margins);
             setWindowState(windowState() & ~Qt::WindowMaximized);
         }else{
             setWindowState(windowState() & ~Qt::WindowFullScreen);
@@ -1376,7 +1385,7 @@ void MainWindow::maximizeWindow ()
 
     }else{
         setWindowState(windowState() | Qt::WindowMaximized);
-        ui->centralWidget->layout()->setContentsMargins(0,0,0,0);
+        setMargins(QMargins(0,0,0,0));
     }
 #else
     if(isMaximized()){
@@ -1399,7 +1408,7 @@ void MainWindow::minimizeWindow ()
 {
 #ifndef _WIN32
     QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
-    ui->centralWidget->layout()->setContentsMargins(margins);
+    setMargins(margins);
 #endif
 
     // BUG : QTBUG-57902 minimize doesn't store the window state before minimizing
@@ -1568,6 +1577,16 @@ void MainWindow::exportNotesFile (const bool clicked) {
     }
 }
 
+void MainWindow::toggleNoteList()
+{
+    bool isCollapsed = (m_splitter->sizes().at(0) == 0);
+    if(isCollapsed) {
+        expandNoteList();
+    } else {
+        collapseNoteList();
+    }
+}
+
 void MainWindow::collapseNoteList()
 {
     m_splitter->setCollapsible(0, true);
@@ -1695,7 +1714,7 @@ void MainWindow::onRedCloseButtonClicked()
  */
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    if(windowState() != Qt::WindowFullScreen && windowState() != Qt::WindowMaximized)
+    if(windowState() != Qt::WindowFullScreen)
         m_settingsDatabase->setValue("windowGeometry", saveGeometry());
 
     if(m_currentSelectedNoteProxy.isValid()
@@ -2589,4 +2608,9 @@ void MainWindow::stayOnTop(bool checked) {
 
 void MainWindow::toggleStayOnTop() {
     this->stayOnTop(!m_alwaysStayOnTop);
+}
+
+void MainWindow::setMargins(QMargins margins) {
+    ui->centralWidget->layout()->setContentsMargins(margins);
+    m_trafficLightLayout->setGeometry(QRect(4+margins.left(),4+margins.top(),56,16));
 }

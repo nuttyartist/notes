@@ -112,6 +112,7 @@ private:
     QAction* m_restoreAction;
     QAction* m_quitAction;
     QMenu* m_trayIconMenu;
+    QHBoxLayout *m_trafficLightLayout;
 
     NoteView* m_noteView;
     NoteModel* m_noteModel;
@@ -186,6 +187,8 @@ private:
     void fillRectWithGradient(QPainter& painter, const QRect& rect, QGradient& gradient);
     double gaussianDist(double x, const double center, double sigma) const;
 
+    void setMargins(QMargins margins);
+
 private slots:
     void InitData();
     void onNewNoteButtonPressed();
@@ -218,6 +221,7 @@ private slots:
     void checkForUpdates (const bool clicked);
     void collapseNoteList();
     void expandNoteList();
+    void toggleNoteList();
     void importNotesFile(const bool clicked);
     void exportNotesFile(const bool clicked);
     void restoreNotesFile (const bool clicked);
