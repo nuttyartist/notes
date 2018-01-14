@@ -950,8 +950,8 @@ void MainWindow::onDotsButtonClicked()
 
     // note list visiblity action
     bool isCollapsed = (m_splitter->sizes().at(0) == 0);
-    QString actionLabel = isCollapsed? tr("Show notes list")
-                                     : tr("Hide notes list");
+    QString actionLabel = isCollapsed? tr("Show notes list (Ctrl+J)")
+                                     : tr("Hide notes list (Ctrl+J)");
 
     QAction* noteListVisbilityAction = viewMenu->addAction(actionLabel);
     if(isCollapsed){
