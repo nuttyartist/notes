@@ -112,7 +112,7 @@ private:
     QAction* m_restoreAction;
     QAction* m_quitAction;
     QMenu* m_trayIconMenu;
-    QHBoxLayout *m_trafficLightLayout;
+    QHBoxLayout m_trafficLightLayout;
 
     NoteView* m_noteView;
     NoteModel* m_noteModel;
