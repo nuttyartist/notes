@@ -210,29 +210,25 @@ void UpdaterWindow::resetControls()
 
 /**
  * Changes the number of dots of the title label while the QSimpleUpdater
- * is downloading and interpreting the update definitions file
+ * is downloading and interpreting the update definitions file 
  */
 void UpdaterWindow::updateTitleLabel()
 {
-    if(m_checkingForUpdates){
+    if(m_checkingForUpdates)
+    {
+        static int num=0;
         QString base = tr("Checking for updates");
-
-        /* Not nice, we should check if there is a better way to do this */
-        if(m_ui->title->text().endsWith("....")){
-            m_ui->title->setText(base + "." );
-        }else if(m_ui->title->text().endsWith("...")){
-            m_ui->title->setText(base + "....");
-        }else if(m_ui->title->text().endsWith("..")){
-            m_ui->title->setText(base + "...");
-        }else if(m_ui->title->text().endsWith(".")){
-            m_ui->title->setText(base + "..");
-        }else{
-            m_ui->title->setText(base + ".");
-        }
+        QString dot = "";
+        num++;
+        dot.fill('.', num);
+        m_ui->title->setText(base+dot);
+        if(num==4)
+            num=0;
     }
-
     QTimer::singleShot(500, this, SLOT(updateTitleLabel()));
 }
+
+
 
 /**
  * Updates the text displayed the the UI controls to reflect the information
