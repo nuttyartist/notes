@@ -22,7 +22,8 @@
 #include <QSystemTrayIcon>
 #include <QMenu>
 #include <QProgressDialog>
-#include <qaction.h>
+#include <QAction>
+#include <QAutostart>
 #include "notedata.h"
 #include "notemodel.h"
 #include "noteview.h"
@@ -125,6 +126,7 @@ private:
 
     UpdaterWindow m_updater;
     StretchSide m_stretchSide;
+    Autostart m_autostart;
 
     int m_currentVerticalScrollAreaRange;
     int m_mousePressX;

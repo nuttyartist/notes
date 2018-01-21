@@ -122,10 +122,15 @@ void MainWindow::InitData()
         QFuture<void> migration = QtConcurrent::run(this, &MainWindow::checkMigration);
         watcher->setFuture(migration);
 
-    }else{
+    } else {
         loadNotes();
         createNewNoteIfEmpty();
         selectFirstNote();
+    }
+
+    /// Check if it is running with an argument (ex. hide)
+    if (qApp->arguments().contains("--autostart")) {
+        setMainWindowVisibility(false);
     }
 }
 
@@ -972,6 +977,14 @@ void MainWindow::onDotsButtonClicked()
     // Check for update action
     QAction* checkForUpdatesAction = mainMenu.addAction(tr("Check For Updates"));
     connect (checkForUpdatesAction, &QAction::triggered, this, &MainWindow::checkForUpdates);
+
+    // Autostart
+    QAction* autostartAction = mainMenu.addAction(tr("Start automatically"));
+    connect (autostartAction, &QAction::triggered, this, [&]() {
+        m_autostart.setAutostart(autostartAction->isChecked());
+    });
+    autostartAction->setCheckable(true);
+    autostartAction->setChecked(m_autostart.isAutostart());
 
     mainMenu.addSeparator();
 
