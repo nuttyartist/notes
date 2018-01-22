@@ -46,6 +46,7 @@ cache:
   - C:\Program Files (x86)\Inno Setup 5 -> appveyor.yml
 
 install:
+  - git submodule update --init --recursive
   - ps: Update-AppveyorBuild -Version "$(git describe --tags $(git rev-list --tags --max-count=1))~git$($env:appveyor_repo_commit.substring(0,7))"
   - setx /m PLATFORMENV %platformEnv%
   - if not exist "C:\Program Files (x86)\Inno Setup 5" choco install innosetup 
