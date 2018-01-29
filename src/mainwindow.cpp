@@ -136,10 +136,7 @@ void MainWindow::InitData()
 void MainWindow::setMainWindowVisibility(bool state)
 {
     if(state){
-        showNormal();
-        setWindowState(Qt::WindowNoState);
-        qApp->processEvents();
-        setWindowState(Qt::WindowActive);
+        show();
         qApp->processEvents();
         qApp->setActiveWindow(this);
         qApp->processEvents();
