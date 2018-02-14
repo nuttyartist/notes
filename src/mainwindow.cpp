@@ -2635,19 +2635,20 @@ void MainWindow::setMargins(QMargins margins) {
 }
 
 void MainWindow::highlightSearch() const {
-
     QString searchString = m_lineEdit->text();
 
     if(!searchString.isEmpty()){
+        m_textEdit->blockSignals(true);
+
         QTextDocument *document = m_textEdit->document();
+        auto ee = document->toPlainText();
 
         QTextCursor highlightCursor(document);
         QTextCursor cursor(document);
 
         cursor.beginEditBlock();
 
-        QTextCharFormat plainFormat(highlightCursor.charFormat());
-        QTextCharFormat colorFormat = plainFormat;
+        QTextCharFormat colorFormat(highlightCursor.charFormat());
         colorFormat.setBackground(Qt::yellow);
 
         while (!highlightCursor.isNull() && !highlightCursor.atEnd()) {
@@ -2660,5 +2661,7 @@ void MainWindow::highlightSearch() const {
         }
 
         cursor.endEditBlock();
+
+        m_textEdit->blockSignals(false);
     }
 }
