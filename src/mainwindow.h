@@ -178,6 +178,7 @@ private:
     void selectFirstNote();
     void moveNoteToTop();
     void clearSearch();
+    void highlightSearch() const;
     void findNotesContain(const QString &keyword);
     void selectNote(const QModelIndex& noteIndex);
     void checkMigration();
@@ -189,7 +190,7 @@ private:
     void fillRectWithGradient(QPainter& painter, const QRect& rect, QGradient& gradient);
     double gaussianDist(double x, const double center, double sigma) const;
 
-    void setMargins(QMargins margins);
+    void setMargins(QMargins margins);    
 
 private slots:
     void InitData();
