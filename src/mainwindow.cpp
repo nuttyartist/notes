@@ -772,6 +772,8 @@ void MainWindow::showNoteInEditor(const QModelIndex &noteIndex)
     // set scrollbar position
     m_textEdit->verticalScrollBar()->setValue(scrollbarPos);
     m_textEdit->blockSignals(false);
+
+    highlightSearch();
 }
 
 /**
@@ -1148,6 +1150,8 @@ void MainWindow::onLineEditTextChanged (const QString &keyword)
 
         m_isOperationRunning = false;
     }
+
+    highlightSearch();
 }
 /**
  * @brief MainWindow::onClearButtonClicked clears the search and
@@ -2628,4 +2632,36 @@ void MainWindow::toggleStayOnTop() {
 void MainWindow::setMargins(QMargins margins) {
     ui->centralWidget->layout()->setContentsMargins(margins);
     m_trafficLightLayout.setGeometry(QRect(4+margins.left(),4+margins.top(),56,16));
+}
+
+void MainWindow::highlightSearch() const {
+    QString searchString = m_lineEdit->text();
+
+    if(!searchString.isEmpty()){
+        m_textEdit->blockSignals(true);
+
+        QTextDocument *document = m_textEdit->document();
+        auto ee = document->toPlainText();
+
+        QTextCursor highlightCursor(document);
+        QTextCursor cursor(document);
+
+        cursor.beginEditBlock();
+
+        QTextCharFormat colorFormat(highlightCursor.charFormat());
+        colorFormat.setBackground(Qt::yellow);
+
+        while (!highlightCursor.isNull() && !highlightCursor.atEnd()) {
+            highlightCursor = document->find(searchString, highlightCursor);
+
+            if (!highlightCursor.isNull()) {
+
+                highlightCursor.mergeCharFormat(colorFormat);
+            }
+        }
+
+        cursor.endEditBlock();
+
+        m_textEdit->blockSignals(false);
+    }
 }
