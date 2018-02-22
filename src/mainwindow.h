@@ -178,7 +178,6 @@ private:
     void selectFirstNote();
     void moveNoteToTop();
     void clearSearch();
-    void highlightSearch() const;
     void findNotesContain(const QString &keyword);
     void selectNote(const QModelIndex& noteIndex);
     void checkMigration();
