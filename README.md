@@ -17,7 +17,7 @@ This is where you come into play. Be part of making Notes better.
 Use this command to clone the repository:
 
 ```shell
-$> git clone https://github.com/nuttyartist/notes.git
+$> git clone --recursive  https://github.com/nuttyartist/notes.git
 ```
 
 ## Dependencies

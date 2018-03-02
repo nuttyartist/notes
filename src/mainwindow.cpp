@@ -47,7 +47,7 @@ MainWindow::MainWindow (QWidget *parent) :
     m_restoreAction(new QAction(tr("&Hide Notes"), this)),
     m_quitAction(new QAction(tr("&Quit"), this)),
     m_trayIconMenu(new QMenu(this)),
-    m_trafficLightLayout(new QHBoxLayout(this)),
+    m_trafficLightLayout(Q_NULLPTR),
     m_noteView(Q_NULLPTR),
     m_noteModel(new NoteModel(this)),
     m_deletedNotesModel(new NoteModel(this)),
@@ -122,10 +122,15 @@ void MainWindow::InitData()
         QFuture<void> migration = QtConcurrent::run(this, &MainWindow::checkMigration);
         watcher->setFuture(migration);
 
-    }else{
+    } else {
         loadNotes();
         createNewNoteIfEmpty();
         selectFirstNote();
+    }
+
+    /// Check if it is running with an argument (ex. hide)
+    if (qApp->arguments().contains("--autostart")) {
+        setMainWindowVisibility(false);
     }
 }
 
@@ -211,9 +216,16 @@ void MainWindow::setupMainWindow ()
     m_greenMaximizeButton = new QPushButton(this);
     m_redCloseButton = new QPushButton(this);
     m_yellowMinimizeButton = new QPushButton(this);
-    m_trafficLightLayout->addWidget(m_redCloseButton);
-    m_trafficLightLayout->addWidget(m_yellowMinimizeButton);
-    m_trafficLightLayout->addWidget(m_greenMaximizeButton);
+    m_trafficLightLayout.addWidget(m_redCloseButton);
+    m_trafficLightLayout.addWidget(m_yellowMinimizeButton);
+    m_trafficLightLayout.addWidget(m_greenMaximizeButton);
+
+#ifdef _WIN32
+    m_trafficLightLayout.setSpacing(0);
+    m_trafficLightLayout.setMargin(0);
+    m_trafficLightLayout.setGeometry(QRect(2,2,90,16));
+#endif
+
 
     m_newNoteButton = ui->newNoteButton;
     m_trashButton = ui->trashButton;
@@ -390,9 +402,9 @@ void MainWindow::setupTitleBarButtons ()
     m_yellowMinimizeButton->setIcon(QIcon(":images/windows_maximize_regular.png"));
     m_greenMaximizeButton->setIcon(QIcon(":images/windows_minimize_regular.png"));
 
-    m_redCloseButton->setMinimumSize(34, 16);
-    m_yellowMinimizeButton->setMinimumSize(28, 16);
-    m_greenMaximizeButton->setMinimumSize(28, 16);
+    m_redCloseButton->setIconSize(QSize(34, 16));
+    m_yellowMinimizeButton->setIconSize(QSize(28, 16));
+    m_greenMaximizeButton->setIconSize(QSize(28, 16));
 #endif
 
     m_redCloseButton->installEventFilter(this);
@@ -665,10 +677,12 @@ void MainWindow::restoreStates()
     if(m_settingsDatabase->value("windowGeometry", "NULL") != "NULL")
         this->restoreGeometry(m_settingsDatabase->value("windowGeometry").toByteArray());
 
-    /// Set margine to zero if the window is maximized
+#ifndef _WIN32
+    /// Set margin to zero if the window is maximized
     if (isMaximized()) {
         setMargins(QMargins(0,0,0,0));
     }
+#endif
 
     if(m_settingsDatabase->value("dontShowUpdateWindow", "NULL") != "NULL")
         m_dontShowUpdateWindow = m_settingsDatabase->value("dontShowUpdateWindow").toBool();
@@ -960,6 +974,14 @@ void MainWindow::onDotsButtonClicked()
     // Check for update action
     QAction* checkForUpdatesAction = mainMenu.addAction(tr("Check For Updates"));
     connect (checkForUpdatesAction, &QAction::triggered, this, &MainWindow::checkForUpdates);
+
+    // Autostart
+    QAction* autostartAction = mainMenu.addAction(tr("Start automatically"));
+    connect (autostartAction, &QAction::triggered, this, [&]() {
+        m_autostart.setAutostart(autostartAction->isChecked());
+    });
+    autostartAction->setCheckable(true);
+    autostartAction->setChecked(m_autostart.isAutostart());
 
     mainMenu.addSeparator();
 
@@ -1382,6 +1404,7 @@ void MainWindow::maximizeWindow ()
 #else
     if(isMaximized()){
         setWindowState(windowState() & ~Qt::WindowMaximized);
+        setWindowState(windowState() & ~Qt::WindowFullScreen);
     }else if(isFullScreen()){
         setWindowState((windowState() | Qt::WindowMaximized) & ~Qt::WindowFullScreen);
         setGeometry(qApp->primaryScreen()->availableGeometry());
@@ -2604,5 +2627,5 @@ void MainWindow::toggleStayOnTop() {
 
 void MainWindow::setMargins(QMargins margins) {
     ui->centralWidget->layout()->setContentsMargins(margins);
-    m_trafficLightLayout->setGeometry(QRect(4+margins.left(),4+margins.top(),56,16));
+    m_trafficLightLayout.setGeometry(QRect(4+margins.left(),4+margins.top(),56,16));
 }

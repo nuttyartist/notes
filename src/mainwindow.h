@@ -22,7 +22,8 @@
 #include <QSystemTrayIcon>
 #include <QMenu>
 #include <QProgressDialog>
-#include <qaction.h>
+#include <QAction>
+#include <QAutostart>
 #include "notedata.h"
 #include "notemodel.h"
 #include "noteview.h"
@@ -112,7 +113,7 @@ private:
     QAction* m_restoreAction;
     QAction* m_quitAction;
     QMenu* m_trayIconMenu;
-    QHBoxLayout *m_trafficLightLayout;
+    QHBoxLayout m_trafficLightLayout;
 
     NoteView* m_noteView;
     NoteModel* m_noteModel;
@@ -125,6 +126,7 @@ private:
 
     UpdaterWindow m_updater;
     StretchSide m_stretchSide;
+    Autostart m_autostart;
 
     int m_currentVerticalScrollAreaRange;
     int m_mousePressX;
