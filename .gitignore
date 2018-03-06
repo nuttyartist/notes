@@ -25,3 +25,10 @@ packaging/linux/snap/parts/desktop
 prime/
 squashfs-root/
 build/
+src/moc
+src/obj
+src/qrc
+src/snap
+src/uic
+src/notes
+.qmake.stash

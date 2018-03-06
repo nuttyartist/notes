@@ -158,7 +158,7 @@ NoteData #dateLabel{
               <enum>QLayout::SetNoConstraint</enum>
              </property>
              <item>
-              <spacer name="verticalSpacer_upLineEdit">
+              <spacer name="verticalSpacer_upSearchEdit">
               <property name="orientation">
                 <enum>Qt::Vertical</enum>
               </property>
@@ -201,7 +201,7 @@ NoteData #dateLabel{
                 <number>0</number>
                </property>
                <item>
-                <spacer name="horizontalSpacer_leftLineEdit">
+                <spacer name="horizontalSpacer_leftSearchEdit">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>
@@ -217,7 +217,7 @@ NoteData #dateLabel{
                 </spacer>
                </item>
                <item>
-                <widget class="QLineEdit" name="lineEdit">
+                <widget class="QLineEdit" name="searchEdit">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                    <horstretch>0</horstretch>
@@ -273,7 +273,7 @@ NoteData #dateLabel{
                 </widget>
                </item>
                <item>
-                <spacer name="horizontalSpacer_rightLineEdit">
+                <spacer name="horizontalSpacer_rightSearchEdit">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>

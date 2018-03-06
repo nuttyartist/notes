@@ -106,7 +106,7 @@ private:
     QPushButton* m_trashButton;
     QPushButton* m_dotsButton;
     QTextEdit* m_textEdit;
-    QLineEdit* m_lineEdit;
+    QLineEdit* m_searchEdit;
     QLabel* m_editorDateLabel;
     QSplitter *m_splitter;
     QSystemTrayIcon* m_trayIcon;
@@ -157,7 +157,7 @@ private:
     void setupTitleBarButtons();
     void setupSignalsSlots();
     void autoCheckForUpdates();
-    void setupLineEdit();
+    void setupSearchEdit();
     void setupTextEdit();
     void setupDatabases();
     void setupModelView();
@@ -202,7 +202,7 @@ private slots:
     void onDotsButtonClicked();
     void onNotePressed(const QModelIndex &index);
     void onTextEditTextChanged();
-    void onLineEditTextChanged(const QString& keyword);
+    void onSearchEditTextChanged(const QString& keyword);
     void onClearButtonClicked();
     void onGreenMaximizeButtonPressed ();
     void onYellowMinimizeButtonPressed ();
