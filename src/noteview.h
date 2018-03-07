@@ -16,7 +16,6 @@ public:
 
     void animateAddedRow(const QModelIndex &parent, int start, int end);
     void setSearching(bool isSearching);
-    void setCurrentRowActive(bool isActive);
 
 protected:
     void paintEvent(QPaintEvent *e) Q_DECL_OVERRIDE;
