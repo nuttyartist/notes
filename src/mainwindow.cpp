@@ -760,6 +760,11 @@ NoteData *MainWindow::generateNote(const int noteID)
 void MainWindow::showNoteInEditor(const QModelIndex &noteIndex)
 {
     m_textEdit->blockSignals(true);
+
+    /// fixing bug #202
+    m_textEdit->setTextBackgroundColor(QColor(255,255,255, 0));
+
+
     QString content = noteIndex.data(NoteModel::NoteContent).toString();
     QDateTime dateTime = noteIndex.data(NoteModel::NoteLastModificationDateTime).toDateTime();
     int scrollbarPos = noteIndex.data(NoteModel::NoteScrollbarPos).toInt();
@@ -2506,84 +2511,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
             }
         }
         break;
-    }
-    case QEvent::FocusIn:{
-        if(object == m_textEdit){
-
-            m_noteView->setCurrentRowActive(true);
-
-            if(!m_isOperationRunning){
-                // When clicking in a note's content while searching,
-                // reload all the notes and go and select that note
-                if(!m_searchEdit->text().isEmpty()){
-                    m_selectedNoteBeforeSearchingInSource = QModelIndex();
-
-                    if(m_currentSelectedNoteProxy.isValid()){
-                        QModelIndex indexInSource = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
-                        clearSearch();
-                        m_currentSelectedNoteProxy = m_proxyModel->mapFromSource(indexInSource);
-                        selectNote(m_currentSelectedNoteProxy);
-
-                    }else{
-                        clearSearch();
-                        createNewNote();
-                    }
-
-                    m_textEdit->setFocus();
-
-                }else if(m_proxyModel->rowCount() == 0){
-                    createNewNote();
-                }
-            }
-        }
-
-        if(object == m_searchEdit){
-            int frameWidth = m_searchEdit->style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
-            QString ss = QString("QLineEdit{ "
-                                 "  padding-right: %1px; "
-                                 "  padding-left: 21px;"
-                                 "  padding-right: 19px;"
-                                 "  border: 1px solid rgb(61, 155, 218);"
-                                 "  border-radius: 3px;"
-                                 "  background: rgb(255, 255, 255);"
-                                 "  selection-background-color: rgb(61, 155, 218);"
-                                 "} "
-                                 "QToolButton { "
-                                 "  border: none; "
-                                 "  padding: 0px;"
-                                 "}"
-                                 ).arg(frameWidth + 1);
-
-            m_searchEdit->setStyleSheet(ss);
-        }
-        break;
-    }
-    case QEvent::FocusOut:{
-        if(object == m_textEdit){
-            m_noteView->setCurrentRowActive(false);
-        }
-
-        if(object == m_searchEdit){
-            int frameWidth = m_searchEdit->style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
-            QString ss = QString("QLineEdit{ "
-                                 "  padding-right: %1px; "
-                                 "  padding-left: 21px;"
-                                 "  padding-right: 19px;"
-                                 "  border: 1px solid rgb(205, 205, 205);"
-                                 "  border-radius: 3px;"
-                                 "  background: rgb(255, 255, 255);"
-                                 "  selection-background-color: rgb(61, 155, 218);"
-                                 "} "
-                                 "QToolButton { "
-                                 "  border: none; "
-                                 "  padding: 0px;"
-                                 "}"
-                                 ).arg(frameWidth + 1);
-
-            m_searchEdit->setStyleSheet(ss);
-        }
-        break;
-    }
+    }    
     case QEvent::Show:
         if(object == &m_updater){
 
@@ -2641,8 +2569,7 @@ void MainWindow::highlightSearch() const {
         m_textEdit->blockSignals(true);
 
         QTextDocument *document = m_textEdit->document();
-        auto ee = document->toPlainText();
-
+ 
         QTextCursor highlightCursor(document);
         QTextCursor cursor(document);
 

@@ -128,10 +128,8 @@ private:
     StretchSide m_stretchSide;
     Autostart m_autostart;
 
-    int m_currentVerticalScrollAreaRange;
     int m_mousePressX;
     int m_mousePressY;
-    int m_textEditLeftPadding;
     int m_noteCounter;
     int m_trashCounter;
     int m_layoutMargin;
