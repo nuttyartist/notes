@@ -2569,7 +2569,6 @@ void MainWindow::highlightSearch() const {
         m_textEdit->blockSignals(true);
 
         QTextDocument *document = m_textEdit->document();
- 
         QTextCursor highlightCursor(document);
         QTextCursor cursor(document);
 
