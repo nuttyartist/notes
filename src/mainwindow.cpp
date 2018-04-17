@@ -40,7 +40,7 @@ MainWindow::MainWindow (QWidget *parent) :
     m_trashButton(Q_NULLPTR),
     m_dotsButton(Q_NULLPTR),
     m_textEdit(Q_NULLPTR),
-    m_lineEdit(Q_NULLPTR),
+    m_searchEdit(Q_NULLPTR),
     m_editorDateLabel(Q_NULLPTR),
     m_splitter(Q_NULLPTR),
     m_trayIcon(new QSystemTrayIcon(this)),
@@ -76,7 +76,7 @@ MainWindow::MainWindow (QWidget *parent) :
     setupLine();
     setupRightFrame();
     setupTitleBarButtons();
-    setupLineEdit();
+    setupSearchEdit();
     setupTextEdit();
     setupDatabases();
     setupModelView();
@@ -230,7 +230,7 @@ void MainWindow::setupMainWindow ()
     m_newNoteButton = ui->newNoteButton;
     m_trashButton = ui->trashButton;
     m_dotsButton = ui->dotsButton;
-    m_lineEdit = ui->lineEdit;
+    m_searchEdit = ui->searchEdit;
     m_textEdit = ui->textEdit;
     m_editorDateLabel = ui->editorDateLabel;
     m_splitter = ui->splitter;
@@ -259,10 +259,10 @@ void MainWindow::setupMainWindow ()
 void MainWindow::setupFonts()
 {
 #ifdef __APPLE__
-    m_lineEdit->setFont(QFont("Helvetica Neue", 12));
+    m_searchEdit->setFont(QFont("Helvetica Neue", 12));
     m_editorDateLabel->setFont(QFont("Helvetica Neue", 12, 65));
 #else
-    m_lineEdit->setFont(QFont(QStringLiteral("Roboto"), 10));
+    m_searchEdit->setFont(QFont(QStringLiteral("Roboto"), 10));
     m_editorDateLabel->setFont(QFont(QStringLiteral("Roboto"), 10, QFont::Bold));
 #endif
 }
@@ -287,8 +287,8 @@ void MainWindow::setupKeyboardShortcuts ()
 {
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_N), this, SLOT(onNewNoteButtonClicked()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Delete), this, SLOT(deleteSelectedNote()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_F), m_lineEdit, SLOT(setFocus()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_E), m_lineEdit, SLOT(clear()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_F), m_searchEdit, SLOT(setFocus()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_E), m_searchEdit, SLOT(clear()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_L), this, SLOT(setFocusOnCurrentNote()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Down), this, SLOT(selectNoteDown()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Up), this, SLOT(selectNoteUp()));
@@ -308,15 +308,15 @@ void MainWindow::setupKeyboardShortcuts ()
     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
     shortcut->setShortcut(QKeySequence("META+N"));
     connect(shortcut, &QxtGlobalShortcut::activated,[=]() {
-        // workaround prevent textEdit and lineEdit
+        // workaround prevent textEdit and searchEdit
         // from taking 'N' from shortcut
         m_textEdit->setDisabled(true);
-        m_lineEdit->setDisabled(true);
+        m_searchEdit->setDisabled(true);
         setMainWindowVisibility(isHidden()
                                 || windowState() == Qt::WindowMinimized
                                 || qApp->applicationState() == Qt::ApplicationInactive);
         m_textEdit->setDisabled(false);
-        m_lineEdit->setDisabled(false);
+        m_searchEdit->setDisabled(false);
     });
 }
 
@@ -443,7 +443,7 @@ void MainWindow::setupSignalsSlots()
     // text edit text changed
     connect(m_textEdit, &QTextEdit::textChanged, this, &MainWindow::onTextEditTextChanged);
     // line edit text changed
-    connect(m_lineEdit, &QLineEdit::textChanged, this, &MainWindow::onLineEditTextChanged);
+    connect(m_searchEdit, &QLineEdit::textChanged, this, &MainWindow::onSearchEditTextChanged);
     // note pressed
     connect(m_noteView, &NoteView::pressed, this, &MainWindow::onNotePressed);
     // noteView viewport pressed
@@ -496,12 +496,12 @@ void MainWindow::autoCheckForUpdates()
 * @brief
 * Set the lineedit to start a bit to the right and end a bit to the left (pedding)
 */
-void MainWindow::setupLineEdit ()
+void MainWindow::setupSearchEdit ()
 {
 
-    QLineEdit* lineEdit = m_lineEdit;
+    QLineEdit* searchEdit = m_searchEdit;
 
-    int frameWidth = m_lineEdit->style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
+    int frameWidth = m_searchEdit->style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
     QString ss = QString("QLineEdit{ "
                          "  padding-right: %1px; "
                          "  padding-left: 21px;"
@@ -517,10 +517,10 @@ void MainWindow::setupLineEdit ()
                          "}"
                          ).arg(frameWidth + 1);
 
-    lineEdit->setStyleSheet(ss);
+    searchEdit->setStyleSheet(ss);
 
     // clear button
-    m_clearButton = new QToolButton(lineEdit);
+    m_clearButton = new QToolButton(searchEdit);
     QPixmap pixmap(":images/closeButton.png");
     m_clearButton->setIcon(QIcon(pixmap));
     QSize clearSize(15, 15);
@@ -529,7 +529,7 @@ void MainWindow::setupLineEdit ()
     m_clearButton->hide();
 
     // search button
-    QToolButton *searchButton = new QToolButton(lineEdit);
+    QToolButton *searchButton = new QToolButton(searchEdit);
     QPixmap newPixmap(":images/magnifyingGlass.png");
     searchButton->setIcon(QIcon(newPixmap));
     QSize searchSize(24, 25);
@@ -537,14 +537,14 @@ void MainWindow::setupLineEdit ()
     searchButton->setCursor(Qt::ArrowCursor);
 
     // layout
-    QBoxLayout* layout = new QBoxLayout(QBoxLayout::RightToLeft, lineEdit);
+    QBoxLayout* layout = new QBoxLayout(QBoxLayout::RightToLeft, searchEdit);
     layout->setContentsMargins(0,0,3,0);
     layout->addWidget(m_clearButton);
     layout->addStretch();
     layout->addWidget(searchButton);
-    lineEdit->setLayout(layout);
+    searchEdit->setLayout(layout);
 
-    lineEdit->installEventFilter(this);
+    searchEdit->installEventFilter(this);
 }
 
 /**
@@ -760,6 +760,11 @@ NoteData *MainWindow::generateNote(const int noteID)
 void MainWindow::showNoteInEditor(const QModelIndex &noteIndex)
 {
     m_textEdit->blockSignals(true);
+
+    /// fixing bug #202
+    m_textEdit->setTextBackgroundColor(QColor(255,255,255, 0));
+
+
     QString content = noteIndex.data(NoteModel::NoteContent).toString();
     QDateTime dateTime = noteIndex.data(NoteModel::NoteLastModificationDateTime).toDateTime();
     int scrollbarPos = noteIndex.data(NoteModel::NoteScrollbarPos).toInt();
@@ -857,7 +862,7 @@ void MainWindow::setButtonsAndFieldsEnabled(bool doEnable)
     m_yellowMinimizeButton->setEnabled(doEnable);
     m_newNoteButton->setEnabled(doEnable);
     m_trashButton->setEnabled(doEnable);
-    m_lineEdit->setEnabled(doEnable);
+    m_searchEdit->setEnabled(doEnable);
     m_textEdit->setEnabled(doEnable);
     m_dotsButton->setEnabled(doEnable);
 }
@@ -879,7 +884,7 @@ void MainWindow::onNewNoteButtonClicked()
 {
     m_newNoteButton->setIcon(QIcon(":/images/newNote_Regular.png"));
 
-    if(!m_lineEdit->text().isEmpty()){
+    if(!m_searchEdit->text().isEmpty()){
         clearSearch();
         m_selectedNoteBeforeSearchingInSource = QModelIndex();
     }
@@ -1087,14 +1092,14 @@ void MainWindow::onTextEditTextChanged ()
 
 /**
 * @brief
-* When text on lineEdit change:
+* When text on searchEdit change:
 * If there is a temp note "New Note" while searching, we delete it
 * Saving the last selected note for recovery after searching
 * Clear all the notes from scrollArea and
 * If text is empty, reload all the notes from database
-* Else, load all the notes contain the string in lineEdit from database
+* Else, load all the notes contain the string in searchEdit from database
 */
-void MainWindow::onLineEditTextChanged (const QString &keyword)
+void MainWindow::onSearchEditTextChanged (const QString &keyword)
 {
     m_textEdit->clearFocus();
     m_searchQueue.enqueue(keyword);
@@ -1106,11 +1111,11 @@ void MainWindow::onLineEditTextChanged (const QString &keyword)
             --m_noteCounter;
             // prevent the line edit from emitting signal
             // while animation for deleting the new note is running
-            m_lineEdit->blockSignals(true);
+            m_searchEdit->blockSignals(true);
             m_currentSelectedNoteProxy = QModelIndex();
             QModelIndex index = m_noteModel->index(0);
             m_noteModel->removeNote(index);
-            m_lineEdit->blockSignals(false);
+            m_searchEdit->blockSignals(false);
 
             if(m_noteModel->rowCount() > 0){
                 m_selectedNoteBeforeSearchingInSource = m_noteModel->index(0);
@@ -1276,7 +1281,7 @@ void MainWindow::deleteSelectedNote ()
         if(m_currentSelectedNoteProxy.isValid()){
 
             // update the index of the selected note before searching
-            if(!m_lineEdit->text().isEmpty()){
+            if(!m_searchEdit->text().isEmpty()){
                 QModelIndex currentIndexInSource = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
                 int beforeSearchSelectedRow = m_selectedNoteBeforeSearchingInSource.row();
                 if(currentIndexInSource.row() < beforeSearchSelectedRow){
@@ -2057,9 +2062,9 @@ void MainWindow::clearSearch()
 {
     m_noteView->setFocusPolicy(Qt::StrongFocus);
 
-    m_lineEdit->blockSignals(true);
-    m_lineEdit->clear();
-    m_lineEdit->blockSignals(false);
+    m_searchEdit->blockSignals(true);
+    m_searchEdit->clear();
+    m_searchEdit->blockSignals(false);
 
     m_textEdit->blockSignals(true);
     m_textEdit->clear();
@@ -2070,7 +2075,7 @@ void MainWindow::clearSearch()
     m_proxyModel->setFilterFixedString(QStringLiteral(""));
 
     m_clearButton->hide();
-    m_lineEdit->setFocus();
+    m_searchEdit->setFocus();
 
     m_noteView->setSearching(false);
 }
@@ -2483,7 +2488,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
     }
     case QEvent::HoverEnter:{
         if(object == m_textEdit->verticalScrollBar()){
-            bool isSearching = !m_lineEdit->text().isEmpty();
+            bool isSearching = !m_searchEdit->text().isEmpty();
             if(isSearching)
                 m_textEdit->setFocusPolicy(Qt::NoFocus);
         }
@@ -2506,84 +2511,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
             }
         }
         break;
-    }
-    case QEvent::FocusIn:{
-        if(object == m_textEdit){
-
-            m_noteView->setCurrentRowActive(true);
-
-            if(!m_isOperationRunning){
-                // When clicking in a note's content while searching,
-                // reload all the notes and go and select that note
-                if(!m_lineEdit->text().isEmpty()){
-                    m_selectedNoteBeforeSearchingInSource = QModelIndex();
-
-                    if(m_currentSelectedNoteProxy.isValid()){
-                        QModelIndex indexInSource = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
-                        clearSearch();
-                        m_currentSelectedNoteProxy = m_proxyModel->mapFromSource(indexInSource);
-                        selectNote(m_currentSelectedNoteProxy);
-
-                    }else{
-                        clearSearch();
-                        createNewNote();
-                    }
-
-                    m_textEdit->setFocus();
-
-                }else if(m_proxyModel->rowCount() == 0){
-                    createNewNote();
-                }
-            }
-        }
-
-        if(object == m_lineEdit){
-            int frameWidth = m_lineEdit->style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
-            QString ss = QString("QLineEdit{ "
-                                 "  padding-right: %1px; "
-                                 "  padding-left: 21px;"
-                                 "  padding-right: 19px;"
-                                 "  border: 1px solid rgb(61, 155, 218);"
-                                 "  border-radius: 3px;"
-                                 "  background: rgb(255, 255, 255);"
-                                 "  selection-background-color: rgb(61, 155, 218);"
-                                 "} "
-                                 "QToolButton { "
-                                 "  border: none; "
-                                 "  padding: 0px;"
-                                 "}"
-                                 ).arg(frameWidth + 1);
-
-            m_lineEdit->setStyleSheet(ss);
-        }
-        break;
-    }
-    case QEvent::FocusOut:{
-        if(object == m_textEdit){
-            m_noteView->setCurrentRowActive(false);
-        }
-
-        if(object == m_lineEdit){
-            int frameWidth = m_lineEdit->style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
-            QString ss = QString("QLineEdit{ "
-                                 "  padding-right: %1px; "
-                                 "  padding-left: 21px;"
-                                 "  padding-right: 19px;"
-                                 "  border: 1px solid rgb(205, 205, 205);"
-                                 "  border-radius: 3px;"
-                                 "  background: rgb(255, 255, 255);"
-                                 "  selection-background-color: rgb(61, 155, 218);"
-                                 "} "
-                                 "QToolButton { "
-                                 "  border: none; "
-                                 "  padding: 0px;"
-                                 "}"
-                                 ).arg(frameWidth + 1);
-
-            m_lineEdit->setStyleSheet(ss);
-        }
-        break;
-    }
+    }    
     case QEvent::Show:
         if(object == &m_updater){
 
@@ -2635,14 +2563,13 @@ void MainWindow::setMargins(QMargins margins) {
 }
 
 void MainWindow::highlightSearch() const {
-    QString searchString = m_lineEdit->text();
+    QString searchString = m_searchEdit->text();
 
     if(!searchString.isEmpty()){
         m_textEdit->blockSignals(true);
 
         QTextDocument *document = m_textEdit->document();
-        auto ee = document->toPlainText();
-
+ 
         QTextCursor highlightCursor(document);
         QTextCursor cursor(document);
 
