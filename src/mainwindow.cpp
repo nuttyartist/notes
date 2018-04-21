@@ -2511,7 +2511,66 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
             }
         }
         break;
-    }    
+    }
+    case QEvent::FocusIn:{
+        if(object == m_textEdit){
+
+            if(!m_isOperationRunning){
+
+                if(!m_searchEdit->text().isEmpty()){
+                    if(!m_currentSelectedNoteProxy.isValid()){
+                        clearSearch();
+                        createNewNote();
+                    }
+
+                    m_textEdit->setFocus();
+
+                }else if(m_proxyModel->rowCount() == 0){
+                    createNewNote();
+                }
+            }
+        }
+
+        if(object == m_searchEdit){
+            QString ss = QString("QLineEdit{ "
+                                 "  padding-left: 21px;"
+                                 "  padding-right: 19px;"
+                                 "  border: 2px solid rgb(61, 155, 218);"
+                                 "  border-radius: 3px;"
+                                 "  background: rgb(255, 255, 255);"
+                                 "  selection-background-color: rgb(61, 155, 218);"
+                                 "} "
+                                 "QToolButton { "
+                                 "  border: none; "
+                                 "  padding: 0px;"
+                                 "}"
+                                 );
+
+            m_searchEdit->setStyleSheet(ss);
+        }
+        break;
+    }
+    case QEvent::FocusOut:{
+
+        if(object == m_searchEdit){
+            QString ss = QString("QLineEdit{ "
+                                 "  padding-left: 21px;"
+                                 "  padding-right: 19px;"
+                                 "  border: 1px solid rgb(205, 205, 205);"
+                                 "  border-radius: 3px;"
+                                 "  background: rgb(255, 255, 255);"
+                                 "  selection-background-color: rgb(61, 155, 218);"
+                                 "} "
+                                 "QToolButton { "
+                                 "  border: none; "
+                                 "  padding: 0px;"
+                                 "}"
+                                 );
+
+            m_searchEdit->setStyleSheet(ss);
+        }
+        break;
+    }
     case QEvent::Show:
         if(object == &m_updater){
 
@@ -2569,7 +2628,7 @@ void MainWindow::highlightSearch() const {
         m_textEdit->blockSignals(true);
 
         QTextDocument *document = m_textEdit->document();
- 
+
         QTextCursor highlightCursor(document);
         QTextCursor cursor(document);
 
