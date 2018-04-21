@@ -201,6 +201,15 @@ bool NoteView::viewportEvent(QEvent*e)
     return QListView::viewportEvent(e);
 }
 
+void NoteView::setCurrentRowActive(bool isActive)
+{
+    NoteWidgetDelegate* delegate = static_cast<NoteWidgetDelegate*>(itemDelegate());
+    if(delegate == Q_NULLPTR)
+        return;
+
+    delegate->setActive(isActive);
+    viewport()->update(visualRect(currentIndex()));
+}
 
 void NoteView::setSearching(bool isSearching)
 {
