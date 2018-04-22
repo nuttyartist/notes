@@ -1061,8 +1061,14 @@ void MainWindow::onTextEditTextChanged ()
             m_autoSaveTimer->start(500);
 
             // move note to the top of the list
-            if(m_currentSelectedNoteProxy.row() != 0)
+            QModelIndex sourceIndex = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
+            if(m_currentSelectedNoteProxy.row() != 0){
                 moveNoteToTop();
+            }else if(!m_searchEdit->text().isEmpty() && sourceIndex.row() != 0){
+                m_noteView->setAnimationEnabled(false);
+                moveNoteToTop();
+                m_noteView->setAnimationEnabled(true);
+            }
 
             // Get the new data
             QString firstline = getFirstLine(m_textEdit->toPlainText());
@@ -1135,8 +1141,8 @@ void MainWindow::onSearchEditTextChanged (const QString &keyword)
             saveNoteToDB(m_currentSelectedNoteProxy);
         }
 
-        // tell the noteView that we are searching to disable the animation
-        m_noteView->setSearching(true);
+        // disable animation while searching
+        m_noteView->setAnimationEnabled(false);
 
         while(!m_searchQueue.isEmpty()){
             qApp->processEvents();
@@ -1153,6 +1159,7 @@ void MainWindow::onSearchEditTextChanged (const QString &keyword)
             }
         }
 
+        m_noteView->setAnimationEnabled(true);
         m_isOperationRunning = false;
     }
 
@@ -2042,8 +2049,7 @@ void MainWindow::moveNoteToTop()
 {
     // check if the current note is note on the top of the list
     // if true move the note to the top
-    if(m_currentSelectedNoteProxy.isValid()
-            && m_noteView->currentIndex().row() != 0){
+    if(m_currentSelectedNoteProxy.isValid()){
 
         m_noteView->scrollToTop();
 
@@ -2055,6 +2061,8 @@ void MainWindow::moveNoteToTop()
         // update the current item
         m_currentSelectedNoteProxy = m_proxyModel->mapFromSource(destinationIndex);
         m_noteView->setCurrentIndex(m_currentSelectedNoteProxy);
+    }else{
+        qDebug() << QStringLiteral("MainWindow::moveNoteTop : m_currentSelectedNoteProxy not valid");
     }
 }
 
@@ -2076,8 +2084,6 @@ void MainWindow::clearSearch()
 
     m_clearButton->hide();
     m_searchEdit->setFocus();
-
-    m_noteView->setSearching(false);
 }
 
 void MainWindow::findNotesContain(const QString& keyword)

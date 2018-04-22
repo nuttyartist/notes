@@ -12,7 +12,7 @@
 NoteView::NoteView(QWidget *parent)
     : QListView( parent ),
       m_isScrollBarHidden(true),
-      m_isSearching(false),
+      m_animationEnabled(true),
       m_isMousePressed(false),
       m_rowHeight(38)
 {
@@ -62,7 +62,8 @@ void NoteView::paintEvent(QPaintEvent *e)
  */
 void NoteView::rowsInserted(const QModelIndex &parent, int start, int end)
 {
-    if(start == end && !m_isSearching)
+
+    if(start == end && m_animationEnabled)
         animateAddedRow(parent, start, end);
 
     QListView::rowsInserted(parent, start, end);
@@ -79,7 +80,7 @@ void NoteView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int en
             QModelIndex idx = model()->index(start,0);
             delegate->setCurrentSelectedIndex(QModelIndex());
 
-            if(!m_isSearching){
+            if(m_animationEnabled){
                 delegate->setState( NoteWidgetDelegate::Remove, idx);
             }else{
                 delegate->setState( NoteWidgetDelegate::Normal, idx);
@@ -107,7 +108,12 @@ void NoteView::rowsAboutToBeMoved(const QModelIndex &sourceParent, int sourceSta
         QModelIndex idx = model()->index(sourceStart,0);
         NoteWidgetDelegate* delegate = static_cast<NoteWidgetDelegate*>(itemDelegate());
         if(delegate != Q_NULLPTR){
-            delegate->setState( NoteWidgetDelegate::MoveOut, idx);
+
+            if(m_animationEnabled){
+                delegate->setState( NoteWidgetDelegate::MoveOut, idx);
+            }else{
+                delegate->setState( NoteWidgetDelegate::Normal, idx);
+            }
 
             // TODO find a way to finish this function till the animation stops
             while(delegate->animationState() == QTimeLine::Running){
@@ -132,7 +138,11 @@ void NoteView::rowsMoved(const QModelIndex &parent, int start, int end,
     if(delegate == Q_NULLPTR)
         return;
 
-    delegate->setState( NoteWidgetDelegate::MoveIn, idx );
+    if(m_animationEnabled){
+        delegate->setState( NoteWidgetDelegate::MoveIn, idx );
+    }else{
+        delegate->setState( NoteWidgetDelegate::Normal, idx);
+    }
 
     // TODO find a way to finish this function till the animation stops
     while(delegate->animationState() == QTimeLine::Running){
@@ -211,9 +221,9 @@ void NoteView::setCurrentRowActive(bool isActive)
     viewport()->update(visualRect(currentIndex()));
 }
 
-void NoteView::setSearching(bool isSearching)
+void NoteView::setAnimationEnabled(bool isEnabled)
 {
-    m_isSearching = isSearching;
+    m_animationEnabled = isEnabled;
 }
 
 void NoteView::setupSignalsSlots()
@@ -270,7 +280,6 @@ void NoteView::setupSignalsSlots()
             viewport()->update(visualRect(lastIndex));
         }
     });
-
 
     // remove/add offset right side
     connect(this->verticalScrollBar(), &QScrollBar::rangeChanged,[this](int min, int max){
