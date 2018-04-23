@@ -15,7 +15,7 @@ public:
     ~NoteView();
 
     void animateAddedRow(const QModelIndex &parent, int start, int end);
-    void setSearching(bool isSearching);
+    void setAnimationEnabled(bool isEnabled);
     void setCurrentRowActive(bool isActive);
 
 protected:
@@ -27,7 +27,7 @@ protected:
 
 private:
     bool m_isScrollBarHidden;
-    bool m_isSearching;
+    bool m_animationEnabled;
     bool m_isMousePressed;
     int m_rowHeight;
 
