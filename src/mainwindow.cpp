@@ -2596,8 +2596,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
         // from the top part of the window
         if(object == ui->frame){
             QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
-            const int lowerBound = ui->verticalSpacer_upSearchEdit->geometry().bottom();
-            if(mouseEvent->y() > lowerBound){
+            if(mouseEvent->y() >= ui->searchEdit->y()){
                 return true;
             }
         }
