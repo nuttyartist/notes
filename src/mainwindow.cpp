@@ -2590,6 +2590,17 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
             m_updater.setGeometry(QRect(x, y, rect.width(), rect.height()));
         }
         break;
+    case QEvent::MouseButtonPress:
+    case QEvent::MouseButtonDblClick:
+        // Only allow double click (maximise/minimise) or dragging (move)
+        // from the top part of the window
+        if(object == ui->frame){
+            QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+            if(mouseEvent->y() >= ui->searchEdit->y()){
+                return true;
+            }
+        }
+        break;
     default:
         break;
     }
