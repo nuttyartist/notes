@@ -3,7 +3,6 @@
 #include <QTimeZone>
 #include <QDateTime>
 #include <QDebug>
-#include <QtConcurrent>
 
 DBManager::DBManager(const QString& path, bool doCreate, QObject *parent) : QObject(parent)
 {
@@ -291,7 +290,11 @@ bool DBManager::forceLastRowIndexValue(const int indexValue)
 
 void DBManager::importNotes(QList<NoteData*> noteList) {
     QSqlDatabase::database().transaction();
-    QtConcurrent::blockingMap(noteList, [this] (NoteData* note) { this->addNote(note); });
+
+    for (NoteData* note : noteList) {
+      this->addNote(note);
+    }
+
     QSqlDatabase::database().commit();
 }
 

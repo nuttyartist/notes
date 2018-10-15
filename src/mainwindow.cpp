@@ -810,9 +810,9 @@ void MainWindow::saveNoteToDB(const QModelIndex &noteIndex)
         if(note != Q_NULLPTR){
             bool doExist = m_dbManager->isNoteExist(note);
             if(doExist){
-                QtConcurrent::run(m_dbManager, &DBManager::modifyNote, note);
+                m_dbManager->modifyNote(note);
             }else{
-                QtConcurrent::run(m_dbManager, &DBManager::addNote, note);
+                m_dbManager->addNote(note);
             }
         }
 
@@ -1245,14 +1245,14 @@ void MainWindow::deleteNote(const QModelIndex &noteIndex, bool isFromUser)
     if(noteIndex.isValid()){
         // delete from model
         QModelIndex indexToBeRemoved = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
-        NoteData* noteTobeRemoved = m_noteModel->removeNote(indexToBeRemoved);
+        NoteData* note = m_noteModel->removeNote(indexToBeRemoved);
 
         if(m_isTemp){
             m_isTemp = false;
             --m_noteCounter;
         }else{
-            noteTobeRemoved->setDeletionDateTime(QDateTime::currentDateTime());
-            QtConcurrent::run(m_dbManager, &DBManager::removeNote, noteTobeRemoved);
+            note->setDeletionDateTime(QDateTime::currentDateTime());
+            m_dbManager->removeNote(note);
         }
 
         if(isFromUser){
@@ -1557,19 +1557,19 @@ void MainWindow::executeImport(const bool replace) {
 
         setButtonsAndFieldsEnabled(false);
 
-        QFutureWatcher<void>* watcher = new QFutureWatcher<void>(this);
-        connect(watcher, &QFutureWatcher<void>::finished, this, [&, pd](){
-            pd->deleteLater();
+        if(replace) {
+            m_dbManager->restoreNotes(noteList);
+        } else {
+            m_dbManager->importNotes(noteList);
+        }
 
-            setButtonsAndFieldsEnabled(true);
+        pd->deleteLater();
+        setButtonsAndFieldsEnabled(true);
 
-            m_noteModel->clearNotes();
-            loadNotes();
-            createNewNoteIfEmpty();
-            selectFirstNote();
-        });
-
-        watcher->setFuture(QtConcurrent::run(m_dbManager, replace ? &DBManager::restoreNotes : &DBManager::importNotes, noteList));
+        m_noteModel->clearNotes();
+        loadNotes();
+        createNewNoteIfEmpty();
+        selectFirstNote();
     }
 }
 
