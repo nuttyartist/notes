@@ -144,7 +144,7 @@ void MainWindow::setMainWindowVisibility(bool state)
         m_restoreAction->setText(tr("&Hide Notes"));
     }else{
         m_restoreAction->setText(tr("&Show Notes"));
-        hide();
+        close();
     }
 }
 
@@ -644,9 +644,11 @@ void MainWindow::setupDatabases ()
     QString noteDBFilePath(dir.path() + QDir::separator() + QStringLiteral("notes.db"));
 
     if(!QFile::exists(noteDBFilePath)){
+        qDebug() << "DEBUG: Note DB File does not exist";
         QFile noteDBFile(noteDBFilePath);
-        if(!noteDBFile.open(QIODevice::WriteOnly))
+        if(!noteDBFile.open(QIODevice::WriteOnly)){
             qFatal("ERROR : Can't create database file");
+        }
 
         noteDBFile.close();
         doCreate = true;
