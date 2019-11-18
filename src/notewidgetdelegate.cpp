@@ -229,7 +229,7 @@ void NoteWidgetDelegate::paintLabels(QPainter* painter, const QStyleOptionViewIt
     }
 
     // draw title & date
-    title = fmTitle.elidedText(title, Qt::ElideRight, titleRectWidth);
+    title = fmTitle.elidedText(title, Qt::ElideRight, int(titleRectWidth));
     drawStr(titleRectPosX, titleRectPosY, titleRectWidth, titleRectHeight, m_titleColor, titleFont, title);
     drawStr(dateRectPosX, dateRectPosY, dateRectWidth, dateRectHeight, m_dateColor, m_dateFont, date);
 }

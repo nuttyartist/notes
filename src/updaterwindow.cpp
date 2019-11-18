@@ -199,7 +199,7 @@ void UpdaterWindow::resetControls()
     /* Resize window */
     bool showAgain = isVisible();
     int height = minimumSizeHint().height();
-    int width = qMax(minimumSizeHint().width(),(int)(height * 1.2));
+    int width = qMax(minimumSizeHint().width(),int(height * 1.2));
     resize(QSize(width, height));
 
     /* Re-show the window(if required)*/
@@ -456,7 +456,7 @@ void UpdaterWindow::updateProgress(qint64 received, qint64 total)
     if(total > 0){
         m_ui->progressBar->setMinimum(0);
         m_ui->progressBar->setMaximum(100);
-        m_ui->progressBar->setValue((received * 100)/ total);
+        m_ui->progressBar->setValue(int((received * 100)/ total));
 
         calculateSizes(received, total);
         calculateTimeRemaining(received, total);
@@ -589,5 +589,5 @@ void UpdaterWindow::mouseReleaseEvent(QMouseEvent *event)
  */
 qreal UpdaterWindow::round(const qreal& input)
 {
-    return roundf(input * 100)/ 100;
+    return qreal(roundf(float(input * 100))/100);
 }

@@ -101,7 +101,7 @@ void MainWindow::InitData()
 
     if(exist){
         QProgressDialog* pd = new QProgressDialog("Migrating database, please wait.", "", 0, 0, this);
-        pd->setCancelButton(0);
+        pd->setCancelButton(Q_NULLPTR);
         pd->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
         pd->setMinimumDuration(0);
         pd->show();
@@ -708,7 +708,7 @@ QString MainWindow::getFirstLine (const QString& str)
 
     QString text = str.trimmed();
     QTextStream ts(&text);
-    return std::move(ts.readLine(FIRST_LINE_MAX));
+    return ts.readLine(FIRST_LINE_MAX);
 }
 
 /**
@@ -1464,7 +1464,7 @@ void MainWindow::QuitApplication ()
  * \param clicked required by the signal/slot connection, the value is ignored
  */
 void MainWindow::checkForUpdates(const bool clicked) {
-    Q_UNUSED (clicked);
+    Q_UNUSED (clicked)
     m_updater.checkForUpdates(true);
 }
 
@@ -1478,7 +1478,7 @@ void MainWindow::checkForUpdates(const bool clicked) {
  * @param clicked
  */
 void MainWindow::importNotesFile (const bool clicked) {
-    Q_UNUSED (clicked);
+    Q_UNUSED (clicked)
     executeImport(false);
 }
 
@@ -1492,7 +1492,7 @@ void MainWindow::importNotesFile (const bool clicked) {
  * @param clicked
  */
 void MainWindow::restoreNotesFile (const bool clicked) {
-    Q_UNUSED (clicked);
+    Q_UNUSED (clicked)
 
     if (m_noteModel->rowCount() > 0) {
         QMessageBox msgBox;
@@ -1549,7 +1549,7 @@ void MainWindow::executeImport(const bool replace) {
         }
 
         QProgressDialog* pd = new QProgressDialog(replace ? "Restoring Notes..." : "Importing Notes...", "", 0, 0, this);
-        pd->setCancelButton(0);
+        pd->setCancelButton(Q_NULLPTR);
         pd->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
         pd->setMinimumDuration(0);
         pd->show();
@@ -1583,7 +1583,7 @@ void MainWindow::executeImport(const bool replace) {
  * @param clicked
  */
 void MainWindow::exportNotesFile (const bool clicked) {
-    Q_UNUSED (clicked);
+    Q_UNUSED (clicked)
     QString fileName = QFileDialog::getSaveFileName(this,
             tr("Save Notes"), "notes.nbk",
             tr("Notes Backup File (*.nbk)"));
@@ -2292,8 +2292,6 @@ void MainWindow::dropShadow(QPainter& painter, ShadowType type, MainWindow::Shad
         bottomRight = QPoint(innerRect.left(), outerRect.bottom());
         center      = innerRect.bottomLeft();
         break;
-    default:
-        break;
     }
 
 
@@ -2310,8 +2308,6 @@ void MainWindow::dropShadow(QPainter& painter, ShadowType type, MainWindow::Shad
     case ShadowType::Linear :
         fillRectWithGradient(painter, zone, linearGradient);
         break;
-    default:
-        break;
     }
 }
 
@@ -2325,7 +2321,7 @@ void MainWindow::fillRectWithGradient(QPainter& painter, const QRect& rect, QGra
     for(int i=0; i<=nPt; i++){
         double v = gaussianDist(i*xMax/nPt, 0, sqrt(variance));
 
-        QColor c(168, 168, 168, q*v);
+        QColor c(168, 168, 168, int(q*v));
         gradient.setColorAt(i/nPt, c);
     }
 
@@ -2584,8 +2580,8 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
             QRect appRect = geometry();
             int titleBarHeight = 28 ;
 
-            int x = appRect.x() + (appRect.width() - rect.width())/2.0;
-            int y = appRect.y() + titleBarHeight  + (appRect.height() - rect.height())/2.0;
+            int x = int(appRect.x() + (appRect.width() - rect.width())/2.0);
+            int y = int(appRect.y() + titleBarHeight  + (appRect.height() - rect.height())/2.0);
 
             m_updater.setGeometry(QRect(x, y, rect.width(), rect.height()));
         }
