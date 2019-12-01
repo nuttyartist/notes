@@ -24,10 +24,11 @@
 
 #define FIRST_LINE_MAX 80
 
-/**
-* Setting up the main window and it's content
-*/
-MainWindow::MainWindow (QWidget *parent) :
+/*!
+ * \brief MainWindow::MainWindow
+ * \param parent
+ */
+MainWindow::MainWindow(QWidget *parent) :
     QMainWindow (parent),
     ui (new Ui::MainWindow),
     m_autoSaveTimer(new QTimer(this)),
@@ -88,8 +89,9 @@ MainWindow::MainWindow (QWidget *parent) :
     QTimer::singleShot(200,this, SLOT(InitData()));
 }
 
-/**
- * @brief Init the data from database and select the first note if there is one
+/*!
+ * \brief MainWindow::InitData
+ * Init the data from database and select the first note if there is one
  */
 void MainWindow::InitData()
 {
@@ -129,6 +131,10 @@ void MainWindow::InitData()
     }
 }
 
+/*!
+ * \brief MainWindow::setMainWindowVisibility
+ * \param state
+ */
 void MainWindow::setMainWindowVisibility(bool state)
 {
     if(state){
@@ -143,6 +149,10 @@ void MainWindow::setMainWindowVisibility(bool state)
     }
 }
 
+/*!
+ * \brief MainWindow::paintEvent
+ * \param event
+ */
 void MainWindow::paintEvent(QPaintEvent* event)
 {
     QPainter painter(this);
@@ -165,6 +175,10 @@ void MainWindow::paintEvent(QPaintEvent* event)
     QMainWindow::paintEvent(event);
 }
 
+/*!
+ * \brief MainWindow::resizeEvent
+ * \param event
+ */
 void MainWindow::resizeEvent(QResizeEvent* event)
 {
     if(m_splitter != Q_NULLPTR){
@@ -180,11 +194,11 @@ void MainWindow::resizeEvent(QResizeEvent* event)
     QMainWindow::resizeEvent(event);
 }
 
-/**
-* @brief
-* Deconstructor of the class
-*/
-MainWindow::~MainWindow ()
+/*!
+ * \brief MainWindow::~MainWindow
+ * Deconstructor of the class
+ */
+MainWindow::~MainWindow()
 {
     delete ui;
     m_dbThread->quit();
@@ -192,12 +206,12 @@ MainWindow::~MainWindow ()
     delete m_dbThread;
 }
 
-/**
-* @brief
-* Setting up main window prefrences like frameless window and the minimum size of the window
-* Setting the window background color to be white
-*/
-void MainWindow::setupMainWindow ()
+/*!
+ * \brief MainWindow::setupMainWindow
+ * Setting up main window prefrences like frameless window and the minimum size of the window
+ * Setting the window background color to be white
+ */
+void MainWindow::setupMainWindow()
 {
 #ifdef Q_OS_LINUX
     this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
@@ -223,7 +237,6 @@ void MainWindow::setupMainWindow ()
     m_trafficLightLayout.setMargin(0);
     m_trafficLightLayout.setGeometry(QRect(2,2,90,16));
 #endif
-
 
     m_newNoteButton = ui->newNoteButton;
     m_trashButton = ui->trashButton;
@@ -254,6 +267,9 @@ void MainWindow::setupMainWindow ()
     m_dotsButton->setToolTip("Open Menu");
 }
 
+/*!
+ * \brief MainWindow::setupFonts
+ */
 void MainWindow::setupFonts()
 {
 #ifdef __APPLE__
@@ -265,6 +281,9 @@ void MainWindow::setupFonts()
 #endif
 }
 
+/*!
+ * \brief MainWindow::setupTrayIcon
+ */
 void MainWindow::setupTrayIcon()
 {
     m_trayIconMenu->addAction(m_restoreAction);
@@ -277,11 +296,11 @@ void MainWindow::setupTrayIcon()
     m_trayIcon->show();
 }
 
-/**
-* @brief
-* Setting up the keyboard shortcuts
-*/
-void MainWindow::setupKeyboardShortcuts ()
+/*!
+ * \brief MainWindow::setupKeyboardShortcuts
+ * Setting up the keyboard shortcuts
+ */
+void MainWindow::setupKeyboardShortcuts()
 {
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_N), this, SLOT(onNewNoteButtonClicked()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Delete), this, SLOT(deleteSelectedNote()));
@@ -318,15 +337,15 @@ void MainWindow::setupKeyboardShortcuts ()
     });
 }
 
-/**
-* @brief
-* We need to set up some different values when using apple os x
-* This is because if we want to get the native button look in os x,
-* due to some bug in Qt, I think, the values of width and height of buttons
-* needs to be more than 50 and less than 34 respectively.
-* So some modifications needs to be done.
-*/
-void MainWindow::setupNewNoteButtonAndTrahButton ()
+/*!
+ * \brief MainWindow::setupNewNoteButtonAndTrahButton
+ * We need to set up some different values when using apple os x
+ * This is because if we want to get the native button look in os x,
+ * due to some bug in Qt, I think, the values of width and height of buttons
+ * needs to be more than 50 and less than 34 respectively.
+ * So some modifications needs to be done.
+ */
+void MainWindow::setupNewNoteButtonAndTrahButton()
 {
     QString ss = "QPushButton { "
                  "  border: none; "
@@ -342,21 +361,21 @@ void MainWindow::setupNewNoteButtonAndTrahButton ()
     m_dotsButton->installEventFilter(this);
 }
 
-/**
-* @brief
-* Set up the splitter that control the size of the scrollArea and the textEdit
-*/
+/*!
+ * \brief MainWindow::setupSplitter
+ * Set up the splitter that control the size of the scrollArea and the textEdit
+ */
 void MainWindow::setupSplitter()
 {
     m_splitter->setCollapsible(0, false);
     m_splitter->setCollapsible(1, false);
 }
 
-/**
-* @brief
-* Set up the vertical line that seperate between the scrollArea to the textEdit
-*/
-void MainWindow::setupLine ()
+/*!
+ * \brief MainWindow::setupLine
+ * Set up the vertical line that seperate between the scrollArea to the textEdit
+ */
+void MainWindow::setupLine()
 {
 #ifdef __APPLE__
     ui->line->setStyleSheet("border: 0px solid rgb(221, 221, 221)");
@@ -365,11 +384,12 @@ void MainWindow::setupLine ()
 #endif
 }
 
-/**
-* @brief
-* Set up a frame above textEdit and behind the other widgets for a unifed background in thet editor section
-*/
-void MainWindow::setupRightFrame ()
+/*!
+ * \brief MainWindow::setupRightFrame
+ * Set up a frame above textEdit and behind the other widgets for a unifed background
+ * in thet editor section
+ */
+void MainWindow::setupRightFrame()
 {
     QString ss = "QFrame{ "
                  "  background-image: url(:images/textEdit_background_pattern.png); "
@@ -378,13 +398,13 @@ void MainWindow::setupRightFrame ()
     ui->frameRight->setStyleSheet(ss);
 }
 
-/**
-* @brief
-* Setting up the red (close), yellow (minimize), and green (maximize) buttons
-* Make only the buttons icon visible
-* And install this class event filter to them, to act when hovering on one of them
-*/
-void MainWindow::setupTitleBarButtons ()
+/*!
+ * \brief MainWindow::setupTitleBarButtons
+ * Setting up the red (close), yellow (minimize), and green (maximize) buttons
+ * Make only the buttons icon visible
+ * And install this class event filter to them, to act when hovering on one of them
+ */
+void MainWindow::setupTitleBarButtons()
 {
     QString ss = "QPushButton { "
                  "  border: none; "
@@ -410,8 +430,9 @@ void MainWindow::setupTitleBarButtons ()
     m_greenMaximizeButton->installEventFilter(this);
 }
 
-/**
- * @brief connect between signals and slots
+/*!
+ * \brief MainWindow::setupSignalsSlots
+ * connect between signals and slots
  */
 void MainWindow::setupSignalsSlots()
 {
@@ -501,7 +522,8 @@ void MainWindow::setupSignalsSlots()
     connect(m_dbManager, &DBManager::notesReceived, this, &MainWindow::loadNotes);
 }
 
-/**
+/*!
+ * \brief MainWindow::autoCheckForUpdates
  * Checks for updates, if an update is found, then the updater dialog will show
  * up, otherwise, no notification shall be showed
  */
@@ -512,11 +534,11 @@ void MainWindow::autoCheckForUpdates()
     m_updater.checkForUpdates(false);
 }
 
-/**
-* @brief
-* Set the lineedit to start a bit to the right and end a bit to the left (pedding)
-*/
-void MainWindow::setupSearchEdit ()
+/*!
+ * \brief MainWindow::setupSearchEdit
+ * Set the lineedit to start a bit to the right and end a bit to the left (pedding)
+ */
+void MainWindow::setupSearchEdit()
 {
 
     QLineEdit* searchEdit = m_searchEdit;
@@ -567,14 +589,14 @@ void MainWindow::setupSearchEdit ()
     searchEdit->installEventFilter(this);
 }
 
-/**
-* @brief
-* Setting up textEdit:
-* Setup the style of the scrollBar and set textEdit background to an image
-* Make the textEdit pedding few pixels right and left, to compel with a beautiful proportional grid
-* And install this class event filter to catch when text edit is having focus
-*/
-void MainWindow::setupTextEdit ()
+/*!
+ * \brief MainWindow::setupTextEdit
+ * Setting up textEdit:
+ * Setup the style of the scrollBar and set textEdit background to an image
+ * Make the textEdit pedding few pixels right and left, to compel with a beautiful proportional grid
+ * And install this class event filter to catch when text edit is having focus
+ */
+void MainWindow::setupTextEdit()
 {
     QString ss = QString("QTextEdit {background-image: url(:images/textEdit_background_pattern.png); padding-left: %1px; padding-right: %2px; padding-bottom:2px;} "
                          "QScrollBar::handle:vertical:hover { background: rgb(170, 170, 171); } "
@@ -603,6 +625,9 @@ void MainWindow::setupTextEdit ()
 #endif
 }
 
+/*!
+ * \brief MainWindow::initializeSettingsDatabase
+ */
 void MainWindow::initializeSettingsDatabase()
 {
     if(m_settingsDatabase->value("version", "NULL") == "NULL")
@@ -631,23 +656,11 @@ void MainWindow::initializeSettingsDatabase()
     }
 }
 
-/**
-* @brief
-* Setting up the database:
-* The "Company" name is: 'Awesomeness' (So you don't have to scroll when getting to the .config folder)
-* The Application name is: 'Notes'
-* If it's the first run (or the database is deleted) , create the database and the notesCounter key
-* (notesCounter increases it's value everytime a new note is created)
-* We chose the Ini format for all operating systems because of future reasons - it might be easier to
-* sync databases between diffrent os's when you have one consistent file format. We also think that this
-* format, in the way Qt is handling it, is very good for are needs.
-* Also because the native format on windows - the registery is very limited.
-* The databases are stored in the user scope of the computer. That's mostly in (Qt takes care of this automatically):
-* Linux: /home/user/.config/Awesomeness/
-* Windows: C:\Users\user\AppData\Roaming\Awesomeness
-* Mac OS X:
-*/
-void MainWindow::setupDatabases ()
+/*!
+ * \brief MainWindow::setupDatabases
+ * Setting up the database:
+ */
+void MainWindow::setupDatabases()
 {
     m_settingsDatabase = new QSettings(QSettings::IniFormat, QSettings::UserScope,
                                        QStringLiteral("Awesomeness"), QStringLiteral("Settings"), this);
@@ -659,7 +672,7 @@ void MainWindow::setupDatabases ()
     QDir dir(fi.absolutePath());
     bool folderCreated = dir.mkpath(QStringLiteral("."));
     if(!folderCreated)
-         qFatal("ERROR: Can't create settings folder : %s", dir.absolutePath().toStdString().c_str());
+        qFatal("ERROR: Can't create settings folder : %s", dir.absolutePath().toStdString().c_str());
 
     QString noteDBFilePath(dir.path() + QDir::separator() + QStringLiteral("notes.db"));
 
@@ -682,6 +695,9 @@ void MainWindow::setupDatabases ()
     m_dbThread->start();
 }
 
+/*!
+ * \brief MainWindow::setupModelView
+ */
 void MainWindow::setupModelView()
 {
     m_noteView = static_cast<NoteView*>(ui->listView);
@@ -694,10 +710,11 @@ void MainWindow::setupModelView()
     m_noteView->setModel(m_proxyModel);
 }
 
-/**
-* @brief
-* Restore the latest sates (if there are any) of the window and the splitter from the settings database
-*/
+/*!
+ * \brief MainWindow::restoreStates
+ * Restore the latest sates (if there are any) of the window and the splitter from
+ * the settings database
+ */
 void MainWindow::restoreStates()
 {
     if(m_settingsDatabase->value("windowGeometry", "NULL") != "NULL")
@@ -721,13 +738,15 @@ void MainWindow::restoreStates()
     m_splitter->setCollapsible(0, false);
 }
 
-/**
-* @brief
-* Get a string 'str' and return only the first line of it
-* If the string contain no text, return "New Note"
-* TODO: We might make it more efficient by not loading the entire string into the memory
-*/
-QString MainWindow::getFirstLine (const QString& str)
+/*!
+ * \brief MainWindow::getFirstLine
+ * Get a string 'str' and return only the first line of it
+ * If the string contain no text, return "New Note"
+ * TODO: We might make it more efficient by not loading the entire string into the memory
+ * \param str
+ * \return
+ */
+QString MainWindow::getFirstLine(const QString& str)
 {
     if(str.simplified().isEmpty())
         return "New Note";
@@ -737,23 +756,28 @@ QString MainWindow::getFirstLine (const QString& str)
     return ts.readLine(FIRST_LINE_MAX);
 }
 
-/**
-* @brief
-* Get a date string of a note from database and put it's data into a QDateTime object
-* This function is not efficient
-* If QVariant would include toStdString() it might help, aka: notesDatabase->value().toStdString
-*/
-QDateTime MainWindow::getQDateTime (QString date)
+/*!
+ * \brief MainWindow::getQDateTime
+ * Get a date string of a note from database and put it's data into a QDateTime object
+ * This function is not efficient
+ * If QVariant would include toStdString() it might help, aka: notesDatabase->value().toStdString
+ * \param date
+ * \return
+ */
+QDateTime MainWindow::getQDateTime(QString date)
 {
     QDateTime dateTime = QDateTime::fromString(date, Qt::ISODate);
     return dateTime;
 }
 
-/**
-* @brief
-* Get the full date of the selected note from the database and return it as a string in form for editorDateLabel
-*/
-QString MainWindow::getNoteDateEditor (QString dateEdited)
+/*!
+ * \brief MainWindow::getNoteDateEditor
+ * Get the full date of the selected note from the database and return
+ * it as a string in form for editorDateLabel
+ * \param dateEdited
+ * \return
+ */
+QString MainWindow::getNoteDateEditor(QString dateEdited)
 {
     QDateTime dateTimeEdited(getQDateTime(dateEdited));
     QLocale usLocale(QLocale("en_US"));
@@ -761,11 +785,13 @@ QString MainWindow::getNoteDateEditor (QString dateEdited)
     return usLocale.toString(dateTimeEdited, "MMMM d, yyyy, h:mm A");
 }
 
-/**
-* @brief
-* @brief generate a new note
-*/
-NoteData *MainWindow::generateNote(const int noteID)
+/*!
+ * \brief MainWindow::generateNote
+ * generate a new note
+ * \param noteID
+ * \return
+ */
+NoteData* MainWindow::generateNote(const int noteID)
 {
     NoteData* newNote = new NoteData(this);
     newNote->setId(noteID);
@@ -778,10 +804,12 @@ NoteData *MainWindow::generateNote(const int noteID)
     return newNote;
 }
 
-/**
- * @brief show the specified note content text in the text editor
+/*!
+ * \brief MainWindow::showNoteInEditor
+ * show the specified note content text in the text editor
  * Set editorDateLabel text to the the selected note date
  * And restore the scrollBar position if it changed before.
+ * \param noteIndex
  */
 void MainWindow::showNoteInEditor(const QModelIndex &noteIndex)
 {
@@ -807,13 +835,15 @@ void MainWindow::showNoteInEditor(const QModelIndex &noteIndex)
     highlightSearch();
 }
 
-/**
-* @brief
-* Load all the notes from database
-* add data to the models
-* sort them according to the date
-* update scrollbar stylesheet
-*/
+/*!
+ * \brief MainWindow::loadNotes
+ * Load all the notes from database
+ * add data to the models
+ * sort them according to the date
+ * update scrollbar stylesheet
+ * \param noteList
+ * \param noteCounter
+ */
 void MainWindow::loadNotes(QList<NoteData *> noteList, int noteCounter)
 {
     if(!noteList.isEmpty()){
@@ -828,11 +858,12 @@ void MainWindow::loadNotes(QList<NoteData *> noteList, int noteCounter)
     selectFirstNote();
 }
 
-/**
-* @brief
-* save the current note to database
-*/
-void MainWindow::saveNoteToDB(const QModelIndex &noteIndex)
+/*!
+ * \brief MainWindow::saveNoteToDB
+ * save the current note to database
+ * \param noteIndex
+ */
+void MainWindow::saveNoteToDB(const QModelIndex& noteIndex)
 {
     if(noteIndex.isValid() && m_isContentModified){
         QModelIndex indexInSrc = m_proxyModel->mapToSource(noteIndex);
@@ -844,6 +875,10 @@ void MainWindow::saveNoteToDB(const QModelIndex &noteIndex)
     }
 }
 
+/*!
+ * \brief MainWindow::removeNoteFromDB
+ * \param noteIndex
+ */
 void MainWindow::removeNoteFromDB(const QModelIndex& noteIndex)
 {
     if(noteIndex.isValid()){
@@ -853,11 +888,11 @@ void MainWindow::removeNoteFromDB(const QModelIndex& noteIndex)
     }
 }
 
-/**
-* @brief
-* Select the first note in the notes list
-*/
-void MainWindow::selectFirstNote ()
+/*!
+ * \brief MainWindow::selectFirstNote
+ * Select the first note in the notes list
+ */
+void MainWindow::selectFirstNote()
 {
     if(m_proxyModel->rowCount() > 0){
         QModelIndex index = m_proxyModel->index(0,0);
@@ -869,16 +904,20 @@ void MainWindow::selectFirstNote ()
     }
 }
 
-/**
-* @brief
-* create a new note if there are no notes
-*/
-void MainWindow::createNewNoteIfEmpty ()
+/*!
+ * \brief MainWindow::createNewNoteIfEmpty
+ * create a new note if there are no notes
+ */
+void MainWindow::createNewNoteIfEmpty()
 {
     if(m_proxyModel->rowCount() == 0)
         createNewNote();
 }
 
+/*!
+ * \brief MainWindow::setButtonsAndFieldsEnabled
+ * \param doEnable
+ */
 void MainWindow::setButtonsAndFieldsEnabled(bool doEnable)
 {
     m_greenMaximizeButton->setEnabled(doEnable);
@@ -891,19 +930,19 @@ void MainWindow::setButtonsAndFieldsEnabled(bool doEnable)
     m_dotsButton->setEnabled(doEnable);
 }
 
-/**
-* @brief
-* When the new-note button is pressed, set it's icon accordingly
-*/
+/*!
+ * \brief MainWindow::onNewNoteButtonPressed
+ * When the new-note button is pressed, set it's icon accordingly
+ */
 void MainWindow::onNewNoteButtonPressed()
 {
     m_newNoteButton->setIcon(QIcon(":/images/newNote_Pressed.png"));
 }
 
-/**
-* @brief
-* Create a new note when clicking the 'new note' button
-*/
+/*!
+ * \brief MainWindow::onNewNoteButtonClicked
+ * Create a new note when clicking the 'new note' button
+ */
 void MainWindow::onNewNoteButtonClicked()
 {
     m_newNoteButton->setIcon(QIcon(":/images/newNote_Regular.png"));
@@ -924,19 +963,19 @@ void MainWindow::onNewNoteButtonClicked()
     this->createNewNote();
 }
 
-/**
-* @brief
-* When the trash button is pressed, set it's icon accordingly
-*/
+/*!
+ * \brief MainWindow::onTrashButtonPressed
+ * When the trash button is pressed, set it's icon accordingly
+ */
 void MainWindow::onTrashButtonPressed()
 {
     m_trashButton->setIcon(QIcon(":/images/trashCan_Pressed.png"));
 }
 
-/**
-* @brief
-* Delete selected note when clicking the 'delete note' button
-*/
+/*!
+ * \brief MainWindow::onTrashButtonClicked
+ * Delete selected note when clicking the 'delete note' button
+ */
 void MainWindow::onTrashButtonClicked()
 {
     m_trashButton->setIcon(QIcon(":/images/trashCan_Regular.png"));
@@ -946,19 +985,19 @@ void MainWindow::onTrashButtonClicked()
     m_trashButton->blockSignals(false);
 }
 
-/**
-* @brief
-* When the 3 dots button is pressed, set it's icon accordingly
-*/
+/*!
+ * \brief MainWindow::onDotsButtonPressed
+ * When the 3 dots button is pressed, set it's icon accordingly
+ */
 void MainWindow::onDotsButtonPressed()
 {
     m_dotsButton->setIcon(QIcon(":/images/3dots_Pressed.png"));
 }
 
-/**
-* @brief
-* Open up the menu when clicking the 3 dots button
-*/
+/*!
+ * \brief MainWindow::onDotsButtonClicked
+ * Open up the menu when clicking the 3 dots button
+ */
 void MainWindow::onDotsButtonClicked()
 {
     m_dotsButton->setIcon(QIcon(":/images/3dots_Regular.png"));
@@ -1053,15 +1092,16 @@ void MainWindow::onDotsButtonClicked()
     mainMenu.exec(m_dotsButton->mapToGlobal(QPoint(0, m_dotsButton->height())));
 }
 
-/**
-* @brief
-* When clicking on a note in the scrollArea:
-* Unhighlight the previous selected note
-* If selecting a note when temporery note exist, delete the temp note
-* Highlight the selected note
-* Load the selected note content into textedit
-*/
-void MainWindow::onNotePressed (const QModelIndex& index)
+/*!
+ * \brief MainWindow::onNotePressed
+ * When clicking on a note in the scrollArea:
+ * Unhighlight the previous selected note
+ * If selecting a note when temporery note exist, delete the temp note
+ * Highlight the selected note
+ * Load the selected note content into textedit
+ * \param index
+ */
+void MainWindow::onNotePressed(const QModelIndex& index)
 {
     if(sender() != Q_NULLPTR){
         QModelIndex indexInProxy = m_proxyModel->index(index.row(), 0);
@@ -1069,13 +1109,13 @@ void MainWindow::onNotePressed (const QModelIndex& index)
     }
 }
 
-/**
-* @brief
-* When the text on textEdit change:
-* if the note edited is not on top of the list, we will make that happen
-* If the text changed is of a new (empty) note, reset temp values
-*/
-void MainWindow::onTextEditTextChanged ()
+/*!
+ * \brief MainWindow::onTextEditTextChanged
+ * When the text on textEdit change:
+ * if the note edited is not on top of the list, we will make that happen
+ * If the text changed is of a new (empty) note, reset temp values
+ */
+void MainWindow::onTextEditTextChanged()
 {
     if(m_currentSelectedNoteProxy.isValid()){
         m_textEdit->blockSignals(true);
@@ -1120,16 +1160,17 @@ void MainWindow::onTextEditTextChanged ()
     }
 }
 
-/**
-* @brief
-* When text on searchEdit change:
-* If there is a temp note "New Note" while searching, we delete it
-* Saving the last selected note for recovery after searching
-* Clear all the notes from scrollArea and
-* If text is empty, reload all the notes from database
-* Else, load all the notes contain the string in searchEdit from database
-*/
-void MainWindow::onSearchEditTextChanged (const QString &keyword)
+/*!
+ * \brief MainWindow::onSearchEditTextChanged
+ * When text on searchEdit change:
+ * If there is a temp note "New Note" while searching, we delete it
+ * Saving the last selected note for recovery after searching
+ * Clear all the notes from scrollArea and
+ * If text is empty, reload all the notes from database
+ * Else, load all the notes contain the string in searchEdit from database
+ * \param keyword
+ */
+void MainWindow::onSearchEditTextChanged(const QString& keyword)
 {
     m_textEdit->clearFocus();
     m_searchQueue.enqueue(keyword);
@@ -1189,8 +1230,10 @@ void MainWindow::onSearchEditTextChanged (const QString &keyword)
 
     highlightSearch();
 }
-/**
- * @brief MainWindow::onClearButtonClicked clears the search and
+
+/*!
+ * \brief MainWindow::onClearButtonClicked
+ * clears the search and
  * select the note that was selected before searching if it is still valid.
  */
 void MainWindow::onClearButtonClicked()
@@ -1214,12 +1257,13 @@ void MainWindow::onClearButtonClicked()
     }
 }
 
-/**
- * @brief create a new note
+/*!
+ * \brief MainWindow::createNewNote
+ * create a new note
  * add it to the database
  * add it to the scrollArea
  */
-void MainWindow::createNewNote ()
+void MainWindow::createNewNote()
 {
     if(!m_isOperationRunning){
         m_isOperationRunning = true;
@@ -1258,10 +1302,13 @@ void MainWindow::createNewNote ()
     }
 }
 
-/**
- * @brief MainWindow::deleteNote deletes the specified note
- * @param note  : note to delete
- * @param isFromUser :  true if the user clicked on trash button
+/*!
+ * \brief MainWindow::deleteNote
+ * deletes the specified note
+ * \param noteIndex
+ * note to delete
+ * \param isFromUser
+ * true if the user clicked on trash button
  */
 void MainWindow::deleteNote(const QModelIndex &noteIndex, bool isFromUser)
 {
@@ -1300,11 +1347,11 @@ void MainWindow::deleteNote(const QModelIndex &noteIndex, bool isFromUser)
     m_noteView->setFocus();
 }
 
-/**
-* @brief
-* Delete the selected note
-*/
-void MainWindow::deleteSelectedNote ()
+/*!
+ * \brief MainWindow::deleteSelectedNote
+ * Delete the selected note
+ */
+void MainWindow::deleteSelectedNote()
 {
     if(!m_isOperationRunning){
         m_isOperationRunning = true;
@@ -1326,31 +1373,31 @@ void MainWindow::deleteSelectedNote ()
     }
 }
 
-/**
-* @brief
-* Set focus on textEdit
-*/
-void MainWindow::setFocusOnText ()
+/*!
+ * \brief MainWindow::setFocusOnText
+ * Set focus on textEdit
+ */
+void MainWindow::setFocusOnText()
 {
     if(m_currentSelectedNoteProxy.isValid() && !m_textEdit->hasFocus())
         m_textEdit->setFocus();
 }
 
-/**
-* @brief
-* Set focus on current selected note
-*/
-void MainWindow::setFocusOnCurrentNote ()
+/*!
+ * \brief MainWindow::setFocusOnCurrentNote
+ * Set focus on current selected note
+ */
+void MainWindow::setFocusOnCurrentNote()
 {
     if(m_currentSelectedNoteProxy.isValid())
         m_noteView->setFocus();
 }
 
-/**
-* @brief
-* Select the note above the currentSelectedNote
-*/
-void MainWindow::selectNoteUp ()
+/*!
+ * \brief MainWindow::selectNoteUp
+ * Select the note above the currentSelectedNote
+ */
+void MainWindow::selectNoteUp()
 {
     if(m_currentSelectedNoteProxy.isValid()){
         int currentRow = m_noteView->currentIndex().row();
@@ -1364,11 +1411,11 @@ void MainWindow::selectNoteUp ()
     }
 }
 
-/**
-* @brief
-* Select the note below the currentSelectedNote
-*/
-void MainWindow::selectNoteDown ()
+/*!
+ * \brief MainWindow::selectNoteDown
+ * Select the note below the currentSelectedNote
+ */
+void MainWindow::selectNoteDown()
 {
     if(m_currentSelectedNoteProxy.isValid()){
         if(m_isTemp){
@@ -1388,11 +1435,11 @@ void MainWindow::selectNoteDown ()
     }
 }
 
-/**
-* @brief
-* Switch to fullscreen mode
-*/
-void MainWindow::fullscreenWindow ()
+/*!
+ * \brief MainWindow::fullscreenWindow
+ * Switch to fullscreen mode
+ */
+void MainWindow::fullscreenWindow()
 {
 #ifndef _WIN32
     if(isFullScreen()){
@@ -1418,11 +1465,11 @@ void MainWindow::fullscreenWindow ()
 #endif
 }
 
-/**
-* @brief
-* Maximize the window
-*/
-void MainWindow::maximizeWindow ()
+/*!
+ * \brief MainWindow::maximizeWindow
+ * Maximize the window
+ */
+void MainWindow::maximizeWindow()
 {
 #ifndef _WIN32
     if(isMaximized()){
@@ -1454,11 +1501,11 @@ void MainWindow::maximizeWindow ()
 #endif
 }
 
-/**
-* @brief
-* Minimize the window
-*/
-void MainWindow::minimizeWindow ()
+/*!
+ * \brief MainWindow::minimizeWindow
+ * Minimize the window
+ */
+void MainWindow::minimizeWindow()
 {
 #ifndef _WIN32
     QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
@@ -1469,52 +1516,52 @@ void MainWindow::minimizeWindow ()
     showMinimized();
 }
 
-/**
-* @brief
-* Exit the application
-* If a new note created but wasn't edited, delete it from the database
-*/
-void MainWindow::QuitApplication ()
+/*!
+ * \brief MainWindow::QuitApplication
+ * Exit the application
+ * If a new note created but wasn't edited, delete it from the database
+ */
+void MainWindow::QuitApplication()
 {
     MainWindow::close();
 }
 
-
-/**
+/*!
+ * \brief MainWindow::checkForUpdates
  * Called when the "Check for Updates" menu item is clicked, this function
  * instructs the updater window to check if there are any updates available
- *
- * \param clicked required by the signal/slot connection, the value is ignored
+ * \param clicked
  */
-void MainWindow::checkForUpdates(const bool clicked) {
+void MainWindow::checkForUpdates(const bool clicked)
+{
     Q_UNUSED (clicked)
     m_updater.checkForUpdates(true);
 }
 
-/**
+/*!
+ * \brief MainWindow::importNotesFile
  * Called when the "Import Notes" menu button is clicked. this function will
  * prompt the user to select a file, attempt to load the file, and update the DB
  * if valid.
  * The user is presented with a dialog box if the upload/import fails for any reason.
- *
- * @brief MainWindow::importNotesFile
- * @param clicked
+ * \param clicked
  */
-void MainWindow::importNotesFile (const bool clicked) {
+void MainWindow::importNotesFile(const bool clicked)
+{
     Q_UNUSED (clicked)
     executeImport(false);
 }
 
-/**
+/*!
+ * \brief MainWindow::restoreNotesFile
  * Called when the "Restore Notes" menu button is clicked. this function will
  * prompt the user to select a file, attempt to load the file, and update the DB
  * if valid.
  * The user is presented with a dialog box if the upload/import/restore fails for any reason.
- *
- * @brief MainWindow::restoreNotesFile
- * @param clicked
+ * \param clicked
  */
-void MainWindow::restoreNotesFile (const bool clicked) {
+void MainWindow::restoreNotesFile(const bool clicked)
+{
     Q_UNUSED (clicked)
 
     if (m_noteModel->rowCount() > 0) {
@@ -1530,16 +1577,17 @@ void MainWindow::restoreNotesFile (const bool clicked) {
     executeImport(true);
 }
 
-/**
+/*!
+ * \brief MainWindow::executeImport
  * Executes the note import process. if replace is true all current notes will be
  * removed otherwise current notes will be kept.
- * @brief MainWindow::importNotes
- * @param replace
+ * \param replace
  */
-void MainWindow::executeImport(const bool replace) {
+void MainWindow::executeImport(const bool replace)
+{
     QString fileName = QFileDialog::getOpenFileName(this,
-            tr("Open Notes Backup File"), "",
-            tr("Notes Backup File (*.nbk)"));
+                                                    tr("Open Notes Backup File"), "",
+                                                    tr("Notes Backup File (*.nbk)"));
 
     if (fileName.isEmpty()) {
         return;
@@ -1594,20 +1642,20 @@ void MainWindow::executeImport(const bool replace) {
     }
 }
 
-/**
+/*!
+ * \brief MainWindow::exportNotesFile
  * Called when the "Export Notes" menu button is clicked. this function will
  * prompt the user to select a location for the export file, and then builds
  * the file.
  * The user is presented with a dialog box if the file cannot be opened for any reason.
- *
- * @brief MainWindow::exportNotesFile
- * @param clicked
+ * \param clicked
  */
-void MainWindow::exportNotesFile (const bool clicked) {
+void MainWindow::exportNotesFile(const bool clicked)
+{
     Q_UNUSED (clicked)
     QString fileName = QFileDialog::getSaveFileName(this,
-            tr("Save Notes"), "notes.nbk",
-            tr("Notes Backup File (*.nbk)"));
+                                                    tr("Save Notes"), "notes.nbk",
+                                                    tr("Notes Backup File (*.nbk)"));
     if (fileName.isEmpty()) {
         return;
     } else {
@@ -1621,6 +1669,9 @@ void MainWindow::exportNotesFile (const bool clicked) {
     }
 }
 
+/*!
+ * \brief MainWindow::toggleNoteList
+ */
 void MainWindow::toggleNoteList()
 {
     bool isCollapsed = (m_splitter->sizes().at(0) == 0);
@@ -1631,6 +1682,9 @@ void MainWindow::toggleNoteList()
     }
 }
 
+/*!
+ * \brief MainWindow::collapseNoteList
+ */
 void MainWindow::collapseNoteList()
 {
     m_splitter->setCollapsible(0, true);
@@ -1641,6 +1695,9 @@ void MainWindow::collapseNoteList()
     m_splitter->setCollapsible(0, false);
 }
 
+/*!
+ * \brief MainWindow::expandNoteList
+ */
 void MainWindow::expandNoteList()
 {
     int minWidth = ui->frameLeft->minimumWidth();
@@ -1652,11 +1709,11 @@ void MainWindow::expandNoteList()
     m_splitter->setSizes(sizes);
 }
 
-/**
-* @brief
-* When the green button is pressed set it's icon accordingly
-*/
-void MainWindow::onGreenMaximizeButtonPressed ()
+/*!
+ * \brief MainWindow::onGreenMaximizeButtonPressed
+ * When the green button is pressed set it's icon accordingly
+ */
+void MainWindow::onGreenMaximizeButtonPressed()
 {
 #ifdef _WIN32
     m_greenMaximizeButton->setIcon(QIcon(":images/windows_minimize_pressed.png"));
@@ -1669,11 +1726,11 @@ void MainWindow::onGreenMaximizeButtonPressed ()
 #endif
 }
 
-/**
-* @brief
-* When the yellow button is pressed set it's icon accordingly
-*/
-void MainWindow::onYellowMinimizeButtonPressed ()
+/*!
+ * \brief MainWindow::onYellowMinimizeButtonPressed
+ * When the yellow button is pressed set it's icon accordingly
+ */
+void MainWindow::onYellowMinimizeButtonPressed()
 {
 #ifdef _WIN32
     if(this->windowState() == Qt::WindowFullScreen){
@@ -1686,11 +1743,11 @@ void MainWindow::onYellowMinimizeButtonPressed ()
 #endif
 }
 
-/**
-* @brief
-* When the red button is pressed set it's icon accordingly
-*/
-void MainWindow::onRedCloseButtonPressed ()
+/*!
+ * \brief MainWindow::onRedCloseButtonPressed
+ * When the red button is pressed set it's icon accordingly
+ */
+void MainWindow::onRedCloseButtonPressed()
 {
 #ifdef _WIN32
     m_redCloseButton->setIcon(QIcon(":images/windows_close_pressed.png"));
@@ -1699,10 +1756,10 @@ void MainWindow::onRedCloseButtonPressed ()
 #endif
 }
 
-/**
-* @brief
-* When the green button is released the window goes fullscrren
-*/
+/*!
+ * \brief MainWindow::onGreenMaximizeButtonClicked
+ * When the green button is released the window goes fullscrren
+ */
 void MainWindow::onGreenMaximizeButtonClicked()
 {
 #ifdef _WIN32
@@ -1717,10 +1774,10 @@ void MainWindow::onGreenMaximizeButtonClicked()
 #endif
 }
 
-/**
-* @brief
-* When yellow button is released the window is minimized
-*/
+/*!
+ * \brief MainWindow::onYellowMinimizeButtonClicked
+ * When yellow button is released the window is minimized
+ */
 void MainWindow::onYellowMinimizeButtonClicked()
 {
 #ifdef _WIN32
@@ -1735,11 +1792,11 @@ void MainWindow::onYellowMinimizeButtonClicked()
 #endif
 }
 
-/**
-* @brief
-* When red button is released the window get closed
-* If a new note created but wasn't edited, delete it from the database
-*/
+/*!
+ * \brief MainWindow::onRedCloseButtonClicked
+ * When red button is released the window get closed
+ * If a new note created but wasn't edited, delete it from the database
+ */
 void MainWindow::onRedCloseButtonClicked()
 {
 #ifdef _WIN32
@@ -1751,12 +1808,14 @@ void MainWindow::onRedCloseButtonClicked()
     setMainWindowVisibility(false);
 }
 
-/**
- * @brief Called when the app is about the close
+/*!
+ * \brief MainWindow::closeEvent
+ * Called when the app is about the close
  * save the geometry of the app to the settings
  * save the current note if it's note temporary one otherwise remove it from DB
+ * \param event
  */
-void MainWindow::closeEvent(QCloseEvent *event)
+void MainWindow::closeEvent(QCloseEvent* event)
 {
     if(windowState() != Qt::WindowFullScreen)
         m_settingsDatabase->setValue("windowGeometry", saveGeometry());
@@ -1775,11 +1834,13 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
     QWidget::closeEvent(event);
 }
+
 #ifndef _WIN32
-/**
-* @brief
-* Set variables to the position of the window when the mouse is pressed
-*/
+/*!
+ * \brief MainWindow::mousePressEvent
+ * Set variables to the position of the window when the mouse is pressed
+ * \param event
+ */
 void MainWindow::mousePressEvent(QMouseEvent* event)
 {
     m_mousePressX = event->x();
@@ -1791,8 +1852,8 @@ void MainWindow::mousePressEvent(QMouseEvent* event)
                 && m_mousePressY < this->height() - m_layoutMargin
                 && m_mousePressY > m_layoutMargin){
 
-                m_canMoveWindow = true;
-                QApplication::setOverrideCursor(QCursor(Qt::ClosedHandCursor));
+            m_canMoveWindow = true;
+            QApplication::setOverrideCursor(QCursor(Qt::ClosedHandCursor));
 
         }else{
             m_canStretchWindow = true;
@@ -1833,10 +1894,11 @@ void MainWindow::mousePressEvent(QMouseEvent* event)
     }
 }
 
-/**
-* @brief
-* Move the window according to the mouse positions
-*/
+/*!
+ * \brief MainWindow::mouseMoveEvent
+ * Move the window according to the mouse positions
+ * \param event
+ */
 void MainWindow::mouseMoveEvent(QMouseEvent* event)
 {
     if(!m_canStretchWindow && !m_canMoveWindow){
@@ -1994,9 +2056,10 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
     event->accept();
 }
 
-/**
-* @brief
-  * Initialize flags
+/*!
+ * \brief MainWindow::mouseReleaseEvent
+ * Initialize flags
+ * \param event
  */
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
@@ -2006,10 +2069,11 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event)
     event->accept();
 }
 #else
-/**
-* @brief
-* Set variables to the position of the window when the mouse is pressed
-*/
+/*!
+ * \brief MainWindow::mousePressEvent
+ * Set variables to the position of the window when the mouse is pressed
+ * \param event
+ */
 void MainWindow::mousePressEvent(QMouseEvent* event)
 {
     if (event->button() == Qt::LeftButton){
@@ -2027,10 +2091,11 @@ void MainWindow::mousePressEvent(QMouseEvent* event)
     event->accept();
 }
 
-/**
-* @brief
-* Move the window according to the mouse positions
-*/
+/*!
+ * \brief MainWindow::mouseMoveEvent
+ * Move the window according to the mouse positions
+ * \param event
+ */
 void MainWindow::mouseMoveEvent(QMouseEvent* event)
 {
     if(m_canMoveWindow){
@@ -2042,9 +2107,10 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
     }
 }
 
-/**
-* @brief
-  * Initialize flags
+/*!
+ * \brief MainWindow::mouseReleaseEvent
+ * Initialize flags
+ * \param event
  */
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
@@ -2054,9 +2120,9 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 }
 #endif
 
-/**
- * @brief MainWindow::moveNoteToTop : moves the current note Widget
- * to the top of the layout
+/*!
+ * \brief MainWindow::moveNoteToTop
+ * moves the current note Widget to the top of the layout
  */
 void MainWindow::moveNoteToTop()
 {
@@ -2079,6 +2145,9 @@ void MainWindow::moveNoteToTop()
     }
 }
 
+/*!
+ * \brief MainWindow::clearSearch
+ */
 void MainWindow::clearSearch()
 {
     m_noteView->setFocusPolicy(Qt::StrongFocus);
@@ -2099,6 +2168,10 @@ void MainWindow::clearSearch()
     m_searchEdit->setFocus();
 }
 
+/*!
+ * \brief MainWindow::findNotesContain
+ * \param keyword
+ */
 void MainWindow::findNotesContain(const QString& keyword)
 {
     m_proxyModel->setFilterFixedString(keyword);
@@ -2116,6 +2189,10 @@ void MainWindow::findNotesContain(const QString& keyword)
     }
 }
 
+/*!
+ * \brief MainWindow::selectNote
+ * \param noteIndex
+ */
 void MainWindow::selectNote(const QModelIndex &noteIndex)
 {
     if(noteIndex.isValid()){
@@ -2152,6 +2229,9 @@ void MainWindow::selectNote(const QModelIndex &noteIndex)
     }
 }
 
+/*!
+ * \brief MainWindow::checkMigration
+ */
 void MainWindow::checkMigration()
 {
     QFileInfo fi(m_settingsDatabase->fileName());
@@ -2168,6 +2248,10 @@ void MainWindow::checkMigration()
     emit requestForceLastRowIndexValue(m_noteCounter);
 }
 
+/*!
+ * \brief MainWindow::migrateNote
+ * \param notePath
+ */
 void MainWindow::migrateNote(QString notePath)
 {
     QSettings notesIni(notePath, QSettings::IniFormat);
@@ -2206,6 +2290,10 @@ void MainWindow::migrateNote(QString notePath)
     oldNoteDBFile.rename(QFileInfo(notePath).dir().path() + QDir::separator() + "oldNotes.ini");
 }
 
+/*!
+ * \brief MainWindow::migrateTrash
+ * \param trashPath
+ */
 void MainWindow::migrateTrash(QString trashPath)
 {
     QSettings trashIni(trashPath, QSettings::IniFormat);
@@ -2243,6 +2331,12 @@ void MainWindow::migrateTrash(QString trashPath)
     oldTrashDBFile.rename(QFileInfo(trashPath).dir().path() + QDir::separator() +"oldTrash.ini");
 }
 
+/*!
+ * \brief MainWindow::dropShadow
+ * \param painter
+ * \param type
+ * \param side
+ */
 void MainWindow::dropShadow(QPainter& painter, ShadowType type, MainWindow::ShadowSide side)
 {
     int resizedShadowWidth = m_shadowWidth > m_layoutMargin ? m_layoutMargin : m_shadowWidth;
@@ -2330,6 +2424,12 @@ void MainWindow::dropShadow(QPainter& painter, ShadowType type, MainWindow::Shad
     }
 }
 
+/*!
+ * \brief MainWindow::fillRectWithGradient
+ * \param painter
+ * \param rect
+ * \param gradient
+ */
 void MainWindow::fillRectWithGradient(QPainter& painter, const QRect& rect, QGradient& gradient)
 {
     double variance = 0.2;
@@ -2347,31 +2447,45 @@ void MainWindow::fillRectWithGradient(QPainter& painter, const QRect& rect, QGra
     painter.fillRect(rect, gradient);
 }
 
+/*!
+ * \brief MainWindow::gaussianDist
+ * \param x
+ * \param center
+ * \param sigma
+ * \return
+ */
 double MainWindow::gaussianDist(double x, const double center, double sigma) const
 {
     return (1.0 / (2 * M_PI * pow(sigma, 2)) * exp( - pow(x - center, 2) / (2 * pow(sigma, 2))));
 }
 
-/**
-* @brief
-* When the blank area at the top of window is double-clicked the window get maximized
-*/
-void MainWindow::mouseDoubleClickEvent (QMouseEvent *event)
+/*!
+ * \brief MainWindow::mouseDoubleClickEvent
+ * When the blank area at the top of window is double-clicked the window get maximized
+ * \param event
+ */
+void MainWindow::mouseDoubleClickEvent(QMouseEvent *event)
 {
     maximizeWindow();
     event->accept();
 }
 
+/*!
+ * \brief MainWindow::leaveEvent
+ */
 void MainWindow::leaveEvent(QEvent *)
 {
     this->unsetCursor();
 }
 
-/**
-* @brief
-* Mostly take care on the event happened on widget whose filter installed to tht mainwindow
-*/
-bool MainWindow::eventFilter (QObject *object, QEvent *event)
+/*!
+ * \brief MainWindow::eventFilter
+ * Mostly take care on the event happened on widget whose filter installed to tht mainwindow
+ * \param object
+ * \param event
+ * \return
+ */
+bool MainWindow::eventFilter(QObject *object, QEvent *event)
 {
     switch (event->type()){
     case QEvent::Enter:{
@@ -2535,9 +2649,7 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
     }
     case QEvent::FocusIn:{
         if(object == m_textEdit){
-
             if(!m_isOperationRunning){
-
                 if(!m_searchEdit->text().isEmpty()){
                     if(!m_currentSelectedNoteProxy.isValid()){
                         clearSearch();
@@ -2572,7 +2684,6 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
         break;
     }
     case QEvent::FocusOut:{
-
         if(object == m_searchEdit){
             QString ss = QString("QLineEdit{ "
                                  "  padding-left: 21px;"
@@ -2623,7 +2734,12 @@ bool MainWindow::eventFilter (QObject *object, QEvent *event)
     return QObject::eventFilter(object, event);
 }
 
-void MainWindow::stayOnTop(bool checked) {
+/*!
+ * \brief MainWindow::stayOnTop
+ * \param checked
+ */
+void MainWindow::stayOnTop(bool checked)
+{
     Qt::WindowFlags flags;
 #ifdef Q_OS_LINUX
     flags = Qt::Window | Qt::FramelessWindowHint;
@@ -2644,16 +2760,29 @@ void MainWindow::stayOnTop(bool checked) {
     setMainWindowVisibility(true);
 }
 
-void MainWindow::toggleStayOnTop() {
+/*!
+ * \brief MainWindow::toggleStayOnTop
+ */
+void MainWindow::toggleStayOnTop()
+{
     this->stayOnTop(!m_alwaysStayOnTop);
 }
 
-void MainWindow::setMargins(QMargins margins) {
+/*!
+ * \brief MainWindow::setMargins
+ * \param margins
+ */
+void MainWindow::setMargins(QMargins margins)
+{
     ui->centralWidget->layout()->setContentsMargins(margins);
     m_trafficLightLayout.setGeometry(QRect(4+margins.left(),4+margins.top(),56,16));
 }
 
-void MainWindow::highlightSearch() const {
+/*!
+ * \brief MainWindow::highlightSearch
+ */
+void MainWindow::highlightSearch() const
+{
     QString searchString = m_searchEdit->text();
 
     if(!searchString.isEmpty()){
