@@ -76,8 +76,8 @@ public:
     Q_ENUM(StretchSide)
 #endif
 
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    explicit MainWindow(QWidget *parent = Q_NULLPTR);
+    ~MainWindow() Q_DECL_OVERRIDE;
 
     void setMainWindowVisibility(bool state);
 
@@ -123,6 +123,7 @@ private:
     QModelIndex m_selectedNoteBeforeSearchingInSource;
     QQueue<QString> m_searchQueue;
     DBManager* m_dbManager;
+    QThread* m_dbThread;
 
     UpdaterWindow m_updater;
     StretchSide m_stretchSide;
@@ -170,7 +171,6 @@ private:
     QDateTime getQDateTime(QString date);
     void showNoteInEditor(const QModelIndex& noteIndex);
     void sortNotesList(QStringList &stringNotesList);
-    void loadNotes();
     void saveNoteToDB(const QModelIndex& noteIndex);
     void removeNoteFromDB(const QModelIndex& noteIndex);
     void selectFirstNote();
@@ -192,6 +192,7 @@ private:
 
 private slots:
     void InitData();
+    void loadNotes(QList<NoteData *> noteList, int noteCounter);
     void onNewNoteButtonPressed();
     void onNewNoteButtonClicked();
     void onTrashButtonPressed();
@@ -202,9 +203,9 @@ private slots:
     void onTextEditTextChanged();
     void onSearchEditTextChanged(const QString& keyword);
     void onClearButtonClicked();
-    void onGreenMaximizeButtonPressed ();
-    void onYellowMinimizeButtonPressed ();
-    void onRedCloseButtonPressed ();
+    void onGreenMaximizeButtonPressed();
+    void onYellowMinimizeButtonPressed();
+    void onRedCloseButtonPressed();
     void onGreenMaximizeButtonClicked();
     void onYellowMinimizeButtonClicked();
     void onRedCloseButtonClicked();
@@ -228,6 +229,18 @@ private slots:
     void restoreNotesFile (const bool clicked);
     void stayOnTop(bool checked);
     void toggleStayOnTop();
+
+signals:
+    void requestNotesList();
+    void requestOpenDBManager(QString path, bool doCreate);
+    void requestCreateUpdateNote(NoteData* note);
+    void requestDeleteNote(NoteData* note);
+    void requestRestoreNotes(QList<NoteData *> noteList);
+    void requestImportNotes(QList<NoteData *> noteList);
+    void requestExportNotes(QString fileName);
+    void requestMigrateNotes(QList<NoteData *> noteList);
+    void requestMigrateTrash(QList<NoteData *> noteList);
+    void requestForceLastRowIndexValue(int index);
 };
 
 #endif // MAINWINDOW_H

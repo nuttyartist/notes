@@ -53,6 +53,7 @@ MainWindow::MainWindow (QWidget *parent) :
     m_deletedNotesModel(new NoteModel(this)),
     m_proxyModel(new QSortFilterProxyModel(this)),
     m_dbManager(Q_NULLPTR),
+    m_dbThread(Q_NULLPTR),
     m_noteCounter(0),
     m_trashCounter(0),
     m_layoutMargin(10),
@@ -111,21 +112,15 @@ void MainWindow::InitData()
         QFutureWatcher<void>* watcher = new QFutureWatcher<void>(this);
         connect(watcher, &QFutureWatcher<void>::finished, this, [&, pd](){
             pd->deleteLater();
-
             setButtonsAndFieldsEnabled(true);
-
-            loadNotes();
-            createNewNoteIfEmpty();
-            selectFirstNote();
+            emit requestNotesList();
         });
 
         QFuture<void> migration = QtConcurrent::run(this, &MainWindow::checkMigration);
         watcher->setFuture(migration);
 
     } else {
-        loadNotes();
-        createNewNoteIfEmpty();
-        selectFirstNote();
+        emit requestNotesList();
     }
 
     /// Check if it is running with an argument (ex. hide)
@@ -192,6 +187,9 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 MainWindow::~MainWindow ()
 {
     delete ui;
+    m_dbThread->quit();
+    m_dbThread->wait();
+    delete m_dbThread;
 }
 
 /**
@@ -479,6 +477,28 @@ void MainWindow::setupSignalsSlots()
     connect(qApp, &QApplication::applicationStateChanged, this,[this](){
         m_noteView->update(m_noteView->currentIndex());
     });
+
+    // MainWindow <-> DBManager
+    connect(this, &MainWindow::requestNotesList,
+            m_dbManager,&DBManager::onNotesListRequested, Qt::BlockingQueuedConnection);
+    connect(this, &MainWindow::requestCreateUpdateNote,
+            m_dbManager, &DBManager::onCreateUpdateRequested, Qt::BlockingQueuedConnection);
+    connect(this, &MainWindow::requestDeleteNote,
+            m_dbManager, &DBManager::onDeleteNoteRequested);
+    connect(this, &MainWindow::requestRestoreNotes,
+            m_dbManager, &DBManager::onRestoreNotesRequested, Qt::BlockingQueuedConnection);
+    connect(this, &MainWindow::requestImportNotes,
+            m_dbManager, &DBManager::onImportNotesRequested, Qt::BlockingQueuedConnection);
+    connect(this, &MainWindow::requestExportNotes,
+            m_dbManager, &DBManager::onExportNotesRequested, Qt::BlockingQueuedConnection);
+    connect(this, &MainWindow::requestMigrateNotes,
+            m_dbManager, &DBManager::onMigrateNotesRequested, Qt::BlockingQueuedConnection);
+    connect(this, &MainWindow::requestMigrateTrash,
+            m_dbManager, &DBManager::onMigrateTrashRequested, Qt::BlockingQueuedConnection);
+    connect(this, &MainWindow::requestForceLastRowIndexValue,
+            m_dbManager, &DBManager::onForceLastRowIndexValueRequested, Qt::BlockingQueuedConnection);
+
+    connect(m_dbManager, &DBManager::notesReceived, this, &MainWindow::loadNotes);
 }
 
 /**
@@ -652,8 +672,14 @@ void MainWindow::setupDatabases ()
         doCreate = true;
     }
 
-    m_dbManager = new DBManager(noteDBFilePath, doCreate, this);
-    m_noteCounter = m_dbManager->getLastRowID();
+    m_dbManager = new DBManager;
+    m_dbThread = new QThread;
+    m_dbThread->setObjectName(QStringLiteral("dbThread"));
+    m_dbManager->moveToThread(m_dbThread);
+    connect(m_dbThread, &QThread::started, [=](){emit requestOpenDBManager(noteDBFilePath, doCreate);});
+    connect(this, &MainWindow::requestOpenDBManager, m_dbManager, &DBManager::onOpenDBManagerRequested);
+    connect(m_dbThread, &QThread::finished, m_dbManager, &QObject::deleteLater);
+    m_dbThread->start();
 }
 
 void MainWindow::setupModelView()
@@ -788,14 +814,18 @@ void MainWindow::showNoteInEditor(const QModelIndex &noteIndex)
 * sort them according to the date
 * update scrollbar stylesheet
 */
-void MainWindow::loadNotes ()
+void MainWindow::loadNotes(QList<NoteData *> noteList, int noteCounter)
 {
-    QList<NoteData*> noteList = m_dbManager->getAllNotes();
-
     if(!noteList.isEmpty()){
         m_noteModel->addListNote(noteList);
         m_noteModel->sort(0,Qt::AscendingOrder);
     }
+
+    m_noteCounter = noteCounter;
+
+    // TODO: move this from here
+    createNewNoteIfEmpty();
+    selectFirstNote();
 }
 
 /**
@@ -807,14 +837,8 @@ void MainWindow::saveNoteToDB(const QModelIndex &noteIndex)
     if(noteIndex.isValid() && m_isContentModified){
         QModelIndex indexInSrc = m_proxyModel->mapToSource(noteIndex);
         NoteData* note = m_noteModel->getNote(indexInSrc);
-        if(note != Q_NULLPTR){
-            bool doExist = m_dbManager->isNoteExist(note);
-            if(doExist){
-                QtConcurrent::run(m_dbManager, &DBManager::modifyNote, note);
-            }else{
-                QtConcurrent::run(m_dbManager, &DBManager::addNote, note);
-            }
-        }
+        if(note != Q_NULLPTR)
+            emit requestCreateUpdateNote(note);
 
         m_isContentModified = false;
     }
@@ -825,7 +849,7 @@ void MainWindow::removeNoteFromDB(const QModelIndex& noteIndex)
     if(noteIndex.isValid()){
         QModelIndex indexInSrc = m_proxyModel->mapToSource(noteIndex);
         NoteData* note = m_noteModel->getNote(indexInSrc);
-        m_dbManager->removeNote(note);
+        emit requestDeleteNote(note);
     }
 }
 
@@ -918,7 +942,7 @@ void MainWindow::onTrashButtonClicked()
     m_trashButton->setIcon(QIcon(":/images/trashCan_Regular.png"));
 
     m_trashButton->blockSignals(true);
-    this->deleteSelectedNote();
+    deleteSelectedNote();
     m_trashButton->blockSignals(false);
 }
 
@@ -1058,8 +1082,6 @@ void MainWindow::onTextEditTextChanged ()
         QString content = m_currentSelectedNoteProxy.data(NoteModel::NoteContent).toString();
         if(m_textEdit->toPlainText() != content){
 
-            m_autoSaveTimer->start(500);
-
             // move note to the top of the list
             QModelIndex sourceIndex = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
             if(m_currentSelectedNoteProxy.row() != 0){
@@ -1086,6 +1108,8 @@ void MainWindow::onTextEditTextChanged ()
             m_noteModel->setItemData(index, dataValue);
 
             m_isContentModified = true;
+
+            m_autoSaveTimer->start(500);
         }
 
         m_textEdit->blockSignals(false);
@@ -1187,7 +1211,6 @@ void MainWindow::onClearButtonClicked()
         }
 
         m_selectedNoteBeforeSearchingInSource = QModelIndex();
-
     }
 }
 
@@ -1252,7 +1275,7 @@ void MainWindow::deleteNote(const QModelIndex &noteIndex, bool isFromUser)
             --m_noteCounter;
         }else{
             noteTobeRemoved->setDeletionDateTime(QDateTime::currentDateTime());
-            QtConcurrent::run(m_dbManager, &DBManager::removeNote, noteTobeRemoved);
+            emit requestDeleteNote(noteTobeRemoved);
         }
 
         if(isFromUser){
@@ -1548,7 +1571,9 @@ void MainWindow::executeImport(const bool replace) {
             return;
         }
 
-        QProgressDialog* pd = new QProgressDialog(replace ? "Restoring Notes..." : "Importing Notes...", "", 0, 0, this);
+        QProgressDialog* pd = new QProgressDialog(replace ? "Restoring Notes..."
+                                                          : "Importing Notes...", "", 0, 0, this);
+        pd->deleteLater();
         pd->setCancelButton(Q_NULLPTR);
         pd->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
         pd->setMinimumDuration(0);
@@ -1557,19 +1582,15 @@ void MainWindow::executeImport(const bool replace) {
 
         setButtonsAndFieldsEnabled(false);
 
-        QFutureWatcher<void>* watcher = new QFutureWatcher<void>(this);
-        connect(watcher, &QFutureWatcher<void>::finished, this, [&, pd](){
-            pd->deleteLater();
+        if(replace)
+            emit requestRestoreNotes(noteList);
+        else
+            emit requestImportNotes(noteList);
 
-            setButtonsAndFieldsEnabled(true);
+        setButtonsAndFieldsEnabled(true);
 
-            m_noteModel->clearNotes();
-            loadNotes();
-            createNewNoteIfEmpty();
-            selectFirstNote();
-        });
-
-        watcher->setFuture(QtConcurrent::run(m_dbManager, replace ? &DBManager::restoreNotes : &DBManager::importNotes, noteList));
+        m_noteModel->clearNotes();
+        emit requestNotesList();
     }
 }
 
@@ -1595,16 +1616,8 @@ void MainWindow::exportNotesFile (const bool clicked) {
             QMessageBox::information(this, tr("Unable to open file"), file.errorString());
             return;
         }
-        QDataStream out(&file);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-        out.setVersion(QDataStream::Qt_5_6);
-#elif QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
-        out.setVersion(QDataStream::Qt_5_4);
-#elif QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
-        out.setVersion(QDataStream::Qt_5_2);
-#endif
-        out << m_dbManager->getAllNotes();
         file.close();
+        emit requestExportNotes(fileName);
     }
 }
 
@@ -2144,15 +2157,15 @@ void MainWindow::checkMigration()
     QFileInfo fi(m_settingsDatabase->fileName());
     QDir dir(fi.absolutePath());
 
-    QString oldNoteDBPath(dir.path() + "/Notes.ini");
+    QString oldNoteDBPath(dir.path() + QDir::separator() + "Notes.ini");
     if(QFile::exists(oldNoteDBPath))
         migrateNote(oldNoteDBPath);
 
-    QString oldTrashDBPath(dir.path() + "/Trash.ini");
+    QString oldTrashDBPath(dir.path() + QDir::separator() + "Trash.ini");
     if(QFile::exists(oldTrashDBPath))
         migrateTrash(oldTrashDBPath);
 
-    m_dbManager->forceLastRowIndexValue(m_noteCounter);
+    emit requestForceLastRowIndexValue(m_noteCounter);
 }
 
 void MainWindow::migrateNote(QString notePath)
@@ -2161,6 +2174,7 @@ void MainWindow::migrateNote(QString notePath)
     QStringList dbKeys = notesIni.allKeys();
 
     m_noteCounter = notesIni.value("notesCounter", "0").toInt();
+    QList<NoteData *> noteList;
 
     auto it = dbKeys.begin();
     for(; it < dbKeys.end()-1; it += 3){
@@ -2182,18 +2196,22 @@ void MainWindow::migrateNote(QString notePath)
         QString firstLine = getFirstLine(contentText);
         newNote->setFullTitle(firstLine);
 
-        m_dbManager->migrateNote(newNote);
-        delete newNote;
+        noteList.append(newNote);
     }
 
+    if(!noteList.isEmpty())
+        emit requestMigrateNotes(noteList);
+
     QFile oldNoteDBFile(notePath);
-    oldNoteDBFile.rename(QFileInfo(notePath).dir().path() + "/oldNotes.ini");
+    oldNoteDBFile.rename(QFileInfo(notePath).dir().path() + QDir::separator() + "oldNotes.ini");
 }
 
 void MainWindow::migrateTrash(QString trashPath)
 {
     QSettings trashIni(trashPath, QSettings::IniFormat);
     QStringList dbKeys = trashIni.allKeys();
+
+    QList<NoteData *> noteList;
 
     auto it = dbKeys.begin();
     for(; it < dbKeys.end()-1; it += 3){
@@ -2215,17 +2233,18 @@ void MainWindow::migrateTrash(QString trashPath)
         QString firstLine = getFirstLine(contentText);
         newNote->setFullTitle(firstLine);
 
-        m_dbManager->migrateTrash(newNote);
-        delete newNote;
+        noteList.append(newNote);
     }
 
+    if(!noteList.isEmpty())
+        emit requestMigrateTrash(noteList);
+
     QFile oldTrashDBFile(trashPath);
-    oldTrashDBFile.rename(QFileInfo(trashPath).dir().path() + "/oldTrash.ini");
+    oldTrashDBFile.rename(QFileInfo(trashPath).dir().path() + QDir::separator() +"oldTrash.ini");
 }
 
 void MainWindow::dropShadow(QPainter& painter, ShadowType type, MainWindow::ShadowSide side)
 {
-
     int resizedShadowWidth = m_shadowWidth > m_layoutMargin ? m_layoutMargin : m_shadowWidth;
 
     QRect mainRect   = rect();
