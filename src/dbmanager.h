@@ -9,28 +9,41 @@ class DBManager : public QObject
 {
     Q_OBJECT
 public:
-    explicit DBManager(const QString& path, bool doCreate = false, QObject *parent = 0);
-    bool isNoteExist(NoteData* note);
-    void importNotes(QList<NoteData*> noteList);
-    void restoreNotes(QList<NoteData*> noteList);
+    explicit DBManager(QObject *parent = Q_NULLPTR);
 
 private:
-    QSqlDatabase m_db;
+
+    void open(const QString& path, bool doCreate = false);
+    void createTables();
+    int  getLastRowID();
+    bool forceLastRowIndexValue(const int indexValue);
+
     NoteData* getNote(QString id);
-    bool permanantlyRemoveAllNotes();
+    bool isNoteExist(NoteData* note);
 
-signals:
-    void notesReceived(QList<NoteData*> noteList);
-
-public slots:
-    QList<NoteData*> getAllNotes();
+    QList<NoteData *> getAllNotes();
     bool addNote(NoteData* note);
     bool removeNote(NoteData* note);
-    bool modifyNote(NoteData* note);
+    bool permanantlyRemoveAllNotes();
+    bool updateNote(NoteData* note);
     bool migrateNote(NoteData* note);
     bool migrateTrash(NoteData* note);
-    int getLastRowID();
-    bool forceLastRowIndexValue(const int indexValue);
+
+signals:
+    void notesReceived(QList<NoteData*> noteList, int noteCounter);
+
+public slots:
+
+    void onNotesListRequested();
+    void onOpenDBManagerRequested(QString path, bool doCreate);
+    void onCreateUpdateRequested(NoteData* note);
+    void onDeleteNoteRequested(NoteData* note);
+    void onImportNotesRequested(QList<NoteData *> noteList);
+    void onRestoreNotesRequested(QList<NoteData *> noteList);
+    void onExportNotesRequested(QString fileName);
+    void onMigrateNotesRequested(QList<NoteData *> noteList);
+    void onMigrateTrashRequested(QList<NoteData *> noteList);
+    void onForceLastRowIndexValueRequested(int index);
 };
 
 #endif // DBMANAGER_H
