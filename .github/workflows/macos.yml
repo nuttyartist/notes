@@ -1,0 +1,30 @@
+name: Default Qt on macos
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest]
+    
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: recursive
+    - name: install dependencies
+      run: |
+        brew install qt5
+        echo 'export PATH="/usr/local/opt/qt/bin:$PATH"' >> ~/.bash_profile
+        export LDFLAGS="-L/usr/local/opt/qt/lib"
+        export CPPFLAGS="-I/usr/local/opt/qt/include"
+        source ~/.bash_profile
+        ls /usr/local/opt/qt/bin
+    - name: build
+      run: |
+        mkdir build
+        cd build
+         /usr/local/opt/qt/bin/qmake ../src
+        make -j8
