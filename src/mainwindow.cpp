@@ -1045,6 +1045,7 @@ void MainWindow::onDotsButtonClicked()
     QAction* checkForUpdatesAction = mainMenu.addAction(tr("Check For Updates"));
     connect (checkForUpdatesAction, &QAction::triggered, this, &MainWindow::checkForUpdates);
 
+#if !defined (Q_OS_MACOS)
     // Autostart
     QAction* autostartAction = mainMenu.addAction(tr("Start automatically"));
     connect (autostartAction, &QAction::triggered, this, [&]() {
@@ -1052,6 +1053,7 @@ void MainWindow::onDotsButtonClicked()
     });
     autostartAction->setCheckable(true);
     autostartAction->setChecked(m_autostart.isAutostart());
+#endif
 
     mainMenu.addSeparator();
 
