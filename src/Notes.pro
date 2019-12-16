@@ -23,7 +23,10 @@ greaterThan (QT_MAJOR_VERSION, 4): QT += widgets
 
 include ($$PWD/../3rdParty/qxt/qxt.pri)
 include ($$PWD/../3rdParty/QSimpleUpdater/QSimpleUpdater.pri)
+
+!macx {
 include ($$PWD/../3rdParty/qautostart/src/qautostart.pri)
+}
 
 SOURCES += \
     $$PWD/main.cpp\
