@@ -2818,6 +2818,10 @@ void MainWindow::highlightSearch() const
         QTextCharFormat colorFormat(highlightCursor.charFormat());
         colorFormat.setBackground(Qt::yellow);
 
+        QTextCursor pos = document->find(searchString, 0);
+        if (!pos.isNull())
+            m_textEdit->setTextCursor(pos);
+
         while (!highlightCursor.isNull() && !highlightCursor.atEnd()) {
             highlightCursor = document->find(searchString, highlightCursor);
 
