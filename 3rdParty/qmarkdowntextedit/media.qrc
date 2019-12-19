@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>media/window-close.svg</file>
+        <file>media/go-top.svg</file>
+        <file>media/go-bottom.svg</file>
+        <file>media/edit-find-replace.svg</file>
+        <file>media/format-text-superscript.svg</file>
+    </qresource>
+</RCC>
