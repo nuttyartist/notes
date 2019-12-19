@@ -313,8 +313,8 @@ void MainWindow::setupKeyboardShortcuts()
     new QShortcut(QKeySequence(Qt::Key_Up), this, SLOT(selectNoteUp()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Enter), this, SLOT(setFocusOnText()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Return), this, SLOT(setFocusOnText()));
-    new QShortcut(QKeySequence(Qt::Key_Enter), this, SLOT(setFocusOnText()));
-    new QShortcut(QKeySequence(Qt::Key_Return), this, SLOT(setFocusOnText()));
+    //new QShortcut(QKeySequence(Qt::Key_Enter), this, SLOT(setFocusOnText()));
+    //new QShortcut(QKeySequence(Qt::Key_Return), this, SLOT(setFocusOnText()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_F), this, SLOT(fullscreenWindow()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_L), this, SLOT(maximizeWindow()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_M), this, SLOT(minimizeWindow()));
@@ -463,6 +463,8 @@ void MainWindow::setupSignalsSlots()
     connect(m_textEdit, &QTextEdit::textChanged, this, &MainWindow::onTextEditTextChanged);
     // line edit text changed
     connect(m_searchEdit, &QLineEdit::textChanged, this, &MainWindow::onSearchEditTextChanged);
+    // line edit enter key pressed
+    connect(m_searchEdit, &QLineEdit::returnPressed, this, &MainWindow::onSearchEditReturnPressed);
     // note pressed
     connect(m_noteView, &NoteView::pressed, this, &MainWindow::onNotePressed);
     // noteView viewport pressed
@@ -2768,6 +2770,22 @@ void MainWindow::stayOnTop(bool checked)
 void MainWindow::toggleStayOnTop()
 {
     this->stayOnTop(!m_alwaysStayOnTop);
+}
+
+/*!
+ * \brief MainWindow::onSearchEditReturnPressed
+ */
+void MainWindow::onSearchEditReturnPressed()
+{
+    if (m_searchEdit->text().isEmpty()) return;
+
+    QString searchText = m_searchEdit->text();
+    QTextDocument *doc = m_textEdit->document();
+    //get current cursor
+    QTextCursor from = m_textEdit->textCursor();
+    //search
+    QTextCursor found = doc->find(searchText, from);
+    m_textEdit->setTextCursor(found);
 }
 
 /*!
