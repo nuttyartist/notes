@@ -601,6 +601,7 @@ void MainWindow::setupSearchEdit()
 void MainWindow::setupTextEdit()
 {
     QString ss = QString("QTextEdit {background-image: url(:images/textEdit_background_pattern.png); padding-left: %1px; padding-right: %2px; padding-bottom:2px;} "
+                         "QTextEdit{selection-background-color: rgb(65, 154, 223);}"
                          "QScrollBar::handle:vertical:hover { background: rgb(170, 170, 171); } "
                          "QScrollBar::handle:vertical:pressed { background: rgb(149, 149, 149); } "
                          "QScrollBar::handle:vertical { border-radius: 4px; background: rgb(188, 188, 188); min-height: 20px; }  "
