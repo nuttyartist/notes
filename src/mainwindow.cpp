@@ -1412,7 +1412,11 @@ void MainWindow::selectNoteUp()
             m_currentSelectedNoteProxy = aboveIndex;
             showNoteInEditor(m_currentSelectedNoteProxy);
         }
-        m_noteView->setFocus();
+        if (!m_searchEdit->text().isEmpty()) {
+            m_searchEdit->setFocus();
+        } else {
+            m_noteView->setFocus();
+        }
     }
 }
 
@@ -1436,7 +1440,12 @@ void MainWindow::selectNoteDown()
                 showNoteInEditor(m_currentSelectedNoteProxy);
             }
         }
-        m_noteView->setFocus();
+        //if the searchEdit is not empty, set the focus to it
+        if (!m_searchEdit->text().isEmpty()) {
+            m_searchEdit->setFocus();
+        } else {
+            m_noteView->setFocus();
+        }
     }
 }
 

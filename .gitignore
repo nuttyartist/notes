@@ -2,6 +2,7 @@
 ########################
 *.pro.user
 build-Notes-*
+build-*
 bin*
 
 # OS generated files #
