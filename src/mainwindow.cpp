@@ -313,8 +313,8 @@ void MainWindow::setupKeyboardShortcuts()
     new QShortcut(QKeySequence(Qt::Key_Up), this, SLOT(selectNoteUp()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Enter), this, SLOT(setFocusOnText()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Return), this, SLOT(setFocusOnText()));
-    new QShortcut(QKeySequence(Qt::Key_Enter), this, SLOT(setFocusOnText()));
-    new QShortcut(QKeySequence(Qt::Key_Return), this, SLOT(setFocusOnText()));
+    //new QShortcut(QKeySequence(Qt::Key_Enter), this, SLOT(setFocusOnText()));
+    //new QShortcut(QKeySequence(Qt::Key_Return), this, SLOT(setFocusOnText()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_F), this, SLOT(fullscreenWindow()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_L), this, SLOT(maximizeWindow()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_M), this, SLOT(minimizeWindow()));
@@ -463,6 +463,8 @@ void MainWindow::setupSignalsSlots()
     connect(m_textEdit, &QTextEdit::textChanged, this, &MainWindow::onTextEditTextChanged);
     // line edit text changed
     connect(m_searchEdit, &QLineEdit::textChanged, this, &MainWindow::onSearchEditTextChanged);
+    // line edit enter key pressed
+    connect(m_searchEdit, &QLineEdit::returnPressed, this, &MainWindow::onSearchEditReturnPressed);
     // note pressed
     connect(m_noteView, &NoteView::pressed, this, &MainWindow::onNotePressed);
     // noteView viewport pressed
@@ -599,6 +601,7 @@ void MainWindow::setupSearchEdit()
 void MainWindow::setupTextEdit()
 {
     QString ss = QString("QTextEdit {background-image: url(:images/textEdit_background_pattern.png); padding-left: %1px; padding-right: %2px; padding-bottom:2px;} "
+                         "QTextEdit{selection-background-color: rgb(63, 99, 139);}"
                          "QScrollBar::handle:vertical:hover { background: rgb(170, 170, 171); } "
                          "QScrollBar::handle:vertical:pressed { background: rgb(149, 149, 149); } "
                          "QScrollBar::handle:vertical { border-radius: 4px; background: rgb(188, 188, 188); min-height: 20px; }  "
@@ -1409,7 +1412,11 @@ void MainWindow::selectNoteUp()
             m_currentSelectedNoteProxy = aboveIndex;
             showNoteInEditor(m_currentSelectedNoteProxy);
         }
-        m_noteView->setFocus();
+        if (!m_searchEdit->text().isEmpty()) {
+            m_searchEdit->setFocus();
+        } else {
+            m_noteView->setFocus();
+        }
     }
 }
 
@@ -1433,7 +1440,12 @@ void MainWindow::selectNoteDown()
                 showNoteInEditor(m_currentSelectedNoteProxy);
             }
         }
-        m_noteView->setFocus();
+        //if the searchEdit is not empty, set the focus to it
+        if (!m_searchEdit->text().isEmpty()) {
+            m_searchEdit->setFocus();
+        } else {
+            m_noteView->setFocus();
+        }
     }
 }
 
@@ -2771,6 +2783,22 @@ void MainWindow::toggleStayOnTop()
 }
 
 /*!
+ * \brief MainWindow::onSearchEditReturnPressed
+ */
+void MainWindow::onSearchEditReturnPressed()
+{
+    if (m_searchEdit->text().isEmpty()) return;
+
+    QString searchText = m_searchEdit->text();
+    QTextDocument *doc = m_textEdit->document();
+    //get current cursor
+    QTextCursor from = m_textEdit->textCursor();
+    //search
+    QTextCursor found = doc->find(searchText, from);
+    m_textEdit->setTextCursor(found);
+}
+
+/*!
  * \brief MainWindow::setMargins
  * \param margins
  */
@@ -2799,6 +2827,10 @@ void MainWindow::highlightSearch() const
 
         QTextCharFormat colorFormat(highlightCursor.charFormat());
         colorFormat.setBackground(Qt::yellow);
+
+        QTextCursor pos = document->find(searchString, 0);
+        if (!pos.isNull())
+            m_textEdit->setTextCursor(pos);
 
         while (!highlightCursor.isNull() && !highlightCursor.atEnd()) {
             highlightCursor = document->find(searchString, highlightCursor);
