@@ -7,7 +7,8 @@
 Notes is an open source, cross-platform note taking app which has the potential to be something much bigger, and much better at empowering the people using it.
 This is where you come into play. Be part of making Notes better.
 
-Next version: [1.5.0 (see project)](https://github.com/nuttyartist/notes/projects/7)
+Next version: [1.5.0 (see project)](https://github.com/nuttyartist/notes/projects/7)  
+Future versions mockups can be seen on our [Vision](https://github.com/nuttyartist/notes/wiki/Vision) page in our wiki.
 
 ## Screenshot
 ![notes_screenshot](https://user-images.githubusercontent.com/16375940/29837038-bc4e58a4-8cff-11e7-9fb1-692e9948c33c.png)
