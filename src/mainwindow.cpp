@@ -97,13 +97,13 @@ void MainWindow::InitData()
 {
     QFileInfo fi(m_settingsDatabase->fileName());
     QDir dir(fi.absolutePath());
-    QString oldNoteDBPath(dir.path() + "/Notes.ini");
-    QString oldTrashDBPath(dir.path() + "/Trash.ini");
+    QString oldNoteDBPath(dir.path() + QStringLiteral("/Notes.ini"));
+    QString oldTrashDBPath(dir.path() + QStringLiteral("/Trash.ini"));
 
     bool exist = (QFile::exists(oldNoteDBPath) || QFile::exists(oldTrashDBPath));
 
     if(exist){
-        QProgressDialog* pd = new QProgressDialog("Migrating database, please wait.", "", 0, 0, this);
+        QProgressDialog* pd = new QProgressDialog(QStringLiteral("Migrating database, please wait."), QString(), 0, 0, this);
         pd->setCancelButton(Q_NULLPTR);
         pd->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
         pd->setMinimumDuration(0);
@@ -126,7 +126,7 @@ void MainWindow::InitData()
     }
 
     /// Check if it is running with an argument (ex. hide)
-    if (qApp->arguments().contains("--autostart")) {
+    if (qApp->arguments().contains(QStringLiteral("--autostart"))) {
         setMainWindowVisibility(false);
     }
 }
@@ -262,9 +262,9 @@ void MainWindow::setupMainWindow()
     this->setAutoFillBackground(true);
     this->setPalette(pal);
 
-    m_newNoteButton->setToolTip("Create New Note");
-    m_trashButton->setToolTip("Delete Selected Note");
-    m_dotsButton->setToolTip("Open Menu");
+    m_newNoteButton->setToolTip(QStringLiteral("Create New Note"));
+    m_trashButton->setToolTip(QStringLiteral("Delete Selected Note"));
+    m_dotsButton->setToolTip(QStringLiteral("Open Menu"));
 }
 
 /*!
@@ -290,7 +290,7 @@ void MainWindow::setupTrayIcon()
     m_trayIconMenu->addSeparator();
     m_trayIconMenu->addAction(m_quitAction);
 
-    QIcon icon(":images/notes_system_tray_icon.png");
+    QIcon icon(QStringLiteral(":images/notes_system_tray_icon.png"));
     m_trayIcon->setIcon(icon);
     m_trayIcon->setContextMenu(m_trayIconMenu);
     m_trayIcon->show();
@@ -323,7 +323,7 @@ void MainWindow::setupKeyboardShortcuts()
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_J), this, SLOT(toggleNoteList()));
 
     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
-    shortcut->setShortcut(QKeySequence("META+N"));
+    shortcut->setShortcut(QKeySequence(QStringLiteral("META+N")));
     connect(shortcut, &QxtGlobalShortcut::activated,[=]() {
         // workaround prevent textEdit and searchEdit
         // from taking 'N' from shortcut
@@ -347,10 +347,10 @@ void MainWindow::setupKeyboardShortcuts()
  */
 void MainWindow::setupNewNoteButtonAndTrahButton()
 {
-    QString ss = "QPushButton { "
+    QString ss = QStringLiteral("QPushButton { "
                  "  border: none; "
                  "  padding: 0px; "
-                 "}";
+                 "}");
 
     m_newNoteButton->setStyleSheet(ss);
     m_trashButton->setStyleSheet(ss);
@@ -378,9 +378,9 @@ void MainWindow::setupSplitter()
 void MainWindow::setupLine()
 {
 #ifdef __APPLE__
-    ui->line->setStyleSheet("border: 0px solid rgb(221, 221, 221)");
+    ui->line->setStyleSheet(QStringLiteral("border: 0px solid rgb(221, 221, 221)"));
 #else
-    ui->line->setStyleSheet("border: 1px solid rgb(221, 221, 221)");
+    ui->line->setStyleSheet(QStringLiteral("border: 1px solid rgb(221, 221, 221)"));
 #endif
 }
 
@@ -391,10 +391,10 @@ void MainWindow::setupLine()
  */
 void MainWindow::setupRightFrame()
 {
-    QString ss = "QFrame{ "
+    QString ss = QStringLiteral("QFrame{ "
                  "  background-image: url(:images/textEdit_background_pattern.png); "
                  "  border: none;"
-                 "}";
+                 "}");
     ui->frameRight->setStyleSheet(ss);
 }
 
@@ -406,19 +406,19 @@ void MainWindow::setupRightFrame()
  */
 void MainWindow::setupTitleBarButtons()
 {
-    QString ss = "QPushButton { "
+    QString ss = QStringLiteral("QPushButton { "
                  "  border: none; "
                  "  padding: 0px; "
-                 "}";
+                 "}");
 
     m_redCloseButton->setStyleSheet(ss);
     m_yellowMinimizeButton->setStyleSheet(ss);
     m_greenMaximizeButton->setStyleSheet(ss);
 
 #ifdef _WIN32
-    m_redCloseButton->setIcon(QIcon(":images/windows_close_regular.png"));
-    m_yellowMinimizeButton->setIcon(QIcon(":images/windows_maximize_regular.png"));
-    m_greenMaximizeButton->setIcon(QIcon(":images/windows_minimize_regular.png"));
+    m_redCloseButton->setIcon(QIcon(QStringLiteral(":images/windows_close_regular.png")));
+    m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/windows_maximize_regular.png")));
+    m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/windows_minimize_regular.png")));
 
     m_redCloseButton->setIconSize(QSize(34, 16));
     m_yellowMinimizeButton->setIconSize(QSize(28, 16));
@@ -546,7 +546,7 @@ void MainWindow::setupSearchEdit()
     QLineEdit* searchEdit = m_searchEdit;
 
     int frameWidth = m_searchEdit->style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
-    QString ss = QString("QLineEdit{ "
+    QString ss = QStringLiteral("QLineEdit{ "
                          "  padding-right: %1px; "
                          "  padding-left: 21px;"
                          "  padding-right: 19px;"
@@ -565,7 +565,7 @@ void MainWindow::setupSearchEdit()
 
     // clear button
     m_clearButton = new QToolButton(searchEdit);
-    QPixmap pixmap(":images/closeButton.png");
+    QPixmap pixmap(QStringLiteral(":images/closeButton.png"));
     m_clearButton->setIcon(QIcon(pixmap));
     QSize clearSize(15, 15);
     m_clearButton->setIconSize(clearSize);
@@ -574,7 +574,7 @@ void MainWindow::setupSearchEdit()
 
     // search button
     QToolButton *searchButton = new QToolButton(searchEdit);
-    QPixmap newPixmap(":images/magnifyingGlass.png");
+    QPixmap newPixmap(QStringLiteral(":images/magnifyingGlass.png"));
     searchButton->setIcon(QIcon(newPixmap));
     QSize searchSize(24, 25);
     searchButton->setIconSize(searchSize);
@@ -624,7 +624,7 @@ void MainWindow::setupTextEdit()
     m_textEdit->setAcceptRichText(false);
 
 #ifdef __APPLE__
-    m_textEdit->setFont(QFont("Helvetica Neue", 14));
+    m_textEdit->setFont(QFont(QStringLiteral("Helvetica Neue"), 14));
 #endif
 }
 
@@ -633,29 +633,29 @@ void MainWindow::setupTextEdit()
  */
 void MainWindow::initializeSettingsDatabase()
 {
-    if(m_settingsDatabase->value("version", "NULL") == "NULL")
-        m_settingsDatabase->setValue("version", qApp->applicationVersion());
+    if(m_settingsDatabase->value(QStringLiteral("version"), "NULL") == "NULL")
+        m_settingsDatabase->setValue(QStringLiteral("version"), qApp->applicationVersion());
 
-    if(m_settingsDatabase->value("dontShowUpdateWindow", "NULL") == "NULL")
-        m_settingsDatabase->setValue("dontShowUpdateWindow", m_dontShowUpdateWindow);
+    if(m_settingsDatabase->value(QStringLiteral("dontShowUpdateWindow"), "NULL") == "NULL")
+        m_settingsDatabase->setValue(QStringLiteral("dontShowUpdateWindow"), m_dontShowUpdateWindow);
 
-    if(m_settingsDatabase->value("windowGeometry", "NULL") == "NULL"){
+    if(m_settingsDatabase->value(QStringLiteral("windowGeometry"), "NULL") == "NULL"){
         int initWidth = 733;
         int initHeight = 336;
         QPoint center = qApp->desktop()->geometry().center();
         QRect rect(center.x() - initWidth/2, center.y() - initHeight/2, initWidth, initHeight);
         setGeometry(rect);
-        m_settingsDatabase->setValue("windowGeometry", saveGeometry());
+        m_settingsDatabase->setValue(QStringLiteral("windowGeometry"), saveGeometry());
     }
 
-    if(m_settingsDatabase->value("splitterSizes", "NULL") == "NULL"){
+    if(m_settingsDatabase->value(QStringLiteral("splitterSizes"), "NULL") == "NULL"){
         m_splitter->resize(width()-2*m_layoutMargin, height()-2*m_layoutMargin);
         QList<int> sizes = m_splitter->sizes();
         m_noteListWidth = ui->frameLeft->minimumWidth() != 0 ? ui->frameLeft->minimumWidth() : m_noteListWidth;
         sizes[0] = m_noteListWidth;
         sizes[1] = m_splitter->width() - m_noteListWidth;
         m_splitter->setSizes(sizes);
-        m_settingsDatabase->setValue("splitterSizes", m_splitter->saveState());
+        m_settingsDatabase->setValue(QStringLiteral("splitterSizes"), m_splitter->saveState());
     }
 }
 
@@ -720,8 +720,8 @@ void MainWindow::setupModelView()
  */
 void MainWindow::restoreStates()
 {
-    if(m_settingsDatabase->value("windowGeometry", "NULL") != "NULL")
-        this->restoreGeometry(m_settingsDatabase->value("windowGeometry").toByteArray());
+    if(m_settingsDatabase->value(QStringLiteral("windowGeometry"), "NULL") != "NULL")
+        this->restoreGeometry(m_settingsDatabase->value(QStringLiteral("windowGeometry")).toByteArray());
 
 #ifndef _WIN32
     /// Set margin to zero if the window is maximized
@@ -730,13 +730,13 @@ void MainWindow::restoreStates()
     }
 #endif
 
-    if(m_settingsDatabase->value("dontShowUpdateWindow", "NULL") != "NULL")
-        m_dontShowUpdateWindow = m_settingsDatabase->value("dontShowUpdateWindow").toBool();
+    if(m_settingsDatabase->value(QStringLiteral("dontShowUpdateWindow"), "NULL") != "NULL")
+        m_dontShowUpdateWindow = m_settingsDatabase->value(QStringLiteral("dontShowUpdateWindow")).toBool();
 
     m_splitter->setCollapsible(0, true);
     m_splitter->resize(width() - m_layoutMargin, height() - m_layoutMargin);
-    if(m_settingsDatabase->value("splitterSizes", "NULL") != "NULL")
-        m_splitter->restoreState(m_settingsDatabase->value("splitterSizes").toByteArray());
+    if(m_settingsDatabase->value(QStringLiteral("splitterSizes"), "NULL") != "NULL")
+        m_splitter->restoreState(m_settingsDatabase->value(QStringLiteral("splitterSizes")).toByteArray());
     m_noteListWidth = m_splitter->sizes().at(0);
     m_splitter->setCollapsible(0, false);
 }
@@ -783,9 +783,9 @@ QDateTime MainWindow::getQDateTime(QString date)
 QString MainWindow::getNoteDateEditor(QString dateEdited)
 {
     QDateTime dateTimeEdited(getQDateTime(dateEdited));
-    QLocale usLocale(QLocale("en_US"));
+    QLocale usLocale(QLocale(QStringLiteral("en_US")));
 
-    return usLocale.toString(dateTimeEdited, "MMMM d, yyyy, h:mm A");
+    return usLocale.toString(dateTimeEdited, QStringLiteral("MMMM d, yyyy, h:mm A"));
 }
 
 /*!
@@ -939,7 +939,7 @@ void MainWindow::setButtonsAndFieldsEnabled(bool doEnable)
  */
 void MainWindow::onNewNoteButtonPressed()
 {
-    m_newNoteButton->setIcon(QIcon(":/images/newNote_Pressed.png"));
+    m_newNoteButton->setIcon(QIcon(QStringLiteral(":/images/newNote_Pressed.png")));
 }
 
 /*!
@@ -948,7 +948,7 @@ void MainWindow::onNewNoteButtonPressed()
  */
 void MainWindow::onNewNoteButtonClicked()
 {
-    m_newNoteButton->setIcon(QIcon(":/images/newNote_Regular.png"));
+    m_newNoteButton->setIcon(QIcon(QStringLiteral(":/images/newNote_Regular.png")));
 
     if(!m_searchEdit->text().isEmpty()){
         clearSearch();
@@ -972,7 +972,7 @@ void MainWindow::onNewNoteButtonClicked()
  */
 void MainWindow::onTrashButtonPressed()
 {
-    m_trashButton->setIcon(QIcon(":/images/trashCan_Pressed.png"));
+    m_trashButton->setIcon(QIcon(QStringLiteral(":/images/trashCan_Pressed.png")));
 }
 
 /*!
@@ -981,7 +981,7 @@ void MainWindow::onTrashButtonPressed()
  */
 void MainWindow::onTrashButtonClicked()
 {
-    m_trashButton->setIcon(QIcon(":/images/trashCan_Regular.png"));
+    m_trashButton->setIcon(QIcon(QStringLiteral(":/images/trashCan_Regular.png")));
 
     m_trashButton->blockSignals(true);
     deleteSelectedNote();
@@ -994,7 +994,7 @@ void MainWindow::onTrashButtonClicked()
  */
 void MainWindow::onDotsButtonPressed()
 {
-    m_dotsButton->setIcon(QIcon(":/images/3dots_Pressed.png"));
+    m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Pressed.png")));
 }
 
 /*!
@@ -1003,11 +1003,11 @@ void MainWindow::onDotsButtonPressed()
  */
 void MainWindow::onDotsButtonClicked()
 {
-    m_dotsButton->setIcon(QIcon(":/images/3dots_Regular.png"));
+    m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Regular.png")));
 
     QMenu mainMenu;
-    QMenu* viewMenu = mainMenu.addMenu("View");
-    QMenu* importExportNotesMenu = mainMenu.addMenu("Import/Export Notes");
+    QMenu* viewMenu = mainMenu.addMenu(QStringLiteral("View"));
+    QMenu* importExportNotesMenu = mainMenu.addMenu(QStringLiteral("Import/Export Notes"));
     importExportNotesMenu->setToolTipsVisible(true);
     viewMenu->setToolTipsVisible(true);
     mainMenu.setToolTipsVisible(true);
@@ -1023,9 +1023,9 @@ void MainWindow::onDotsButtonClicked()
                            );
 
 #ifdef __APPLE__
-    mainMenu.setFont(QFont("Helvetica Neue", 13));
-    viewMenu->setFont(QFont("Helvetica Neue", 13));
-    importExportNotesMenu->setFont(QFont("Helvetica Neue", 13));
+    mainMenu.setFont(QFont(QStringLiteral("Helvetica Neue"), 13));
+    viewMenu->setFont(QFont(QStringLiteral("Helvetica Neue"), 13));
+    importExportNotesMenu->setFont(QFont(QStringLiteral("Helvetica Neue"), 13));
 #else
     mainMenu.setFont(QFont(QStringLiteral("Roboto"), 10, QFont::Normal));
     viewMenu->setFont(QFont(QStringLiteral("Roboto"), 10, QFont::Normal));
@@ -1580,8 +1580,8 @@ void MainWindow::restoreNotesFile(const bool clicked)
 
     if (m_noteModel->rowCount() > 0) {
         QMessageBox msgBox;
-        msgBox.setText("Warning: All current notes will be lost. Make sure to create a backup copy before proceeding.");
-        msgBox.setInformativeText("Would you like to continue?");
+        msgBox.setText(QStringLiteral("Warning: All current notes will be lost. Make sure to create a backup copy before proceeding."));
+        msgBox.setInformativeText(QStringLiteral("Would you like to continue?"));
         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
         msgBox.setDefaultButton(QMessageBox::No);
         if  (msgBox.exec() != QMessageBox::Yes) {
@@ -1733,9 +1733,9 @@ void MainWindow::onGreenMaximizeButtonPressed()
     m_greenMaximizeButton->setIcon(QIcon(":images/windows_minimize_pressed.png"));
 #else
     if(this->windowState() == Qt::WindowFullScreen){
-        m_greenMaximizeButton->setIcon(QIcon(":images/greenInPressed.png"));
+        m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/greenInPressed.png")));
     }else{
-        m_greenMaximizeButton->setIcon(QIcon(":images/greenPressed.png"));
+        m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/greenPressed.png")));
     }
 #endif
 }
@@ -1748,12 +1748,12 @@ void MainWindow::onYellowMinimizeButtonPressed()
 {
 #ifdef _WIN32
     if(this->windowState() == Qt::WindowFullScreen){
-        m_yellowMinimizeButton->setIcon(QIcon(":images/windows_de-maximize_pressed.png"));
+        m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/windows_de-maximize_pressed.png")));
     }else{
-        m_yellowMinimizeButton->setIcon(QIcon(":images/windows_maximize_pressed.png"));
+        m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/windows_maximize_pressed.png")));
     }
 #else
-    m_yellowMinimizeButton->setIcon(QIcon(":images/yellowPressed.png"));
+    m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/yellowPressed.png")));
 #endif
 }
 
@@ -1764,9 +1764,9 @@ void MainWindow::onYellowMinimizeButtonPressed()
 void MainWindow::onRedCloseButtonPressed()
 {
 #ifdef _WIN32
-    m_redCloseButton->setIcon(QIcon(":images/windows_close_pressed.png"));
+    m_redCloseButton->setIcon(QIcon(QStringLiteral(":images/windows_close_pressed.png")));
 #else
-    m_redCloseButton->setIcon(QIcon(":images/redPressed.png"));
+    m_redCloseButton->setIcon(QIcon(QStringLiteral(":images/redPressed.png")));
 #endif
 }
 
@@ -1777,12 +1777,12 @@ void MainWindow::onRedCloseButtonPressed()
 void MainWindow::onGreenMaximizeButtonClicked()
 {
 #ifdef _WIN32
-    m_greenMaximizeButton->setIcon(QIcon(":images/windows_minimize_regular.png"));
+    m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/windows_minimize_regular.png")));
 
     minimizeWindow();
     m_restoreAction->setText(tr("&Show Notes"));
 #else
-    m_greenMaximizeButton->setIcon(QIcon(":images/green.png"));
+    m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/green.png")));
 
     fullscreenWindow();
 #endif
@@ -1795,11 +1795,11 @@ void MainWindow::onGreenMaximizeButtonClicked()
 void MainWindow::onYellowMinimizeButtonClicked()
 {
 #ifdef _WIN32
-    m_yellowMinimizeButton->setIcon(QIcon(":images/windows_de-maximize_regular.png"));
+    m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/windows_de-maximize_regular.png")));
 
     fullscreenWindow();
 #else
-    m_yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
+    m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/yellow.png")));
 
     minimizeWindow();
     m_restoreAction->setText(tr("&Show Notes"));
@@ -1814,9 +1814,9 @@ void MainWindow::onYellowMinimizeButtonClicked()
 void MainWindow::onRedCloseButtonClicked()
 {
 #ifdef _WIN32
-    m_redCloseButton->setIcon(QIcon(":images/windows_close_regular.png"));
+    m_redCloseButton->setIcon(QIcon(QStringLiteral(":images/windows_close_regular.png")));
 #else
-    m_redCloseButton->setIcon(QIcon(":images/red.png"));
+    m_redCloseButton->setIcon(QIcon(QStringLiteral(":images/red.png")));
 #endif
 
     setMainWindowVisibility(false);
@@ -1832,7 +1832,7 @@ void MainWindow::onRedCloseButtonClicked()
 void MainWindow::closeEvent(QCloseEvent* event)
 {
     if(windowState() != Qt::WindowFullScreen)
-        m_settingsDatabase->setValue("windowGeometry", saveGeometry());
+        m_settingsDatabase->setValue(QStringLiteral("windowGeometry"), saveGeometry());
 
     if(m_currentSelectedNoteProxy.isValid()
             &&  m_isContentModified
@@ -1841,9 +1841,9 @@ void MainWindow::closeEvent(QCloseEvent* event)
         saveNoteToDB(m_currentSelectedNoteProxy);
     }
 
-    m_settingsDatabase->setValue("dontShowUpdateWindow", m_dontShowUpdateWindow);
+    m_settingsDatabase->setValue(QStringLiteral("dontShowUpdateWindow"), m_dontShowUpdateWindow);
 
-    m_settingsDatabase->setValue("splitterSizes", m_splitter->saveState());
+    m_settingsDatabase->setValue(QStringLiteral("splitterSizes"), m_splitter->saveState());
     m_settingsDatabase->sync();
 
     QWidget::closeEvent(event);
@@ -2155,7 +2155,7 @@ void MainWindow::moveNoteToTop()
         m_currentSelectedNoteProxy = m_proxyModel->mapFromSource(destinationIndex);
         m_noteView->setCurrentIndex(m_currentSelectedNoteProxy);
     }else{
-        qDebug() << QStringLiteral("MainWindow::moveNoteTop : m_currentSelectedNoteProxy not valid");
+        qDebug() << "MainWindow::moveNoteTop : m_currentSelectedNoteProxy not valid";
     }
 }
 
@@ -2176,7 +2176,7 @@ void MainWindow::clearSearch()
     m_editorDateLabel->clear();
     m_textEdit->blockSignals(false);
 
-    m_proxyModel->setFilterFixedString(QStringLiteral(""));
+    m_proxyModel->setFilterFixedString(QString());
 
     m_clearButton->hide();
     m_searchEdit->setFocus();
@@ -2271,13 +2271,13 @@ void MainWindow::migrateNote(QString notePath)
     QSettings notesIni(notePath, QSettings::IniFormat);
     QStringList dbKeys = notesIni.allKeys();
 
-    m_noteCounter = notesIni.value("notesCounter", "0").toInt();
+    m_noteCounter = notesIni.value(QStringLiteral("notesCounter"), "0").toInt();
     QList<NoteData *> noteList;
 
     auto it = dbKeys.begin();
     for(; it < dbKeys.end()-1; it += 3){
-        QString noteName = it->split("/")[0];
-        int id = noteName.split("_")[1].toInt();
+        QString noteName = it->split(QStringLiteral("/"))[0];
+        int id = noteName.split(QStringLiteral("_"))[1].toInt();
 
         // sync db index with biggest notes id
         m_noteCounter = m_noteCounter < id ? id : m_noteCounter;
@@ -2285,11 +2285,11 @@ void MainWindow::migrateNote(QString notePath)
         NoteData* newNote = new NoteData();
         newNote->setId(id);
 
-        QString createdDateDB = notesIni.value(noteName + "/dateCreated", "Error").toString();
+        QString createdDateDB = notesIni.value(noteName + QStringLiteral("/dateCreated"), "Error").toString();
         newNote->setCreationDateTime(QDateTime::fromString(createdDateDB, Qt::ISODate));
-        QString lastEditedDateDB = notesIni.value(noteName + "/dateEdited", "Error").toString();
+        QString lastEditedDateDB = notesIni.value(noteName + QStringLiteral("/dateEdited"), "Error").toString();
         newNote->setLastModificationDateTime(QDateTime::fromString(lastEditedDateDB, Qt::ISODate));
-        QString contentText = notesIni.value(noteName + "/content", "Error").toString();
+        QString contentText = notesIni.value(noteName + QStringLiteral("/content"), "Error").toString();
         newNote->setContent(contentText);
         QString firstLine = getFirstLine(contentText);
         newNote->setFullTitle(firstLine);
@@ -2301,7 +2301,7 @@ void MainWindow::migrateNote(QString notePath)
         emit requestMigrateNotes(noteList);
 
     QFile oldNoteDBFile(notePath);
-    oldNoteDBFile.rename(QFileInfo(notePath).dir().path() + QDir::separator() + "oldNotes.ini");
+    oldNoteDBFile.rename(QFileInfo(notePath).dir().path() + QDir::separator() + QStringLiteral("oldNotes.ini"));
 }
 
 /*!
@@ -2317,8 +2317,8 @@ void MainWindow::migrateTrash(QString trashPath)
 
     auto it = dbKeys.begin();
     for(; it < dbKeys.end()-1; it += 3){
-        QString noteName = it->split("/")[0];
-        int id = noteName.split("_")[1].toInt();
+        QString noteName = it->split(QStringLiteral("/"))[0];
+        int id = noteName.split(QStringLiteral("_"))[1].toInt();
 
         // sync db index with biggest notes id
         m_noteCounter = m_noteCounter < id ? id : m_noteCounter;
@@ -2326,11 +2326,11 @@ void MainWindow::migrateTrash(QString trashPath)
         NoteData* newNote = new NoteData();
         newNote->setId(id);
 
-        QString createdDateDB = trashIni.value(noteName + "/dateCreated", "Error").toString();
+        QString createdDateDB = trashIni.value(noteName + QStringLiteral("/dateCreated"), "Error").toString();
         newNote->setCreationDateTime(QDateTime::fromString(createdDateDB, Qt::ISODate));
-        QString lastEditedDateDB = trashIni.value(noteName + "/dateEdited", "Error").toString();
+        QString lastEditedDateDB = trashIni.value(noteName + QStringLiteral("/dateEdited"), "Error").toString();
         newNote->setLastModificationDateTime(QDateTime::fromString(lastEditedDateDB, Qt::ISODate));
-        QString contentText = trashIni.value(noteName + "/content", "Error").toString();
+        QString contentText = trashIni.value(noteName + QStringLiteral("/content"), "Error").toString();
         newNote->setContent(contentText);
         QString firstLine = getFirstLine(contentText);
         newNote->setFullTitle(firstLine);
@@ -2342,7 +2342,7 @@ void MainWindow::migrateTrash(QString trashPath)
         emit requestMigrateTrash(noteList);
 
     QFile oldTrashDBFile(trashPath);
-    oldTrashDBFile.rename(QFileInfo(trashPath).dir().path() + QDir::separator() +"oldTrash.ini");
+    oldTrashDBFile.rename(QFileInfo(trashPath).dir().path() + QDir::separator() + QStringLiteral("oldTrash.ini"));
 }
 
 /*!
@@ -2506,19 +2506,19 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         if(qApp->applicationState() == Qt::ApplicationActive){
 #ifdef _WIN32
             if(object == m_redCloseButton){
-                m_redCloseButton->setIcon(QIcon(":images/windows_close_hovered.png"));
+                m_redCloseButton->setIcon(QIcon(QStringLiteral(":images/windows_close_hovered.png")));
             }
 
             if(object == m_yellowMinimizeButton){
                 if(this->windowState() == Qt::WindowFullScreen){
-                    m_yellowMinimizeButton->setIcon(QIcon(":images/windows_de-maximize_hovered.png"));
+                    m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/windows_de-maximize_hovered.png")));
                 }else{
-                    m_yellowMinimizeButton->setIcon(QIcon (":images/windows_maximize_hovered.png"));
+                    m_yellowMinimizeButton->setIcon(QIcon (QStringLiteral(":images/windows_maximize_hovered.png")));
                 }
             }
 
             if(object == m_greenMaximizeButton){
-                m_greenMaximizeButton->setIcon(QIcon(":images/windows_minimize_hovered.png"));
+                m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/windows_minimize_hovered.png")));
             }
 #else
             // When hovering one of the traffic light buttons (red, yellow, green),
@@ -2527,29 +2527,29 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                     || object == m_yellowMinimizeButton
                     || object == m_greenMaximizeButton){
 
-                m_redCloseButton->setIcon(QIcon(":images/redHovered.png"));
-                m_yellowMinimizeButton->setIcon(QIcon(":images/yellowHovered.png"));
+                m_redCloseButton->setIcon(QIcon(QStringLiteral(":images/redHovered.png")));
+                m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/yellowHovered.png")));
                 if(this->windowState() == Qt::WindowFullScreen){
-                    m_greenMaximizeButton->setIcon(QIcon(":images/greenInHovered.png"));
+                    m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/greenInHovered.png")));
                 }else{
-                    m_greenMaximizeButton->setIcon(QIcon(":images/greenHovered.png"));
+                    m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/greenHovered.png")));
                 }
             }
 #endif
 
             if(object == m_newNoteButton){
                 this->setCursor(Qt::PointingHandCursor);
-                m_newNoteButton->setIcon(QIcon(":/images/newNote_Hovered.png"));
+                m_newNoteButton->setIcon(QIcon(QStringLiteral(":/images/newNote_Hovered.png")));
             }
 
             if(object == m_trashButton){
                 this->setCursor(Qt::PointingHandCursor);
-                m_trashButton->setIcon(QIcon(":/images/trashCan_Hovered.png"));
+                m_trashButton->setIcon(QIcon(QStringLiteral(":/images/trashCan_Hovered.png")));
             }
 
             if(object == m_dotsButton){
                 this->setCursor(Qt::PointingHandCursor);
-                m_dotsButton->setIcon(QIcon(":/images/3dots_Hovered.png"));
+                m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Hovered.png")));
             }
         }
 
@@ -2567,34 +2567,34 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                     || object == m_greenMaximizeButton){
 
 #ifdef _WIN32
-                m_redCloseButton->setIcon(QIcon(":images/windows_close_regular.png"));
-                m_greenMaximizeButton->setIcon(QIcon(":images/windows_minimize_regular.png"));
+                m_redCloseButton->setIcon(QIcon(QStringLiteral(":images/windows_close_regular.png")));
+                m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/windows_minimize_regular.png")));
 
                 if(this->windowState() == Qt::WindowFullScreen){
-                    m_yellowMinimizeButton->setIcon(QIcon(":images/windows_de-maximize_regular.png"));
+                    m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/windows_de-maximize_regular.png")));
                 }else{
-                    m_yellowMinimizeButton->setIcon(QIcon (":images/windows_maximize_regular.png"));
+                    m_yellowMinimizeButton->setIcon(QIcon (QStringLiteral(":images/windows_maximize_regular.png")));
                 }
 #else
-                m_redCloseButton->setIcon(QIcon(":images/red.png"));
-                m_yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
-                m_greenMaximizeButton->setIcon(QIcon(":images/green.png"));
+                m_redCloseButton->setIcon(QIcon(QStringLiteral(":images/red.png")));
+                m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/yellow.png")));
+                m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/green.png")));
 #endif
             }
 
             if(object == m_newNoteButton){
                 this->unsetCursor();
-                m_newNoteButton->setIcon(QIcon(":/images/newNote_Regular.png"));
+                m_newNoteButton->setIcon(QIcon(QStringLiteral(":/images/newNote_Regular.png")));
             }
 
             if(object == m_trashButton){
                 this->unsetCursor();
-                m_trashButton->setIcon(QIcon(":/images/trashCan_Regular.png"));
+                m_trashButton->setIcon(QIcon(QStringLiteral(":/images/trashCan_Regular.png")));
             }
 
             if(object == m_dotsButton){
                 this->unsetCursor();
-                m_dotsButton->setIcon(QIcon(":/images/3dots_Regular.png"));
+                m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Regular.png")));
             }
         }
         break;
@@ -2606,33 +2606,33 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         QApplication::restoreOverrideCursor();
 
 #ifndef _WIN32
-        m_redCloseButton->setIcon(QIcon(":images/unfocusedButton"));
-        m_yellowMinimizeButton->setIcon(QIcon(":images/unfocusedButton"));
-        m_greenMaximizeButton->setIcon(QIcon(":images/unfocusedButton"));
+        m_redCloseButton->setIcon(QIcon(QStringLiteral(":images/unfocusedButton")));
+        m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/unfocusedButton")));
+        m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/unfocusedButton")));
 #endif
-        m_newNoteButton->setIcon(QIcon(":/images/newNote_Regular.png"));
-        m_trashButton->setIcon(QIcon(":/images/trashCan_Regular.png"));
-        m_dotsButton->setIcon(QIcon(":/images/3dots_Regular.png"));
+        m_newNoteButton->setIcon(QIcon(QStringLiteral(":/images/newNote_Regular.png")));
+        m_trashButton->setIcon(QIcon(QStringLiteral(":/images/trashCan_Regular.png")));
+        m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Regular.png")));
         break;
     }
     case QEvent::WindowActivate:{
 #ifdef _WIN32
-        m_redCloseButton->setIcon(QIcon(":images/windows_close_regular.png"));
-        m_greenMaximizeButton->setIcon(QIcon(":images/windows_minimize_regular.png"));
+        m_redCloseButton->setIcon(QIcon(QStringLiteral(":images/windows_close_regular.png")));
+        m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/windows_minimize_regular.png")));
 
         if(this->windowState() == Qt::WindowFullScreen){
-            m_yellowMinimizeButton->setIcon(QIcon(":images/windows_de-maximize_regular.png"));
+            m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/windows_de-maximize_regular.png")));
         }else{
-            m_yellowMinimizeButton->setIcon(QIcon (":images/windows_maximize_regular.png"));
+            m_yellowMinimizeButton->setIcon(QIcon (QStringLiteral(":images/windows_maximize_regular.png")));
         }
 #else
-        m_redCloseButton->setIcon(QIcon(":images/red.png"));
-        m_yellowMinimizeButton->setIcon(QIcon(":images/yellow.png"));
-        m_greenMaximizeButton->setIcon(QIcon(":images/green.png"));
+        m_redCloseButton->setIcon(QIcon(QStringLiteral(":images/red.png")));
+        m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/yellow.png")));
+        m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/green.png")));
 #endif
-        m_newNoteButton->setIcon(QIcon(":/images/newNote_Regular.png"));
-        m_trashButton->setIcon(QIcon(":/images/trashCan_Regular.png"));
-        m_dotsButton->setIcon(QIcon(":/images/3dots_Regular.png"));
+        m_newNoteButton->setIcon(QIcon(QStringLiteral(":/images/newNote_Regular.png")));
+        m_trashButton->setIcon(QIcon(QStringLiteral(":/images/trashCan_Regular.png")));
+        m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Regular.png")));
         break;
     }
     case QEvent::HoverEnter:{
@@ -2679,7 +2679,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         }
 
         if(object == m_searchEdit){
-            QString ss = QString("QLineEdit{ "
+            QString ss = QStringLiteral("QLineEdit{ "
                                  "  padding-left: 21px;"
                                  "  padding-right: 19px;"
                                  "  border: 2px solid rgb(61, 155, 218);"
@@ -2699,7 +2699,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
     }
     case QEvent::FocusOut:{
         if(object == m_searchEdit){
-            QString ss = QString("QLineEdit{ "
+            QString ss = QStringLiteral("QLineEdit{ "
                                  "  padding-left: 21px;"
                                  "  padding-right: 19px;"
                                  "  border: 1px solid rgb(205, 205, 205);"
