@@ -234,6 +234,7 @@ private slots:
     void restoreNotesFile (const bool clicked);
     void stayOnTop(bool checked);
     void toggleStayOnTop();
+    void onSearchEditReturnPressed();
 
 signals:
     void requestNotesList();
