@@ -86,6 +86,8 @@ MainWindow::MainWindow(QWidget *parent) :
     setupSignalsSlots();
     autoCheckForUpdates();
 
+    m_highlighter = new MarkdownHighlighter(m_textEdit->document());
+
     QTimer::singleShot(200,this, SLOT(InitData()));
 }
 
@@ -599,7 +601,7 @@ void MainWindow::setupSearchEdit()
  * And install this class event filter to catch when text edit is having focus
  */
 void MainWindow::setupTextEdit()
-{
+{   
     QString ss = QString("QTextEdit {background-image: url(:images/textEdit_background_pattern.png); padding-left: %1px; padding-right: %2px; padding-bottom:2px;} "
                          "QTextEdit{selection-background-color: rgb(63, 99, 139);}"
                          "QScrollBar::handle:vertical:hover { background: rgb(170, 170, 171); } "

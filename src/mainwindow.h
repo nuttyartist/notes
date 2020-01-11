@@ -33,6 +33,7 @@
 #include "noteview.h"
 #include "updaterwindow.h"
 #include "dbmanager.h"
+#include "markdownhighlighter.h"
 
 namespace Ui {
 class MainWindow;
@@ -128,6 +129,7 @@ private:
     QQueue<QString> m_searchQueue;
     DBManager* m_dbManager;
     QThread* m_dbThread;
+    MarkdownHighlighter *m_highlighter;
 
     UpdaterWindow m_updater;
     StretchSide m_stretchSide;
