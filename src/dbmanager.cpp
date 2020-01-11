@@ -3,6 +3,7 @@
 #include <QTimeZone>
 #include <QDateTime>
 #include <QDebug>
+#include <QSqlError>
 #include <QtConcurrent>
 
 /*!
@@ -277,20 +278,22 @@ bool DBManager::updateNote(NoteData* note)
     int id = note->id();
     qint64 epochTimeDateModified = note->lastModificationdateTime().toMSecsSinceEpoch();
     QString content = note->content()
-            .replace("'","''")
+            .replace(QLatin1String("'"), QLatin1String("''"))
             .replace(QChar('\x0'), emptyStr);
     QString fullTitle = note->fullTitle()
-            .replace("'","''")
+            .replace(QLatin1String("'"), QLatin1String("''"))
             .replace(QChar('\x0'), emptyStr);
 
-    QString queryStr = QStringLiteral("UPDATE active_notes "
-                                      "SET modification_date=%1, content='%2', full_title='%3' "
-                                      "WHERE id=%4")
-                                      .arg(epochTimeDateModified)
-                                      .arg(content)
-                                      .arg(fullTitle)
-                                      .arg(id);
-    query.exec(queryStr);
+    query.prepare(QStringLiteral("UPDATE active_notes SET modification_date = :date, content = :content, "
+                               "full_title = :title WHERE id = :id"));
+    query.bindValue(QStringLiteral(":date"), epochTimeDateModified);
+    query.bindValue(QStringLiteral(":content"), content);
+    query.bindValue(QStringLiteral(":title"), fullTitle);
+    query.bindValue(QStringLiteral(":id"), id);
+
+    if (!query.exec()) {
+        qWarning () << __func__ << ": " << query.lastError();
+    }
     return (query.numRowsAffected() == 1);
 }
 
