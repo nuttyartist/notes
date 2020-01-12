@@ -277,15 +277,11 @@ bool DBManager::updateNote(NoteData* note)
 
     int id = note->id();
     qint64 epochTimeDateModified = note->lastModificationdateTime().toMSecsSinceEpoch();
-    QString content = note->content()
-            .replace(QLatin1String("'"), QLatin1String("''"))
-            .replace(QChar('\x0'), emptyStr);
-    QString fullTitle = note->fullTitle()
-            .replace(QLatin1String("'"), QLatin1String("''"))
-            .replace(QChar('\x0'), emptyStr);
+    QString content = note->content().replace(QChar('\x0'), emptyStr);
+    QString fullTitle = note->fullTitle().replace(QChar('\x0'), emptyStr);
 
     query.prepare(QStringLiteral("UPDATE active_notes SET modification_date = :date, content = :content, "
-                               "full_title = :title WHERE id = :id"));
+                                 "full_title = :title WHERE id = :id"));
     query.bindValue(QStringLiteral(":date"), epochTimeDateModified);
     query.bindValue(QStringLiteral(":content"), content);
     query.bindValue(QStringLiteral(":title"), fullTitle);
