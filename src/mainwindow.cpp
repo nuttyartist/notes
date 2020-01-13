@@ -2743,6 +2743,16 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
             }
         }
         break;
+    case QEvent::KeyPress:
+    {
+        auto *keyEvent = static_cast<QKeyEvent *>(event);
+        if (keyEvent->key() == Qt::Key_Return && m_searchEdit->text().isEmpty()) {
+            setFocusOnText();
+            return true;
+        }
+        return QMainWindow::eventFilter(object, event);
+        break;
+    }
     default:
         break;
     }
