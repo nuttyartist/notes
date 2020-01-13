@@ -2817,34 +2817,21 @@ void MainWindow::highlightSearch() const
 {
     QString searchString = m_searchEdit->text();
 
-    if(!searchString.isEmpty()){
-        m_textEdit->blockSignals(true);
+    if(searchString.isEmpty())
+        return;
 
-        QTextDocument *document = m_textEdit->document();
+    m_textEdit->moveCursor(QTextCursor::Start);
 
-        QTextCursor highlightCursor(document);
-        QTextCursor cursor(document);
+    QList<QTextEdit::ExtraSelection> extraSelections;
+    while(m_textEdit->find(searchString)) {
+        QTextEdit::ExtraSelection extra = QTextEdit::ExtraSelection();
+        extra.format.setBackground(Qt::yellow);
+        extra.cursor = m_textEdit->textCursor();
+        extraSelections.append(extra);
+    }
 
-        cursor.beginEditBlock();
-
-        QTextCharFormat colorFormat(highlightCursor.charFormat());
-        colorFormat.setBackground(Qt::yellow);
-
-        QTextCursor pos = document->find(searchString, 0);
-        if (!pos.isNull())
-            m_textEdit->setTextCursor(pos);
-
-        while (!highlightCursor.isNull() && !highlightCursor.atEnd()) {
-            highlightCursor = document->find(searchString, highlightCursor);
-
-            if (!highlightCursor.isNull()) {
-
-                highlightCursor.mergeCharFormat(colorFormat);
-            }
-        }
-
-        cursor.endEditBlock();
-
-        m_textEdit->blockSignals(false);
+    if (!extraSelections.isEmpty()) {
+        m_textEdit->setTextCursor(extraSelections.first().cursor);
+        m_textEdit->setExtraSelections(extraSelections);
     }
 }
