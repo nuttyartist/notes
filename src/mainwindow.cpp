@@ -544,26 +544,23 @@ void MainWindow::autoCheckForUpdates()
  */
 void MainWindow::setupSearchEdit()
 {
-
     QLineEdit* searchEdit = m_searchEdit;
 
-    int frameWidth = m_searchEdit->style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
-    QString ss = QStringLiteral("QLineEdit{ "
-                         "  padding-right: %1px; "
-                         "  padding-left: 21px;"
-                         "  padding-right: 19px;"
-                         "  border: 1px solid rgb(205, 205, 205);"
-                         "  border-radius: 3px;"
-                         "  background: rgb(255, 255, 255);"
-                         "  selection-background-color: rgb(61, 155, 218);"
-                         "} "
-                         "QToolButton { "
-                         "  border: none; "
-                         "  padding: 0px;"
-                         "}"
-                         ).arg(frameWidth + 1);
-
-    searchEdit->setStyleSheet(ss);
+    searchEdit->setStyleSheet(QStringLiteral("QLineEdit{ "
+                                             "  padding-left: 21px;"
+                                             "  padding-right: 19px;"
+                                             "  border: 1px solid rgb(205, 205, 205);"
+                                             "  border-radius: 3px;"
+                                             "  background: rgb(255, 255, 255);"
+                                             "  selection-background-color: rgb(61, 155, 218);"
+                                             "} "
+                                             "QLineEdit:focus { "
+                                             "  border: 2px solid rgb(61, 155, 218);"
+                                             "}"
+                                             "QToolButton { "
+                                             "  border: none; "
+                                             "  padding: 0px;"
+                                             "}"));
 
     // clear button
     m_clearButton = new QToolButton(searchEdit);
@@ -2678,44 +2675,6 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                     createNewNote();
                 }
             }
-        }
-
-        if(object == m_searchEdit){
-            QString ss = QStringLiteral("QLineEdit{ "
-                                 "  padding-left: 21px;"
-                                 "  padding-right: 19px;"
-                                 "  border: 2px solid rgb(61, 155, 218);"
-                                 "  border-radius: 3px;"
-                                 "  background: rgb(255, 255, 255);"
-                                 "  selection-background-color: rgb(61, 155, 218);"
-                                 "} "
-                                 "QToolButton { "
-                                 "  border: none; "
-                                 "  padding: 0px;"
-                                 "}"
-                                 );
-
-            m_searchEdit->setStyleSheet(ss);
-        }
-        break;
-    }
-    case QEvent::FocusOut:{
-        if(object == m_searchEdit){
-            QString ss = QStringLiteral("QLineEdit{ "
-                                 "  padding-left: 21px;"
-                                 "  padding-right: 19px;"
-                                 "  border: 1px solid rgb(205, 205, 205);"
-                                 "  border-radius: 3px;"
-                                 "  background: rgb(255, 255, 255);"
-                                 "  selection-background-color: rgb(61, 155, 218);"
-                                 "} "
-                                 "QToolButton { "
-                                 "  border: none; "
-                                 "  padding: 0px;"
-                                 "}"
-                                 );
-
-            m_searchEdit->setStyleSheet(ss);
         }
         break;
     }
