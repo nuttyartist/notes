@@ -2762,8 +2762,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
             setFocusOnText();
             return true;
         }
-        return QMainWindow::eventFilter(object, event);
-
+        break;
     }
     default:
         break;
