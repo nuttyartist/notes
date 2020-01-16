@@ -1113,6 +1113,7 @@ void MainWindow::onNotePressed(const QModelIndex& index)
     if(sender() != Q_NULLPTR){
         QModelIndex indexInProxy = m_proxyModel->index(index.row(), 0);
         selectNote(indexInProxy);
+        m_noteView->setCurrentRowActive(false);
     }
 }
 
@@ -1386,8 +1387,10 @@ void MainWindow::deleteSelectedNote()
  */
 void MainWindow::setFocusOnText()
 {
-    if(m_currentSelectedNoteProxy.isValid() && !m_textEdit->hasFocus())
+    if(m_currentSelectedNoteProxy.isValid() && !m_textEdit->hasFocus()) {
+        m_noteView->setCurrentRowActive(true);
         m_textEdit->setFocus();
+    }
 }
 
 /*!
@@ -1396,8 +1399,10 @@ void MainWindow::setFocusOnText()
  */
 void MainWindow::setFocusOnCurrentNote()
 {
-    if(m_currentSelectedNoteProxy.isValid())
+    if(m_currentSelectedNoteProxy.isValid()) {
+        m_noteView->setCurrentRowActive(true);
         m_noteView->setFocus();
+    }
 }
 
 /*!
@@ -1411,6 +1416,7 @@ void MainWindow::selectNoteUp()
         QModelIndex aboveIndex = m_noteView->model()->index(currentRow - 1, 0);
         if(aboveIndex.isValid()){
             m_noteView->setCurrentIndex(aboveIndex);
+            m_noteView->setCurrentRowActive(false);
             m_currentSelectedNoteProxy = aboveIndex;
             showNoteInEditor(m_currentSelectedNoteProxy);
         }
@@ -1438,6 +1444,7 @@ void MainWindow::selectNoteDown()
             QModelIndex belowIndex = m_noteView->model()->index(currentRow + 1, 0);
             if(belowIndex.isValid()){
                 m_noteView->setCurrentIndex(belowIndex);
+                m_noteView->setCurrentRowActive(false);
                 m_currentSelectedNoteProxy = belowIndex;
                 showNoteInEditor(m_currentSelectedNoteProxy);
             }
@@ -2671,7 +2678,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                         clearSearch();
                         createNewNote();
                     }
-
+                    m_noteView->setCurrentRowActive(true);
                     m_textEdit->setFocus();
 
                 }else if(m_proxyModel->rowCount() == 0){
@@ -2695,6 +2702,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                                  "}"
                                  );
 
+            m_noteView->setCurrentRowActive(false);
             m_searchEdit->setStyleSheet(ss);
         }
         break;
