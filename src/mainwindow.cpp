@@ -2749,9 +2749,13 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         if (keyEvent->key() == Qt::Key_Return && m_searchEdit->text().isEmpty()) {
             setFocusOnText();
             return true;
+        } else if (keyEvent->key() == Qt::Key_Return &&
+                   keyEvent->modifiers().testFlag(Qt::ControlModifier)) {
+            setFocusOnText();
+            return true;
         }
         return QMainWindow::eventFilter(object, event);
-        break;
+
     }
     default:
         break;
@@ -2827,15 +2831,18 @@ void MainWindow::highlightSearch() const
 {
     QString searchString = m_searchEdit->text();
 
-    if(searchString.isEmpty())
+    if (searchString.isEmpty())
         return;
 
     m_textEdit->moveCursor(QTextCursor::Start);
 
     QList<QTextEdit::ExtraSelection> extraSelections;
-    while(m_textEdit->find(searchString)) {
-        QTextEdit::ExtraSelection extra = QTextEdit::ExtraSelection();
-        extra.format.setBackground(Qt::yellow);
+    QTextCharFormat fmt;
+    fmt.setBackground(Qt::yellow);
+
+    while (m_textEdit->find(searchString)) {
+        QTextEdit::ExtraSelection extra;
+        extra.format = fmt;
         extra.cursor = m_textEdit->textCursor();
         extraSelections.append(extra);
     }
