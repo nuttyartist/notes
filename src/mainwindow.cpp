@@ -2837,15 +2837,11 @@ void MainWindow::highlightSearch() const
     m_textEdit->moveCursor(QTextCursor::Start);
 
     QList<QTextEdit::ExtraSelection> extraSelections;
-    QTextCharFormat fmt;
-    fmt.setBackground(Qt::yellow);
+    QTextCharFormat highlightFormat;
+    highlightFormat.setBackground(Qt::yellow);
 
-    while (m_textEdit->find(searchString)) {
-        QTextEdit::ExtraSelection extra;
-        extra.format = fmt;
-        extra.cursor = m_textEdit->textCursor();
-        extraSelections.append(extra);
-    }
+    while (m_textEdit->find(searchString))
+        extraSelections.append({ m_textEdit->textCursor(), highlightFormat});
 
     if (!extraSelections.isEmpty()) {
         m_textEdit->setTextCursor(extraSelections.first().cursor);
