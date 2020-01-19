@@ -9,9 +9,9 @@ environment:
     qt: 5.6
     compiler: msvc2015
 
-  - name: win32_57
+  - name: win32_59
     platformEnv: amd64_x86
-    qt: 5.7
+    qt: 5.9
     compiler: msvc2015
 
   # MSVC x64
@@ -20,9 +20,9 @@ environment:
     qt: 5.6
     compiler: msvc2015_64
 
-  - name: win64_57
+  - name: win64_59
     platformEnv: amd64
-    qt: 5.7
+    qt: 5.9
     compiler: msvc2015_64
 
   # MinGW
@@ -32,9 +32,9 @@ environment:
     compiler: mingw49_32
     tools: mingw492_32
 
-  - name: win32_57
+  - name: win32_59
     platformEnv: mingw
-    qt: 5.7
+    qt: 5.9
     compiler: mingw53_32
     tools: mingw530_32
 
