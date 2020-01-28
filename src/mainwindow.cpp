@@ -1110,6 +1110,7 @@ void MainWindow::onNotePressed(const QModelIndex& index)
     if(sender() != Q_NULLPTR){
         QModelIndex indexInProxy = m_proxyModel->index(index.row(), 0);
         selectNote(indexInProxy);
+        m_noteView->setCurrentRowActive(false);
     }
 }
 
@@ -1383,8 +1384,10 @@ void MainWindow::deleteSelectedNote()
  */
 void MainWindow::setFocusOnText()
 {
-    if(m_currentSelectedNoteProxy.isValid() && !m_textEdit->hasFocus())
+    if(m_currentSelectedNoteProxy.isValid() && !m_textEdit->hasFocus()) {
+        m_noteView->setCurrentRowActive(true);
         m_textEdit->setFocus();
+    }
 }
 
 /*!
@@ -1393,8 +1396,10 @@ void MainWindow::setFocusOnText()
  */
 void MainWindow::setFocusOnCurrentNote()
 {
-    if(m_currentSelectedNoteProxy.isValid())
+    if(m_currentSelectedNoteProxy.isValid()) {
+        m_noteView->setCurrentRowActive(true);
         m_noteView->setFocus();
+    }
 }
 
 /*!
@@ -1408,6 +1413,7 @@ void MainWindow::selectNoteUp()
         QModelIndex aboveIndex = m_noteView->model()->index(currentRow - 1, 0);
         if(aboveIndex.isValid()){
             m_noteView->setCurrentIndex(aboveIndex);
+            m_noteView->setCurrentRowActive(false);
             m_currentSelectedNoteProxy = aboveIndex;
             showNoteInEditor(m_currentSelectedNoteProxy);
         }
@@ -1435,6 +1441,7 @@ void MainWindow::selectNoteDown()
             QModelIndex belowIndex = m_noteView->model()->index(currentRow + 1, 0);
             if(belowIndex.isValid()){
                 m_noteView->setCurrentIndex(belowIndex);
+                m_noteView->setCurrentRowActive(false);
                 m_currentSelectedNoteProxy = belowIndex;
                 showNoteInEditor(m_currentSelectedNoteProxy);
             }
@@ -2668,13 +2675,52 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                         clearSearch();
                         createNewNote();
                     }
-
+                    m_noteView->setCurrentRowActive(true);
                     m_textEdit->setFocus();
 
                 }else if(m_proxyModel->rowCount() == 0){
                     createNewNote();
                 }
             }
+        }
+
+        if(object == m_searchEdit){
+            QString ss = QStringLiteral("QLineEdit{ "
+                                 "  padding-left: 21px;"
+                                 "  padding-right: 19px;"
+                                 "  border: 2px solid rgb(61, 155, 218);"
+                                 "  border-radius: 3px;"
+                                 "  background: rgb(255, 255, 255);"
+                                 "  selection-background-color: rgb(61, 155, 218);"
+                                 "} "
+                                 "QToolButton { "
+                                 "  border: none; "
+                                 "  padding: 0px;"
+                                 "}"
+                                 );
+
+            m_noteView->setCurrentRowActive(false);
+            m_searchEdit->setStyleSheet(ss);
+        }
+        break;
+    }
+    case QEvent::FocusOut:{
+        if(object == m_searchEdit){
+            QString ss = QStringLiteral("QLineEdit{ "
+                                 "  padding-left: 21px;"
+                                 "  padding-right: 19px;"
+                                 "  border: 1px solid rgb(205, 205, 205);"
+                                 "  border-radius: 3px;"
+                                 "  background: rgb(255, 255, 255);"
+                                 "  selection-background-color: rgb(61, 155, 218);"
+                                 "} "
+                                 "QToolButton { "
+                                 "  border: none; "
+                                 "  padding: 0px;"
+                                 "}"
+                                 );
+
+            m_searchEdit->setStyleSheet(ss);
         }
         break;
     }
@@ -2702,6 +2748,19 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
             }
         }
         break;
+    case QEvent::KeyPress:
+    {
+        auto *keyEvent = static_cast<QKeyEvent *>(event);
+        if (keyEvent->key() == Qt::Key_Return && m_searchEdit->text().isEmpty()) {
+            setFocusOnText();
+            return true;
+        } else if (keyEvent->key() == Qt::Key_Return &&
+                   keyEvent->modifiers().testFlag(Qt::ControlModifier)) {
+            setFocusOnText();
+            return true;
+        }
+        break;
+    }
     default:
         break;
     }
@@ -2776,34 +2835,20 @@ void MainWindow::highlightSearch() const
 {
     QString searchString = m_searchEdit->text();
 
-    if(!searchString.isEmpty()){
-        m_textEdit->blockSignals(true);
+    if (searchString.isEmpty())
+        return;
 
-        QTextDocument *document = m_textEdit->document();
+    m_textEdit->moveCursor(QTextCursor::Start);
 
-        QTextCursor highlightCursor(document);
-        QTextCursor cursor(document);
+    QList<QTextEdit::ExtraSelection> extraSelections;
+    QTextCharFormat highlightFormat;
+    highlightFormat.setBackground(Qt::yellow);
 
-        cursor.beginEditBlock();
+    while (m_textEdit->find(searchString))
+        extraSelections.append({ m_textEdit->textCursor(), highlightFormat});
 
-        QTextCharFormat colorFormat(highlightCursor.charFormat());
-        colorFormat.setBackground(Qt::yellow);
-
-        QTextCursor pos = document->find(searchString, 0);
-        if (!pos.isNull())
-            m_textEdit->setTextCursor(pos);
-
-        while (!highlightCursor.isNull() && !highlightCursor.atEnd()) {
-            highlightCursor = document->find(searchString, highlightCursor);
-
-            if (!highlightCursor.isNull()) {
-
-                highlightCursor.mergeCharFormat(colorFormat);
-            }
-        }
-
-        cursor.endEditBlock();
-
-        m_textEdit->blockSignals(false);
+    if (!extraSelections.isEmpty()) {
+        m_textEdit->setTextCursor(extraSelections.first().cursor);
+        m_textEdit->setExtraSelections(extraSelections);
     }
 }
