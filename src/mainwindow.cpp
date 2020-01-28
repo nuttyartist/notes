@@ -2675,13 +2675,12 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                         clearSearch();
                         createNewNote();
                     }
-                    m_noteView->setCurrentRowActive(true);
-                    m_textEdit->setFocus();
-
                 }else if(m_proxyModel->rowCount() == 0){
                     createNewNote();
                 }
             }
+            m_noteView->setCurrentRowActive(true);
+            m_textEdit->setFocus();
         }
 
         if(object == m_searchEdit){
@@ -2753,7 +2752,6 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         auto *keyEvent = static_cast<QKeyEvent *>(event);
         if (keyEvent->key() == Qt::Key_Return && m_searchEdit->text().isEmpty()) {
             setFocusOnText();
-            return true;
         } else if (keyEvent->key() == Qt::Key_Return &&
                    keyEvent->modifiers().testFlag(Qt::ControlModifier)) {
             setFocusOnText();
