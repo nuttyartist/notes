@@ -2675,13 +2675,12 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                         clearSearch();
                         createNewNote();
                     }
-                    m_noteView->setCurrentRowActive(true);
-                    m_textEdit->setFocus();
-
                 }else if(m_proxyModel->rowCount() == 0){
                     createNewNote();
                 }
             }
+            m_noteView->setCurrentRowActive(true);
+            m_textEdit->setFocus();
         }
 
         if(object == m_searchEdit){
