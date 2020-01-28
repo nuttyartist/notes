@@ -22,7 +22,7 @@ $> git clone --recursive  https://github.com/nuttyartist/notes.git
 ```
 
 ## Dependencies
-Make sure the Qt (>= 5.2.1) development libraries are installed:
+Make sure the Qt (>= 5.3) development libraries are installed:
 
 - Debian/Ubuntu : qt5-default build-essential qtbase5-private-dev sqlite3
 
