@@ -2753,7 +2753,6 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         auto *keyEvent = static_cast<QKeyEvent *>(event);
         if (keyEvent->key() == Qt::Key_Return && m_searchEdit->text().isEmpty()) {
             setFocusOnText();
-			break;
         } else if (keyEvent->key() == Qt::Key_Return &&
                    keyEvent->modifiers().testFlag(Qt::ControlModifier)) {
             setFocusOnText();
