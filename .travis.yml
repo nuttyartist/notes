@@ -76,13 +76,13 @@ script:
 
 after_success:
 
-  - if [ "$TRAVIS_BRANCH" != "master" && "$TRAVIS_BRANCH" != "$TRAVIS_TAG" ]; then
+  - if [[ "$TRAVIS_BRANCH" != "master" && "$TRAVIS_BRANCH" != "$TRAVIS_TAG" ]]; then
         export NOTES_VERSION=$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')-git$(git rev-parse --short HEAD)
     else
         export NOTES_VERSION=$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')
     fi
 
-    if [ "$QT_BASE" == "xenial" || "$QT_BASE" == "yakkety" || "$QT_BASE" == "zesty" ]; then
+    if [[ "$QT_BASE" == "xenial" || "$QT_BASE" == "yakkety" || "$QT_BASE" == "zesty" ]]; then
         mv deb/notes*.deb deb/notes_${NOTES_VERSION}_amd64-${QT_BASE}.deb
         curl --upload-file deb/notes*.deb https://transfer.sh/notes_${NOTES_VERSION}_amd64-${QT_BASE}.deb
     elif [ "$QT_BASE" == "appimage" ]; then
