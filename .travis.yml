@@ -119,4 +119,4 @@ deploy:
   file_glob: true
   on:
     repo: nuttyartist/notes
-    tag: true
+    tags: true
