@@ -75,7 +75,6 @@ script:
       fi
 
 after_success:
-
   - if [[ "$TRAVIS_BRANCH" != "master" && "$TRAVIS_BRANCH" != "$TRAVIS_TAG" ]]; then
         export NOTES_VERSION=$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')-git$(git rev-parse --short HEAD);
     else
@@ -91,6 +90,8 @@ after_success:
     elif [ "$QT_BASE" == "snap" ]; then
         mv snap/notes*.snap snap/notes_${NOTES_VERSION}_amd64.snap;
         curl --upload-file snap/notes*.snap https://transfer.sh/notes_${NOTES_VERSION}_amd64.snap;
+    else
+        rm deb/notes*.deb;
     fi
 
 notifications:
