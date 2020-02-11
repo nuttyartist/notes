@@ -77,20 +77,20 @@ script:
 after_success:
 
   - if [[ "$TRAVIS_BRANCH" != "master" && "$TRAVIS_BRANCH" != "$TRAVIS_TAG" ]]; then
-        export NOTES_VERSION=$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')-git$(git rev-parse --short HEAD)
+        export NOTES_VERSION=$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')-git$(git rev-parse --short HEAD);
     else
-        export NOTES_VERSION=$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')
+        export NOTES_VERSION=$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//');
     fi
 
     if [[ "$QT_BASE" == "xenial" || "$QT_BASE" == "yakkety" || "$QT_BASE" == "zesty" ]]; then
-        mv deb/notes*.deb deb/notes_${NOTES_VERSION}_amd64-${QT_BASE}.deb
-        curl --upload-file deb/notes*.deb https://transfer.sh/notes_${NOTES_VERSION}_amd64-${QT_BASE}.deb
+        mv deb/notes*.deb deb/notes_${NOTES_VERSION}_amd64-${QT_BASE}.deb;
+        curl --upload-file deb/notes*.deb https://transfer.sh/notes_${NOTES_VERSION}_amd64-${QT_BASE}.deb;
     elif [ "$QT_BASE" == "appimage" ]; then
-        mv Notes-*.AppImage notes_${NOTES_VERSION}_amd64.AppImage
-        curl --upload-file ./notes_*.AppImage https://transfer.sh/notes_${NOTES_VERSION}_amd64.AppImage
+        mv Notes-*.AppImage notes_${NOTES_VERSION}_amd64.AppImage;
+        curl --upload-file ./notes_*.AppImage https://transfer.sh/notes_${NOTES_VERSION}_amd64.AppImage;
     elif [ "$QT_BASE" == "snap" ]; then
-        mv snap/notes*.snap snap/notes_${NOTES_VERSION}_amd64.snap
-        curl --upload-file snap/notes*.snap https://transfer.sh/notes_${NOTES_VERSION}_amd64.snap
+        mv snap/notes*.snap snap/notes_${NOTES_VERSION}_amd64.snap;
+        curl --upload-file snap/notes*.snap https://transfer.sh/notes_${NOTES_VERSION}_amd64.snap;
     fi
 
 notifications:
