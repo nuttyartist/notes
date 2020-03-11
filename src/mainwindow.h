@@ -24,9 +24,7 @@
 #include <QProgressDialog>
 #include <QAction>
 
-#if !defined (Q_OS_MACOS)
 #include <QAutostart>
-#endif
 
 #include "notedata.h"
 #include "notemodel.h"
@@ -133,9 +131,7 @@ private:
 
     UpdaterWindow m_updater;
     StretchSide m_stretchSide;
-#if !defined (Q_OS_MACOS)
     Autostart m_autostart;
-#endif
     int m_mousePressX;
     int m_mousePressY;
     int m_noteCounter;
