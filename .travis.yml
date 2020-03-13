@@ -38,7 +38,6 @@ install:
   - if [ "$QT_BASE" == "58" ]; then sudo apt-get install -qq qt58base; source /opt/qt58/bin/qt58-env.sh; fi
 
 before_script:
-    - echo "$QT_BASE:$TRAVIS_BRANCH----------------------------------------------------------------------------------------------"
     - if [ "$QT_BASE" == "53" ]; then qmake -v; fi
     - if [ "$QT_BASE" == "55" ]; then qmake -v; fi
     - if [ "$QT_BASE" == "56" ]; then qmake -v; fi
@@ -61,8 +60,8 @@ script:
         sudo chmod -R 777 deb;
       fi
     - if [ "$QT_BASE" == "snap" ]; then
-        docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/qt5:bionic qmake ../src/;
-        docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/qt5:bionic make snap;
+        docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes theshadowx/qt5:bionic qmake ./src/;
+        docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes theshadowx/qt5:bionic make snap_pack;
         sudo chmod -R 777 snap;
       fi
     - if [ "$QT_BASE" == "appimage" ]; then

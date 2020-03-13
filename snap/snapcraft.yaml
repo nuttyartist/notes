@@ -7,7 +7,9 @@ description: |
   source and cross-platform project, and you're welcome to be part
   of it and contribute. We hope you will love it as much as we do.
 version: latest
-version-script: echo "$(git describe --tags | cut -c 2-)"
+version-script: GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD);
+                if [ "$GIT_BRANCH" == "master" ]; then echo "$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')";
+                else echo "$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')-git$(git rev-parse --short HEAD)"; fi
 
 base: core18
 
@@ -20,8 +22,23 @@ architectures:
 apps:
   notes:
     command: desktop-launch ${SNAP}/usr/bin/notes
-#   desktop: usr/share/applications/notes.desktop
-    plugs: [home, opengl, unity7, network]
+    plugs: [home, opengl, unity7, network, desktop-legacy, desktop, gsettings, x11, wayland]
+    environment:
+      QT_QPA_PLATFORMTHEME: gtk3
+
+plugs: # plugs for theming, font settings, cursor and to use gtk3 file chooser
+  gtk-3-themes:
+    interface: content
+    target: $SNAP/data-dir/themes
+    default-provider: gtk-common-themes:gtk-3-themes
+  icon-themes:
+    interface: content
+    target: $SNAP/data-dir/icons
+    default-provider: gtk-common-themes:icon-themes
+  sound-themes:
+    interface: content
+    target: $SNAP/data-dir/sounds
+    default-provider: gtk-common-themes:sounds-themes
 
 parts:
   notes:
@@ -44,6 +61,9 @@ parts:
       - libqt5core5a
       - libqt5sql5
       - libqt5sql5-sqlite
+      - qt5-gtk-platformtheme
+    override-build: |
+       snapcraftctl build
     after: [desktop-qt5]
 
   desktop-qt5:
@@ -52,11 +72,19 @@ parts:
     plugin: make
     make-parameters: ["FLAVOR=qt5"]
     build-packages:
-      - build-essential
       - qtbase5-dev
       - dpkg-dev
     stage-packages:
       - libxkbcommon0
+      - ttf-ubuntu-font-family
+      - dmz-cursor-theme
+      - light-themes
+      - adwaita-icon-theme
+      - gnome-themes-standard
+      - shared-mime-info
       - libqt5gui5
+      - libgdk-pixbuf2.0-0
+      - libgtk2.0-0
+      - libqt5svg5
       - try: [appmenu-qt5] # not available on core18
       - locales-all
