@@ -91,7 +91,7 @@ after_success:
       curl --upload-file ./notes_*.AppImage https://transfer.sh/notes_${NOTES_VERSION}_amd64.AppImage -w "\n";
     fi
   - if [ "$QT_BASE" == "snap" ]; then
-      mv snap/notes*.snap snap/notes_${NOTES_VERSION}_amd64.snap;
+      mv notes*.snap notes_${NOTES_VERSION}_amd64.snap;
       curl --upload-file ./notes*.snap https://transfer.sh/notes_${NOTES_VERSION}_amd64.snap -w "\n";
     fi
   - if [[ "$QT_BASE" == "53" || "$QT_BASE" == "55" || "$QT_BASE" == "56" || "$QT_BASE" == "57" || "$QT_BASE" == "58" ]]; then
@@ -111,7 +111,7 @@ deploy:
   file:
     - Notes-*.AppImage
     - deb/notes*.deb
-    - snap/notes*.snap
+    - notes*.snap
   file_glob: true
   on:
     repo: nuttyartist/notes

@@ -45,12 +45,8 @@ parts:
       - PREFIX=/usr
       - CONFIG+=release
     override-pull: |
-      GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-      GIT_MASTER_VERSION=$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')
-      GIT_DEV_VERSION=${GIT_MASTER_VERSION}-git$(git rev-parse --short HEAD)
-      GIT_VERSION=$(if [ "${GIT_BRANCH}" == "master" ]; then echo ${GIT_MASTER_VERSION}; else echo ${GIT_DEV_VERSION}; fi)
       snapcraftctl pull
-      snapcraftctl set-version ${GIT_VERSION}
+      snapcraftctl set-version $(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')
     source: .
     project-files: [src/Notes.pro]
     build-packages:
