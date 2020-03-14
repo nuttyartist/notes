@@ -1,4 +1,5 @@
 name: notes
+adopt-info: notes
 # Note on version: $UPSTREAM_VERSION~.git$GIT_COMMIT_ID
 summary: Note taking application, write down your thoughts.
 description: |
@@ -6,10 +7,6 @@ description: |
   brain. It is your place of expressing yourself. Notes is an open
   source and cross-platform project, and you're welcome to be part
   of it and contribute. We hope you will love it as much as we do.
-version: latest
-version-script: GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD);
-                if [ "$GIT_BRANCH" == "master" ]; then echo "$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')";
-                else echo "$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')-git$(git rev-parse --short HEAD)"; fi
 
 base: core18
 
@@ -47,6 +44,13 @@ parts:
     options:
       - PREFIX=/usr
       - CONFIG+=release
+    override-pull: |
+      GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+      GIT_MASTER_VERSION=$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')
+      GIT_DEV_VERSION=${GIT_MASTER_VERSION}-git$(git rev-parse --short HEAD)
+      GIT_VERSION=$(if [ "${GIT_BRANCH}" == "master" ]; then echo ${GIT_MASTER_VERSION}; else echo ${GIT_DEV_VERSION}; fi)
+      snapcraftctl pull
+      snapcraftctl set-version ${GIT_VERSION}
     source: .
     project-files: [src/Notes.pro]
     build-packages:
