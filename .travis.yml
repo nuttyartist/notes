@@ -38,64 +38,64 @@ install:
   - if [ "$QT_BASE" == "58" ]; then sudo apt-get install -qq qt58base; source /opt/qt58/bin/qt58-env.sh; fi
 
 before_script:
-    - echo "$QT_BASE:$TRAVIS_BRANCH----------------------------------------------------------------------------------------------"
-    - if [ "$QT_BASE" == "53" ]; then qmake -v; fi
-    - if [ "$QT_BASE" == "55" ]; then qmake -v; fi
-    - if [ "$QT_BASE" == "56" ]; then qmake -v; fi
-    - if [ "$QT_BASE" == "57" ]; then qmake -v; fi
-    - if [ "$QT_BASE" == "58" ]; then qmake -v; fi
-    - if [ "$QT_BASE" == "xenial" ]; then docker run --rm -it theshadowx/qt5:xenial qmake -v; fi
-    - if [ "$QT_BASE" == "bionic" ]; then docker run --rm -it theshadowx/qt5:bionic qmake -v; fi
-    - mkdir build;
-    - cd build;
+  - if [ "$QT_BASE" == "53" ]; then qmake -v; fi
+  - if [ "$QT_BASE" == "55" ]; then qmake -v; fi
+  - if [ "$QT_BASE" == "56" ]; then qmake -v; fi
+  - if [ "$QT_BASE" == "57" ]; then qmake -v; fi
+  - if [ "$QT_BASE" == "58" ]; then qmake -v; fi
+  - if [ "$QT_BASE" == "xenial" ]; then docker run --rm -it theshadowx/qt5:xenial qmake -v; fi
+  - if [ "$QT_BASE" == "bionic" ]; then docker run --rm -it theshadowx/qt5:bionic qmake -v; fi
+  - mkdir build;
+  - cd build;
 
 script:
-    - if [ "$QT_BASE" == "xenial" ]; then
-        docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/qt5:xenial qmake ../src/;
-        docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/qt5:xenial make deb;
-        sudo chmod -R 777 deb;
-      fi
-    - if [ "$QT_BASE" == "bionic" ]; then
-        docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/qt5:bionic qmake ../src/;
-        docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/qt5:bionic make deb;
-        sudo chmod -R 777 deb;
-      fi
-    - if [ "$QT_BASE" == "snap" ]; then
-        docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/qt5:bionic qmake ../src/;
-        docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/qt5:bionic make snap;
-        sudo chmod -R 777 snap;
-      fi
-    - if [ "$QT_BASE" == "appimage" ]; then
-        docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/qt5:xenial qmake ../src/;
-        docker run --rm -it --privileged -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/qt5:xenial make appimage;
-        sudo chmod 777 Notes-*.AppImage;
-      fi
-    - if [[ "$QT_BASE" == "53" || "$QT_BASE" == "55" || "$QT_BASE" == "56" || "$QT_BASE" == "57" || "$QT_BASE" == "58" ]]; then
-        qmake ../src;
-        make deb;
-      fi
+  - if [ "$QT_BASE" == "xenial" ]; then
+      docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/qt5:xenial qmake ../src/;
+      docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/qt5:xenial make deb;
+      sudo chmod -R 777 deb;
+    fi
+  - if [ "$QT_BASE" == "bionic" ]; then
+      docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/qt5:bionic qmake ../src/;
+      docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/qt5:bionic make deb;
+      sudo chmod -R 777 deb;
+    fi
+  - if [ "$QT_BASE" == "snap" ]; then
+      cd ..;
+      docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes theshadowx/qt5:bionic qmake ./src/;
+      docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes theshadowx/qt5:bionic make snap_pack;
+      sudo chmod 777 notes*.snap;
+    fi
+  - if [ "$QT_BASE" == "appimage" ]; then
+      docker run --rm -it -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/qt5:xenial qmake ../src/;
+      docker run --rm -it --privileged -v ${TRAVIS_BUILD_DIR}:/home/root/notes -w=/home/root/notes/build theshadowx/qt5:xenial make appimage;
+      sudo chmod 777 Notes-*.AppImage;
+    fi
+  - if [[ "$QT_BASE" == "53" || "$QT_BASE" == "55" || "$QT_BASE" == "56" || "$QT_BASE" == "57" || "$QT_BASE" == "58" ]]; then
+      qmake ../src;
+      make deb;
+    fi
 
 after_success:
   - if [[ "$TRAVIS_BRANCH" != "master" && "$TRAVIS_BRANCH" != "$TRAVIS_TAG" ]]; then
-        export NOTES_VERSION=$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')-git$(git rev-parse --short HEAD);
+      export NOTES_VERSION=$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')-git$(git rev-parse --short HEAD);
     else
-        export NOTES_VERSION=$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//');
+      export NOTES_VERSION=$(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//');
     fi
 
   - if [[ "$QT_BASE" == "xenial" || "$QT_BASE" == "bionic" ]]; then
-        mv deb/notes*.deb deb/notes_${NOTES_VERSION}_amd64-${QT_BASE}.deb;
-        curl --upload-file ./deb/notes*.deb https://transfer.sh/notes_${NOTES_VERSION}_amd64-${QT_BASE}.deb -w "\n";
+      mv deb/notes*.deb deb/notes_${NOTES_VERSION}_amd64-${QT_BASE}.deb;
+      curl --upload-file ./deb/notes*.deb https://transfer.sh/notes_${NOTES_VERSION}_amd64-${QT_BASE}.deb -w "\n";
     fi
   - if [ "$QT_BASE" == "appimage" ]; then
-        mv Notes-*.AppImage notes_${NOTES_VERSION}_amd64.AppImage;
-        curl --upload-file ./notes_*.AppImage https://transfer.sh/notes_${NOTES_VERSION}_amd64.AppImage -w "\n";
+      mv Notes-*.AppImage notes_${NOTES_VERSION}_amd64.AppImage;
+      curl --upload-file ./notes_*.AppImage https://transfer.sh/notes_${NOTES_VERSION}_amd64.AppImage -w "\n";
     fi
   - if [ "$QT_BASE" == "snap" ]; then
-        mv snap/notes*.snap snap/notes_${NOTES_VERSION}_amd64.snap;
-        curl --upload-file ./snap/notes*.snap https://transfer.sh/notes_${NOTES_VERSION}_amd64.snap -w "\n";
+      mv notes*.snap notes_${NOTES_VERSION}_amd64.snap;
+      curl --upload-file ./notes*.snap https://transfer.sh/notes_${NOTES_VERSION}_amd64.snap -w "\n";
     fi
   - if [[ "$QT_BASE" == "53" || "$QT_BASE" == "55" || "$QT_BASE" == "56" || "$QT_BASE" == "57" || "$QT_BASE" == "58" ]]; then
-        rm deb/notes*.deb;
+      rm deb/notes*.deb;
     fi
 
 notifications:
@@ -111,7 +111,7 @@ deploy:
   file:
     - Notes-*.AppImage
     - deb/notes*.deb
-    - snap/notes*.snap
+    - notes*.snap
   file_glob: true
   on:
     repo: nuttyartist/notes

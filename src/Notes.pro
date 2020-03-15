@@ -73,33 +73,7 @@ linux:!android {
     INSTALLS += target desktop icon
 
     # SNAP  --------------------------------------------------------------------------------
-    GIT_BRANCH = $$system(git rev-parse --abbrev-ref HEAD)
-    GIT_REV = $$system(git rev-parse --short HEAD)
-    SNAPDIR = $$_PRO_FILE_PWD_/../packaging/linux/snap
-
-    # This command bumps the version in the final snap every time it is built,
-    # appending the git version of the latest commit to the VERSION variable
-    # defined in this project file
-    equals(GIT_BRANCH, "master"){
-        snap_bump_version.commands = \
-            sed -i \"s/\\(^version:\\).*$$/\\1 \'$$VERSION\'/1\" $$SNAPDIR/snapcraft.yaml
-    }else{
-        snap_bump_version.commands = \
-            sed -i \"s/\\(^version:\\).*$$/\\1 \'$$VERSION~git$$GIT_REV\'/1\" $$SNAPDIR/snapcraft.yaml
-    }
-
-    # Note: while it is planned to make snapcraft work across distros at the
-    # time of writing `snapcraft` only works on Ubuntu. This means the snap
-    # needs to be built from an Ubuntu host.
-    snap.commands = rm -rf snap &&\
-                    mkdir snap &&\
-                    cd snap &&\
-                    ln -s $$SNAPDIR/snapcraft.yaml ./snapcraft.yaml &&\
-                    cp -r $$_PRO_FILE_PWD_/../../notes /tmp/ && rm -r /tmp/notes/build && cp -r /tmp/notes . &&\
-                    sed -i \"s@^\\( *source: *\\).*@\\1./notes/@g\" snapcraft.yaml &&\
-                    snapcraft clean && snapcraft
-
-    snap.depends = snap_bump_version
+    snap_pack.commands = snapcraft clean && snapcraft
 
     # Debian -------------------------------------------------------------------------------
 
@@ -148,8 +122,7 @@ linux:!android {
 
     # EXTRA --------------------------------------------------------------------------------
     QMAKE_EXTRA_TARGETS += \
-                           snap                 \
-                           snap_bump_version    \
+                           snap_pack            \
                            deb                  \
                            fix_deb_dependencies \
                            appimage
