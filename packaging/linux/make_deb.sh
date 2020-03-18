@@ -2,7 +2,7 @@
 
 # Variables
 license=gpl2
-project="notes-1.0.0"
+project="notes-1.5.0"
 #project="notes-$(git describe --tags HEAD | cut -d- -f1 | sed 's/^v//')~git$(git rev-parse --short HEAD)"
 authorEmail="awesomeness.notes@gmail.com"
 
