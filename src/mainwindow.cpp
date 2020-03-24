@@ -34,9 +34,12 @@ MainWindow::MainWindow(QWidget *parent) :
     m_autoSaveTimer(new QTimer(this)),
     m_settingsDatabase(Q_NULLPTR),
     m_clearButton(Q_NULLPTR),
+#ifndef Q_OS_LINUX
     m_greenMaximizeButton(Q_NULLPTR),
     m_redCloseButton(Q_NULLPTR),
     m_yellowMinimizeButton(Q_NULLPTR),
+    m_trafficLightLayout(Q_NULLPTR),
+#endif
     m_newNoteButton(Q_NULLPTR),
     m_trashButton(Q_NULLPTR),
     m_dotsButton(Q_NULLPTR),
@@ -48,7 +51,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_restoreAction(new QAction(tr("&Hide Notes"), this)),
     m_quitAction(new QAction(tr("&Quit"), this)),
     m_trayIconMenu(new QMenu(this)),
-    m_trafficLightLayout(Q_NULLPTR),
     m_noteView(Q_NULLPTR),
     m_noteModel(new NoteModel(this)),
     m_deletedNotesModel(new NoteModel(this)),
@@ -157,6 +159,7 @@ void MainWindow::setMainWindowVisibility(bool state)
  */
 void MainWindow::paintEvent(QPaintEvent* event)
 {
+#ifndef Q_OS_LINUX
     QPainter painter(this);
     painter.save();
 
@@ -174,6 +177,7 @@ void MainWindow::paintEvent(QPaintEvent* event)
     dropShadow(painter, ShadowType::Radial, ShadowSide::BottomLeft );
 
     painter.restore();
+#endif
     QMainWindow::paintEvent(event);
 }
 
@@ -215,24 +219,23 @@ MainWindow::~MainWindow()
  */
 void MainWindow::setupMainWindow()
 {
-#ifdef Q_OS_LINUX
-    this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
-    this->setAttribute(Qt::WA_TranslucentBackground);
-#elif _WIN32
+#ifdef _WIN32
     this->setWindowFlags(Qt::CustomizeWindowHint);
-#elif __APPLE__
+#elif defined(__APPLE__)
     this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     this->setAttribute(Qt::WA_TranslucentBackground);
-#else
+#elif !defined(Q_OS_LINUX)
 #error "We don't support that version yet..."
 #endif
 
+#ifndef Q_OS_LINUX
     m_greenMaximizeButton = new QPushButton(this);
     m_redCloseButton = new QPushButton(this);
     m_yellowMinimizeButton = new QPushButton(this);
     m_trafficLightLayout.addWidget(m_redCloseButton);
     m_trafficLightLayout.addWidget(m_yellowMinimizeButton);
     m_trafficLightLayout.addWidget(m_greenMaximizeButton);
+#endif
 
 #ifdef _WIN32
     m_trafficLightLayout.setSpacing(0);
@@ -413,9 +416,11 @@ void MainWindow::setupTitleBarButtons()
                  "  padding: 0px; "
                  "}");
 
+#ifndef Q_OS_LINUX
     m_redCloseButton->setStyleSheet(ss);
     m_yellowMinimizeButton->setStyleSheet(ss);
     m_greenMaximizeButton->setStyleSheet(ss);
+#endif
 
 #ifdef _WIN32
     m_redCloseButton->setIcon(QIcon(QStringLiteral(":images/windows_close_regular.png")));
@@ -427,9 +432,11 @@ void MainWindow::setupTitleBarButtons()
     m_greenMaximizeButton->setIconSize(QSize(28, 16));
 #endif
 
+#ifndef Q_OS_LINUX
     m_redCloseButton->installEventFilter(this);
     m_yellowMinimizeButton->installEventFilter(this);
     m_greenMaximizeButton->installEventFilter(this);
+#endif
 }
 
 /*!
@@ -442,6 +449,7 @@ void MainWindow::setupSignalsSlots()
     // actions
     // connect(rightToLeftActionion, &QAction::triggered, this, );
     //connect(checkForUpdatesAction, &QAction::triggered, this, );
+#ifndef Q_OS_LINUX
     // green button
     connect(m_greenMaximizeButton, &QPushButton::pressed, this, &MainWindow::onGreenMaximizeButtonPressed);
     connect(m_greenMaximizeButton, &QPushButton::clicked, this, &MainWindow::onGreenMaximizeButtonClicked);
@@ -451,6 +459,7 @@ void MainWindow::setupSignalsSlots()
     // yellow button
     connect(m_yellowMinimizeButton, &QPushButton::pressed, this, &MainWindow::onYellowMinimizeButtonPressed);
     connect(m_yellowMinimizeButton, &QPushButton::clicked, this, &MainWindow::onYellowMinimizeButtonClicked);
+#endif
     // new note button
     connect(m_newNoteButton, &QPushButton::pressed, this, &MainWindow::onNewNoteButtonPressed);
     connect(m_newNoteButton, &QPushButton::clicked, this, &MainWindow::onNewNoteButtonClicked);
@@ -922,9 +931,11 @@ void MainWindow::createNewNoteIfEmpty()
  */
 void MainWindow::setButtonsAndFieldsEnabled(bool doEnable)
 {
+#ifndef Q_OS_LINUX
     m_greenMaximizeButton->setEnabled(doEnable);
     m_redCloseButton->setEnabled(doEnable);
     m_yellowMinimizeButton->setEnabled(doEnable);
+#endif
     m_newNoteButton->setEnabled(doEnable);
     m_trashButton->setEnabled(doEnable);
     m_searchEdit->setEnabled(doEnable);
@@ -1086,12 +1097,14 @@ void MainWindow::onDotsButtonClicked()
         exportNotesFileAction->setDisabled(true);
     }
 
+#ifndef Q_OS_LINUX
     // Stay on top action
     QAction* stayOnTopAction = viewMenu->addAction(tr("Always stay on top"));
     stayOnTopAction->setToolTip(tr("Always keep the notes application on top of all windows"));
     stayOnTopAction->setCheckable(true);
     stayOnTopAction->setChecked(m_alwaysStayOnTop);
     connect(stayOnTopAction, &QAction::triggered, this, &MainWindow::stayOnTop);
+#endif
 
     mainMenu.exec(m_dotsButton->mapToGlobal(QPoint(0, m_dotsButton->height())));
 }
@@ -1735,6 +1748,7 @@ void MainWindow::expandNoteList()
  */
 void MainWindow::onGreenMaximizeButtonPressed()
 {
+#ifndef Q_OS_LINUX
 #ifdef _WIN32
     m_greenMaximizeButton->setIcon(QIcon(":images/windows_minimize_pressed.png"));
 #else
@@ -1744,6 +1758,7 @@ void MainWindow::onGreenMaximizeButtonPressed()
         m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/greenPressed.png")));
     }
 #endif
+#endif
 }
 
 /*!
@@ -1752,6 +1767,7 @@ void MainWindow::onGreenMaximizeButtonPressed()
  */
 void MainWindow::onYellowMinimizeButtonPressed()
 {
+#ifndef Q_OS_LINUX
 #ifdef _WIN32
     if(this->windowState() == Qt::WindowFullScreen){
         m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/windows_de-maximize_pressed.png")));
@@ -1761,6 +1777,7 @@ void MainWindow::onYellowMinimizeButtonPressed()
 #else
     m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/yellowPressed.png")));
 #endif
+#endif
 }
 
 /*!
@@ -1769,10 +1786,12 @@ void MainWindow::onYellowMinimizeButtonPressed()
  */
 void MainWindow::onRedCloseButtonPressed()
 {
+#ifndef Q_OS_LINUX
 #ifdef _WIN32
     m_redCloseButton->setIcon(QIcon(QStringLiteral(":images/windows_close_pressed.png")));
 #else
     m_redCloseButton->setIcon(QIcon(QStringLiteral(":images/redPressed.png")));
+#endif
 #endif
 }
 
@@ -1782,6 +1801,7 @@ void MainWindow::onRedCloseButtonPressed()
  */
 void MainWindow::onGreenMaximizeButtonClicked()
 {
+#ifndef Q_OS_LINUX
 #ifdef _WIN32
     m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/windows_minimize_regular.png")));
 
@@ -1792,6 +1812,7 @@ void MainWindow::onGreenMaximizeButtonClicked()
 
     fullscreenWindow();
 #endif
+#endif
 }
 
 /*!
@@ -1800,6 +1821,7 @@ void MainWindow::onGreenMaximizeButtonClicked()
  */
 void MainWindow::onYellowMinimizeButtonClicked()
 {
+#ifndef Q_OS_LINUX
 #ifdef _WIN32
     m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/windows_de-maximize_regular.png")));
 
@@ -1810,6 +1832,7 @@ void MainWindow::onYellowMinimizeButtonClicked()
     minimizeWindow();
     m_restoreAction->setText(tr("&Show Notes"));
 #endif
+#endif
 }
 
 /*!
@@ -1819,6 +1842,7 @@ void MainWindow::onYellowMinimizeButtonClicked()
  */
 void MainWindow::onRedCloseButtonClicked()
 {
+#ifndef Q_OS_LINUX
 #ifdef _WIN32
     m_redCloseButton->setIcon(QIcon(QStringLiteral(":images/windows_close_regular.png")));
 #else
@@ -1826,6 +1850,7 @@ void MainWindow::onRedCloseButtonClicked()
 #endif
 
     setMainWindowVisibility(false);
+#endif
 }
 
 /*!
@@ -2526,7 +2551,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
             if(object == m_greenMaximizeButton){
                 m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/windows_minimize_hovered.png")));
             }
-#else
+#elif !defined(Q_OS_LINUX)
             // When hovering one of the traffic light buttons (red, yellow, green),
             // set new icons to show their function
             if(object == m_redCloseButton
@@ -2568,6 +2593,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
     case QEvent::Leave:{
         if(qApp->applicationState() == Qt::ApplicationActive){
             // When not hovering, change back the icons of the traffic lights to their default icon
+#ifndef Q_OS_LINUX
             if(object == m_redCloseButton
                     || object == m_yellowMinimizeButton
                     || object == m_greenMaximizeButton){
@@ -2587,6 +2613,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                 m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/green.png")));
 #endif
             }
+#endif
 
             if(object == m_newNoteButton){
                 this->unsetCursor();
@@ -2611,7 +2638,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         m_canStretchWindow = false;
         QApplication::restoreOverrideCursor();
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(Q_OS_LINUX)
         m_redCloseButton->setIcon(QIcon(QStringLiteral(":images/unfocusedButton")));
         m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/unfocusedButton")));
         m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/unfocusedButton")));
@@ -2631,7 +2658,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         }else{
             m_yellowMinimizeButton->setIcon(QIcon (QStringLiteral(":images/windows_maximize_regular.png")));
         }
-#else
+#elif !defined(Q_OS_LINUX)
         m_redCloseButton->setIcon(QIcon(QStringLiteral(":images/red.png")));
         m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/yellow.png")));
         m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/green.png")));
@@ -2772,24 +2799,21 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
  */
 void MainWindow::stayOnTop(bool checked)
 {
-    Qt::WindowFlags flags;
-#ifdef Q_OS_LINUX
-    flags = Qt::Window | Qt::FramelessWindowHint;
-#elif _WIN32
-    flags = Qt::CustomizeWindowHint;
-#elif __APPLE__
-    flags = Qt::Window | Qt::FramelessWindowHint;
-#else
-#error "We don't support that version yet..."
-#endif
-    if (checked) {
+#ifndef Q_OS_LINUX
+    Qt::WindowFlags flags = windowFlags();
+
+    if (checked)
         flags |= Qt::WindowStaysOnTopHint;
-        m_alwaysStayOnTop = true;
-    } else {
-        m_alwaysStayOnTop = false;
-    }
+    else
+        flags &= ~Qt::WindowStaysOnTopHint;
+
+    m_alwaysStayOnTop = checked;
+
     this->setWindowFlags(flags);
     setMainWindowVisibility(true);
+#else
+    Q_UNUSED(checked)
+#endif
 }
 
 /*!
@@ -2822,8 +2846,12 @@ void MainWindow::onSearchEditReturnPressed()
  */
 void MainWindow::setMargins(QMargins margins)
 {
+#ifndef Q_OS_LINUX
     ui->centralWidget->layout()->setContentsMargins(margins);
     m_trafficLightLayout.setGeometry(QRect(4+margins.left(),4+margins.top(),56,16));
+#else
+    Q_UNUSED(margins)
+#endif
 }
 
 /*!

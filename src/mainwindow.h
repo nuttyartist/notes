@@ -102,9 +102,12 @@ private:
     QTimer* m_autoSaveTimer;
     QSettings* m_settingsDatabase;
     QToolButton* m_clearButton;
+#ifndef Q_OS_LINUX
     QPushButton* m_greenMaximizeButton;
     QPushButton* m_redCloseButton;
     QPushButton* m_yellowMinimizeButton;
+    QHBoxLayout m_trafficLightLayout;
+#endif
     QPushButton* m_newNoteButton;
     QPushButton* m_trashButton;
     QPushButton* m_dotsButton;
@@ -116,7 +119,6 @@ private:
     QAction* m_restoreAction;
     QAction* m_quitAction;
     QMenu* m_trayIconMenu;
-    QHBoxLayout m_trafficLightLayout;
 
     NoteView* m_noteView;
     NoteModel* m_noteModel;
