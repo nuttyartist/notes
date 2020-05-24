@@ -4,9 +4,9 @@
 #
 #-------------------------------------------------
 
-VERSION = 1.0.0
+VERSION = 1.5.0
 
-QT += core gui network sql
+QT += core gui widgets network sql
 QT += gui-private
 QT += concurrent
 
@@ -18,8 +18,6 @@ UI_DIR = uic
 MOC_DIR = moc
 RCC_DIR = qrc
 OBJECTS_DIR = obj
-
-greaterThan (QT_MAJOR_VERSION, 4): QT += widgets
 
 include ($$PWD/../3rdParty/qxt/qxt.pri)
 include ($$PWD/../3rdParty/QSimpleUpdater/QSimpleUpdater.pri)
