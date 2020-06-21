@@ -105,7 +105,7 @@ void MainWindow::InitData()
     bool exist = (QFile::exists(oldNoteDBPath) || QFile::exists(oldTrashDBPath));
 
     if(exist){
-        QProgressDialog* pd = new QProgressDialog(QStringLiteral("Migrating database, please wait."), QString(), 0, 0, this);
+        QProgressDialog* pd = new QProgressDialog(tr("Migrating database, please wait."), QString(), 0, 0, this);
         pd->setCancelButton(Q_NULLPTR);
         pd->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
         pd->setMinimumDuration(0);
@@ -264,9 +264,9 @@ void MainWindow::setupMainWindow()
     this->setAutoFillBackground(true);
     this->setPalette(pal);
 
-    m_newNoteButton->setToolTip(QStringLiteral("Create New Note"));
-    m_trashButton->setToolTip(QStringLiteral("Delete Selected Note"));
-    m_dotsButton->setToolTip(QStringLiteral("Open Menu"));
+    m_newNoteButton->setToolTip(tr("Create New Note"));
+    m_trashButton->setToolTip(tr("Delete Selected Note"));
+    m_dotsButton->setToolTip(tr("Open Menu"));
 }
 
 /*!
@@ -1005,8 +1005,8 @@ void MainWindow::onDotsButtonClicked()
     m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Regular.png")));
 
     QMenu mainMenu;
-    QMenu* viewMenu = mainMenu.addMenu(QStringLiteral("View"));
-    QMenu* importExportNotesMenu = mainMenu.addMenu(QStringLiteral("Import/Export Notes"));
+    QMenu* viewMenu = mainMenu.addMenu(tr("View"));
+    QMenu* importExportNotesMenu = mainMenu.addMenu(tr("Import/Export Notes"));
     importExportNotesMenu->setToolTipsVisible(true);
     viewMenu->setToolTipsVisible(true);
     mainMenu.setToolTipsVisible(true);
@@ -1033,10 +1033,12 @@ void MainWindow::onDotsButtonClicked()
 
     // note list visiblity action
     bool isCollapsed = (m_splitter->sizes().at(0) == 0);
-    QString actionLabel = isCollapsed? tr("Show notes list (Ctrl+J)")
-                                     : tr("Hide notes list (Ctrl+J)");
+    QString actionLabel = isCollapsed? tr("Show notes list")
+                                     : tr("Hide notes list");
 
     QAction* noteListVisbilityAction = viewMenu->addAction(actionLabel);
+    noteListVisbilityAction->setShortcut(Qt::CTRL + Qt::Key_J);
+    noteListVisbilityAction->setShortcutVisibleInContextMenu(true);
     if(isCollapsed){
         connect(noteListVisbilityAction, &QAction::triggered, this, &MainWindow::expandNoteList);
     }else{
@@ -1584,8 +1586,8 @@ void MainWindow::restoreNotesFile(const bool clicked)
 
     if (m_noteModel->rowCount() > 0) {
         QMessageBox msgBox;
-        msgBox.setText(QStringLiteral("Warning: All current notes will be lost. Make sure to create a backup copy before proceeding."));
-        msgBox.setInformativeText(QStringLiteral("Would you like to continue?"));
+        msgBox.setText(tr("Warning: All current notes will be lost. Make sure to create a backup copy before proceeding."));
+        msgBox.setInformativeText(tr("Would you like to continue?"));
         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
         msgBox.setDefaultButton(QMessageBox::No);
         if  (msgBox.exec() != QMessageBox::Yes) {
