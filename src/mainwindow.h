@@ -102,12 +102,10 @@ private:
     QTimer* m_autoSaveTimer;
     QSettings* m_settingsDatabase;
     QToolButton* m_clearButton;
-#ifndef Q_OS_LINUX
     QPushButton* m_greenMaximizeButton;
     QPushButton* m_redCloseButton;
     QPushButton* m_yellowMinimizeButton;
     QHBoxLayout m_trafficLightLayout;
-#endif
     QPushButton* m_newNoteButton;
     QPushButton* m_trashButton;
     QPushButton* m_dotsButton;
@@ -149,6 +147,7 @@ private:
     bool m_isOperationRunning;
     bool m_dontShowUpdateWindow;
     bool m_alwaysStayOnTop;
+    bool m_useNativeWindowFrame;
 
     void setupMainWindow();
     void setupFonts();
@@ -233,6 +232,7 @@ private slots:
     void exportNotesFile(const bool clicked);
     void restoreNotesFile (const bool clicked);
     void stayOnTop(bool checked);
+    void setUseNativeWindowFrame(bool useNativeWindowFrame);
     void toggleStayOnTop();
     void onSearchEditReturnPressed();
 
