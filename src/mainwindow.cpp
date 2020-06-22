@@ -1064,20 +1064,20 @@ void MainWindow::onDotsButtonClicked()
     // Export notes action
     QAction* exportNotesFileAction = importExportNotesMenu->addAction (tr("Export"));
     exportNotesFileAction->setToolTip(tr("Save notes to a file"));
-    connect (exportNotesFileAction, SIGNAL (triggered (bool)),
-             this, SLOT (exportNotesFile (bool)));
+    connect (exportNotesFileAction, &QAction::triggered,
+             this, &MainWindow::exportNotesFile);
 
     // Import notes action
     QAction* importNotesFileAction = importExportNotesMenu->addAction (tr("Import"));
     importNotesFileAction->setToolTip(tr("Add notes from a file"));
-    connect (importNotesFileAction, SIGNAL (triggered (bool)),
-             this, SLOT (importNotesFile (bool)));
+    connect (importNotesFileAction, &QAction::triggered,
+             this, &MainWindow::importNotesFile);
 
     // Restore notes action
     QAction* restoreNotesFileAction = importExportNotesMenu->addAction (tr("Restore"));
     restoreNotesFileAction->setToolTip(tr("Replace all notes with notes from a file"));
-    connect (restoreNotesFileAction, SIGNAL (triggered (bool)),
-             this, SLOT (restoreNotesFile (bool)));
+    connect (restoreNotesFileAction, &QAction::triggered,
+             this, &MainWindow::restoreNotesFile);
 
     // Export disabled if no notes exist
     if(m_noteModel->rowCount() < 1){
@@ -1089,7 +1089,7 @@ void MainWindow::onDotsButtonClicked()
     stayOnTopAction->setToolTip(tr("Always keep the notes application on top of all windows"));
     stayOnTopAction->setCheckable(true);
     stayOnTopAction->setChecked(m_alwaysStayOnTop);
-    connect(stayOnTopAction, SIGNAL(triggered(bool)), this, SLOT(stayOnTop(bool)));
+    connect(stayOnTopAction, &QAction::triggered, this, &MainWindow::stayOnTop);
 
     mainMenu.exec(m_dotsButton->mapToGlobal(QPoint(0, m_dotsButton->height())));
 }
