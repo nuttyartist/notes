@@ -2817,8 +2817,6 @@ void MainWindow::setUseNativeWindowFrame(bool useNativeWindowFrame)
         flags &= ~Qt::FramelessWindowHint;
     else
         flags |= Qt::FramelessWindowHint;
-
-    setAttribute(Qt::WA_TranslucentBackground, !useNativeWindowFrame);
 #elif _WIN32
     if (useNativeWindowFrame)
         flags &= ~Qt::CustomizeWindowHint;
@@ -2838,6 +2836,15 @@ void MainWindow::setUseNativeWindowFrame(bool useNativeWindowFrame)
         ui->centralWidget->layout()->setContentsMargins(margins);
     }
 #endif
+
+    // Adjust space above search field
+    const QSizePolicy policy = ui->verticalSpacer_upSearchEdit->sizePolicy();
+    const int width = ui->verticalSpacer_upSearchEdit->sizeHint().width();
+    ui->verticalSpacer_upSearchEdit->changeSize(width,
+                                                useNativeWindowFrame ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25,
+                                                policy.horizontalPolicy(),
+                                                policy.verticalPolicy());
+    ui->verticalLayout_scrollArea->invalidate();
 
     setMainWindowVisibility(true);
 }
