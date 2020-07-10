@@ -1038,7 +1038,9 @@ void MainWindow::onDotsButtonClicked()
 
     QAction* noteListVisbilityAction = viewMenu->addAction(actionLabel);
     noteListVisbilityAction->setShortcut(Qt::CTRL + Qt::Key_J);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
     noteListVisbilityAction->setShortcutVisibleInContextMenu(true);
+#endif
     if(isCollapsed){
         connect(noteListVisbilityAction, &QAction::triggered, this, &MainWindow::expandNoteList);
     }else{
