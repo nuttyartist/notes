@@ -159,20 +159,20 @@ NoteData #dateLabel{
              </property>
              <item>
               <spacer name="verticalSpacer_upSearchEdit">
-              <property name="orientation">
+               <property name="orientation">
                 <enum>Qt::Vertical</enum>
-              </property>
-              <property name="sizeType">
+               </property>
+               <property name="sizeType">
                 <enum>QSizePolicy::Minimum</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
+               </property>
+               <property name="sizeHint" stdset="0">
                 <size>
-                <width>20</width>
-                <height>25</height>
+                 <width>20</width>
+                 <height>25</height>
                 </size>
-              </property>
+               </property>
               </spacer>
-             </item>             
+             </item>
              <item>
               <spacer name="verticalSpacer">
                <property name="orientation">

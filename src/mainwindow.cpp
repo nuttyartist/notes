@@ -2846,6 +2846,13 @@ void MainWindow::setUseNativeWindowFrame(bool useNativeWindowFrame)
                                                 policy.verticalPolicy());
     ui->verticalLayout_scrollArea->invalidate();
 
+    // Adjust space above text editor
+    ui->verticalSpacer_upEditorDateLabel->changeSize(width,
+                                                     useNativeWindowFrame ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25,
+                                                     policy.horizontalPolicy(),
+                                                     policy.verticalPolicy());
+    ui->verticalLayout_textEdit->invalidate();
+
     setMainWindowVisibility(true);
 }
 
