@@ -546,6 +546,8 @@ void MainWindow::setupSearchEdit()
 {
     QLineEdit* searchEdit = m_searchEdit;
 
+    searchEdit->setAttribute(Qt::WA_MacShowFocusRect, 0);
+
     searchEdit->setStyleSheet(QStringLiteral("QLineEdit{ "
                                              "  padding-left: 21px;"
                                              "  padding-right: 19px;"
@@ -553,6 +555,7 @@ void MainWindow::setupSearchEdit()
                                              "  border-radius: 3px;"
                                              "  background: rgb(255, 255, 255);"
                                              "  selection-background-color: rgb(61, 155, 218);"
+                                             "  color: rgb(26, 26, 26);"
                                              "} "
                                              "QLineEdit:focus { "
                                              "  border: 2px solid rgb(61, 155, 218);"
@@ -1010,16 +1013,6 @@ void MainWindow::onDotsButtonClicked()
     importExportNotesMenu->setToolTipsVisible(true);
     viewMenu->setToolTipsVisible(true);
     mainMenu.setToolTipsVisible(true);
-
-    mainMenu.setStyleSheet(QStringLiteral(
-                               "QMenu { "
-                               "  background-color: rgb(255, 255, 255); "
-                               "  border: 1px solid #C7C7C7; "
-                               "  }"
-                               "QMenu::item:selected { "
-                               "  background: 1px solid #308CC6; "
-                               "}")
-                           );
 
 #ifdef __APPLE__
     mainMenu.setFont(QFont(QStringLiteral("Helvetica Neue"), 13));
@@ -2693,6 +2686,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                                  "  border-radius: 3px;"
                                  "  background: rgb(255, 255, 255);"
                                  "  selection-background-color: rgb(61, 155, 218);"
+                                 "  color: rgb(26, 26, 26);"
                                  "} "
                                  "QToolButton { "
                                  "  border: none; "
@@ -2714,6 +2708,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                                  "  border-radius: 3px;"
                                  "  background: rgb(255, 255, 255);"
                                  "  selection-background-color: rgb(61, 155, 218);"
+                                 "  color: rgb(26, 26, 26);"
                                  "} "
                                  "QToolButton { "
                                  "  border: none; "
