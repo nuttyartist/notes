@@ -1014,16 +1014,6 @@ void MainWindow::onDotsButtonClicked()
     viewMenu->setToolTipsVisible(true);
     mainMenu.setToolTipsVisible(true);
 
-    /*mainMenu.setStyleSheet(QStringLiteral(
-                               "QMenu { "
-                               "  background-color: rgb(255, 255, 255); "
-                               "  border: 1px solid #C7C7C7; "
-                               "  }"
-                               "QMenu::item:selected { "
-                               "  background: 1px solid #308CC6; "
-                               "}")
-                           );*/
-
 #ifdef __APPLE__
     mainMenu.setFont(QFont(QStringLiteral("Helvetica Neue"), 13));
     viewMenu->setFont(QFont(QStringLiteral("Helvetica Neue"), 13));
