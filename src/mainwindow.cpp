@@ -1099,7 +1099,7 @@ void MainWindow::onDotsButtonClicked()
     useNativeFrameAction->setToolTip(tr("Use the window frame provided by the window manager"));
     useNativeFrameAction->setCheckable(true);
     useNativeFrameAction->setChecked(m_useNativeWindowFrame);
-    connect(useNativeFrameAction, &QAction::triggered, this, &MainWindow::setUseNativeWindowFrame);
+    connect(useNativeFrameAction, &QAction::triggered, this, &MainWindow::askBeforeSettingNativeWindowFrame);
 
     mainMenu.exec(m_dotsButton->mapToGlobal(QPoint(0, m_dotsButton->height())));
 }
@@ -2795,6 +2795,31 @@ void MainWindow::stayOnTop(bool checked)
     setMainWindowVisibility(true);
 }
 
+/*!
+ * \brief MainWindow::askBeforeSettingNativeWindowFrame
+ */
+void MainWindow::askBeforeSettingNativeWindowFrame()
+{
+#ifdef _WIN32
+    if(!m_useNativeWindowFrame) {
+        QMessageBox msgBox;
+        msgBox.setText(tr("Warning: After performing this action, you will need to restart your system to revert to custom decoration."));
+        msgBox.setInformativeText(tr("Would you like to continue?"));
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+        msgBox.setDefaultButton(QMessageBox::No);
+        if (msgBox.exec() != QMessageBox::Yes) {
+            return;
+        }
+    }
+#endif
+
+    setUseNativeWindowFrame(m_useNativeWindowFrame ? false : true);
+}
+
+/*!
+ * \brief MainWindow::setUseNativeWindowFrame
+ * \param useNativeWindowFrame
+ */
 void MainWindow::setUseNativeWindowFrame(bool useNativeWindowFrame)
 {
     if (m_useNativeWindowFrame == useNativeWindowFrame)
