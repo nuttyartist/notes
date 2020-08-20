@@ -232,6 +232,7 @@ private slots:
     void exportNotesFile(const bool clicked);
     void restoreNotesFile (const bool clicked);
     void stayOnTop(bool checked);
+    void askBeforeSettingNativeWindowFrame();
     void setUseNativeWindowFrame(bool useNativeWindowFrame);
     void toggleStayOnTop();
     void onSearchEditReturnPressed();
