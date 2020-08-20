@@ -37,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_greenMaximizeButton(Q_NULLPTR),
     m_redCloseButton(Q_NULLPTR),
     m_yellowMinimizeButton(Q_NULLPTR),
+    m_trafficLightLayout(Q_NULLPTR),
     m_newNoteButton(Q_NULLPTR),
     m_trashButton(Q_NULLPTR),
     m_dotsButton(Q_NULLPTR),
@@ -48,7 +49,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_restoreAction(new QAction(tr("&Hide Notes"), this)),
     m_quitAction(new QAction(tr("&Quit"), this)),
     m_trayIconMenu(new QMenu(this)),
-    m_trafficLightLayout(Q_NULLPTR),
     m_noteView(Q_NULLPTR),
     m_noteModel(new NoteModel(this)),
     m_deletedNotesModel(new NoteModel(this)),
@@ -66,7 +66,9 @@ MainWindow::MainWindow(QWidget *parent) :
     m_isListViewScrollBarHidden(true),
     m_isContentModified(false),
     m_isOperationRunning(false),
-    m_dontShowUpdateWindow(false)
+    m_dontShowUpdateWindow(false),
+    m_alwaysStayOnTop(false),
+    m_useNativeWindowFrame(false)
 {
     ui->setupUi(this);
     setupMainWindow();
@@ -157,23 +159,26 @@ void MainWindow::setMainWindowVisibility(bool state)
  */
 void MainWindow::paintEvent(QPaintEvent* event)
 {
-    QPainter painter(this);
-    painter.save();
+    if (!m_useNativeWindowFrame) {
+        QPainter painter(this);
+        painter.save();
 
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.setPen(Qt::NoPen);
+        painter.setRenderHint(QPainter::Antialiasing);
+        painter.setPen(Qt::NoPen);
 
-    dropShadow(painter, ShadowType::Linear, ShadowSide::Left  );
-    dropShadow(painter, ShadowType::Linear, ShadowSide::Top   );
-    dropShadow(painter, ShadowType::Linear, ShadowSide::Right );
-    dropShadow(painter, ShadowType::Linear, ShadowSide::Bottom);
+        dropShadow(painter, ShadowType::Linear, ShadowSide::Left  );
+        dropShadow(painter, ShadowType::Linear, ShadowSide::Top   );
+        dropShadow(painter, ShadowType::Linear, ShadowSide::Right );
+        dropShadow(painter, ShadowType::Linear, ShadowSide::Bottom);
 
-    dropShadow(painter, ShadowType::Radial, ShadowSide::TopLeft    );
-    dropShadow(painter, ShadowType::Radial, ShadowSide::TopRight   );
-    dropShadow(painter, ShadowType::Radial, ShadowSide::BottomRight);
-    dropShadow(painter, ShadowType::Radial, ShadowSide::BottomLeft );
+        dropShadow(painter, ShadowType::Radial, ShadowSide::TopLeft    );
+        dropShadow(painter, ShadowType::Radial, ShadowSide::TopRight   );
+        dropShadow(painter, ShadowType::Radial, ShadowSide::BottomRight);
+        dropShadow(painter, ShadowType::Radial, ShadowSide::BottomLeft );
 
-    painter.restore();
+        painter.restore();
+    }
+
     QMainWindow::paintEvent(event);
 }
 
@@ -215,15 +220,12 @@ MainWindow::~MainWindow()
  */
 void MainWindow::setupMainWindow()
 {
-#ifdef Q_OS_LINUX
+#if defined(Q_OS_LINUX) || defined(__APPLE__)
     this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     this->setAttribute(Qt::WA_TranslucentBackground);
 #elif _WIN32
     this->setWindowFlags(Qt::CustomizeWindowHint);
-#elif __APPLE__
-    this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
-    this->setAttribute(Qt::WA_TranslucentBackground);
-#else
+#elif
 #error "We don't support that version yet..."
 #endif
 
@@ -722,6 +724,8 @@ void MainWindow::setupModelView()
  */
 void MainWindow::restoreStates()
 {
+    setUseNativeWindowFrame(m_settingsDatabase->value(QStringLiteral("useNativeWindowFrame"), false).toBool());
+
     if(m_settingsDatabase->value(QStringLiteral("windowGeometry"), "NULL") != "NULL")
         this->restoreGeometry(m_settingsDatabase->value(QStringLiteral("windowGeometry")).toByteArray());
 
@@ -1081,12 +1085,21 @@ void MainWindow::onDotsButtonClicked()
         exportNotesFileAction->setDisabled(true);
     }
 
+#ifndef Q_OS_LINUX
     // Stay on top action
     QAction* stayOnTopAction = viewMenu->addAction(tr("Always stay on top"));
     stayOnTopAction->setToolTip(tr("Always keep the notes application on top of all windows"));
     stayOnTopAction->setCheckable(true);
     stayOnTopAction->setChecked(m_alwaysStayOnTop);
     connect(stayOnTopAction, &QAction::triggered, this, &MainWindow::stayOnTop);
+#endif
+
+    // Use native frame action
+    QAction* useNativeFrameAction = viewMenu->addAction(tr("Use native window frame"));
+    useNativeFrameAction->setToolTip(tr("Use the window frame provided by the window manager"));
+    useNativeFrameAction->setCheckable(true);
+    useNativeFrameAction->setChecked(m_useNativeWindowFrame);
+    connect(useNativeFrameAction, &QAction::triggered, this, &MainWindow::setUseNativeWindowFrame);
 
     mainMenu.exec(m_dotsButton->mapToGlobal(QPoint(0, m_dotsButton->height())));
 }
@@ -2769,23 +2782,74 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
  */
 void MainWindow::stayOnTop(bool checked)
 {
-    Qt::WindowFlags flags;
-#ifdef Q_OS_LINUX
-    flags = Qt::Window | Qt::FramelessWindowHint;
+    Qt::WindowFlags flags = windowFlags();
+
+    if (checked)
+        flags |= Qt::WindowStaysOnTopHint;
+    else
+        flags &= ~Qt::WindowStaysOnTopHint;
+
+    m_alwaysStayOnTop = checked;
+
+    setWindowFlags(flags);
+    setMainWindowVisibility(true);
+}
+
+void MainWindow::setUseNativeWindowFrame(bool useNativeWindowFrame)
+{
+    if (m_useNativeWindowFrame == useNativeWindowFrame)
+        return;
+
+    m_useNativeWindowFrame = useNativeWindowFrame;
+    m_settingsDatabase->setValue(QStringLiteral("useNativeWindowFrame"), useNativeWindowFrame);
+
+    m_greenMaximizeButton->setVisible(!useNativeWindowFrame);
+    m_redCloseButton->setVisible(!useNativeWindowFrame);
+    m_yellowMinimizeButton->setVisible(!useNativeWindowFrame);
+
+    auto flags = windowFlags();
+
+#if defined(Q_OS_LINUX) || defined(__APPLE__)
+    if (useNativeWindowFrame)
+        flags &= ~Qt::FramelessWindowHint;
+    else
+        flags |= Qt::FramelessWindowHint;
 #elif _WIN32
-    flags = Qt::CustomizeWindowHint;
-#elif __APPLE__
-    flags = Qt::Window | Qt::FramelessWindowHint;
-#else
+    if (useNativeWindowFrame)
+        flags &= ~Qt::CustomizeWindowHint;
+    else
+        flags |= Qt::CustomizeWindowHint;
+#elif
 #error "We don't support that version yet..."
 #endif
-    if (checked) {
-        flags |= Qt::WindowStaysOnTopHint;
-        m_alwaysStayOnTop = true;
+
+    setWindowFlags(flags);
+
+#ifndef _WIN32
+    if (useNativeWindowFrame || isMaximized()) {
+        ui->centralWidget->layout()->setContentsMargins(QMargins());
     } else {
-        m_alwaysStayOnTop = false;
+        QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
+        ui->centralWidget->layout()->setContentsMargins(margins);
     }
-    this->setWindowFlags(flags);
+#endif
+
+    // Adjust space above search field
+    const QSizePolicy policy = ui->verticalSpacer_upSearchEdit->sizePolicy();
+    const int width = ui->verticalSpacer_upSearchEdit->sizeHint().width();
+    ui->verticalSpacer_upSearchEdit->changeSize(width,
+                                                useNativeWindowFrame ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25,
+                                                policy.horizontalPolicy(),
+                                                policy.verticalPolicy());
+    ui->verticalLayout_scrollArea->invalidate();
+
+    // Adjust space above text editor
+    ui->verticalSpacer_upEditorDateLabel->changeSize(width,
+                                                     useNativeWindowFrame ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25,
+                                                     policy.horizontalPolicy(),
+                                                     policy.verticalPolicy());
+    ui->verticalLayout_textEdit->invalidate();
+
     setMainWindowVisibility(true);
 }
 
@@ -2819,6 +2883,9 @@ void MainWindow::onSearchEditReturnPressed()
  */
 void MainWindow::setMargins(QMargins margins)
 {
+    if (m_useNativeWindowFrame)
+        return;
+
     ui->centralWidget->layout()->setContentsMargins(margins);
     m_trafficLightLayout.setGeometry(QRect(4+margins.left(),4+margins.top(),56,16));
 }

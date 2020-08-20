@@ -105,6 +105,7 @@ private:
     QPushButton* m_greenMaximizeButton;
     QPushButton* m_redCloseButton;
     QPushButton* m_yellowMinimizeButton;
+    QHBoxLayout m_trafficLightLayout;
     QPushButton* m_newNoteButton;
     QPushButton* m_trashButton;
     QPushButton* m_dotsButton;
@@ -116,7 +117,6 @@ private:
     QAction* m_restoreAction;
     QAction* m_quitAction;
     QMenu* m_trayIconMenu;
-    QHBoxLayout m_trafficLightLayout;
 
     NoteView* m_noteView;
     NoteModel* m_noteModel;
@@ -147,6 +147,7 @@ private:
     bool m_isOperationRunning;
     bool m_dontShowUpdateWindow;
     bool m_alwaysStayOnTop;
+    bool m_useNativeWindowFrame;
 
     void setupMainWindow();
     void setupFonts();
@@ -231,6 +232,7 @@ private slots:
     void exportNotesFile(const bool clicked);
     void restoreNotesFile (const bool clicked);
     void stayOnTop(bool checked);
+    void setUseNativeWindowFrame(bool useNativeWindowFrame);
     void toggleStayOnTop();
     void onSearchEditReturnPressed();
 
