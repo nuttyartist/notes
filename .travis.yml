@@ -109,7 +109,7 @@ deploy:
   api_key:
     secure: YLGygfObrwNXKwdJTRVSsmKHoxDThRI7vsnOzlu442HiZcoA+iJXpxEEGFJj2RVeig4//cgZG3nymf/TmSRy3N3AH8o94AC/47glnGx5/z5/dxyNfe9mJol1v5DgadK92wN3HM9wi6ZL+TW8ecEzF4TKteS6JklxUWWVEnq544KnfQdmqUqRkrmJdBHo2OdVpbeJeKH3siWVHHXlfCaW+dlzGb2YwOkcCORcNImzcLjvd36ozMeA4DlH2TbWJysp2i5XxcjuRK9gnwOcNKm2tImTk82z3rwwQ2dy4bTzq1ryigHW0at4/jUzRBrKll5IQ6byY/9DtpRosgKGRKgaqssuxNiOvDzJ0M7qHPhoODMPXKueTChazY3FvrRuJ9sQndhGkreli9JpxCpcTLNOxD1kFgQlrFqmbmZWVHSEjYWXkPtEr1/rbyXFHhV6zfnhxkT24VC4w4wddYsd5zYuvwfYYIRyv5ISYddceIRXJDtli2xgBjlZnuLxU9UmqSwg8m6ETRee3Z6B6k7ojxrK5bOnnVbDHlHpbNmDMacZnyrZWibRgAhcRfaWZBDUYy45vxWjQVD4Z6UPc8XjJo/+axvqnICn2aqTKSguzQBnry5qOvF8n3QptL1yqhlsvLhRg3e17g1U6faS9+k09C/HHSdVBtNR3tWt+jGyxBGQ248=
   file:
-    - Notes-*.AppImage
+    - *.AppImage
     - deb/notes*.deb
     - notes*.snap
   file_glob: true
