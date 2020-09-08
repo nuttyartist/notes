@@ -1,0 +1,9 @@
+[submodule "3rdParty/qautostart"]
+	path = 3rdParty/qautostart
+	url = https://github.com/b00f/qautostart.git
+[submodule "3rdParty/qmarkdowntextedit"]
+	path = 3rdParty/qmarkdowntextedit
+	url = https://github.com/pbek/qmarkdowntextedit
+[submodule "3rdParty/QSimpleUpdater"]
+	path = 3rdParty/QSimpleUpdater
+	url = https://github.com/alex-spataru/QSimpleUpdater

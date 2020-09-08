@@ -6,4 +6,4 @@ Name=Notes
 Comment=Write down your thoughts
 Categories=Utility;
 Exec=notes
-Icon=notes
+Icon=${SNAP}/meta/gui/notes.svg

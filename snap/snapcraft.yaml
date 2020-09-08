@@ -1,0 +1,89 @@
+name: notes
+adopt-info: notes
+summary: Note taking application, write down your thoughts.
+description: |
+  Notes is a tool for the things you need to write down off your
+  brain. It is your place of expressing yourself. Notes is an open
+  source and cross-platform project, and you're welcome to be part
+  of it and contribute. We hope you will love it as much as we do.
+
+base: core18
+
+grade: stable
+confinement: strict
+
+architectures:
+  - build-on: amd64
+
+apps:
+  notes:
+    command: desktop-launch ${SNAP}/usr/bin/notes
+    plugs: [home, opengl, unity7, network, desktop-legacy, desktop, gsettings, x11, wayland]
+    environment:
+      QT_QPA_PLATFORMTHEME: gtk3
+
+plugs: # plugs for theming, font settings, cursor and to use gtk3 file chooser
+  gtk-3-themes:
+    interface: content
+    target: $SNAP/data-dir/themes
+    default-provider: gtk-common-themes:gtk-3-themes
+  icon-themes:
+    interface: content
+    target: $SNAP/data-dir/icons
+    default-provider: gtk-common-themes:icon-themes
+  sound-themes:
+    interface: content
+    target: $SNAP/data-dir/sounds
+    default-provider: gtk-common-themes:sounds-themes
+
+parts:
+  notes:
+    plugin: qmake
+    qt-version: qt5
+    options:
+      - PREFIX=/usr
+      - CONFIG+=release
+    override-pull: |
+      snapcraftctl pull
+      snapcraftctl set-version $(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')
+    source: .
+    project-files: [src/Notes.pro]
+    build-packages:
+      - qtbase5-dev
+      - qtbase5-dev-tools
+      - qtbase5-private-dev
+      - qt5-qmake
+    stage-packages:
+      - fonts-liberation
+      - libqt5gui5
+      - libqt5widgets5
+      - libqt5core5a
+      - libqt5sql5
+      - libqt5sql5-sqlite
+      - qt5-gtk-platformtheme
+    override-build: |
+       snapcraftctl build
+    after: [desktop-qt5]
+
+  desktop-qt5:
+    source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
+    source-subdir: qt
+    plugin: make
+    make-parameters: ["FLAVOR=qt5"]
+    build-packages:
+      - qtbase5-dev
+      - dpkg-dev
+    stage-packages:
+      - libxkbcommon0
+      - ttf-ubuntu-font-family
+      - dmz-cursor-theme
+      - light-themes
+      - adwaita-icon-theme
+      - gnome-themes-standard
+      - shared-mime-info
+      - libqt5gui5
+      - libgdk-pixbuf2.0-0
+      - libgtk2.0-0
+      - libqt5svg5
+      - try: [appmenu-qt5] # not available on core18
+      - locales-all

@@ -1,5 +1,5 @@
 clone_depth: 200
-version: '1.0.0-{Build}'
+version: '1.5.0-{Build}'
 
 environment:
   matrix:
@@ -9,9 +9,9 @@ environment:
     qt: 5.6
     compiler: msvc2015
 
-  - name: win32_57
+  - name: win32_59
     platformEnv: amd64_x86
-    qt: 5.7
+    qt: 5.9
     compiler: msvc2015
 
   # MSVC x64
@@ -20,9 +20,9 @@ environment:
     qt: 5.6
     compiler: msvc2015_64
 
-  - name: win64_57
+  - name: win64_59
     platformEnv: amd64
-    qt: 5.7
+    qt: 5.9
     compiler: msvc2015_64
 
   # MinGW
@@ -32,9 +32,9 @@ environment:
     compiler: mingw49_32
     tools: mingw492_32
 
-  - name: win32_57
+  - name: win32_59
     platformEnv: mingw
-    qt: 5.7
+    qt: 5.9
     compiler: mingw53_32
     tools: mingw530_32
 
@@ -46,6 +46,7 @@ cache:
   - C:\Program Files (x86)\Inno Setup 5 -> appveyor.yml
 
 install:
+  - git submodule update --init --recursive
   - ps: Update-AppveyorBuild -Version "$(git describe --tags $(git rev-list --tags --max-count=1))~git$($env:appveyor_repo_commit.substring(0,7))"
   - setx /m PLATFORMENV %platformEnv%
   - if not exist "C:\Program Files (x86)\Inno Setup 5" choco install innosetup 

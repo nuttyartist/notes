@@ -199,7 +199,7 @@ void UpdaterWindow::resetControls()
     /* Resize window */
     bool showAgain = isVisible();
     int height = minimumSizeHint().height();
-    int width = qMax(minimumSizeHint().width(),(int)(height * 1.2));
+    int width = qMax(minimumSizeHint().width(),int(height * 1.2));
     resize(QSize(width, height));
 
     /* Re-show the window(if required)*/
@@ -210,29 +210,25 @@ void UpdaterWindow::resetControls()
 
 /**
  * Changes the number of dots of the title label while the QSimpleUpdater
- * is downloading and interpreting the update definitions file
+ * is downloading and interpreting the update definitions file 
  */
 void UpdaterWindow::updateTitleLabel()
 {
-    if(m_checkingForUpdates){
+    if(m_checkingForUpdates)
+    {
+        static int num=0;
         QString base = tr("Checking for updates");
-
-        /* Not nice, we should check if there is a better way to do this */
-        if(m_ui->title->text().endsWith("....")){
-            m_ui->title->setText(base + "." );
-        }else if(m_ui->title->text().endsWith("...")){
-            m_ui->title->setText(base + "....");
-        }else if(m_ui->title->text().endsWith("..")){
-            m_ui->title->setText(base + "...");
-        }else if(m_ui->title->text().endsWith(".")){
-            m_ui->title->setText(base + "..");
-        }else{
-            m_ui->title->setText(base + ".");
-        }
+        QString dot = "";
+        num++;
+        dot.fill('.', num);
+        m_ui->title->setText(base+dot);
+        if(num==4)
+            num=0;
     }
-
     QTimer::singleShot(500, this, SLOT(updateTitleLabel()));
 }
+
+
 
 /**
  * Updates the text displayed the the UI controls to reflect the information
@@ -460,7 +456,7 @@ void UpdaterWindow::updateProgress(qint64 received, qint64 total)
     if(total > 0){
         m_ui->progressBar->setMinimum(0);
         m_ui->progressBar->setMaximum(100);
-        m_ui->progressBar->setValue((received * 100)/ total);
+        m_ui->progressBar->setValue(int((received * 100)/ total));
 
         calculateSizes(received, total);
         calculateTimeRemaining(received, total);
@@ -593,5 +589,5 @@ void UpdaterWindow::mouseReleaseEvent(QMouseEvent *event)
  */
 qreal UpdaterWindow::round(const qreal& input)
 {
-    return roundf(input * 100)/ 100;
+    return qreal(roundf(float(input * 100))/100);
 }

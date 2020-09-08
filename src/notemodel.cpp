@@ -121,7 +121,7 @@ bool NoteModel::setData(const QModelIndex &index, const QVariant &value, int rol
 
 
     if(role == NoteID){
-        note->setId(value.toString());
+        note->setId(value.toInt());
     }else if(role == NoteFullTitle){
         note->setFullTitle(value.toString());
     }else if(role == NoteCreationDateTime){

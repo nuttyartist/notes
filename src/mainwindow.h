@@ -22,12 +22,16 @@
 #include <QSystemTrayIcon>
 #include <QMenu>
 #include <QProgressDialog>
-#include <qaction.h>
+#include <QAction>
+
+#include <QAutostart>
+
 #include "notedata.h"
 #include "notemodel.h"
 #include "noteview.h"
 #include "updaterwindow.h"
 #include "dbmanager.h"
+#include "markdownhighlighter.h"
 
 namespace Ui {
 class MainWindow;
@@ -75,8 +79,8 @@ public:
     Q_ENUM(StretchSide)
 #endif
 
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    explicit MainWindow(QWidget *parent = Q_NULLPTR);
+    ~MainWindow() Q_DECL_OVERRIDE;
 
     void setMainWindowVisibility(bool state);
 
@@ -101,11 +105,12 @@ private:
     QPushButton* m_greenMaximizeButton;
     QPushButton* m_redCloseButton;
     QPushButton* m_yellowMinimizeButton;
+    QHBoxLayout m_trafficLightLayout;
     QPushButton* m_newNoteButton;
     QPushButton* m_trashButton;
     QPushButton* m_dotsButton;
     QTextEdit* m_textEdit;
-    QLineEdit* m_lineEdit;
+    QLineEdit* m_searchEdit;
     QLabel* m_editorDateLabel;
     QSplitter *m_splitter;
     QSystemTrayIcon* m_trayIcon;
@@ -121,14 +126,14 @@ private:
     QModelIndex m_selectedNoteBeforeSearchingInSource;
     QQueue<QString> m_searchQueue;
     DBManager* m_dbManager;
+    QThread* m_dbThread;
+    MarkdownHighlighter *m_highlighter;
 
     UpdaterWindow m_updater;
     StretchSide m_stretchSide;
-
-    int m_currentVerticalScrollAreaRange;
+    Autostart m_autostart;
     int m_mousePressX;
     int m_mousePressY;
-    int m_textEditLeftPadding;
     int m_noteCounter;
     int m_trashCounter;
     int m_layoutMargin;
@@ -141,6 +146,8 @@ private:
     bool m_isContentModified;
     bool m_isOperationRunning;
     bool m_dontShowUpdateWindow;
+    bool m_alwaysStayOnTop;
+    bool m_useNativeWindowFrame;
 
     void setupMainWindow();
     void setupFonts();
@@ -153,7 +160,7 @@ private:
     void setupTitleBarButtons();
     void setupSignalsSlots();
     void autoCheckForUpdates();
-    void setupLineEdit();
+    void setupSearchEdit();
     void setupTextEdit();
     void setupDatabases();
     void setupModelView();
@@ -164,16 +171,16 @@ private:
     void restoreStates();
     QString getFirstLine(const QString& str);
     QString getNoteDateEditor (QString dateEdited);
-    NoteData *generateNote(QString noteName);
+    NoteData* generateNote(const int noteID);
     QDateTime getQDateTime(QString date);
     void showNoteInEditor(const QModelIndex& noteIndex);
     void sortNotesList(QStringList &stringNotesList);
-    void loadNotes();
     void saveNoteToDB(const QModelIndex& noteIndex);
     void removeNoteFromDB(const QModelIndex& noteIndex);
     void selectFirstNote();
     void moveNoteToTop();
     void clearSearch();
+    void highlightSearch() const;
     void findNotesContain(const QString &keyword);
     void selectNote(const QModelIndex& noteIndex);
     void checkMigration();
@@ -185,8 +192,11 @@ private:
     void fillRectWithGradient(QPainter& painter, const QRect& rect, QGradient& gradient);
     double gaussianDist(double x, const double center, double sigma) const;
 
+    void setMargins(QMargins margins);
+
 private slots:
     void InitData();
+    void loadNotes(QList<NoteData *> noteList, int noteCounter);
     void onNewNoteButtonPressed();
     void onNewNoteButtonClicked();
     void onTrashButtonPressed();
@@ -195,11 +205,11 @@ private slots:
     void onDotsButtonClicked();
     void onNotePressed(const QModelIndex &index);
     void onTextEditTextChanged();
-    void onLineEditTextChanged(const QString& keyword);
+    void onSearchEditTextChanged(const QString& keyword);
     void onClearButtonClicked();
-    void onGreenMaximizeButtonPressed ();
-    void onYellowMinimizeButtonPressed ();
-    void onRedCloseButtonPressed ();
+    void onGreenMaximizeButtonPressed();
+    void onYellowMinimizeButtonPressed();
+    void onRedCloseButtonPressed();
     void onGreenMaximizeButtonClicked();
     void onYellowMinimizeButtonClicked();
     void onRedCloseButtonClicked();
@@ -217,9 +227,27 @@ private slots:
     void checkForUpdates (const bool clicked);
     void collapseNoteList();
     void expandNoteList();
+    void toggleNoteList();
     void importNotesFile(const bool clicked);
     void exportNotesFile(const bool clicked);
     void restoreNotesFile (const bool clicked);
+    void stayOnTop(bool checked);
+    void askBeforeSettingNativeWindowFrame();
+    void setUseNativeWindowFrame(bool useNativeWindowFrame);
+    void toggleStayOnTop();
+    void onSearchEditReturnPressed();
+
+signals:
+    void requestNotesList();
+    void requestOpenDBManager(QString path, bool doCreate);
+    void requestCreateUpdateNote(NoteData* note);
+    void requestDeleteNote(NoteData* note);
+    void requestRestoreNotes(QList<NoteData *> noteList);
+    void requestImportNotes(QList<NoteData *> noteList);
+    void requestExportNotes(QString fileName);
+    void requestMigrateNotes(QList<NoteData *> noteList);
+    void requestMigrateTrash(QList<NoteData *> noteList);
+    void requestForceLastRowIndexValue(int index);
 };
 
 #endif // MAINWINDOW_H
