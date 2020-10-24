@@ -9,6 +9,7 @@
 #include "notewidgetdelegate.h"
 #include "qxtglobalshortcut.h"
 #include "updaterwindow.h"
+#include "customDocument.h"
 
 #include <QScrollBar>
 #include <QShortcut>
@@ -603,18 +604,10 @@ void MainWindow::setupSearchEdit()
  * And install this class event filter to catch when text edit is having focus
  */
 void MainWindow::setupTextEdit()
-{   
-    QString ss = QString("QTextEdit {background-image: url(:images/textEdit_background_pattern.png); padding-left: %1px; padding-right: %2px; padding-bottom:2px;} "
+{
+    QString ss = QString("QTextEdit {background-image: url(:images/textEdit_background_pattern.png);} "
                          "QTextEdit{selection-background-color: rgb(63, 99, 139);}"
-                         "QScrollBar::handle:vertical:hover { background: rgb(170, 170, 171); } "
-                         "QScrollBar::handle:vertical:pressed { background: rgb(149, 149, 149); } "
-                         "QScrollBar::handle:vertical { border-radius: 4px; background: rgb(188, 188, 188); min-height: 20px; }  "
-                         "QScrollBar::vertical {border-radius: 4px; width: 8px; color: rgba(255, 255, 255,0);} "
-                         "QScrollBar {margin: 0; background: transparent;} "
-                         "QScrollBar:hover { background-color: rgb(217, 217, 217);}"
-                         "QScrollBar::add-line:vertical { width:0px; height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
-                         "QScrollBar::sub-line:vertical { width:0px; height: 0px; subcontrol-position: top; subcontrol-origin: margin; }"
-                         ).arg("27", "27");
+                         );
 
     m_textEdit->setStyleSheet(ss);
 

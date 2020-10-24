@@ -302,7 +302,9 @@ void NoteView::setupSignalsSlots()
  */
 void NoteView::setupStyleSheet()
 {
-    QString ss = QString("QListView {background-color: rgb(255, 255, 255);} "
+    QString ss = QString("QListView {background-color: rgb(255, 255, 255);}"
+                         );
+                         /*
                          "QScrollBar {margin-right: 2px; background: transparent;} "
                          "QScrollBar:hover { background-color: rgb(217, 217, 217);}"
                          "QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
@@ -311,7 +313,7 @@ void NoteView::setupStyleSheet()
                          "QScrollBar::handle:vertical { border-radius: 4px; background: rgb(188, 188, 188); min-height: 20px; }  "
                          "QScrollBar::add-line:vertical { height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
                          "QScrollBar::sub-line:vertical { height: 0px; subcontrol-position: top; subcontrol-origin: margin; }"
-                         );
+                         );*/
 
     setStyleSheet(ss);
 }
