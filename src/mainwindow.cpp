@@ -1044,6 +1044,21 @@ void MainWindow::onDotsButtonClicked()
         connect(noteListVisbilityAction, &QAction::triggered, this, &MainWindow::collapseNoteList);
     }
 
+    // Enable or Disable markdown
+    QString markDownLabel = is_markdown_enabled? tr("Disable Markdown")
+                                               : tr("Enable Markdown");
+
+    QAction* noteMarkdownVisibiltyAction = viewMenu->addAction(markDownLabel);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
+    noteMarkdownVisibiltyAction->setShortcutVisibleInContextMenu(true);
+#endif
+
+    if(is_markdown_enabled){
+        connect(noteMarkdownVisibiltyAction, &QAction::triggered, this, &MainWindow::disableMarkdownHighlighter);
+    }else{
+        connect(noteMarkdownVisibiltyAction, &QAction::triggered, this, &MainWindow::enableMarkdownHighlighter);
+    }
+
     // Check for update action
     QAction* checkForUpdatesAction = mainMenu.addAction(tr("Check For Updates"));
     connect (checkForUpdatesAction, &QAction::triggered, this, &MainWindow::checkForUpdates);
@@ -1735,6 +1750,24 @@ void MainWindow::expandNoteList()
     sizes[0] = leftWidth;
     sizes[1] = m_splitter->width() - leftWidth;
     m_splitter->setSizes(sizes);
+}
+
+/*!
+ * \brief MainWindow::enableMarkdownHighlighter
+ */
+void MainWindow::enableMarkdownHighlighter()
+{
+    m_highlighter = new MarkdownHighlighter(m_textEdit->document());
+    is_markdown_enabled = true;
+}
+
+/*!
+ * \brief MainWindow::disableMarkdownHighlighter
+ */
+void MainWindow::disableMarkdownHighlighter()
+{
+    delete m_highlighter;
+    is_markdown_enabled = false;
 }
 
 /*!

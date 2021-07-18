@@ -113,6 +113,7 @@ private:
     QLineEdit* m_searchEdit;
     QLabel* m_editorDateLabel;
     QSplitter *m_splitter;
+    bool is_markdown_enabled=true;
     QSystemTrayIcon* m_trayIcon;
     QAction* m_restoreAction;
     QAction* m_quitAction;
@@ -227,6 +228,8 @@ private slots:
     void checkForUpdates (const bool clicked);
     void collapseNoteList();
     void expandNoteList();
+    void enableMarkdownHighlighter();
+    void disableMarkdownHighlighter();
     void toggleNoteList();
     void importNotesFile(const bool clicked);
     void exportNotesFile(const bool clicked);
