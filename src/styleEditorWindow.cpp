@@ -51,13 +51,13 @@ void StyleEditorWindow::changeSelectedFontLabel(FontTypeface selectedFontType, Q
 {
     switch(selectedFontType) {
     case FontTypeface::Mono:
-        m_ui->monoButton->setText(QString("Mono") + QString("\n") + selectedFontName);
+        m_ui->monoButton->setText(QString("Mono ->") + QString("\n") + selectedFontName);
         break;
     case FontTypeface::Serif:
-        m_ui->serifButton->setText(QString("Serif") + QString("\n") + selectedFontName);
+        m_ui->serifButton->setText(QString("Serif ->") + QString("\n") + selectedFontName);
         break;
     case FontTypeface::SansSerif:
-        m_ui->sansSerifButton->setText(QString("Sans-serif") + QString("\n") + selectedFontName);
+        m_ui->sansSerifButton->setText(QString("Sans-serif ->") + QString("\n") + selectedFontName);
         break;
     }
 }
