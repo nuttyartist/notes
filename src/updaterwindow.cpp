@@ -70,8 +70,20 @@ UpdaterWindow::UpdaterWindow(QWidget *parent) :
     setWindowTitle(qApp->applicationName()+ " " + tr("Updater"));
 
     /* Change fonts */
-    setFont(QFont("Roboto"));
-    m_ui->changelog->setFont(QFont("Arimo"));
+#ifdef __APPLE__
+    this->setFont(QFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")));
+    m_ui->changelog->setFont(QFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")));
+    foreach(QWidget *widgetChild, this->findChildren<QWidget *>()) {
+        widgetChild->setFont(QFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")));
+    }
+#else
+    setFont(QFont(QStringLiteral("Roboto")));
+    m_ui->changelog->setFont(QFont(QStringLiteral("Roboto")));
+    foreach(QWidget *widgetChild, this->findChildren<QWidget *>()) {
+        widgetChild->setFont(QFont(QStringLiteral("Roboto")));
+    }
+#endif
+
 
     /* Connect UI signals/slots */
     connect(m_ui->closeButton,  &QPushButton::clicked, this, &UpdaterWindow::close);

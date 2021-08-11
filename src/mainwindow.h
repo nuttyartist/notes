@@ -23,6 +23,7 @@
 #include <QMenu>
 #include <QProgressDialog>
 #include <QAction>
+#include <QTextLine>
 
 #include <QAutostart>
 
@@ -30,6 +31,7 @@
 #include "notemodel.h"
 #include "noteview.h"
 #include "updaterwindow.h"
+#include "styleEditorWindow.h"
 #include "dbmanager.h"
 #include "markdownhighlighter.h"
 
@@ -92,6 +94,7 @@ protected:
     void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
     void mouseReleaseEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
     void mouseDoubleClickEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+    void moveEvent(QMoveEvent* event) Q_DECL_OVERRIDE;
     void leaveEvent(QEvent*) Q_DECL_OVERRIDE;
     bool eventFilter(QObject* object, QEvent* event) Q_DECL_OVERRIDE;
 
@@ -109,6 +112,7 @@ private:
     QPushButton* m_newNoteButton;
     QPushButton* m_trashButton;
     QPushButton* m_dotsButton;
+    QPushButton* m_styleEditorButton;
     QTextEdit* m_textEdit;
     QLineEdit* m_searchEdit;
     QLabel* m_editorDateLabel;
@@ -131,6 +135,7 @@ private:
     MarkdownHighlighter *m_highlighter;
 
     UpdaterWindow m_updater;
+    StyleEditorWindow m_styleEditorWindow;
     StretchSide m_stretchSide;
     Autostart m_autostart;
     int m_mousePressX;
@@ -140,6 +145,10 @@ private:
     int m_layoutMargin;
     int m_shadowWidth;
     int m_noteListWidth;
+    int m_smallEditorWidth;
+    int m_largeEditorWidth;
+    int m_currentMinimumEditorPadding;
+    int m_currentAdaptableEditorPadding;
     bool m_canMoveWindow;
     bool m_canStretchWindow;
     bool m_isTemp;
@@ -149,6 +158,26 @@ private:
     bool m_dontShowUpdateWindow;
     bool m_alwaysStayOnTop;
     bool m_useNativeWindowFrame;
+
+    QStringList m_listOfSerifFonts;
+    QStringList m_listOfSansSerifFonts;
+    QStringList m_listOfMonoFonts;
+    int m_chosenSerifFontIndex;
+    int m_chosenSansSerifFontIndex;
+    int m_chosenMonoFontIndex;
+    int m_editorMediumFontSize;
+    int m_currentFontPointSize;
+    struct m_charsLimitPerFont {
+        int mono;
+        int serif;
+        int sansSerif;
+    } m_currentCharsLimitPerFont;
+    FontTypeface m_currentFontTypeface;
+    QString m_currentFontFamily;
+    QFont m_currentSelectedFont;
+    QString m_displayFont;
+    QColor m_currentEditorBackgroundColor;
+    QColor m_currentRightFrameColor;
 
     void setupMainWindow();
     void setupFonts();
@@ -162,6 +191,9 @@ private:
     void setupSignalsSlots();
     void autoCheckForUpdates();
     void setupSearchEdit();
+    void resetEditorSettings();
+    void setupTextEditStyleSheet(int paddingLeft, int paddingRight);
+    void alignTextEditText();
     void setupTextEdit();
     void setupDatabases();
     void setupModelView();
@@ -188,6 +220,8 @@ private:
     void executeImport(const bool replace);
     void migrateNote(QString notePath);
     void migrateTrash(QString trashPath);
+    void moveStyleEditorWindow();
+    void setCurrentFontBasedOnTypeface(FontTypeface selectedFontTypeFace);
 
     void dropShadow(QPainter& painter, ShadowType type, ShadowSide side);
     void fillRectWithGradient(QPainter& painter, const QRect& rect, QGradient& gradient);
@@ -204,6 +238,8 @@ private slots:
     void onTrashButtonClicked();
     void onDotsButtonPressed();
     void onDotsButtonClicked();
+    void onStyleEditorButtonPressed();
+    void onStyleEditorButtonClicked();
     void onNotePressed(const QModelIndex &index);
     void onTextEditTextChanged();
     void onSearchEditTextChanged(const QString& keyword);
@@ -239,6 +275,12 @@ private slots:
     void setUseNativeWindowFrame(bool useNativeWindowFrame);
     void toggleStayOnTop();
     void onSearchEditReturnPressed();
+    void changeEditorFontTypeFromStyleButtons(FontTypeface fontType);
+    void changeEditorFontSizeFromStyleButtons(FontSizeAction fontSizeAction);
+    void changeEditorTextWidthFromStyleButtons(EditorTextWidth editorTextWidth);
+    void resetEditorToDefaultSettings();
+    void setThemeColor(ThemeColor themeColor);
+    void createOrSelectFirstNote();
 
 signals:
     void requestNotesList();
@@ -251,6 +293,7 @@ signals:
     void requestMigrateNotes(QList<NoteData *> noteList);
     void requestMigrateTrash(QList<NoteData *> noteList);
     void requestForceLastRowIndexValue(int index);
+    void finishedTextEditSetup();
 };
 
 #endif // MAINWINDOW_H

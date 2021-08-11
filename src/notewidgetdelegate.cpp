@@ -1,5 +1,4 @@
 #include "notewidgetdelegate.h"
-#include "noteview.h"
 #include <QPainter>
 #include <QEvent>
 #include <QDebug>
@@ -11,9 +10,9 @@
 NoteWidgetDelegate::NoteWidgetDelegate(QObject *parent)
     : QStyledItemDelegate(parent),
 #ifdef __APPLE__
-      m_titleFont(QStringLiteral("Helvetica Neue"), 13, 65),
-      m_titleSelectedFont(QStringLiteral("Helvetica Neue"), 13),
-      m_dateFont(QStringLiteral("Helvetica Neue"), 13),
+      m_titleFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto"), 13, 65),
+      m_titleSelectedFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto"), 13),
+      m_dateFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto"), 13),
 #else
       m_titleFont(QStringLiteral("Roboto"), 10, 60),
       m_titleSelectedFont(QStringLiteral("Roboto"), 10),
@@ -284,4 +283,25 @@ void NoteWidgetDelegate::setHoveredIndex(const QModelIndex &hoveredIndex)
 void NoteWidgetDelegate::setCurrentSelectedIndex(const QModelIndex &currentSelectedIndex)
 {
     m_currentSelectedIndex = currentSelectedIndex;
+}
+
+void NoteWidgetDelegate::setThemeColor(NoteView::ThemeColor themeColor)
+{
+    switch(themeColor){
+    case NoteView::ThemeColor::Light:
+    {
+        m_defaultColor = QColor(255, 255, 255);
+        break;
+    }
+    case NoteView::ThemeColor::Dark:
+    {
+        m_defaultColor = QColor(16, 16, 16);
+        break;
+    }
+    case NoteView::ThemeColor::Sepia:
+    {
+        m_defaultColor = QColor(251, 240, 217);
+        break;
+    }
+    }
 }

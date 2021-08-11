@@ -1,6 +1,7 @@
 #ifndef NOTEWIDGETDELEGATE_H
 #define NOTEWIDGETDELEGATE_H
 
+#include "noteview.h"
 #include <QStyledItemDelegate>
 #include <QTimeLine>
 
@@ -34,6 +35,7 @@ public:
     void setHoveredIndex(const QModelIndex &hoveredIndex);
     void setRowRightOffset(int rowRightOffset);
     void setActive(bool isActive);
+    void setThemeColor(NoteView::ThemeColor themeColor);
 
 private:
     void paintBackground(QPainter* painter, const QStyleOptionViewItem &option, const QModelIndex &index)const;

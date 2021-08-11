@@ -1,8 +1,57 @@
 <RCC>
     <qresource prefix="/">
         <file>fonts/roboto-hinted/Roboto-Medium.ttf</file>
-        <file>fonts/arimo/Arimo-Regular.ttf</file>
         <file>fonts/roboto-hinted/Roboto-Bold.ttf</file>
         <file>fonts/roboto-hinted/Roboto-Regular.ttf</file>
+        <file>fonts/josefinsans/JosefinSans-Bold.ttf</file>
+        <file>fonts/josefinsans/JosefinSans-BoldItalic.ttf</file>
+        <file>fonts/josefinsans/JosefinSans-ExtraLight.ttf</file>
+        <file>fonts/josefinsans/JosefinSans-ExtraLightItalic.ttf</file>
+        <file>fonts/josefinsans/JosefinSans-Italic.ttf</file>
+        <file>fonts/josefinsans/JosefinSans-Light.ttf</file>
+        <file>fonts/josefinsans/JosefinSans-LightItalic.ttf</file>
+        <file>fonts/josefinsans/JosefinSans-Medium.ttf</file>
+        <file>fonts/josefinsans/JosefinSans-MediumItalic.ttf</file>
+        <file>fonts/josefinsans/JosefinSans-Regular.ttf</file>
+        <file>fonts/josefinsans/JosefinSans-SemiBold.ttf</file>
+        <file>fonts/josefinsans/JosefinSans-SemiBoldItalic.ttf</file>
+        <file>fonts/josefinsans/JosefinSans-Thin.ttf</file>
+        <file>fonts/josefinsans/JosefinSans-ThinItalic.ttf</file>
+        <file>fonts/jost/Jost-Black.ttf</file>
+        <file>fonts/jost/Jost-BlackItalic.ttf</file>
+        <file>fonts/jost/Jost-Bold.ttf</file>
+        <file>fonts/jost/Jost-BoldItalic.ttf</file>
+        <file>fonts/jost/Jost-ExtraBold.ttf</file>
+        <file>fonts/jost/Jost-ExtraBoldItalic.ttf</file>
+        <file>fonts/jost/Jost-ExtraLight.ttf</file>
+        <file>fonts/jost/Jost-ExtraLightItalic.ttf</file>
+        <file>fonts/jost/Jost-Italic.ttf</file>
+        <file>fonts/jost/Jost-Light.ttf</file>
+        <file>fonts/jost/Jost-LightItalic.ttf</file>
+        <file>fonts/jost/Jost-Medium.ttf</file>
+        <file>fonts/jost/Jost-MediumItalic.ttf</file>
+        <file>fonts/jost/Jost-Regular.ttf</file>
+        <file>fonts/jost/Jost-SemiBold.ttf</file>
+        <file>fonts/jost/Jost-SemiBoldItalic.ttf</file>
+        <file>fonts/jost/Jost-Thin.ttf</file>
+        <file>fonts/jost/Jost-ThinItalic.ttf</file>
+        <file>fonts/dmsans/DMSans-Bold.ttf</file>
+        <file>fonts/dmsans/DMSans-Italic.ttf</file>
+        <file>fonts/dmsans/DMSans-Regular.ttf</file>
+        <file>fonts/trykker/Trykker-Regular.ttf</file>
+        <file>fonts/mate/Mate-Regular.ttf</file>
+        <file>fonts/mate/Mate-Italic.ttf</file>
+        <file>fonts/iaduo/iAWriterDuoS-Bold.ttf</file>
+        <file>fonts/iaduo/iAWriterDuoS-BoldItalic.ttf</file>
+        <file>fonts/iaduo/iAWriterDuoS-Italic.ttf</file>
+        <file>fonts/iaduo/iAWriterDuoS-Regular.ttf</file>
+        <file>fonts/iamono/iAWriterMonoS-Bold.ttf</file>
+        <file>fonts/iamono/iAWriterMonoS-BoldItalic.ttf</file>
+        <file>fonts/iamono/iAWriterMonoS-Italic.ttf</file>
+        <file>fonts/iamono/iAWriterMonoS-Regular.ttf</file>
+        <file>fonts/iaquattro/iAWriterQuattroS-Bold.ttf</file>
+        <file>fonts/iaquattro/iAWriterQuattroS-BoldItalic.ttf</file>
+        <file>fonts/iaquattro/iAWriterQuattroS-Italic.ttf</file>
+        <file>fonts/iaquattro/iAWriterQuattroS-Regular.ttf</file>
     </qresource>
 </RCC>

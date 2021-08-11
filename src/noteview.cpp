@@ -14,7 +14,8 @@ NoteView::NoteView(QWidget *parent)
       m_isScrollBarHidden(true),
       m_animationEnabled(true),
       m_isMousePressed(false),
-      m_rowHeight(38)
+      m_rowHeight(38),
+      m_currentBackgroundColor(255, 255, 255)
 {
     this->setAttribute(Qt::WA_MacShowFocusRect, 0);
 
@@ -302,7 +303,7 @@ void NoteView::setupSignalsSlots()
  */
 void NoteView::setupStyleSheet()
 {
-    QString ss = QString("QListView {background-color: rgb(255, 255, 255);} "
+    QString ss = QString("QListView {background-color: %1;} "
                          "QScrollBar {margin-right: 2px; background: transparent;} "
                          "QScrollBar:hover { background-color: rgb(217, 217, 217);}"
                          "QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
@@ -311,7 +312,33 @@ void NoteView::setupStyleSheet()
                          "QScrollBar::handle:vertical { border-radius: 4px; background: rgb(188, 188, 188); min-height: 20px; }  "
                          "QScrollBar::add-line:vertical { height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
                          "QScrollBar::sub-line:vertical { height: 0px; subcontrol-position: top; subcontrol-origin: margin; }"
-                         );
+                         ).arg(m_currentBackgroundColor.name());
 
     setStyleSheet(ss);
+}
+
+/**
+ * @brief Set theme color for noteView
+ */
+void NoteView::setThemeColor(ThemeColor themeColor)
+{
+    switch(themeColor){
+    case ThemeColor::Light:
+    {
+        m_currentBackgroundColor = QColor(255, 255, 255);
+        break;
+    }
+    case ThemeColor::Dark:
+    {
+        m_currentBackgroundColor = QColor(16, 16, 16);
+        break;
+    }
+    case ThemeColor::Sepia:
+    {
+        m_currentBackgroundColor = QColor(251, 240, 217);
+        break;
+    }
+    }
+
+    setupStyleSheet();
 }

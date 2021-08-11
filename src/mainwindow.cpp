@@ -41,6 +41,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_newNoteButton(Q_NULLPTR),
     m_trashButton(Q_NULLPTR),
     m_dotsButton(Q_NULLPTR),
+    m_styleEditorButton(Q_NULLPTR),
     m_textEdit(Q_NULLPTR),
     m_searchEdit(Q_NULLPTR),
     m_editorDateLabel(Q_NULLPTR),
@@ -60,6 +61,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_layoutMargin(10),
     m_shadowWidth(10),
     m_noteListWidth(200),
+    m_smallEditorWidth(420),
+    m_largeEditorWidth(1250),
     m_canMoveWindow(false),
     m_canStretchWindow(false),
     m_isTemp(false),
@@ -68,7 +71,17 @@ MainWindow::MainWindow(QWidget *parent) :
     m_isOperationRunning(false),
     m_dontShowUpdateWindow(false),
     m_alwaysStayOnTop(false),
-    m_useNativeWindowFrame(false)
+    m_useNativeWindowFrame(false),
+    m_listOfSerifFonts({QStringLiteral("Trykker"), QStringLiteral("Mate")}),
+    m_listOfSansSerifFonts({QStringLiteral("DMSans"), QStringLiteral("Jost")}),
+    m_listOfMonoFonts({QStringLiteral("iA Writer Mono S"), QStringLiteral("iA Writer Duo S"), QStringLiteral("iA Writer Quattro S")}),
+    m_chosenSerifFontIndex(0),
+    m_chosenSansSerifFontIndex(0),
+    m_chosenMonoFontIndex(0),
+    m_currentFontTypeface(FontTypeface::Serif),
+    m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")),
+    m_currentEditorBackgroundColor(247, 247, 247),
+    m_currentRightFrameColor(247, 247, 247)
 {
     ui->setupUi(this);
     setupMainWindow();
@@ -245,6 +258,7 @@ void MainWindow::setupMainWindow()
     m_newNoteButton = ui->newNoteButton;
     m_trashButton = ui->trashButton;
     m_dotsButton = ui->dotsButton;
+    m_styleEditorButton = ui->styleEditorButton;
     m_searchEdit = ui->searchEdit;
     m_textEdit = ui->textEdit;
     m_editorDateLabel = ui->editorDateLabel;
@@ -269,6 +283,7 @@ void MainWindow::setupMainWindow()
     m_newNoteButton->setToolTip(tr("Create New Note"));
     m_trashButton->setToolTip(tr("Delete Selected Note"));
     m_dotsButton->setToolTip(tr("Open Menu"));
+    m_styleEditorButton->setToolTip(tr("Style The Editor"));
 }
 
 /*!
@@ -277,11 +292,11 @@ void MainWindow::setupMainWindow()
 void MainWindow::setupFonts()
 {
 #ifdef __APPLE__
-    m_searchEdit->setFont(QFont("Helvetica Neue", 12));
-    m_editorDateLabel->setFont(QFont("Helvetica Neue", 12, 65));
+    m_searchEdit->setFont(QFont(m_displayFont, 12));
+    m_editorDateLabel->setFont(QFont(m_displayFont, 12, 65));
 #else
-    m_searchEdit->setFont(QFont(QStringLiteral("Roboto"), 10));
-    m_editorDateLabel->setFont(QFont(QStringLiteral("Roboto"), 10, QFont::Bold));
+    m_searchEdit->setFont(QFont(m_displayFont, 10));
+    m_editorDateLabel->setFont(QFont(m_displayFont, 10, QFont::Bold));
 #endif
 }
 
@@ -359,10 +374,12 @@ void MainWindow::setupNewNoteButtonAndTrahButton()
     m_newNoteButton->setStyleSheet(ss);
     m_trashButton->setStyleSheet(ss);
     m_dotsButton->setStyleSheet(ss);
+    m_styleEditorButton->setStyleSheet(ss);
 
     m_newNoteButton->installEventFilter(this);
     m_trashButton->installEventFilter(this);
     m_dotsButton->installEventFilter(this);
+    m_styleEditorButton->installEventFilter(this);
 }
 
 /*!
@@ -396,9 +413,9 @@ void MainWindow::setupLine()
 void MainWindow::setupRightFrame()
 {
     QString ss = QStringLiteral("QFrame{ "
-                 "  background-image: url(:images/textEdit_background_pattern.png); "
+                 "  background-color: %1; "
                  "  border: none;"
-                 "}");
+                 "}").arg(m_currentRightFrameColor.name());
     ui->frameRight->setStyleSheet(ss);
 }
 
@@ -440,7 +457,13 @@ void MainWindow::setupTitleBarButtons()
  */
 void MainWindow::setupSignalsSlots()
 {
-    connect(&m_updater, &UpdaterWindow::dontShowUpdateWindowChanged, [=](bool state){m_dontShowUpdateWindow = state;});
+    connect(&m_updater, &UpdaterWindow::dontShowUpdateWindowChanged, [=](bool state){m_dontShowUpdateWindow = state;});    
+    // Style Editor Window
+    connect(&m_styleEditorWindow, &StyleEditorWindow::changeFontType, this, [=](FontTypeface fontType){changeEditorFontTypeFromStyleButtons(fontType);});
+    connect(&m_styleEditorWindow, &StyleEditorWindow::changeFontSize, this, [=](FontSizeAction fontSizeAction){changeEditorFontSizeFromStyleButtons(fontSizeAction);});
+    connect(&m_styleEditorWindow, &StyleEditorWindow::changeEditorTextWidth, this, [=](EditorTextWidth editorTextWidth){changeEditorTextWidthFromStyleButtons(editorTextWidth);});
+    connect(&m_styleEditorWindow, &StyleEditorWindow::resetEditorToDefaultSettings, this, [=](){resetEditorToDefaultSettings();});
+    connect(&m_styleEditorWindow, &StyleEditorWindow::changeThemeColor, this, [=](ThemeColor themeColor){setThemeColor(themeColor);});
     // actions
     // connect(rightToLeftActionion, &QAction::triggered, this, );
     //connect(checkForUpdatesAction, &QAction::triggered, this, );
@@ -463,6 +486,9 @@ void MainWindow::setupSignalsSlots()
     // 3 dots button
     connect(m_dotsButton, &QPushButton::pressed, this, &MainWindow::onDotsButtonPressed);
     connect(m_dotsButton, &QPushButton::clicked, this, &MainWindow::onDotsButtonClicked);
+    // Style Editor Button
+    connect(m_styleEditorButton, &QPushButton::pressed, this, &MainWindow::onStyleEditorButtonPressed);
+    connect(m_styleEditorButton, &QPushButton::clicked, this, &MainWindow::onStyleEditorButtonClicked);
     // text edit text changed
     connect(m_textEdit, &QTextEdit::textChanged, this, &MainWindow::onTextEditTextChanged);
     // line edit text changed
@@ -596,15 +622,72 @@ void MainWindow::setupSearchEdit()
 }
 
 /*!
- * \brief MainWindow::setupTextEdit
- * Setting up textEdit:
- * Setup the style of the scrollBar and set textEdit background to an image
- * Make the textEdit pedding few pixels right and left, to compel with a beautiful proportional grid
- * And install this class event filter to catch when text edit is having focus
+ * \brief MainWindow::setCurrentFontBasedOnTypeface
+ * Set the current font based on a given typeface
  */
-void MainWindow::setupTextEdit()
-{   
-    QString ss = QString("QTextEdit {background-image: url(:images/textEdit_background_pattern.png); padding-left: %1px; padding-right: %2px; padding-bottom:2px;} "
+void MainWindow::setCurrentFontBasedOnTypeface(FontTypeface selectedFontTypeFace)
+{
+    m_currentFontTypeface = selectedFontTypeFace;
+    switch(selectedFontTypeFace) {
+    case FontTypeface::Mono:
+        m_currentFontFamily = m_listOfMonoFonts.at(m_chosenMonoFontIndex);
+        m_textEdit->setLineWrapColumnOrWidth(m_currentCharsLimitPerFont.mono);
+        break;
+    case FontTypeface::Serif:
+        m_currentFontFamily = m_listOfSerifFonts.at(m_chosenSerifFontIndex);
+        m_textEdit->setLineWrapColumnOrWidth(m_currentCharsLimitPerFont.serif);
+        break;
+    case FontTypeface::SansSerif:
+        m_currentFontFamily = m_listOfSansSerifFonts.at(m_chosenSansSerifFontIndex);
+        m_textEdit->setLineWrapColumnOrWidth(m_currentCharsLimitPerFont.sansSerif);
+        break;
+    }
+
+#ifdef __APPLE__
+        int increaseSize = 2;
+#else
+        int increaseSize = 1;
+#endif
+
+        if(m_textEdit->width() < m_smallEditorWidth) {
+            m_currentFontPointSize = m_editorMediumFontSize - 2;
+        } else if(m_textEdit->width() > m_smallEditorWidth && m_textEdit->width() < m_largeEditorWidth) {
+            m_currentFontPointSize = m_editorMediumFontSize;
+        } else if(m_textEdit->width() > m_largeEditorWidth) {
+            m_currentFontPointSize = m_editorMediumFontSize + increaseSize;
+        }
+
+    m_currentSelectedFont = QFont(m_currentFontFamily, m_currentFontPointSize, QFont::Normal);
+    m_textEdit->setFont(m_currentSelectedFont);
+
+    alignTextEditText();
+}
+
+/*!
+ * \brief MainWindow::resetEditorSettings
+ * Setting up some editor (textEdit) variables:
+ * This function is seperate from setupTextEdit to allow people
+ * to reset settings using the styleEditorWindow
+ */
+void MainWindow::resetEditorSettings()
+{
+#ifdef __APPLE__
+    m_editorMediumFontSize = 17;
+#else
+    m_editorMediumFontSize = 13;
+#endif
+    m_currentFontPointSize = m_editorMediumFontSize;
+    m_currentCharsLimitPerFont.mono = 64;
+    m_currentCharsLimitPerFont.serif = 80;
+    m_currentCharsLimitPerFont.sansSerif = 80;
+    m_textEdit->setLineWrapMode(QTextEdit::FixedColumnWidth);
+    m_textEdit->setWordWrapMode(QTextOption::WordWrap);
+    setCurrentFontBasedOnTypeface(m_currentFontTypeface);
+}
+
+void MainWindow::setupTextEditStyleSheet(int paddingLeft, int paddingRight)
+{
+    QString ss = QString("QTextEdit {background-color: %3; padding-left: %1px; padding-right: %2px; padding-bottom:2px;} "
                          "QTextEdit{selection-background-color: rgb(63, 99, 139);}"
                          "QScrollBar::handle:vertical:hover { background: rgb(170, 170, 171); } "
                          "QScrollBar::handle:vertical:pressed { background: rgb(149, 149, 149); } "
@@ -614,22 +697,74 @@ void MainWindow::setupTextEdit()
                          "QScrollBar:hover { background-color: rgb(217, 217, 217);}"
                          "QScrollBar::add-line:vertical { width:0px; height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
                          "QScrollBar::sub-line:vertical { width:0px; height: 0px; subcontrol-position: top; subcontrol-origin: margin; }"
-                         ).arg("27", "27");
+                         ).arg(QString::number(paddingLeft), QString::number(paddingRight), m_currentEditorBackgroundColor.name());
 
     m_textEdit->setStyleSheet(ss);
+}
 
+/*!
+ * \brief MainWindow::alignTextEditText
+ * If textEdit's text can be contained (enough space for current chars limit per font)
+ * then, align textEdit's text to the center by padding textEdit's margins
+ */
+void MainWindow::alignTextEditText()
+{
+    if(m_textEdit->lineWrapMode() == QTextEdit::WidgetWidth){
+        setupTextEditStyleSheet(m_currentMinimumEditorPadding, m_currentMinimumEditorPadding);
+        return;
+    }
+
+    QFontMetricsF fm(m_currentSelectedFont);
+    QString limitingStringSample = QString("The quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog");
+    limitingStringSample.truncate(m_textEdit->lineWrapColumnOrWidth());
+    qreal textSamplePixelsWidth = fm.width(limitingStringSample);
+    m_currentAdaptableEditorPadding = (m_textEdit->width() - textSamplePixelsWidth) / 2 - 10;
+
+
+    if(m_textEdit->width() - m_currentMinimumEditorPadding*2 > textSamplePixelsWidth &&
+            m_currentAdaptableEditorPadding > 0 &&
+            m_currentAdaptableEditorPadding > m_currentMinimumEditorPadding) {
+        setupTextEditStyleSheet(m_currentAdaptableEditorPadding, m_currentAdaptableEditorPadding);
+    } else {
+        setupTextEditStyleSheet(m_currentMinimumEditorPadding, m_currentMinimumEditorPadding);
+    }
+}
+
+/*!
+ * \brief MainWindow::setupTextEdit
+ * Setting up textEdit:
+ * Setup the style of the scrollBar and set textEdit background to an image
+ * Make the textEdit pedding few pixels right and left, to compel with a beautiful proportional grid
+ * And install this class event filter to catch when text edit is having focus
+ */
+void MainWindow::setupTextEdit()
+{   
+    setupTextEditStyleSheet(0, 0);
     m_textEdit->installEventFilter(this);
     m_textEdit->verticalScrollBar()->installEventFilter(this);
-    m_textEdit->setFont(QFont(QStringLiteral("Arimo"), 11, QFont::Normal));
+    m_textEdit->setCursorWidth(2);
+    m_textEdit->setTextColor(QColor(26, 26, 26));
+
+#ifdef __APPLE__
+    if(QFont("SF Pro Text").exactMatch()) {
+        m_listOfSansSerifFonts.push_front("SF Pro Text");
+    } else if(QFont("Helvetica Neue").exactMatch()) {
+        m_listOfSansSerifFonts.push_front("Helvetica Neue");
+    } else if(QFont("Helvetica").exactMatch()) {
+        m_listOfSansSerifFonts.push_front("Helvetica");
+    }
+#endif
+
+    resetEditorSettings();
+
+    m_styleEditorWindow.changeSelectedFontLabel(FontTypeface::Mono, m_listOfMonoFonts.at(m_chosenMonoFontIndex));
+    m_styleEditorWindow.changeSelectedFontLabel(FontTypeface::Serif, m_listOfSerifFonts.at(m_chosenSerifFontIndex));
+    m_styleEditorWindow.changeSelectedFontLabel(FontTypeface::SansSerif, m_listOfSansSerifFonts.at(m_chosenSansSerifFontIndex));
 
     // This is done because for now where we're only handling plain text,
     // and we don't want people to past rich text and get something wrong.
     // In future versions, where we'll support rich text, we'll need to change that.
     m_textEdit->setAcceptRichText(false);
-
-#ifdef __APPLE__
-    m_textEdit->setFont(QFont(QStringLiteral("Helvetica Neue"), 14));
-#endif
 }
 
 /*!
@@ -845,6 +980,16 @@ void MainWindow::showNoteInEditor(const QModelIndex &noteIndex)
 }
 
 /*!
+ * \brief MainWindow::createOrSelectFirstNote
+ * Either create a new note if the user has no notes in the folder
+ * or select the first note from the list
+ */
+void MainWindow::createOrSelectFirstNote() {
+    createNewNoteIfEmpty();
+    selectFirstNote();
+}
+
+/*!
  * \brief MainWindow::loadNotes
  * Load all the notes from database
  * add data to the models
@@ -862,9 +1007,7 @@ void MainWindow::loadNotes(QList<NoteData *> noteList, int noteCounter)
 
     m_noteCounter = noteCounter;
 
-    // TODO: move this from here
-    createNewNoteIfEmpty();
-    selectFirstNote();
+    createOrSelectFirstNote();
 }
 
 /*!
@@ -937,6 +1080,7 @@ void MainWindow::setButtonsAndFieldsEnabled(bool doEnable)
     m_searchEdit->setEnabled(doEnable);
     m_textEdit->setEnabled(doEnable);
     m_dotsButton->setEnabled(doEnable);
+    m_styleEditorButton->setEnabled(doEnable);
 }
 
 /*!
@@ -1019,13 +1163,13 @@ void MainWindow::onDotsButtonClicked()
     mainMenu.setToolTipsVisible(true);
 
 #ifdef __APPLE__
-    mainMenu.setFont(QFont(QStringLiteral("Helvetica Neue"), 13));
-    viewMenu->setFont(QFont(QStringLiteral("Helvetica Neue"), 13));
-    importExportNotesMenu->setFont(QFont(QStringLiteral("Helvetica Neue"), 13));
+    mainMenu.setFont(QFont(m_displayFont, 13));
+    viewMenu->setFont(QFont(m_displayFont, 13));
+    importExportNotesMenu->setFont(QFont(m_displayFont, 13));
 #else
-    mainMenu.setFont(QFont(QStringLiteral("Roboto"), 10, QFont::Normal));
-    viewMenu->setFont(QFont(QStringLiteral("Roboto"), 10, QFont::Normal));
-    importExportNotesMenu->setFont(QFont(QStringLiteral("Roboto"), 10, QFont::Normal));
+    mainMenu.setFont(QFont(m_displayFont, 10, QFont::Normal));
+    viewMenu->setFont(QFont(m_displayFont, 10, QFont::Normal));
+    importExportNotesMenu->setFont(QFont(m_displayFont, 10, QFont::Normal));
 #endif
 
     // note list visiblity action
@@ -1117,6 +1261,177 @@ void MainWindow::onDotsButtonClicked()
     connect(useNativeFrameAction, &QAction::triggered, this, &MainWindow::askBeforeSettingNativeWindowFrame);
 
     mainMenu.exec(m_dotsButton->mapToGlobal(QPoint(0, m_dotsButton->height())));
+}
+
+/*!
+ * \brief MainWindow::moveStyleEditorWindow
+ * Move the Style Editor Window to its appropriate place
+ */
+void MainWindow::moveStyleEditorWindow() {
+    m_styleEditorWindow.move(m_newNoteButton->mapToGlobal(QPoint(-m_styleEditorWindow.width()-m_newNoteButton->width(),m_newNoteButton->height())));
+}
+
+/*!
+ * \brief MainWindow::onStyleEditorButtonPressed
+ * When the Style Editor Button is pressed, set it's icon accordingly
+ */
+void MainWindow::onStyleEditorButtonPressed()
+{
+    m_styleEditorButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Pressed.png")));
+}
+
+/*!
+ * \brief MainWindow::onStyleEditorButtonClicked
+ * Open up the editor's styling menu when clicking the Style Editor Button
+ */
+void MainWindow::onStyleEditorButtonClicked()
+{
+    m_styleEditorButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Regular.png")));
+
+    moveStyleEditorWindow();
+
+    if(m_styleEditorWindow.isVisible()) {
+        m_styleEditorWindow.hide();
+    } else {
+        m_styleEditorWindow.show();
+        m_styleEditorWindow.setFocus();
+    }
+}
+
+/*!
+ * \brief MainWindow::changeEditorFontTypeFromStyleButtons
+ * Change the font based on the type passed from the Style Editor Window
+ */
+void MainWindow::changeEditorFontTypeFromStyleButtons(FontTypeface fontTypeface)
+{
+    if(m_currentFontTypeface == fontTypeface) {
+        switch(fontTypeface) {
+        case FontTypeface::Mono:
+            m_chosenMonoFontIndex = m_chosenMonoFontIndex < m_listOfMonoFonts.length()-1 ? m_chosenMonoFontIndex + 1 : 0;
+            break;
+        case FontTypeface::Serif:
+            m_chosenSerifFontIndex = m_chosenSerifFontIndex < m_listOfSerifFonts.length()-1 ? m_chosenSerifFontIndex + 1 : 0;
+            break;
+        case FontTypeface::SansSerif:
+            m_chosenSansSerifFontIndex = m_chosenSansSerifFontIndex < m_listOfSansSerifFonts.length()-1 ? m_chosenSansSerifFontIndex + 1 : 0;
+            break;
+        }
+
+    }
+
+    setCurrentFontBasedOnTypeface(fontTypeface);
+
+    m_styleEditorWindow.changeSelectedFontLabel(fontTypeface, m_currentFontFamily);
+}
+
+/*!
+ * \brief MainWindow::changeEditorFontSizeFromStyleButtons
+ * Change the font size based on the button pressed in the Style Editor Window
+ * Increase / Decrease
+ */
+void MainWindow::changeEditorFontSizeFromStyleButtons(FontSizeAction fontSizeAction)
+{
+    switch(fontSizeAction) {
+    case FontSizeAction::Increase:
+        m_editorMediumFontSize += 1;
+        setCurrentFontBasedOnTypeface(m_currentFontTypeface);
+        break;
+    case FontSizeAction::Decrease:
+        m_editorMediumFontSize -= 1;
+        setCurrentFontBasedOnTypeface(m_currentFontTypeface);
+        break;
+    }
+}
+
+/*!
+ * \brief MainWindow::changeEditorTextWidthFromStyleButtons
+ * Change the text width of the text editor
+ * FullWidth / Increase / Decrease
+ */
+void MainWindow::changeEditorTextWidthFromStyleButtons(EditorTextWidth editorTextWidth)
+{
+    switch(editorTextWidth) {
+    case EditorTextWidth::FullWidth:
+        m_textEdit->setLineWrapMode(QTextEdit::WidgetWidth);
+        break;
+    case EditorTextWidth::Increase:
+        m_textEdit->setLineWrapMode(QTextEdit::FixedColumnWidth);
+        switch(m_currentFontTypeface){
+        case FontTypeface::Mono:
+            m_currentCharsLimitPerFont.mono = m_currentCharsLimitPerFont.mono + 1;
+            break;
+        case FontTypeface::Serif:
+            m_currentCharsLimitPerFont.serif = m_currentCharsLimitPerFont.serif + 1;
+            break;
+        case FontTypeface::SansSerif:
+            m_currentCharsLimitPerFont.sansSerif = m_currentCharsLimitPerFont.sansSerif + 1;
+            break;
+        }
+        break;
+    case EditorTextWidth::Decrease:
+        m_textEdit->setLineWrapMode(QTextEdit::FixedColumnWidth);
+        switch(m_currentFontTypeface){
+        case FontTypeface::Mono:
+            m_currentCharsLimitPerFont.mono -= 1;
+            break;
+        case FontTypeface::Serif:
+            m_currentCharsLimitPerFont.serif -= 1;
+            break;
+        case FontTypeface::SansSerif:
+            m_currentCharsLimitPerFont.sansSerif -= 1;
+            break;
+        }
+        break;
+    }
+
+    setCurrentFontBasedOnTypeface(m_currentFontTypeface);
+}
+
+/*!
+ * \brief MainWindow::resetEditorToDefaultSettings
+ * Reset text editor to default settings
+ */
+void MainWindow::resetEditorToDefaultSettings()
+{
+    resetEditorSettings();
+}
+
+/*!
+ * \brief MainWindow::setThemeColor
+ * Changes the app theme color
+ */
+void MainWindow::setThemeColor(ThemeColor themeColor)
+{
+    switch(themeColor) {
+    case ThemeColor::Light:
+    {
+        m_textEdit->setTextColor(QColor(26, 26, 26));
+        m_currentEditorBackgroundColor = QColor(247, 247, 247);
+        m_currentRightFrameColor = QColor(247, 247, 247);
+        m_noteView->setThemeColor(NoteView::ThemeColor::Light);
+        break;
+    }
+    case ThemeColor::Dark:
+    {
+        m_textEdit->setTextColor(QColor(204, 204, 204));
+        m_currentEditorBackgroundColor = QColor(16, 16, 16);
+        m_currentRightFrameColor = QColor(16, 16, 16);
+        m_noteView->setThemeColor(NoteView::ThemeColor::Dark);
+        break;
+    }
+    case ThemeColor::Sepia:
+    {
+        m_textEdit->setTextColor(QColor(95, 74, 50));
+        m_currentEditorBackgroundColor = QColor(251, 240, 217);
+        m_currentRightFrameColor = QColor(251, 240, 217);
+        m_noteView->setThemeColor(NoteView::ThemeColor::Sepia);
+        break;
+    }
+    }
+
+    m_textEdit->setText(m_textEdit->toPlainText()); // TODO: Update the text color without setting the text
+    alignTextEditText();
+    setupRightFrame();
 }
 
 /*!
@@ -1956,6 +2271,17 @@ void MainWindow::mousePressEvent(QMouseEvent* event)
 }
 
 /*!
+ * \brief MainWindow::moveEvent
+ * If native window is dragged make sure other child windows follow
+ * \param event
+ */
+void MainWindow::moveEvent(QMoveEvent* event){
+    if(m_styleEditorWindow.isVisible()){
+        moveStyleEditorWindow();
+    }
+}
+
+/*!
  * \brief MainWindow::mouseMoveEvent
  * Move the window according to the mouse positions
  * \param event
@@ -2020,6 +2346,9 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
         int dx = event->globalX() - m_mousePressX;
         int dy = event->globalY() - m_mousePressY;
         move (dx, dy);
+        if(m_styleEditorWindow.isVisible()){
+            moveStyleEditorWindow();
+        }
 
     }else if(m_canStretchWindow && !isMaximized() && !isFullScreen()){
         int newX = x();
@@ -2765,6 +3094,25 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
             m_searchEdit->setStyleSheet(ss);
         }
         break;
+    }
+    case QEvent::Resize:{
+        if(m_textEdit->width() < m_smallEditorWidth) {
+            m_currentMinimumEditorPadding = 15;
+        } else if(m_textEdit->width() > m_smallEditorWidth && m_textEdit->width() < 515) {
+            m_currentMinimumEditorPadding = 40;
+        } else if(m_textEdit->width() > 515 && m_textEdit->width() < 755) {
+            m_currentMinimumEditorPadding = 50;
+        } else if(m_textEdit->width() > 755 && m_textEdit->width() < 775) {
+            m_currentMinimumEditorPadding = 60;
+        } else if(m_textEdit->width() > 775 && m_textEdit->width() < 800) {
+            m_currentMinimumEditorPadding = 70;
+        } else if(m_textEdit->width() > 800) {
+            m_currentMinimumEditorPadding = 80;
+        }
+
+        setCurrentFontBasedOnTypeface(m_currentFontTypeface);
+
+//        alignTextEditText();
     }
     case QEvent::Show:
         if(object == &m_updater){
