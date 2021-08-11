@@ -30,7 +30,7 @@ enum class EditorTextWidth {
     Decrease
 };
 
-enum class ThemeColor {
+enum class Theme {
     Light,
     Dark,
     Sepia
@@ -52,7 +52,7 @@ signals:
     void changeFontType(FontTypeface fontType);
     void changeFontSize(FontSizeAction fontSizeAction);
     void changeEditorTextWidth(EditorTextWidth editorTextWidth);
-    void changeThemeColor(ThemeColor themeColor);
+    void changeTheme(Theme theme);
     void resetEditorToDefaultSettings();
 
 private slots:

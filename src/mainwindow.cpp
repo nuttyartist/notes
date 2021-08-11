@@ -81,7 +81,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_currentFontTypeface(FontTypeface::Serif),
     m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")),
     m_currentEditorBackgroundColor(247, 247, 247),
-    m_currentRightFrameColor(247, 247, 247)
+    m_currentRightFrameColor(247, 247, 247),
+    m_currentTheme(Theme::Light)
 {
     ui->setupUi(this);
     setupMainWindow();
@@ -463,7 +464,7 @@ void MainWindow::setupSignalsSlots()
     connect(&m_styleEditorWindow, &StyleEditorWindow::changeFontSize, this, [=](FontSizeAction fontSizeAction){changeEditorFontSizeFromStyleButtons(fontSizeAction);});
     connect(&m_styleEditorWindow, &StyleEditorWindow::changeEditorTextWidth, this, [=](EditorTextWidth editorTextWidth){changeEditorTextWidthFromStyleButtons(editorTextWidth);});
     connect(&m_styleEditorWindow, &StyleEditorWindow::resetEditorToDefaultSettings, this, [=](){resetEditorToDefaultSettings();});
-    connect(&m_styleEditorWindow, &StyleEditorWindow::changeThemeColor, this, [=](ThemeColor themeColor){setThemeColor(themeColor);});
+    connect(&m_styleEditorWindow, &StyleEditorWindow::changeTheme, this, [=](Theme theme){setTheme(theme);});
     // actions
     // connect(rightToLeftActionion, &QAction::triggered, this, );
     //connect(checkForUpdatesAction, &QAction::triggered, this, );
@@ -772,6 +773,7 @@ void MainWindow::setupTextEdit()
  */
 void MainWindow::initializeSettingsDatabase()
 {
+    // Why are we not updating the app version in Settings?
     if(m_settingsDatabase->value(QStringLiteral("version"), "NULL") == "NULL")
         m_settingsDatabase->setValue(QStringLiteral("version"), qApp->applicationVersion());
 
@@ -1264,14 +1266,6 @@ void MainWindow::onDotsButtonClicked()
 }
 
 /*!
- * \brief MainWindow::moveStyleEditorWindow
- * Move the Style Editor Window to its appropriate place
- */
-void MainWindow::moveStyleEditorWindow() {
-    m_styleEditorWindow.move(m_newNoteButton->mapToGlobal(QPoint(-m_styleEditorWindow.width()-m_newNoteButton->width(),m_newNoteButton->height())));
-}
-
-/*!
  * \brief MainWindow::onStyleEditorButtonPressed
  * When the Style Editor Button is pressed, set it's icon accordingly
  */
@@ -1288,7 +1282,7 @@ void MainWindow::onStyleEditorButtonClicked()
 {
     m_styleEditorButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Regular.png")));
 
-    moveStyleEditorWindow();
+    m_styleEditorWindow.move(m_newNoteButton->mapToGlobal(QPoint(-m_styleEditorWindow.width()-m_newNoteButton->width(),m_newNoteButton->height())));
 
     if(m_styleEditorWindow.isVisible()) {
         m_styleEditorWindow.hide();
@@ -1397,34 +1391,34 @@ void MainWindow::resetEditorToDefaultSettings()
 }
 
 /*!
- * \brief MainWindow::setThemeColor
- * Changes the app theme color
+ * \brief MainWindow::setTheme
+ * Changes the app theme
  */
-void MainWindow::setThemeColor(ThemeColor themeColor)
+void MainWindow::setTheme(Theme theme)
 {
-    switch(themeColor) {
-    case ThemeColor::Light:
+    switch(theme) {
+    case Theme::Light:
     {
         m_textEdit->setTextColor(QColor(26, 26, 26));
         m_currentEditorBackgroundColor = QColor(247, 247, 247);
         m_currentRightFrameColor = QColor(247, 247, 247);
-        m_noteView->setThemeColor(NoteView::ThemeColor::Light);
+        m_noteView->setTheme(NoteView::Theme::Light);
         break;
     }
-    case ThemeColor::Dark:
+    case Theme::Dark:
     {
         m_textEdit->setTextColor(QColor(204, 204, 204));
         m_currentEditorBackgroundColor = QColor(16, 16, 16);
         m_currentRightFrameColor = QColor(16, 16, 16);
-        m_noteView->setThemeColor(NoteView::ThemeColor::Dark);
+        m_noteView->setTheme(NoteView::Theme::Dark);
         break;
     }
-    case ThemeColor::Sepia:
+    case Theme::Sepia:
     {
         m_textEdit->setTextColor(QColor(95, 74, 50));
         m_currentEditorBackgroundColor = QColor(251, 240, 217);
         m_currentRightFrameColor = QColor(251, 240, 217);
-        m_noteView->setThemeColor(NoteView::ThemeColor::Sepia);
+        m_noteView->setTheme(NoteView::Theme::Sepia);
         break;
     }
     }
@@ -2193,8 +2187,11 @@ void MainWindow::onRedCloseButtonClicked()
  */
 void MainWindow::closeEvent(QCloseEvent* event)
 {
-    if(windowState() != Qt::WindowFullScreen)
+    if(windowState() != Qt::WindowFullScreen) {
         m_settingsDatabase->setValue(QStringLiteral("windowGeometry"), saveGeometry());
+        if(m_styleEditorWindow.windowState() != Qt::WindowFullScreen)
+            m_settingsDatabase->setValue(QStringLiteral("editorSettingsWindowGeometry"), m_styleEditorWindow.saveGeometry());
+    }
 
     if(m_currentSelectedNoteProxy.isValid()
             &&  m_isContentModified
@@ -2204,8 +2201,38 @@ void MainWindow::closeEvent(QCloseEvent* event)
     }
 
     m_settingsDatabase->setValue(QStringLiteral("dontShowUpdateWindow"), m_dontShowUpdateWindow);
-
     m_settingsDatabase->setValue(QStringLiteral("splitterSizes"), m_splitter->saveState());
+
+    QString currentFontTypefaceString;
+    switch (m_currentFontTypeface) {
+    case FontTypeface::Mono:
+        currentFontTypefaceString = "Mono";
+    case FontTypeface::Serif:
+        currentFontTypefaceString = "Serif";
+    case FontTypeface::SansSerif:
+        currentFontTypefaceString = "SansSerif";
+    }
+    QString currentThemeString;
+    switch (m_currentTheme) {
+    case Theme::Light:
+        currentThemeString = "Light";
+    case Theme::Dark:
+        currentThemeString = "Dark";
+    case Theme::Sepia:
+        currentThemeString = "Sepia";
+    }
+    m_settingsDatabase->setValue(QStringLiteral("selectedFontTypeface"), currentFontTypefaceString);
+    m_settingsDatabase->setValue(QStringLiteral("fontFamilyName"), m_currentFontFamily);
+    m_settingsDatabase->setValue(QStringLiteral("editorMediumFontSize"), m_editorMediumFontSize);
+    m_settingsDatabase->setValue(QStringLiteral("isTextFullWidth"), m_textEdit->lineWrapMode() == QTextEdit::WidgetWidth ? true : false);
+    m_settingsDatabase->setValue(QStringLiteral("charsLimitPerFontMono"), m_currentCharsLimitPerFont.mono);
+    m_settingsDatabase->setValue(QStringLiteral("charsLimitPerFontSerif"), m_currentCharsLimitPerFont.serif);
+    m_settingsDatabase->setValue(QStringLiteral("charsLimitPerFontSansSerif"), m_currentCharsLimitPerFont.sansSerif);
+    m_settingsDatabase->setValue(QStringLiteral("theme"), currentThemeString);
+    m_settingsDatabase->setValue(QStringLiteral("chosenMonoFont"), m_listOfMonoFonts.at(m_chosenMonoFontIndex));
+    m_settingsDatabase->setValue(QStringLiteral("chosenSerifFont"), m_listOfSerifFonts.at(m_chosenSerifFontIndex));
+    m_settingsDatabase->setValue(QStringLiteral("chosenSansSerifFont"), m_listOfSansSerifFonts.at(m_chosenSansSerifFontIndex));
+
     m_settingsDatabase->sync();
 
     QWidget::closeEvent(event);
@@ -2267,17 +2294,6 @@ void MainWindow::mousePressEvent(QMouseEvent* event)
 
     }else{
         QMainWindow::mousePressEvent(event);
-    }
-}
-
-/*!
- * \brief MainWindow::moveEvent
- * If native window is dragged make sure other child windows follow
- * \param event
- */
-void MainWindow::moveEvent(QMoveEvent* event){
-    if(m_styleEditorWindow.isVisible()){
-        moveStyleEditorWindow();
     }
 }
 
@@ -2346,9 +2362,6 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
         int dx = event->globalX() - m_mousePressX;
         int dy = event->globalY() - m_mousePressY;
         move (dx, dy);
-        if(m_styleEditorWindow.isVisible()){
-            moveStyleEditorWindow();
-        }
 
     }else if(m_canStretchWindow && !isMaximized() && !isFullScreen()){
         int newX = x();

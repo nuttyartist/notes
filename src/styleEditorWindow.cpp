@@ -47,9 +47,9 @@ StyleEditorWindow::StyleEditorWindow(QWidget *parent) :
     connect(m_ui->fullWidthButton, &QPushButton::clicked, this, [this]{StyleEditorWindow::changeEditorTextWidth(EditorTextWidth::FullWidth);});
     connect(m_ui->increaseWidthButton, &QPushButton::clicked, this, [this]{StyleEditorWindow::changeEditorTextWidth(EditorTextWidth::Increase);});
     connect(m_ui->decreaseWidthButton, &QPushButton::clicked, this, [this]{StyleEditorWindow::changeEditorTextWidth(EditorTextWidth::Decrease);});
-    connect(m_ui->lightButton, &QPushButton::clicked, this, [this]{StyleEditorWindow::changeThemeColor(ThemeColor::Light);});
-    connect(m_ui->darkButton, &QPushButton::clicked, this, [this]{StyleEditorWindow::changeThemeColor(ThemeColor::Dark);});
-    connect(m_ui->sepiaButton, &QPushButton::clicked, this, [this]{StyleEditorWindow::changeThemeColor(ThemeColor::Sepia);});
+    connect(m_ui->lightButton, &QPushButton::clicked, this, [this]{StyleEditorWindow::changeTheme(Theme::Light);});
+    connect(m_ui->darkButton, &QPushButton::clicked, this, [this]{StyleEditorWindow::changeTheme(Theme::Dark);});
+    connect(m_ui->sepiaButton, &QPushButton::clicked, this, [this]{StyleEditorWindow::changeTheme(Theme::Sepia);});
     connect(m_ui->resetDefaultButton, &QPushButton::clicked, this, [this]{StyleEditorWindow::resetEditorToDefaultSettings();});
 }
 

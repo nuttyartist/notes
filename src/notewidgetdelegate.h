@@ -35,7 +35,7 @@ public:
     void setHoveredIndex(const QModelIndex &hoveredIndex);
     void setRowRightOffset(int rowRightOffset);
     void setActive(bool isActive);
-    void setThemeColor(NoteView::ThemeColor themeColor);
+    void setTheme(NoteView::Theme theme);
 
 private:
     void paintBackground(QPainter* painter, const QStyleOptionViewItem &option, const QModelIndex &index)const;

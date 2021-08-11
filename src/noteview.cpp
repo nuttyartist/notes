@@ -320,20 +320,20 @@ void NoteView::setupStyleSheet()
 /**
  * @brief Set theme color for noteView
  */
-void NoteView::setThemeColor(ThemeColor themeColor)
+void NoteView::setTheme(Theme theme)
 {
-    switch(themeColor){
-    case ThemeColor::Light:
+    switch(theme){
+    case Theme::Light:
     {
         m_currentBackgroundColor = QColor(255, 255, 255);
         break;
     }
-    case ThemeColor::Dark:
+    case Theme::Dark:
     {
         m_currentBackgroundColor = QColor(16, 16, 16);
         break;
     }
-    case ThemeColor::Sepia:
+    case Theme::Sepia:
     {
         m_currentBackgroundColor = QColor(251, 240, 217);
         break;

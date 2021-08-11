@@ -11,7 +11,7 @@ class NoteView : public QListView
     friend class tst_NoteView;
 
 public:
-    enum class ThemeColor {
+    enum class Theme {
         Light,
         Dark,
         Sepia
@@ -23,7 +23,7 @@ public:
     void animateAddedRow(const QModelIndex &parent, int start, int end);
     void setAnimationEnabled(bool isEnabled);
     void setCurrentRowActive(bool isActive);
-    void setThemeColor(ThemeColor themeColor);
+    void setTheme(Theme theme);
 
 protected:
     void paintEvent(QPaintEvent *e) Q_DECL_OVERRIDE;

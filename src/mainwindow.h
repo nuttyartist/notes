@@ -94,7 +94,6 @@ protected:
     void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
     void mouseReleaseEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
     void mouseDoubleClickEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
-    void moveEvent(QMoveEvent* event) Q_DECL_OVERRIDE;
     void leaveEvent(QEvent*) Q_DECL_OVERRIDE;
     bool eventFilter(QObject* object, QEvent* event) Q_DECL_OVERRIDE;
 
@@ -178,6 +177,7 @@ private:
     QString m_displayFont;
     QColor m_currentEditorBackgroundColor;
     QColor m_currentRightFrameColor;
+    Theme m_currentTheme;
 
     void setupMainWindow();
     void setupFonts();
@@ -220,7 +220,6 @@ private:
     void executeImport(const bool replace);
     void migrateNote(QString notePath);
     void migrateTrash(QString trashPath);
-    void moveStyleEditorWindow();
     void setCurrentFontBasedOnTypeface(FontTypeface selectedFontTypeFace);
 
     void dropShadow(QPainter& painter, ShadowType type, ShadowSide side);
@@ -279,7 +278,7 @@ private slots:
     void changeEditorFontSizeFromStyleButtons(FontSizeAction fontSizeAction);
     void changeEditorTextWidthFromStyleButtons(EditorTextWidth editorTextWidth);
     void resetEditorToDefaultSettings();
-    void setThemeColor(ThemeColor themeColor);
+    void setTheme(Theme theme);
     void createOrSelectFirstNote();
 
 signals:

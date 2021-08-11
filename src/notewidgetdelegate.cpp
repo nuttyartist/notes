@@ -285,20 +285,20 @@ void NoteWidgetDelegate::setCurrentSelectedIndex(const QModelIndex &currentSelec
     m_currentSelectedIndex = currentSelectedIndex;
 }
 
-void NoteWidgetDelegate::setThemeColor(NoteView::ThemeColor themeColor)
+void NoteWidgetDelegate::setTheme(NoteView::Theme theme)
 {
-    switch(themeColor){
-    case NoteView::ThemeColor::Light:
+    switch(theme){
+    case NoteView::Theme::Light:
     {
         m_defaultColor = QColor(255, 255, 255);
         break;
     }
-    case NoteView::ThemeColor::Dark:
+    case NoteView::Theme::Dark:
     {
         m_defaultColor = QColor(16, 16, 16);
         break;
     }
-    case NoteView::ThemeColor::Sepia:
+    case NoteView::Theme::Sepia:
     {
         m_defaultColor = QColor(251, 240, 217);
         break;
