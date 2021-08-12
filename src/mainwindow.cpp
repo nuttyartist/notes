@@ -866,6 +866,9 @@ void MainWindow::restoreStates()
     if(m_settingsDatabase->value(QStringLiteral("windowGeometry"), "NULL") != "NULL")
         this->restoreGeometry(m_settingsDatabase->value(QStringLiteral("windowGeometry")).toByteArray());
 
+    if(m_settingsDatabase->value(QStringLiteral("editorSettingsWindowGeometry"), "NULL") != "NULL")
+        m_styleEditorWindow.restoreGeometry(m_settingsDatabase->value(QStringLiteral("editorSettingsWindowGeometry")).toByteArray());
+
 #ifndef _WIN32
     /// Set margin to zero if the window is maximized
     if (isMaximized()) {
@@ -1282,7 +1285,9 @@ void MainWindow::onStyleEditorButtonClicked()
 {
     m_styleEditorButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Regular.png")));
 
-    m_styleEditorWindow.move(m_newNoteButton->mapToGlobal(QPoint(-m_styleEditorWindow.width()-m_newNoteButton->width(),m_newNoteButton->height())));
+
+    if(m_settingsDatabase->value(QStringLiteral("editorSettingsWindowGeometry"), "NULL") == "NULL")
+        m_styleEditorWindow.move(m_newNoteButton->mapToGlobal(QPoint(-m_styleEditorWindow.width()-m_newNoteButton->width(),m_newNoteButton->height())));
 
     if(m_styleEditorWindow.isVisible()) {
         m_styleEditorWindow.hide();
