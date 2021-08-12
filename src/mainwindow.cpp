@@ -78,6 +78,9 @@ MainWindow::MainWindow(QWidget *parent) :
     m_chosenSerifFontIndex(0),
     m_chosenSansSerifFontIndex(0),
     m_chosenMonoFontIndex(0),
+    m_currentCharsLimitPerFont({ 64    // Mono    TODO: is there a proper way to initialize?
+                               , 80    // Serif
+                               , 80}), // SansSerif
     m_currentFontTypeface(FontTypeface::Serif),
     m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")),
     m_currentEditorBackgroundColor(247, 247, 247),
@@ -666,12 +669,14 @@ void MainWindow::setCurrentFontBasedOnTypeface(FontTypeface selectedFontTypeFace
 
 /*!
  * \brief MainWindow::resetEditorSettings
- * Setting up some editor (textEdit) variables:
- * This function is seperate from setupTextEdit to allow people
- * to reset settings using the styleEditorWindow
+ * Reset editor settings to default options
  */
 void MainWindow::resetEditorSettings()
 {
+    m_currentFontTypeface = FontTypeface::Serif;
+    m_chosenMonoFontIndex = 0;
+    m_chosenSerifFontIndex = 0;
+    m_chosenSansSerifFontIndex = 0;
 #ifdef __APPLE__
     m_editorMediumFontSize = 17;
 #else
@@ -683,7 +688,13 @@ void MainWindow::resetEditorSettings()
     m_currentCharsLimitPerFont.sansSerif = 80;
     m_textEdit->setLineWrapMode(QTextEdit::FixedColumnWidth);
     m_textEdit->setWordWrapMode(QTextOption::WordWrap);
+
+    m_styleEditorWindow.changeSelectedFontLabel(FontTypeface::Mono, m_listOfMonoFonts.at(m_chosenMonoFontIndex));
+    m_styleEditorWindow.changeSelectedFontLabel(FontTypeface::Serif, m_listOfSerifFonts.at(m_chosenSerifFontIndex));
+    m_styleEditorWindow.changeSelectedFontLabel(FontTypeface::SansSerif, m_listOfSansSerifFonts.at(m_chosenSansSerifFontIndex));
+
     setCurrentFontBasedOnTypeface(m_currentFontTypeface);
+    setTheme(Theme::Light);
 }
 
 void MainWindow::setupTextEditStyleSheet(int paddingLeft, int paddingRight)
@@ -745,6 +756,7 @@ void MainWindow::setupTextEdit()
     m_textEdit->verticalScrollBar()->installEventFilter(this);
     m_textEdit->setCursorWidth(2);
     m_textEdit->setTextColor(QColor(26, 26, 26));
+    m_textEdit->setWordWrapMode(QTextOption::WordWrap);
 
 #ifdef __APPLE__
     if(QFont("SF Pro Text").exactMatch()) {
@@ -755,12 +767,6 @@ void MainWindow::setupTextEdit()
         m_listOfSansSerifFonts.push_front("Helvetica");
     }
 #endif
-
-    resetEditorSettings();
-
-    m_styleEditorWindow.changeSelectedFontLabel(FontTypeface::Mono, m_listOfMonoFonts.at(m_chosenMonoFontIndex));
-    m_styleEditorWindow.changeSelectedFontLabel(FontTypeface::Serif, m_listOfSerifFonts.at(m_chosenSerifFontIndex));
-    m_styleEditorWindow.changeSelectedFontLabel(FontTypeface::SansSerif, m_listOfSansSerifFonts.at(m_chosenSansSerifFontIndex));
 
     // This is done because for now where we're only handling plain text,
     // and we don't want people to past rich text and get something wrong.
@@ -885,6 +891,86 @@ void MainWindow::restoreStates()
         m_splitter->restoreState(m_settingsDatabase->value(QStringLiteral("splitterSizes")).toByteArray());
     m_noteListWidth = m_splitter->sizes().at(0);
     m_splitter->setCollapsible(0, false);
+
+    QString selectedFontTypefaceFromDatabase = m_settingsDatabase->value(QStringLiteral("selectedFontTypeface"), "NULL").toString();
+    if(selectedFontTypefaceFromDatabase != "NULL") {
+        if(selectedFontTypefaceFromDatabase == "Mono") {
+            m_currentFontTypeface = FontTypeface::Mono;
+        } else if(selectedFontTypefaceFromDatabase == "Serif") {
+            m_currentFontTypeface = FontTypeface::Serif;
+        } else if(selectedFontTypefaceFromDatabase == "SansSerif") {
+            m_currentFontTypeface = FontTypeface::SansSerif;
+        }
+    }
+
+    if(m_settingsDatabase->value(QStringLiteral("editorMediumFontSize"), "NULL") != "NULL") {
+        m_editorMediumFontSize = m_settingsDatabase->value(QStringLiteral("editorMediumFontSize")).toInt();
+    } else {
+#ifdef __APPLE__
+        m_editorMediumFontSize = 17;
+#else
+        m_editorMediumFontSize = 13;
+#endif
+    }
+    m_currentFontPointSize = m_editorMediumFontSize;
+
+    if(m_settingsDatabase->value(QStringLiteral("isTextFullWidth"), "NULL") != "NULL") {
+        bool isTextFullWidth = m_settingsDatabase->value(QStringLiteral("isTextFullWidth")).toBool();
+        if(isTextFullWidth) {
+            m_textEdit->setLineWrapMode(QTextEdit::WidgetWidth);
+        } else {
+            m_textEdit->setLineWrapMode(QTextEdit::FixedColumnWidth);
+        }
+    } else {
+        m_textEdit->setLineWrapMode(QTextEdit::FixedColumnWidth);
+    }
+
+    if(m_settingsDatabase->value(QStringLiteral("charsLimitPerFontMono"), "NULL") != "NULL")
+        m_currentCharsLimitPerFont.mono = m_settingsDatabase->value(QStringLiteral("charsLimitPerFontMono")).toInt();
+    if(m_settingsDatabase->value(QStringLiteral("charsLimitPerFontSerif"), "NULL") != "NULL")
+        m_currentCharsLimitPerFont.serif = m_settingsDatabase->value(QStringLiteral("charsLimitPerFontSerif")).toInt();
+    if(m_settingsDatabase->value(QStringLiteral("charsLimitPerFontSansSerif"), "NULL") != "NULL")
+        m_currentCharsLimitPerFont.sansSerif = m_settingsDatabase->value(QStringLiteral("charsLimitPerFontSansSerif")).toInt();
+
+    if(m_settingsDatabase->value(QStringLiteral("chosenMonoFont"), "NULL") != "NULL") {
+        QString fontName = m_settingsDatabase->value(QStringLiteral("chosenMonoFont")).toString();
+        int fontIndex = m_listOfMonoFonts.indexOf(fontName);
+        if(fontIndex != -1) {
+            m_chosenMonoFontIndex = fontIndex;
+        }
+    }
+    if(m_settingsDatabase->value(QStringLiteral("chosenSerifFont"), "NULL") != "NULL") {
+        QString fontName = m_settingsDatabase->value(QStringLiteral("chosenSerifFont")).toString();
+        int fontIndex = m_listOfSerifFonts.indexOf(fontName);
+        if(fontIndex != -1) {
+            m_chosenSerifFontIndex = fontIndex;
+        }
+    }
+    if(m_settingsDatabase->value(QStringLiteral("chosenSansSerifFont"), "NULL") != "NULL") {
+        QString fontName = m_settingsDatabase->value(QStringLiteral("chosenSansSerifFont")).toString();
+        int fontIndex = m_listOfSansSerifFonts.indexOf(fontName);
+        if(fontIndex != -1) {
+            m_chosenSansSerifFontIndex = fontIndex;
+        }
+    }
+
+    if(m_settingsDatabase->value(QStringLiteral("theme"), "NULL") != "NULL") {
+        QString chosenTheme = m_settingsDatabase->value(QStringLiteral("theme")).toString();
+        if (chosenTheme == "Light") {
+            m_currentTheme = Theme::Light;
+        } else if(chosenTheme == "Dark") {
+            m_currentTheme = Theme::Dark;
+        } else if(chosenTheme == "Sepia") {
+            m_currentTheme = Theme::Sepia;
+        }
+    }
+
+    m_styleEditorWindow.changeSelectedFontLabel(FontTypeface::Mono, m_listOfMonoFonts.at(m_chosenMonoFontIndex));
+    m_styleEditorWindow.changeSelectedFontLabel(FontTypeface::Serif, m_listOfSerifFonts.at(m_chosenSerifFontIndex));
+    m_styleEditorWindow.changeSelectedFontLabel(FontTypeface::SansSerif, m_listOfSansSerifFonts.at(m_chosenSansSerifFontIndex));
+
+    setCurrentFontBasedOnTypeface(m_currentFontTypeface);
+    setTheme(m_currentTheme);
 }
 
 /*!
@@ -1401,6 +1487,7 @@ void MainWindow::resetEditorToDefaultSettings()
  */
 void MainWindow::setTheme(Theme theme)
 {
+    m_currentTheme = theme;
     switch(theme) {
     case Theme::Light:
     {
@@ -2212,22 +2299,27 @@ void MainWindow::closeEvent(QCloseEvent* event)
     switch (m_currentFontTypeface) {
     case FontTypeface::Mono:
         currentFontTypefaceString = "Mono";
+        break;
     case FontTypeface::Serif:
         currentFontTypefaceString = "Serif";
+        break;
     case FontTypeface::SansSerif:
         currentFontTypefaceString = "SansSerif";
+        break;
     }
     QString currentThemeString;
     switch (m_currentTheme) {
     case Theme::Light:
         currentThemeString = "Light";
+        break;
     case Theme::Dark:
         currentThemeString = "Dark";
+        break;
     case Theme::Sepia:
         currentThemeString = "Sepia";
+        break;
     }
     m_settingsDatabase->setValue(QStringLiteral("selectedFontTypeface"), currentFontTypefaceString);
-    m_settingsDatabase->setValue(QStringLiteral("fontFamilyName"), m_currentFontFamily);
     m_settingsDatabase->setValue(QStringLiteral("editorMediumFontSize"), m_editorMediumFontSize);
     m_settingsDatabase->setValue(QStringLiteral("isTextFullWidth"), m_textEdit->lineWrapMode() == QTextEdit::WidgetWidth ? true : false);
     m_settingsDatabase->setValue(QStringLiteral("charsLimitPerFontMono"), m_currentCharsLimitPerFont.mono);
