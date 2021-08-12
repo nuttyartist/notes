@@ -14,7 +14,7 @@ StyleEditorWindow::StyleEditorWindow(QWidget *parent) :
     m_ui->setupUi(this);
     this->installEventFilter(this);
     this->setWindowTitle("Editor Settings");
-    this->setWindowFlags(Qt::WindowStaysOnTopHint);
+    this->setWindowFlags(Qt::Window | Qt::WindowStaysOnTopHint);
 
     this->setFont(QFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")));
 

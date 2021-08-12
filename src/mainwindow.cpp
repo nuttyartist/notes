@@ -56,6 +56,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_proxyModel(new QSortFilterProxyModel(this)),
     m_dbManager(Q_NULLPTR),
     m_dbThread(Q_NULLPTR),
+    m_styleEditorWindow(this),
     m_noteCounter(0),
     m_trashCounter(0),
     m_layoutMargin(10),
@@ -78,7 +79,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_chosenSerifFontIndex(0),
     m_chosenSansSerifFontIndex(0),
     m_chosenMonoFontIndex(0),
-    m_currentCharsLimitPerFont({ 64    // Mono    TODO: is there a proper way to initialize?
+    m_currentCharsLimitPerFont({ 64    // Mono    TODO: is this a proper way to initialize?
                                , 80    // Serif
                                , 80}), // SansSerif
     m_currentFontTypeface(FontTypeface::Serif),
