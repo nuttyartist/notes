@@ -788,8 +788,8 @@ void MainWindow::initializeSettingsDatabase()
         m_settingsDatabase->setValue(QStringLiteral("dontShowUpdateWindow"), m_dontShowUpdateWindow);
 
     if(m_settingsDatabase->value(QStringLiteral("windowGeometry"), "NULL") == "NULL"){
-        int initWidth = 733;
-        int initHeight = 336;
+        int initWidth = 870;
+        int initHeight = 630;
         QPoint center = qApp->desktop()->geometry().center();
         QRect rect(center.x() - initWidth/2, center.y() - initHeight/2, initWidth, initHeight);
         setGeometry(rect);
@@ -2280,6 +2280,7 @@ void MainWindow::onRedCloseButtonClicked()
  */
 void MainWindow::closeEvent(QCloseEvent* event)
 {
+    qDebug() << this->geometry();
     if(windowState() != Qt::WindowFullScreen) {
         m_settingsDatabase->setValue(QStringLiteral("windowGeometry"), saveGeometry());
         if(m_styleEditorWindow.windowState() != Qt::WindowFullScreen)
