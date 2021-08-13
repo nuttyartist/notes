@@ -18,14 +18,6 @@ StyleEditorWindow::StyleEditorWindow(QWidget *parent) :
 
     this->setFont(QFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")));
 
-//    QString ss = QStringLiteral("QWidget{ "
-//                         "  border-radius: 20px;" // Doesn't work!
-//                         "  background: rgb(255, 255, 255);"
-//                         "} "
-//                         );
-
-//    this->setStyleSheet(ss);
-
     m_ui->serifButton->setToolTip("Change the text editor font to a serif font.\nClick again to try different fonts");
     m_ui->sansSerifButton->setToolTip("Change the text editor font to a sans-serif font.\nClick again to try different fonts");
     m_ui->monoButton->setToolTip("Change the text editor font to a monospace font.\nClick again to try different fonts");
