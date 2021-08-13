@@ -53,5 +53,17 @@
         <file>fonts/iaquattro/iAWriterQuattroS-BoldItalic.ttf</file>
         <file>fonts/iaquattro/iAWriterQuattroS-Italic.ttf</file>
         <file>fonts/iaquattro/iAWriterQuattroS-Regular.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-Black.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-BlackItalic.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-Bold.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-BoldItalic.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-ExtraLight.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-ExtraLightItalic.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-Italic.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-Light.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-LightItalic.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-Regular.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-SemiBold.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-SemiBoldItalic.ttf</file>
     </qresource>
 </RCC>

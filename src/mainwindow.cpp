@@ -74,7 +74,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_alwaysStayOnTop(false),
     m_useNativeWindowFrame(false),
     m_listOfSerifFonts({QStringLiteral("Trykker"), QStringLiteral("Mate")}),
-    m_listOfSansSerifFonts({QStringLiteral("DMSans"), QStringLiteral("Jost")}),
+    m_listOfSansSerifFonts({QStringLiteral("Source Sans Pro"), QStringLiteral("DMSans"), QStringLiteral("Jost")}),
     m_listOfMonoFonts({QStringLiteral("iA Writer Mono S"), QStringLiteral("iA Writer Duo S"), QStringLiteral("iA Writer Quattro S")}),
     m_chosenSerifFontIndex(0),
     m_chosenSansSerifFontIndex(0),

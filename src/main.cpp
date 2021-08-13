@@ -30,6 +30,20 @@ int main(int argc, char *argv[])
     QFontDatabase::addApplicationFont (":/fonts/dmsans/DMSans-Bold.ttf");
     QFontDatabase::addApplicationFont (":/fonts/dmsans/DMSans-Italic.ttf");
 
+    // Source Sans Pro
+    QFontDatabase::addApplicationFont (":/fonts/sourcesanspro/SourceSansPro-Black.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/sourcesanspro/SourceSansPro-BlackItalic.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/sourcesanspro/SourceSansPro-Bold.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/sourcesanspro/SourceSansPro-BoldItalic.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/sourcesanspro/SourceSansPro-ExtraLight.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/sourcesanspro/SourceSansPro-ExtraLightItalic.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/sourcesanspro/SourceSansPro-Italic.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/sourcesanspro/SourceSansPro-Light.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/sourcesanspro/SourceSansPro-LightItalic.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/sourcesanspro/SourceSansPro-Regular.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/sourcesanspro/SourceSansPro-SemiBold.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/sourcesanspro/SourceSansPro-SemiBoldItalic.ttf");
+
     // Jost
     QFontDatabase::addApplicationFont (":/fonts/jost/Jost-ThinItalic.ttf");
     QFontDatabase::addApplicationFont (":/fonts/jost/Jost-Thin.ttf");
