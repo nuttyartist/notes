@@ -82,7 +82,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_currentCharsLimitPerFont({ 64    // Mono    TODO: is this a proper way to initialize?
                                , 80    // Serif
                                , 80}), // SansSerif
-    m_currentFontTypeface(FontTypeface::Serif),
+    m_currentFontTypeface(FontTypeface::SansSerif),
     m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")),
     m_currentEditorBackgroundColor(247, 247, 247),
     m_currentRightFrameColor(247, 247, 247),
@@ -674,7 +674,7 @@ void MainWindow::setCurrentFontBasedOnTypeface(FontTypeface selectedFontTypeFace
  */
 void MainWindow::resetEditorSettings()
 {
-    m_currentFontTypeface = FontTypeface::Serif;
+    m_currentFontTypeface = FontTypeface::SansSerif;
     m_chosenMonoFontIndex = 0;
     m_chosenSerifFontIndex = 0;
     m_chosenSansSerifFontIndex = 0;
