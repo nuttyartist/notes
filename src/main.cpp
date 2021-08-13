@@ -25,11 +25,6 @@ int main(int argc, char *argv[])
     QFontDatabase::addApplicationFont (":/fonts/roboto-hinted/Roboto-Medium.ttf");
     QFontDatabase::addApplicationFont (":/fonts/roboto-hinted/Roboto-Regular.ttf");
 
-    // DMSans
-    QFontDatabase::addApplicationFont (":/fonts/dmsans/DMSans-Regular.ttf");
-    QFontDatabase::addApplicationFont (":/fonts/dmsans/DMSans-Bold.ttf");
-    QFontDatabase::addApplicationFont (":/fonts/dmsans/DMSans-Italic.ttf");
-
     // Source Sans Pro
     QFontDatabase::addApplicationFont (":/fonts/sourcesanspro/SourceSansPro-Black.ttf");
     QFontDatabase::addApplicationFont (":/fonts/sourcesanspro/SourceSansPro-BlackItalic.ttf");
