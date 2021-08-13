@@ -34,6 +34,7 @@
 #include "styleEditorWindow.h"
 #include "dbmanager.h"
 #include "markdownhighlighter.h"
+#include "customDocument.h"
 
 namespace Ui {
 class MainWindow;
@@ -112,7 +113,7 @@ private:
     QPushButton* m_trashButton;
     QPushButton* m_dotsButton;
     QPushButton* m_styleEditorButton;
-    QTextEdit* m_textEdit;
+    CustomDocument* m_textEdit;
     QLineEdit* m_searchEdit;
     QLabel* m_editorDateLabel;
     QSplitter *m_splitter;

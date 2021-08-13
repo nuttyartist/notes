@@ -661,7 +661,7 @@ color: rgb(132, 132, 132);
             </spacer>
            </item>
            <item>
-            <widget class="QTextEdit" name="textEdit">
+            <widget class="CustomDocument" name="textEdit">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
                <horstretch>0</horstretch>
@@ -735,6 +735,11 @@ p, li { white-space: pre-wrap; }
    <class>NoteView</class>
    <extends>QListView</extends>
    <header>noteview.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CustomDocument</class>
+   <extends>QTextEdit</extends>
+   <header>customDocument.h</header>
   </customwidget>
  </customwidgets>
  <resources>
