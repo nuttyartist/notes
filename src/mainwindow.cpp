@@ -754,6 +754,12 @@ void MainWindow::setupTextEdit()
     m_textEdit->setWordWrapMode(QTextOption::WordWrap);
 
 #ifdef __APPLE__
+    if(QFont("Avenir Next").exactMatch()) {
+        m_listOfSansSerifFonts.push_front("Avenir Next");
+    } else if(QFont("Avenir").exactMatch()) {
+        m_listOfSansSerifFonts.push_front("Avenir");
+    }
+
     if(QFont("SF Pro Text").exactMatch()) {
         m_listOfSansSerifFonts.push_front("SF Pro Text");
     } else if(QFont("Helvetica Neue").exactMatch()) {
