@@ -4,7 +4,7 @@
 * And for those linux users that beleive in the power of notes
 *********************************************************************************************/
 
-#ifndef STYLEEDITORWINDUpdaterWindowOW_H
+#ifndef STYLEEDITORWINDOW_H
 #define STYLEEDITORWINDOW_H
 
 #include <QWidget>
