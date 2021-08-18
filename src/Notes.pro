@@ -49,7 +49,8 @@ HEADERS  += \
     $$PWD/dbmanager.h \
     customDocument.h \
     editorsettingsbutton.h \
-    styleEditorWindow.h
+    styleEditorWindow.h \
+    framelesswindow.h
 
 FORMS += \
     $$PWD/mainwindow.ui \
@@ -136,9 +137,14 @@ linux:!android {
 macx {
     DESTDIR = $$PWD/../bin
     ICON = $$PWD/images\notes_icon.icns
+    OBJECTIVE_SOURCES += \
+                framelesswindow.mm
+    LIBS += -framework Cocoa
 }
 
 win32 {
     DESTDIR = $$PWD/../bin
     RC_FILE = $$PWD/images\notes.rc
+    SOURCES += \
+        framelesswindow.cpp
 }
