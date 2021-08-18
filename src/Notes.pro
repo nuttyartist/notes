@@ -34,9 +34,9 @@ SOURCES += \
     $$PWD/singleinstance.cpp \
     $$PWD/updaterwindow.cpp \
     $$PWD/dbmanager.cpp \
-    customDocument.cpp \
+    customdocument.cpp \
     editorsettingsbutton.cpp \
-    styleEditorWindow.cpp
+    styleeditorwindow.cpp
 
 HEADERS  += \
     $$PWD/mainwindow.h \
