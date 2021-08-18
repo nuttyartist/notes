@@ -74,7 +74,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_alwaysStayOnTop(false),
     m_useNativeWindowFrame(false),
     m_listOfSerifFonts({QStringLiteral("Trykker"), QStringLiteral("Mate")}),
-    m_listOfSansSerifFonts({QStringLiteral("Source Sans Pro"), QStringLiteral("Jost")}),
+    m_listOfSansSerifFonts({QStringLiteral("Source Sans Pro"), QStringLiteral("Roboto"), QStringLiteral("Jost")}),
     m_listOfMonoFonts({QStringLiteral("iA Writer Mono S"), QStringLiteral("iA Writer Duo S"), QStringLiteral("iA Writer Quattro S")}),
     m_chosenSerifFontIndex(0),
     m_chosenSansSerifFontIndex(0),
@@ -86,7 +86,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")),
     m_currentEditorBackgroundColor(247, 247, 247),
     m_currentRightFrameColor(247, 247, 247),
-    m_currentTheme(Theme::Light)
+    m_currentTheme(Theme::Light),
+    m_currentEditorTextColor(247, 247, 247)
 {
     ui->setupUi(this);
     setupMainWindow();
@@ -690,12 +691,13 @@ void MainWindow::resetEditorSettings()
     m_textEdit->setLineWrapMode(QTextEdit::FixedColumnWidth);
     m_textEdit->setWordWrapMode(QTextOption::WordWrap);
 
-    m_styleEditorWindow.changeSelectedFontLabel(FontTypeface::Mono, m_listOfMonoFonts.at(m_chosenMonoFontIndex));
-    m_styleEditorWindow.changeSelectedFontLabel(FontTypeface::Serif, m_listOfSerifFonts.at(m_chosenSerifFontIndex));
-    m_styleEditorWindow.changeSelectedFontLabel(FontTypeface::SansSerif, m_listOfSansSerifFonts.at(m_chosenSansSerifFontIndex));
+    m_styleEditorWindow.changeSelectedFont(FontTypeface::Mono, m_listOfMonoFonts.at(m_chosenMonoFontIndex));
+    m_styleEditorWindow.changeSelectedFont(FontTypeface::Serif, m_listOfSerifFonts.at(m_chosenSerifFontIndex));
+    m_styleEditorWindow.changeSelectedFont(FontTypeface::SansSerif, m_listOfSansSerifFonts.at(m_chosenSansSerifFontIndex));
 
     setCurrentFontBasedOnTypeface(m_currentFontTypeface);
     setTheme(Theme::Light);
+    m_styleEditorWindow.restoreSelectedOptions(false, m_currentFontTypeface, m_currentTheme);
 }
 
 void MainWindow::setupTextEditStyleSheet(int paddingLeft, int paddingRight)
@@ -915,8 +917,9 @@ void MainWindow::restoreStates()
     }
     m_currentFontPointSize = m_editorMediumFontSize;
 
+    bool isTextFullWidth = false;
     if(m_settingsDatabase->value(QStringLiteral("isTextFullWidth"), "NULL") != "NULL") {
-        bool isTextFullWidth = m_settingsDatabase->value(QStringLiteral("isTextFullWidth")).toBool();
+        isTextFullWidth = m_settingsDatabase->value(QStringLiteral("isTextFullWidth")).toBool();
         if(isTextFullWidth) {
             m_textEdit->setLineWrapMode(QTextEdit::WidgetWidth);
         } else {
@@ -966,12 +969,13 @@ void MainWindow::restoreStates()
         }
     }
 
-    m_styleEditorWindow.changeSelectedFontLabel(FontTypeface::Mono, m_listOfMonoFonts.at(m_chosenMonoFontIndex));
-    m_styleEditorWindow.changeSelectedFontLabel(FontTypeface::Serif, m_listOfSerifFonts.at(m_chosenSerifFontIndex));
-    m_styleEditorWindow.changeSelectedFontLabel(FontTypeface::SansSerif, m_listOfSansSerifFonts.at(m_chosenSansSerifFontIndex));
+    m_styleEditorWindow.changeSelectedFont(FontTypeface::Mono, m_listOfMonoFonts.at(m_chosenMonoFontIndex));
+    m_styleEditorWindow.changeSelectedFont(FontTypeface::Serif, m_listOfSerifFonts.at(m_chosenSerifFontIndex));
+    m_styleEditorWindow.changeSelectedFont(FontTypeface::SansSerif, m_listOfSansSerifFonts.at(m_chosenSansSerifFontIndex));
 
     setCurrentFontBasedOnTypeface(m_currentFontTypeface);
     setTheme(m_currentTheme);
+    m_styleEditorWindow.restoreSelectedOptions(isTextFullWidth, m_currentFontTypeface, m_currentTheme);
 }
 
 /*!
@@ -1407,7 +1411,7 @@ void MainWindow::changeEditorFontTypeFromStyleButtons(FontTypeface fontTypeface)
 
     setCurrentFontBasedOnTypeface(fontTypeface);
 
-    m_styleEditorWindow.changeSelectedFontLabel(fontTypeface, m_currentFontFamily);
+    m_styleEditorWindow.changeSelectedFont(fontTypeface, m_currentFontFamily);
 }
 
 /*!
@@ -1492,31 +1496,39 @@ void MainWindow::setTheme(Theme theme)
     switch(theme) {
     case Theme::Light:
     {
-        m_textEdit->setTextColor(QColor(26, 26, 26));
+        m_currentEditorTextColor = QColor(26, 26, 26);
+        m_textEdit->setTextColor(m_currentEditorTextColor);
+        m_noteView->setTheme(NoteView::Theme::Light);
         m_currentEditorBackgroundColor = QColor(247, 247, 247);
         m_currentRightFrameColor = QColor(247, 247, 247);
-        m_noteView->setTheme(NoteView::Theme::Light);
+        m_styleEditorWindow.setTheme(Theme::Light, QColor(247, 247, 247), m_currentEditorTextColor);
         break;
     }
     case Theme::Dark:
     {
-        m_textEdit->setTextColor(QColor(204, 204, 204));
+        m_currentEditorTextColor = QColor(204, 204, 204);
+        m_textEdit->setTextColor(m_currentEditorTextColor);
+        m_noteView->setTheme(NoteView::Theme::Dark);
         m_currentEditorBackgroundColor = QColor(16, 16, 16);
         m_currentRightFrameColor = QColor(16, 16, 16);
-        m_noteView->setTheme(NoteView::Theme::Dark);
+        m_styleEditorWindow.setTheme(Theme::Dark, QColor(16, 16, 16), m_currentEditorTextColor);
         break;
     }
     case Theme::Sepia:
     {
-        m_textEdit->setTextColor(QColor(95, 74, 50));
+        m_currentEditorTextColor = QColor(95, 74, 50);
+        m_textEdit->setTextColor(m_currentEditorTextColor);
+        m_noteView->setTheme(NoteView::Theme::Sepia);
         m_currentEditorBackgroundColor = QColor(251, 240, 217);
         m_currentRightFrameColor = QColor(251, 240, 217);
-        m_noteView->setTheme(NoteView::Theme::Sepia);
+        m_styleEditorWindow.setTheme(Theme::Sepia, QColor(251, 240, 217), QColor(26, 26, 26));
         break;
     }
     }
 
+    int verticalScrollBarValueToRestore = m_textEdit->verticalScrollBar()->value();
     m_textEdit->setText(m_textEdit->toPlainText()); // TODO: Update the text color without setting the text
+    m_textEdit->verticalScrollBar()->setValue(verticalScrollBarValueToRestore);
     alignTextEditText();
     setupRightFrame();
 }
@@ -2280,7 +2292,6 @@ void MainWindow::onRedCloseButtonClicked()
  */
 void MainWindow::closeEvent(QCloseEvent* event)
 {
-    qDebug() << this->geometry();
     if(windowState() != Qt::WindowFullScreen) {
         m_settingsDatabase->setValue(QStringLiteral("windowGeometry"), saveGeometry());
         if(m_styleEditorWindow.windowState() != Qt::WindowFullScreen)

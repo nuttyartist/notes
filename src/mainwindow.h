@@ -179,6 +179,7 @@ private:
     QColor m_currentEditorBackgroundColor;
     QColor m_currentRightFrameColor;
     Theme m_currentTheme;
+    QColor m_currentEditorTextColor;
 
     void setupMainWindow();
     void setupFonts();
