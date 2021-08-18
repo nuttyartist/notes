@@ -180,6 +180,7 @@ private:
     QColor m_currentRightFrameColor;
     Theme m_currentTheme;
     QColor m_currentEditorTextColor;
+    bool m_areNonEditorWidgetsVisible;
 
     void setupMainWindow();
     void setupFonts();
@@ -223,6 +224,7 @@ private:
     void migrateNote(QString notePath);
     void migrateTrash(QString trashPath);
     void setCurrentFontBasedOnTypeface(FontTypeface selectedFontTypeFace);
+    void setVisibilityOfFrameRightNonEditor(bool isVisible);
 
     void dropShadow(QPainter& painter, ShadowType type, ShadowSide side);
     void fillRectWithGradient(QPainter& painter, const QRect& rect, QGradient& gradient);

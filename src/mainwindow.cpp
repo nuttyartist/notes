@@ -87,7 +87,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_currentEditorBackgroundColor(247, 247, 247),
     m_currentRightFrameColor(247, 247, 247),
     m_currentTheme(Theme::Light),
-    m_currentEditorTextColor(247, 247, 247)
+    m_currentEditorTextColor(247, 247, 247),
+    m_areNonEditorWidgetsVisible(true)
 {
     ui->setupUi(this);
     setupMainWindow();
@@ -418,6 +419,8 @@ void MainWindow::setupLine()
  */
 void MainWindow::setupRightFrame()
 {
+    ui->frameRightTop->installEventFilter(this);
+
     QString ss = QStringLiteral("QFrame{ "
                  "  background-color: %1; "
                  "  border: none;"
@@ -1509,9 +1512,9 @@ void MainWindow::setTheme(Theme theme)
         m_currentEditorTextColor = QColor(204, 204, 204);
         m_textEdit->setTextColor(m_currentEditorTextColor);
         m_noteView->setTheme(NoteView::Theme::Dark);
-        m_currentEditorBackgroundColor = QColor(16, 16, 16);
-        m_currentRightFrameColor = QColor(16, 16, 16);
-        m_styleEditorWindow.setTheme(Theme::Dark, QColor(16, 16, 16), m_currentEditorTextColor);
+        m_currentEditorBackgroundColor = QColor(26, 26, 26);
+        m_currentRightFrameColor = QColor(26, 26, 26);
+        m_styleEditorWindow.setTheme(Theme::Dark, QColor(26, 26, 26), m_currentEditorTextColor);
         break;
     }
     case Theme::Sepia:
@@ -1592,6 +1595,8 @@ void MainWindow::onTextEditTextChanged()
             m_isContentModified = true;
 
             m_autoSaveTimer->start(500);
+
+            setVisibilityOfFrameRightNonEditor(false);
         }
 
         m_textEdit->blockSignals(false);
@@ -2992,6 +2997,29 @@ void MainWindow::leaveEvent(QEvent *)
 }
 
 /*!
+ * \brief MainWindow::setVisibilityOfFrameRightNonEditor
+ * Either show or hide all widgets which are not m_textEdit
+ */
+void MainWindow::setVisibilityOfFrameRightNonEditor(bool isVisible)
+{
+    if(isVisible) {
+        m_areNonEditorWidgetsVisible = true;
+        m_editorDateLabel->setVisible(true);
+        m_newNoteButton->setVisible(true);
+        m_trashButton->setVisible(true);
+        m_dotsButton->setVisible(true);
+        m_styleEditorButton->setVisible(true);
+    } else {
+        m_areNonEditorWidgetsVisible = false;
+        m_editorDateLabel->setVisible(false);
+        m_newNoteButton->setVisible(false);
+        m_trashButton->setVisible(false);
+        m_dotsButton->setVisible(false);
+        m_styleEditorButton->setVisible(false);
+    }
+}
+
+/*!
  * \brief MainWindow::eventFilter
  * Mostly take care on the event happened on widget whose filter installed to tht mainwindow
  * \param object
@@ -3049,6 +3077,10 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
             if(object == m_dotsButton){
                 this->setCursor(Qt::PointingHandCursor);
                 m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Hovered.png")));
+            }
+
+            if(object == ui->frameRightTop && !m_areNonEditorWidgetsVisible){
+                setVisibilityOfFrameRightNonEditor(true);
             }
         }
 
