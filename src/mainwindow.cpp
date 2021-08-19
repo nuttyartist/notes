@@ -57,6 +57,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_dbManager(Q_NULLPTR),
     m_dbThread(Q_NULLPTR),
     m_styleEditorWindow(this),
+    m_aboutWindow(this),
     m_noteCounter(0),
     m_trashCounter(0),
     m_layoutMargin(10),
@@ -1327,6 +1328,13 @@ void MainWindow::onDotsButtonClicked()
     autostartAction->setCheckable(true);
     autostartAction->setChecked(m_autostart.isAutostart());
 
+    // About Notes
+    QAction* aboutAction = mainMenu.addAction(tr("About Notes"));
+    connect (aboutAction, &QAction::triggered, this, [&]() {
+
+        m_aboutWindow.show();
+    });
+
     mainMenu.addSeparator();
 
     // Close the app
@@ -1528,6 +1536,7 @@ void MainWindow::setTheme(Theme theme)
         m_currentEditorBackgroundColor = QColor(247, 247, 247);
         m_currentRightFrameColor = QColor(247, 247, 247);
         m_styleEditorWindow.setTheme(Theme::Light, QColor(247, 247, 247), m_currentEditorTextColor);
+        m_aboutWindow.setTheme(QColor(247, 247, 247), m_currentEditorTextColor);
         break;
     }
     case Theme::Dark:
@@ -1538,6 +1547,7 @@ void MainWindow::setTheme(Theme theme)
         m_currentEditorBackgroundColor = QColor(26, 26, 26);
         m_currentRightFrameColor = QColor(26, 26, 26);
         m_styleEditorWindow.setTheme(Theme::Dark, QColor(26, 26, 26), m_currentEditorTextColor);
+        m_aboutWindow.setTheme(QColor(26, 26, 26), m_currentEditorTextColor);
         break;
     }
     case Theme::Sepia:
@@ -1548,6 +1558,7 @@ void MainWindow::setTheme(Theme theme)
         m_currentEditorBackgroundColor = QColor(251, 240, 217);
         m_currentRightFrameColor = QColor(251, 240, 217);
         m_styleEditorWindow.setTheme(Theme::Sepia, QColor(251, 240, 217), QColor(26, 26, 26));
+        m_aboutWindow.setTheme(QColor(251, 240, 217), QColor(26, 26, 26));
         break;
     }
     }

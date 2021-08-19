@@ -34,6 +34,7 @@ SOURCES += \
     $$PWD/singleinstance.cpp \
     $$PWD/updaterwindow.cpp \
     $$PWD/dbmanager.cpp \
+    aboutwindow.cpp \
     customdocument.cpp \
     editorsettingsbutton.cpp \
     styleeditorwindow.cpp
@@ -47,6 +48,7 @@ HEADERS  += \
     $$PWD/singleinstance.h \
     $$PWD/updaterwindow.h \
     $$PWD/dbmanager.h \
+    aboutwindow.h \
     customDocument.h \
     editorsettingsbutton.h \
     styleEditorWindow.h \
@@ -55,6 +57,7 @@ HEADERS  += \
 FORMS += \
     $$PWD/mainwindow.ui \
     $$PWD/updaterwindow.ui \
+    aboutwindow.ui \
     styleEditorWindow.ui
 
 RESOURCES += \

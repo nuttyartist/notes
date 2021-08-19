@@ -16,7 +16,7 @@ StyleEditorWindow::StyleEditorWindow(QWidget *parent) :
     m_isFullWidthClicked(false)
 {
     m_ui->setupUi(this);
-    this->setWindowTitle("Editor Settings");
+    this->setWindowTitle(tr("Editor Settings"));
     this->setWindowFlags(Qt::Window | Qt::WindowStaysOnTopHint);
 
     this->setFont(QFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")));

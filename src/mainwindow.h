@@ -35,6 +35,7 @@
 #include "dbmanager.h"
 #include "markdownhighlighter.h"
 #include "customDocument.h"
+#include "aboutwindow.h"
 
 namespace Ui {
 class MainWindow;
@@ -136,6 +137,7 @@ private:
 
     UpdaterWindow m_updater;
     StyleEditorWindow m_styleEditorWindow;
+    AboutWindow m_aboutWindow;
     StretchSide m_stretchSide;
     Autostart m_autostart;
     int m_mousePressX;
@@ -181,6 +183,7 @@ private:
     Theme m_currentTheme;
     QColor m_currentEditorTextColor;
     bool m_areNonEditorWidgetsVisible;
+
 
     void setupMainWindow();
     void setupFonts();
