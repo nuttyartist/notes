@@ -111,23 +111,13 @@
             <property name="verticalSpacing">
              <number>2</number>
             </property>
-            <item row="0" column="1">
-             <widget class="QLabel" name="installedVersion">
+            <item row="1" column="1">
+             <widget class="QLabel" name="availableVersion">
               <property name="styleSheet">
                <string notr="true"/>
               </property>
               <property name="text">
                <string>%1</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="0">
-             <widget class="QLabel" name="installedVersion_Label">
-              <property name="styleSheet">
-               <string notr="true"/>
-              </property>
-              <property name="text">
-               <string>Installed Version: </string>
               </property>
              </widget>
             </item>
@@ -141,8 +131,21 @@
               </property>
              </widget>
             </item>
-            <item row="1" column="1">
-             <widget class="QLabel" name="availableVersion">
+            <item row="1" column="2">
+             <spacer name="horizontalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLabel" name="installedVersion">
               <property name="styleSheet">
                <string notr="true"/>
               </property>
@@ -164,18 +167,15 @@
               </property>
              </spacer>
             </item>
-            <item row="1" column="2">
-             <spacer name="horizontalSpacer_3">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
+            <item row="0" column="0">
+             <widget class="QLabel" name="installedVersion_Label">
+              <property name="styleSheet">
+               <string notr="true"/>
               </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
+              <property name="text">
+               <string>Installed Version: </string>
               </property>
-             </spacer>
+             </widget>
             </item>
            </layout>
           </widget>
@@ -250,6 +250,9 @@
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.AppleSystemUIFont'; font-size:13pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Arimo Regular'; font-size:14pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="openExternalLinks">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -388,16 +391,6 @@ p, li { white-space: pre-wrap; }
       <property name="verticalSpacing">
        <number>0</number>
       </property>
-      <item row="0" column="1">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Don't notify me automatically every time there's a new update.</string>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="0">
        <widget class="QCheckBox" name="checkBox">
         <property name="maximumSize">
@@ -410,6 +403,32 @@ p, li { white-space: pre-wrap; }
          <string/>
         </property>
        </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Don't notify me automatically every time there's a new update.</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <spacer name="horizontalSpacer_5">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Minimum</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>10</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
       </item>
      </layout>
     </widget>

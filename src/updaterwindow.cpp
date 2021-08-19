@@ -73,6 +73,7 @@ UpdaterWindow::UpdaterWindow(QWidget *parent) :
 #ifdef __APPLE__
     this->setFont(QFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")));
     m_ui->changelog->setFont(QFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")));
+    m_ui->changelog->setTextColor(QColor(26, 26, 26));
     foreach(QWidget *widgetChild, this->findChildren<QWidget *>()) {
         widgetChild->setFont(QFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")));
     }
@@ -197,9 +198,12 @@ void UpdaterWindow::resetControls()
     m_ui->timeLabel->setText(tr("Time remaining")+ ": " + tr("unknown"));
 
     /* Set changelog text */
-    m_ui->changelog->setText(m_updater->getChangelog(UPDATES_URL));
+    QString changelogText = m_updater->getChangelog(UPDATES_URL);
+    m_ui->changelog->setText(changelogText);
     if(m_ui->changelog->toPlainText().isEmpty()){
         m_ui->changelog->setText("<p>No changelog found...</p>");
+    } else {
+        m_ui->changelog->setText(changelogText.append("\n"));
     }
 
     /* Enable/disable update button */
