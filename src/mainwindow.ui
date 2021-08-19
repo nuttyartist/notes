@@ -627,6 +627,22 @@ color: rgb(132, 132, 132);
                  </widget>
                 </item>
                 <item>
+                 <spacer name="horizontalSpacer_2">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeType">
+                   <enum>QSizePolicy::Minimum</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>24</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
                  <widget class="QPushButton" name="dotsButton">
                   <property name="minimumSize">
                    <size>
@@ -665,7 +681,7 @@ color: rgb(132, 132, 132);
                   </property>
                   <property name="sizeHint" stdset="0">
                    <size>
-                    <width>23</width>
+                    <width>24</width>
                     <height>25</height>
                    </size>
                   </property>
