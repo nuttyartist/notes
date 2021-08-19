@@ -524,12 +524,11 @@ NoteData #dateLabel{
                     <height>25</height>
                    </size>
                   </property>
+                  <property name="cursor">
+                   <cursorShape>PointingHandCursor</cursorShape>
+                  </property>
                   <property name="text">
                    <string/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="images.qrc">
-                    <normaloff>:/images/3dots_Regular.png</normaloff>:/images/3dots_Regular.png</iconset>
                   </property>
                  </widget>
                 </item>

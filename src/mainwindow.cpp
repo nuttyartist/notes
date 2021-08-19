@@ -291,6 +291,16 @@ void MainWindow::setupMainWindow()
     m_trashButton->setToolTip(tr("Delete Selected Note"));
     m_dotsButton->setToolTip(tr("Open Menu"));
     m_styleEditorButton->setToolTip(tr("Style The Editor"));
+
+    m_styleEditorButton->setText(QStringLiteral("Aa"));
+    m_styleEditorButton->setFont(QFont(QStringLiteral("Roboto"), 20, QFont::Bold));
+    QString ss = QStringLiteral("QPushButton { "
+                 "  border: none; "
+                 "  padding: 0px; "
+                 "  color: rgb(68, 138, 201);"
+                 "}");
+    m_styleEditorButton->setStyleSheet(ss);
+    m_styleEditorButton->installEventFilter(this);
 }
 
 /*!
@@ -381,7 +391,6 @@ void MainWindow::setupNewNoteButtonAndTrahButton()
     m_newNoteButton->setStyleSheet(ss);
     m_trashButton->setStyleSheet(ss);
     m_dotsButton->setStyleSheet(ss);
-    m_styleEditorButton->setStyleSheet(ss);
 
     m_newNoteButton->installEventFilter(this);
     m_trashButton->installEventFilter(this);
@@ -1368,7 +1377,12 @@ void MainWindow::onDotsButtonClicked()
  */
 void MainWindow::onStyleEditorButtonPressed()
 {
-    m_styleEditorButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Pressed.png")));
+    QString ss = QStringLiteral("QPushButton { "
+                 "  border: none; "
+                 "  padding: 0px; "
+                 "  color: rgb(39, 85, 125);"
+                 "}");
+    m_styleEditorButton->setStyleSheet(ss);
 }
 
 /*!
@@ -1377,7 +1391,12 @@ void MainWindow::onStyleEditorButtonPressed()
  */
 void MainWindow::onStyleEditorButtonClicked()
 {
-    m_styleEditorButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Regular.png")));
+    QString ss = QStringLiteral("QPushButton { "
+                 "  border: none; "
+                 "  padding: 0px; "
+                 "  color: rgb(68, 138, 201);"
+                 "}");
+    m_styleEditorButton->setStyleSheet(ss);
 
 
     if(m_settingsDatabase->value(QStringLiteral("editorSettingsWindowGeometry"), "NULL") == "NULL")
@@ -3079,6 +3098,16 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                 m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Hovered.png")));
             }
 
+            if(object == m_styleEditorButton){
+                this->setCursor(Qt::PointingHandCursor);
+                QString ss = QStringLiteral("QPushButton { "
+                                 "  border: none; "
+                                 "  padding: 0px; "
+                                 "  color: rgb(51, 110, 162);"
+                                 "}");
+                m_styleEditorButton->setStyleSheet(ss);
+            }
+
             if(object == ui->frameRightTop && !m_areNonEditorWidgetsVisible){
                 setVisibilityOfFrameRightNonEditor(true);
             }
@@ -3126,6 +3155,16 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
             if(object == m_dotsButton){
                 this->unsetCursor();
                 m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Regular.png")));
+            }
+
+            if(object == m_styleEditorButton){
+                this->unsetCursor();
+                QString ss = QStringLiteral("QPushButton { "
+                                 "  border: none; "
+                                 "  padding: 0px; "
+                                 "  color: rgb(68, 138, 201);"
+                                 "}");
+                m_styleEditorButton->setStyleSheet(ss);
             }
         }
         break;
