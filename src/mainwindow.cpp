@@ -368,6 +368,10 @@ void MainWindow::setupKeyboardShortcuts()
         setMainWindowVisibility(isHidden()
                                 || windowState() == Qt::WindowMinimized
                                 || qApp->applicationState() == Qt::ApplicationInactive);
+        if(isHidden()
+                || windowState() == Qt::WindowMinimized
+                || qApp->applicationState() == Qt::ApplicationInactive)
+            this->raise();
         m_textEdit->setDisabled(false);
         m_searchEdit->setDisabled(false);
     });
