@@ -203,7 +203,7 @@ void UpdaterWindow::resetControls()
     if(m_ui->changelog->toPlainText().isEmpty()){
         m_ui->changelog->setText("<p>No changelog found...</p>");
     } else {
-        m_ui->changelog->setText(changelogText.append("\n"));
+        m_ui->changelog->setText(changelogText.append("\n")); // Don't know why currently changelog box is dissapearing at the bottom, so I add a new line to see the text.
     }
 
     /* Enable/disable update button */
