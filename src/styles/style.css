@@ -1,8 +1,5 @@
-QWidget {
-    color: rgb(26, 26, 26);
-    background-color: rgb(255, 255, 255);
-}
 QTextBrowser {
+    color: rgb(117, 117, 117);
     border: 1px solid rgb(205, 205, 205);
     background-color: rgb(255, 255, 252);
 }
@@ -42,4 +39,8 @@ QPushButton:pressed {
 }
 #whatsNewLabel, #downloadLabel {
     font: 500 14px;
+}
+#UpdaterWindow {
+    color: rgb(26, 26, 26);
+    background-color: rgb(255, 255, 255);
 }
