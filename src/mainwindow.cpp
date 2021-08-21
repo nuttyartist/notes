@@ -2430,7 +2430,7 @@ void MainWindow::mousePressEvent(QMouseEvent* event)
                 && m_mousePressY > m_layoutMargin){
 
             m_canMoveWindow = true;
-            QApplication::setOverrideCursor(QCursor(Qt::ClosedHandCursor));
+//            QApplication::setOverrideCursor(QCursor(Qt::ClosedHandCursor));
 
 #ifndef __APPLE__
         }else{
@@ -2683,7 +2683,7 @@ void MainWindow::mousePressEvent(QMouseEvent* event)
 void MainWindow::mouseMoveEvent(QMouseEvent* event)
 {
     if(m_canMoveWindow){
-        this->setCursor(Qt::ClosedHandCursor);
+//        this->setCursor(Qt::ClosedHandCursor);
         int dx = event->globalX() - m_mousePressX;
         int dy = event->globalY() - m_mousePressY;
         move (dx, dy);
@@ -2699,7 +2699,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
     m_canMoveWindow = false;
-    this->unsetCursor();
+//    this->unsetCursor();
     event->accept();
 }
 #endif
