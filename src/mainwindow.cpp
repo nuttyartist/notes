@@ -523,6 +523,8 @@ void MainWindow::setupSignalsSlots()
     connect(m_styleEditorButton, &QPushButton::clicked, this, &MainWindow::onStyleEditorButtonClicked);
     // text edit text changed
     connect(m_textEdit, &QTextEdit::textChanged, this, &MainWindow::onTextEditTextChanged);
+    // textEdit scrollbar triggered
+    connect(m_textEdit->verticalScrollBar(), &QAbstractSlider::actionTriggered, this, [=](){if(m_isFrameRightTopWidgetsVisible) setVisibilityOfFrameRightNonEditor(false);});
     // line edit text changed
     connect(m_searchEdit, &QLineEdit::textChanged, this, &MainWindow::onSearchEditTextChanged);
     // line edit enter key pressed
@@ -3269,6 +3271,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Regular.png")));
         break;
     }
+#ifndef __APPLE__
     case QEvent::HoverEnter:{
         if(object == m_textEdit->verticalScrollBar()){
             bool isSearching = !m_searchEdit->text().isEmpty();
@@ -3295,6 +3298,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         }
         break;
     }
+#endif
     case QEvent::FocusIn:{
         if(object == m_textEdit){
             if(!m_isOperationRunning){
