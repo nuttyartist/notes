@@ -55,7 +55,7 @@ public:
     void restoreSelectedOptions(bool isTextFullWidth, FontTypeface selectedFontTypeface, Theme selectedTheme);
 
 public slots:
-
+    void toggleWindowVisibility();
 
 signals:
     void changeFontType(FontTypeface fontType);

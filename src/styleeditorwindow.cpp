@@ -3,6 +3,7 @@
 
 #include <QDebug>
 #include <QTimer>
+#include <QShortcut>
 
 /**
  * Initializes the window components and configures the StyleEditorWindow
@@ -87,6 +88,8 @@ StyleEditorWindow::StyleEditorWindow(QWidget *parent) :
          childButton->setStyleSheet(ss);
          childButton->installEventFilter(this);
     }
+
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S), this, SLOT(toggleWindowVisibility()));
 }
 
 StyleEditorWindow::~StyleEditorWindow()
@@ -306,6 +309,15 @@ void StyleEditorWindow::restoreSelectedOptions(bool isTextFullWidth, FontTypefac
         buttonClicked(m_ui->sepiaButton);
         break;
     }
+    }
+}
+
+void StyleEditorWindow::toggleWindowVisibility()
+{
+    if(isVisible()) {
+        hide();
+    } else {
+        show();
     }
 }
 
