@@ -92,6 +92,14 @@ void CFramelessWindow::initUI()
     NSButton *zoomButton = [window standardWindowButton:NSWindowZoomButton];
     [zoomButton setTarget:passer];
     [zoomButton setAction:@selector(zoomButtonAction:)];
+
+    // TODO: move window buttons 2 pixels to the right to align with searchEdit and notesList
+    // Currently, doesn't work
+    NSButton *closeButton = [window standardWindowButton:NSWindowCloseButton];
+    NSButton *minimizeButton = [window standardWindowButton:NSWindowMiniaturizeButton];
+    closeButton.frame = NSMakeRect(closeButton.frame.origin.x + 10, closeButton.frame.origin.y, closeButton.frame.size.width, closeButton.frame.size.height);
+    minimizeButton.frame = NSMakeRect(minimizeButton.frame.origin.x + 10, minimizeButton.frame.origin.y, minimizeButton.frame.size.width, minimizeButton.frame.size.height);
+    zoomButton.frame = NSMakeRect(zoomButton.frame.origin.x + 10, zoomButton.frame.origin.y, zoomButton.frame.size.width, zoomButton.frame.size.height);
 }
 
 void CFramelessWindow::setCloseBtnQuit(bool bQuit)
