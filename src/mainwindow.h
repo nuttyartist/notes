@@ -36,12 +36,13 @@
 #include "markdownhighlighter.h"
 #include "customDocument.h"
 #include "aboutwindow.h"
+#include "framelesswindow.h"
 
 namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow
+class MainWindow : public CFramelessWindow
 {
     Q_OBJECT
 
@@ -183,7 +184,7 @@ private:
     Theme m_currentTheme;
     QColor m_currentEditorTextColor;
     bool m_areNonEditorWidgetsVisible;
-
+    bool m_isFrameRightTopWidgetsVisible;
 
     void setupMainWindow();
     void setupFonts();
@@ -228,6 +229,7 @@ private:
     void migrateTrash(QString trashPath);
     void setCurrentFontBasedOnTypeface(FontTypeface selectedFontTypeFace);
     void setVisibilityOfFrameRightNonEditor(bool isVisible);
+    void adjustUpperWidgets(bool shouldPushUp);
 
     void dropShadow(QPainter& painter, ShadowType type, ShadowSide side);
     void fillRectWithGradient(QPainter& painter, const QRect& rect, QGradient& gradient);

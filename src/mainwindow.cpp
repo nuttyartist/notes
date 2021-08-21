@@ -29,7 +29,7 @@
  * \param parent
  */
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow (parent),
+    CFramelessWindow (parent),
     ui (new Ui::MainWindow),
     m_autoSaveTimer(new QTimer(this)),
     m_settingsDatabase(Q_NULLPTR),
@@ -89,7 +89,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_currentRightFrameColor(247, 247, 247),
     m_currentTheme(Theme::Light),
     m_currentEditorTextColor(247, 247, 247),
-    m_areNonEditorWidgetsVisible(true)
+    m_areNonEditorWidgetsVisible(true),
+    m_isFrameRightTopWidgetsVisible(true)
 {
     ui->setupUi(this);
     setupMainWindow();
@@ -180,6 +181,7 @@ void MainWindow::setMainWindowVisibility(bool state)
  */
 void MainWindow::paintEvent(QPaintEvent* event)
 {
+#ifndef __APPLE__
     if (!m_useNativeWindowFrame) {
         QPainter painter(this);
         painter.save();
@@ -199,6 +201,7 @@ void MainWindow::paintEvent(QPaintEvent* event)
 
         painter.restore();
     }
+#endif
 
     QMainWindow::paintEvent(event);
 }
@@ -241,21 +244,27 @@ MainWindow::~MainWindow()
  */
 void MainWindow::setupMainWindow()
 {
-#if defined(Q_OS_LINUX) || defined(__APPLE__)
+#if defined(Q_OS_LINUX)
     this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     this->setAttribute(Qt::WA_TranslucentBackground);
 #elif _WIN32
     this->setWindowFlags(Qt::CustomizeWindowHint);
-#elif
-#error "We don't support that version yet..."
 #endif
 
     m_greenMaximizeButton = new QPushButton(this);
     m_redCloseButton = new QPushButton(this);
     m_yellowMinimizeButton = new QPushButton(this);
+#ifndef __APPLE__
     m_trafficLightLayout.addWidget(m_redCloseButton);
     m_trafficLightLayout.addWidget(m_yellowMinimizeButton);
     m_trafficLightLayout.addWidget(m_greenMaximizeButton);
+#else
+    this->setCloseBtnQuit(false);
+    m_layoutMargin = 0;
+    m_greenMaximizeButton->setVisible(false);
+    m_redCloseButton->setVisible(false);
+    m_yellowMinimizeButton->setVisible(false);
+#endif
 
 #ifdef _WIN32
     m_trafficLightLayout.setSpacing(0);
@@ -272,10 +281,10 @@ void MainWindow::setupMainWindow()
     m_editorDateLabel = ui->editorDateLabel;
     m_splitter = ui->splitter;
 
-#ifndef _WIN32
+#if defined(Q_OS_LINUX)
     QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
     setMargins(margins);
-#else
+#elif _WIN32
     ui->verticalSpacer->changeSize(0, 7, QSizePolicy::Fixed, QSizePolicy::Fixed);
     ui->verticalSpacer_upEditorDateLabel->changeSize(0, 27, QSizePolicy::Fixed, QSizePolicy::Fixed);
 #endif
@@ -575,6 +584,11 @@ void MainWindow::setupSignalsSlots()
             m_dbManager, &DBManager::onForceLastRowIndexValueRequested, Qt::BlockingQueuedConnection);
 
     connect(m_dbManager, &DBManager::notesReceived, this, &MainWindow::loadNotes);
+
+#ifdef __APPLE__
+    // Replace setUseNativeWindowFrame with just the part that handles pushing things up
+    connect(this, &MainWindow::toggleFullScreen, this, [=](bool isFullScreen){adjustUpperWidgets(isFullScreen);});
+#endif
 }
 
 /*!
@@ -895,7 +909,7 @@ void MainWindow::restoreStates()
     if(m_settingsDatabase->value(QStringLiteral("editorSettingsWindowGeometry"), "NULL") != "NULL")
         m_styleEditorWindow.restoreGeometry(m_settingsDatabase->value(QStringLiteral("editorSettingsWindowGeometry")).toByteArray());
 
-#ifndef _WIN32
+#if defined(Q_OS_LINUX)
     /// Set margin to zero if the window is maximized
     if (isMaximized()) {
         setMargins(QMargins(0,0,0,0));
@@ -1370,15 +1384,17 @@ void MainWindow::onDotsButtonClicked()
     stayOnTopAction->setToolTip(tr("Always keep the notes application on top of all windows"));
     stayOnTopAction->setCheckable(true);
     stayOnTopAction->setChecked(m_alwaysStayOnTop);
-    connect(stayOnTopAction, &QAction::triggered, this, &MainWindow::stayOnTop);
+    connect(stayOnTopAction, &QAction::triggered, this, &MainWindow::toggleStayOnTop);
 #endif
 
+#ifndef __APPLE__
     // Use native frame action
     QAction* useNativeFrameAction = viewMenu->addAction(tr("Use native window frame"));
     useNativeFrameAction->setToolTip(tr("Use the window frame provided by the window manager"));
     useNativeFrameAction->setCheckable(true);
     useNativeFrameAction->setChecked(m_useNativeWindowFrame);
     connect(useNativeFrameAction, &QAction::triggered, this, &MainWindow::askBeforeSettingNativeWindowFrame);
+#endif
 
     mainMenu.exec(m_dotsButton->mapToGlobal(QPoint(0, m_dotsButton->height())));
 }
@@ -1937,7 +1953,7 @@ void MainWindow::selectNoteDown()
  */
 void MainWindow::fullscreenWindow()
 {
-#ifndef _WIN32
+#if defined(Q_OS_LINUX)
     if(isFullScreen()){
         if(!isMaximized()) {
             m_noteListWidth = m_splitter->sizes().at(0) != 0 ? m_splitter->sizes().at(0) : m_noteListWidth;
@@ -1952,7 +1968,7 @@ void MainWindow::fullscreenWindow()
         setMargins(QMargins(0,0,0,0));
     }
 
-#else
+#elif _WIN32
     if(isFullScreen()){
         showNormal();
     }else{
@@ -1967,7 +1983,7 @@ void MainWindow::fullscreenWindow()
  */
 void MainWindow::maximizeWindow()
 {
-#ifndef _WIN32
+#if defined(Q_OS_LINUX)
     if(isMaximized()){
         if(!isFullScreen()){
             m_noteListWidth = m_splitter->sizes().at(0) != 0 ? m_splitter->sizes().at(0) : m_noteListWidth;
@@ -1983,7 +1999,7 @@ void MainWindow::maximizeWindow()
         setWindowState(windowState() | Qt::WindowMaximized);
         setMargins(QMargins(0,0,0,0));
     }
-#else
+#elif _WIN32
     if(isMaximized()){
         setWindowState(windowState() & ~Qt::WindowMaximized);
         setWindowState(windowState() & ~Qt::WindowFullScreen);
@@ -2003,7 +2019,7 @@ void MainWindow::maximizeWindow()
  */
 void MainWindow::minimizeWindow()
 {
-#ifndef _WIN32
+#if defined(Q_OS_LINUX)
     QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
     setMargins(margins);
 #endif
@@ -2189,6 +2205,11 @@ void MainWindow::collapseNoteList()
     sizes[0] = 0;
     m_splitter->setSizes(sizes);
     m_splitter->setCollapsible(0, false);
+
+#ifdef __APPLE__
+    if(!m_isFrameRightTopWidgetsVisible)
+        this->setStandardWindowButtonsMacVisibility(false);
+#endif
 }
 
 /*!
@@ -2203,6 +2224,10 @@ void MainWindow::expandNoteList()
     sizes[0] = leftWidth;
     sizes[1] = m_splitter->width() - leftWidth;
     m_splitter->setSizes(sizes);
+
+#ifdef __APPLE__
+    this->setStandardWindowButtonsMacVisibility(true);
+#endif
 }
 
 /*!
@@ -2407,6 +2432,7 @@ void MainWindow::mousePressEvent(QMouseEvent* event)
             m_canMoveWindow = true;
             QApplication::setOverrideCursor(QCursor(Qt::ClosedHandCursor));
 
+#ifndef __APPLE__
         }else{
             m_canStretchWindow = true;
 
@@ -2437,6 +2463,7 @@ void MainWindow::mousePressEvent(QMouseEvent* event)
             }else{
                 m_stretchSide = StretchSide::None;
             }
+#endif
         }
 
         event->accept();
@@ -2453,6 +2480,7 @@ void MainWindow::mousePressEvent(QMouseEvent* event)
  */
 void MainWindow::mouseMoveEvent(QMouseEvent* event)
 {
+#ifndef __APPLE__
     if(!m_canStretchWindow && !m_canMoveWindow){
         m_mousePressX = event->x();
         m_mousePressY = event->y();
@@ -2506,13 +2534,16 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
             break;
         }
     }
+#endif
 
     if(m_canMoveWindow){
         int dx = event->globalX() - m_mousePressX;
         int dy = event->globalY() - m_mousePressY;
         move (dx, dy);
 
-    }else if(m_canStretchWindow && !isMaximized() && !isFullScreen()){
+    }
+#ifndef __APPLE__
+    else if(m_canStretchWindow && !isMaximized() && !isFullScreen()){
         int newX = x();
         int newY = y();
         int newWidth = width();
@@ -2605,6 +2636,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
             m_splitter->setSizes(sizes);
         }
     }
+#endif
     event->accept();
 }
 
@@ -3018,7 +3050,12 @@ double MainWindow::gaussianDist(double x, const double center, double sigma) con
  */
 void MainWindow::mouseDoubleClickEvent(QMouseEvent *event)
 {
+    qDebug() << "here";
+#ifndef __APPLE__
     maximizeWindow();
+#else
+    this->maximizeWindowMac();
+#endif
     event->accept();
 }
 
@@ -3036,6 +3073,8 @@ void MainWindow::leaveEvent(QEvent *)
  */
 void MainWindow::setVisibilityOfFrameRightNonEditor(bool isVisible)
 {
+    m_isFrameRightTopWidgetsVisible = isVisible;
+
     if(isVisible) {
         m_areNonEditorWidgetsVisible = true;
         m_editorDateLabel->setVisible(true);
@@ -3051,6 +3090,16 @@ void MainWindow::setVisibilityOfFrameRightNonEditor(bool isVisible)
         m_dotsButton->setVisible(false);
         m_styleEditorButton->setVisible(false);
     }
+
+#ifdef __APPLE__
+    // If the notes list is collapsed, hide the traffic light buttons
+    if(m_splitter != Q_NULLPTR) {
+        QList<int> sizes = m_splitter->sizes();
+        if(sizes.at(0) == 0) {
+            this->setStandardWindowButtonsMacVisibility(isVisible);
+        }
+    }
+#endif
 }
 
 /*!
@@ -3372,6 +3421,9 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
  */
 void MainWindow::stayOnTop(bool checked)
 {
+    m_alwaysStayOnTop = checked;
+
+#ifndef __APPLE__
     Qt::WindowFlags flags = windowFlags();
 
     if (checked)
@@ -3379,10 +3431,11 @@ void MainWindow::stayOnTop(bool checked)
     else
         flags &= ~Qt::WindowStaysOnTopHint;
 
-    m_alwaysStayOnTop = checked;
-
     setWindowFlags(flags);
     setMainWindowVisibility(true);
+#else
+    this->setWindowAlwaysOnTopMac(checked);
+#endif
 }
 
 /*!
@@ -3407,6 +3460,32 @@ void MainWindow::askBeforeSettingNativeWindowFrame()
 }
 
 /*!
+ * \brief MainWindow::adjustUpperWidgets
+ * Either push the widgets up or restore them to their original position
+ * Needed for when using native window or going full screen
+ * \param shouldPushUp
+ */
+void MainWindow::adjustUpperWidgets(bool shouldPushUp)
+{
+    // Adjust space above search field
+    const QSizePolicy policy = ui->verticalSpacer_upSearchEdit->sizePolicy();
+    const int width = ui->verticalSpacer_upSearchEdit->sizeHint().width();
+    ui->verticalSpacer_upSearchEdit->changeSize(width,
+                                                shouldPushUp ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25,
+                                                policy.horizontalPolicy(),
+                                                policy.verticalPolicy());
+    ui->verticalLayout_scrollArea->invalidate();
+
+    // TODO: For some reason the layout update itself only when a button is being hovered upon
+    // Adjust space above text editor
+    ui->verticalSpacer_upEditorDateLabel->changeSize(width,
+                                                     shouldPushUp ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25,
+                                                     policy.horizontalPolicy(),
+                                                     policy.verticalPolicy());
+    ui->verticalLayout_textEdit->invalidate();
+}
+
+/*!
  * \brief MainWindow::setUseNativeWindowFrame
  * \param useNativeWindowFrame
  */
@@ -3418,13 +3497,14 @@ void MainWindow::setUseNativeWindowFrame(bool useNativeWindowFrame)
     m_useNativeWindowFrame = useNativeWindowFrame;
     m_settingsDatabase->setValue(QStringLiteral("useNativeWindowFrame"), useNativeWindowFrame);
 
+#ifndef __APPLE__
     m_greenMaximizeButton->setVisible(!useNativeWindowFrame);
     m_redCloseButton->setVisible(!useNativeWindowFrame);
     m_yellowMinimizeButton->setVisible(!useNativeWindowFrame);
 
     auto flags = windowFlags();
 
-#if defined(Q_OS_LINUX) || defined(__APPLE__)
+#if defined(Q_OS_LINUX)
     if (useNativeWindowFrame)
         flags &= ~Qt::FramelessWindowHint;
     else
@@ -3434,13 +3514,13 @@ void MainWindow::setUseNativeWindowFrame(bool useNativeWindowFrame)
         flags &= ~Qt::CustomizeWindowHint;
     else
         flags |= Qt::CustomizeWindowHint;
-#elif
-#error "We don't support that version yet..."
 #endif
 
     setWindowFlags(flags);
+#endif
 
-#ifndef _WIN32
+
+#if defined(Q_OS_LINUX)
     if (useNativeWindowFrame || isMaximized()) {
         ui->centralWidget->layout()->setContentsMargins(QMargins());
     } else {
@@ -3449,21 +3529,9 @@ void MainWindow::setUseNativeWindowFrame(bool useNativeWindowFrame)
     }
 #endif
 
-    // Adjust space above search field
-    const QSizePolicy policy = ui->verticalSpacer_upSearchEdit->sizePolicy();
-    const int width = ui->verticalSpacer_upSearchEdit->sizeHint().width();
-    ui->verticalSpacer_upSearchEdit->changeSize(width,
-                                                useNativeWindowFrame ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25,
-                                                policy.horizontalPolicy(),
-                                                policy.verticalPolicy());
-    ui->verticalLayout_scrollArea->invalidate();
+    adjustUpperWidgets(m_useNativeWindowFrame);
 
-    // Adjust space above text editor
-    ui->verticalSpacer_upEditorDateLabel->changeSize(width,
-                                                     useNativeWindowFrame ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25,
-                                                     policy.horizontalPolicy(),
-                                                     policy.verticalPolicy());
-    ui->verticalLayout_textEdit->invalidate();
+    QCoreApplication::processEvents();
 
     setMainWindowVisibility(true);
 }

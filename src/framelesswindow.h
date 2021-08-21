@@ -109,6 +109,13 @@ public:
     bool isCloseBtnEnabled() {return m_bIsCloseBtnEnabled;}
     bool isMinBtnEnabled() {return m_bIsMinBtnEnabled;}
     bool isZoomBtnEnabled() {return m_bIsZoomBtnEnabled;}
+
+    void maximizeWindowMac();
+    void setWindowAlwaysOnTopMac(bool isAlwaysOnTop);
+    void setStandardWindowButtonsMacVisibility(bool isVisible);
+
+signals:
+    void toggleFullScreen(bool isFullScreen);
 protected:
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);

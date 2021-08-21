@@ -38,11 +38,22 @@ CFramelessWindow::CFramelessWindow(QWidget *parent)
     ShowHideProcess(&pn,false);
 }
 - (void)zoomButtonAction:(id)sender
-{
+{    
     Q_UNUSED(sender);
     if (0 == self.window) return;
-    if (self.window->isMaximized()) self.window->showNormal();
-    else self.window->showMaximized();
+
+    if (self.window->isFullScreen() || self.window->isMaximized()) {
+        self.window->showNormal();
+        emit self.window->toggleFullScreen(false);
+    } else {
+        NSView* view = sender;
+        if (0 == view) return;
+        NSWindow *window = view.window;
+        if (0 == window) return;
+
+        [window toggleFullScreen:window];
+        emit self.window->toggleFullScreen(true);
+    }
 }
 @end
 
@@ -223,4 +234,43 @@ void CFramelessWindow::setTitlebarVisible(bool bTitlebarVisible)
         window.styleMask |= NSWindowStyleMaskFullSizeContentView; //MAC_10_10及以上版本支持
     }
 }
+
+void CFramelessWindow::maximizeWindowMac()
+{
+    NSView* view = (NSView*)winId();
+    if (0 == view) return;
+    NSWindow *window = view.window;
+    if (0 == window) return;
+
+    [window zoom:window];
+}
+
+void CFramelessWindow::setWindowAlwaysOnTopMac(bool isAlwaysOnTop)
+{
+    NSView* view = (NSView*)winId();
+    if (0 == view) return;
+    NSWindow *window = view.window;
+    if (0 == window) return;
+
+    if(isAlwaysOnTop)
+        [window setLevel:NSFloatingWindowLevel];
+    else
+        [window setLevel:NSNormalWindowLevel];
+}
+
+void CFramelessWindow::setStandardWindowButtonsMacVisibility(bool isVisible)
+{
+    NSView* view = (NSView*)winId();
+    if (0 == view) return;
+    NSWindow *window = view.window;
+    if (0 == window) return;
+
+    NSButton *closeButton = [window standardWindowButton:NSWindowCloseButton];
+    NSButton *minimizeButton = [window standardWindowButton:NSWindowMiniaturizeButton];
+    NSButton *zoomButton = [window standardWindowButton:NSWindowZoomButton];
+    [closeButton setHidden:!isVisible];
+    [minimizeButton setHidden:!isVisible];
+    [zoomButton setHidden:!isVisible];
+}
+
 #endif //Q_OS_MAC

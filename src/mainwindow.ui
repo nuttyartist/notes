@@ -18,8 +18,8 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>520</width>
-    <height>265</height>
+    <width>400</width>
+    <height>200</height>
    </size>
   </property>
   <property name="windowTitle">
