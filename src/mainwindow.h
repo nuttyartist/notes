@@ -23,7 +23,6 @@
 #include <QMenu>
 #include <QProgressDialog>
 #include <QAction>
-#include <QTextLine>
 
 #include <QAutostart>
 
@@ -42,7 +41,11 @@ namespace Ui {
 class MainWindow;
 }
 
+#if defined(Q_OS_LINUX)
+class MainWindow : public QMainWindow
+#else
 class MainWindow : public CFramelessWindow
+#endif
 {
     Q_OBJECT
 
@@ -301,7 +304,6 @@ signals:
     void requestMigrateNotes(QList<NoteData *> noteList);
     void requestMigrateTrash(QList<NoteData *> noteList);
     void requestForceLastRowIndexValue(int index);
-    void finishedTextEditSetup();
 };
 
 #endif // MAINWINDOW_H

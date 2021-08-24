@@ -74,10 +74,10 @@ int main(int argc, char *argv[])
     QFontDatabase::addApplicationFont (":/fonts/josefinsans/JosefinSans-Bold.ttf");
 
     // iA Mono
-    QFontDatabase::addApplicationFont (":/fonts/iaduo/iAWriterMonoS-Regular.ttf");
-    QFontDatabase::addApplicationFont (":/fonts/iaduo/iAWriterMonoS-Italic.ttf");
-    QFontDatabase::addApplicationFont (":/fonts/iaduo/iAWriterMonoS-Bold.ttf");
-    QFontDatabase::addApplicationFont (":/fonts/iaduo/iAWriterMonoS-BoldItalic.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/iamono/iAWriterMonoS-Regular.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/iamono/iAWriterMonoS-Italic.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/iamono/iAWriterMonoS-Bold.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/iamono/iAWriterMonoS-BoldItalic.ttf");
 
     // iA Duo
     QFontDatabase::addApplicationFont (":/fonts/iaduo/iAWriterDuoS-Regular.ttf");
@@ -86,10 +86,10 @@ int main(int argc, char *argv[])
     QFontDatabase::addApplicationFont (":/fonts/iaduo/iAWriterDuoS-BoldItalic.ttf");
 
     // iA Quattro
-    QFontDatabase::addApplicationFont (":/fonts/iaduo/iAWriterQuattroS-Regular.ttf");
-    QFontDatabase::addApplicationFont (":/fonts/iaduo/iAWriterQuattroS-Italic.ttf");
-    QFontDatabase::addApplicationFont (":/fonts/iaduo/iAWriterQuattroS-Bold.ttf");
-    QFontDatabase::addApplicationFont (":/fonts/iaduo/iAWriterQuattroS-BoldItalic.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/iaquattro/iAWriterQuattroS-Regular.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/iaquattro/iAWriterQuattroS-Italic.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/iaquattro/iAWriterQuattroS-Bold.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/iaquattro/iAWriterQuattroS-BoldItalic.ttf");
 
 
     // Prevent many instances of the app to be launched

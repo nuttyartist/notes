@@ -73,15 +73,20 @@ StyleEditorWindow::StyleEditorWindow(QWidget *parent) :
 
 #endif
 
-    m_ui->fullWidthButton->setFont(QFont(fontDisplayName, 13, QFont::Bold));
-    m_ui->increaseButton->setFont(QFont(fontDisplayName, 13, QFont::Bold));
-    m_ui->decreaseButton->setFont(QFont(fontDisplayName, 13, QFont::Bold));
-    m_ui->increaseWidthButton->setFont(QFont(fontDisplayName, 13, QFont::Bold));
-    m_ui->decreaseWidthButton->setFont(QFont(fontDisplayName, 13, QFont::Bold));
-    m_ui->lightButton->setFont(QFont(fontDisplayName, 13, QFont::Bold));
-    m_ui->darkButton->setFont(QFont(fontDisplayName, 13, QFont::Bold));
-    m_ui->sepiaButton->setFont(QFont(fontDisplayName, 13, QFont::Bold));
-    m_ui->resetDefaultButton->setFont(QFont(fontDisplayName, 13, QFont::Bold));
+#ifdef __APPLE__
+    int fontDisplaySize = 13;
+#else
+    int fontDisplaySize = 9;
+#endif
+    m_ui->fullWidthButton->setFont(QFont(fontDisplayName, fontDisplaySize, QFont::Bold));
+    m_ui->increaseButton->setFont(QFont(fontDisplayName, fontDisplaySize, QFont::Bold));
+    m_ui->decreaseButton->setFont(QFont(fontDisplayName, fontDisplaySize, QFont::Bold));
+    m_ui->increaseWidthButton->setFont(QFont(fontDisplayName, fontDisplaySize, QFont::Bold));
+    m_ui->decreaseWidthButton->setFont(QFont(fontDisplayName, fontDisplaySize, QFont::Bold));
+    m_ui->lightButton->setFont(QFont(fontDisplayName, fontDisplaySize, QFont::Bold));
+    m_ui->darkButton->setFont(QFont(fontDisplayName, fontDisplaySize, QFont::Bold));
+    m_ui->sepiaButton->setFont(QFont(fontDisplayName, fontDisplaySize, QFont::Bold));
+    m_ui->resetDefaultButton->setFont(QFont(fontDisplayName, fontDisplaySize, QFont::Bold));
 
     QList<QPushButton*> listChildrenButtons = findChildren<QPushButton*>();
     foreach(QPushButton* childButton, listChildrenButtons) {
@@ -112,7 +117,6 @@ void StyleEditorWindow::buttonClicked(QPushButton* button)
             button == m_ui->sansSerifButton ||
             button == m_ui->monoButton) {
         if(m_currentSelectedFontButton != Q_NULLPTR ){
-            qDebug() << m_currentSelectedFontButton;
             m_currentSelectedFontButton->setStyleSheet(getStyleSheetForButton(ButtonState::Normal));
         }
         m_currentSelectedFontButton = button;

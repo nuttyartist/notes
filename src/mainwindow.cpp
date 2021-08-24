@@ -28,8 +28,13 @@
  * \brief MainWindow::MainWindow
  * \param parent
  */
+#if defined(Q_OS_LINUX)
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow (parent),
+    #else
 MainWindow::MainWindow(QWidget *parent) :
     CFramelessWindow (parent),
+#endif
     ui (new Ui::MainWindow),
     m_autoSaveTimer(new QTimer(this)),
     m_settingsDatabase(Q_NULLPTR),
@@ -181,7 +186,7 @@ void MainWindow::setMainWindowVisibility(bool state)
  */
 void MainWindow::paintEvent(QPaintEvent* event)
 {
-#ifndef __APPLE__
+#if !defined(__APPLE__) && !defined(Q_OS_LINUX)
     if (!m_useNativeWindowFrame) {
         QPainter painter(this);
         painter.save();
@@ -246,7 +251,7 @@ void MainWindow::setupMainWindow()
 {
 #if defined(Q_OS_LINUX)
     this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
-    this->setAttribute(Qt::WA_TranslucentBackground);
+//    this->setAttribute(Qt::WA_TranslucentBackground);
 #elif _WIN32
     this->setWindowFlags(Qt::CustomizeWindowHint);
 #endif
@@ -255,6 +260,9 @@ void MainWindow::setupMainWindow()
     m_redCloseButton = new QPushButton(this);
     m_yellowMinimizeButton = new QPushButton(this);
 #ifndef __APPLE__
+//    If we want to align window buttons with searchEdit and notesList
+//    QSpacerItem *horizontialSpacer = new QSpacerItem(3, 0, QSizePolicy::Minimum, QSizePolicy::Minimum);
+//    m_trafficLightLayout.addSpacerItem(horizontialSpacer);
     m_trafficLightLayout.addWidget(m_redCloseButton);
     m_trafficLightLayout.addWidget(m_yellowMinimizeButton);
     m_trafficLightLayout.addWidget(m_greenMaximizeButton);
@@ -282,14 +290,18 @@ void MainWindow::setupMainWindow()
     m_splitter = ui->splitter;
 
 #if defined(Q_OS_LINUX)
-    QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
-    setMargins(margins);
+//    QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
+//    setMargins(margins);
+    setMargins(QMargins(0,0,0,0));
 #elif _WIN32
     ui->verticalSpacer->changeSize(0, 7, QSizePolicy::Fixed, QSizePolicy::Fixed);
     ui->verticalSpacer_upEditorDateLabel->changeSize(0, 27, QSizePolicy::Fixed, QSizePolicy::Fixed);
 #endif
     ui->frame->installEventFilter(this);
+    ui->frameRight->setMouseTracking(true);
     ui->centralWidget->setMouseTracking(true);
+    ui->frame->setMouseTracking(true);
+    ui->frameRightTop->setMouseTracking(true);
     this->setMouseTracking(true);
 
     QPalette pal(palette());
@@ -303,7 +315,12 @@ void MainWindow::setupMainWindow()
     m_styleEditorButton->setToolTip(tr("Style The Editor"));
 
     m_styleEditorButton->setText(QStringLiteral("Aa"));
+#if __APPLE__
     m_styleEditorButton->setFont(QFont(QStringLiteral("Roboto"), 20, QFont::Bold));
+#else
+    m_styleEditorButton->setFont(QFont(QStringLiteral("Roboto"), 16, QFont::Bold));
+
+#endif
     QString ss = QStringLiteral("QPushButton { "
                  "  border: none; "
                  "  padding: 0px; "
@@ -370,7 +387,11 @@ void MainWindow::setupKeyboardShortcuts()
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S), this, SLOT(onStyleEditorButtonClicked()));
 
     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
+#if defined(Q_OS_LINUX)
+    shortcut->setShortcut(QKeySequence(QStringLiteral("META+SHIFT+N")));
+#else
     shortcut->setShortcut(QKeySequence(QStringLiteral("META+N")));
+#endif
     connect(shortcut, &QxtGlobalShortcut::activated,[=]() {
         // workaround prevent textEdit and searchEdit
         // from taking 'N' from shortcut
@@ -382,7 +403,7 @@ void MainWindow::setupKeyboardShortcuts()
         if(isHidden()
                 || windowState() == Qt::WindowMinimized
                 || qApp->applicationState() == Qt::ApplicationInactive)
-            this->raise();
+            this->activateWindow();
         m_textEdit->setDisabled(false);
         m_searchEdit->setDisabled(false);
     });
@@ -490,7 +511,7 @@ void MainWindow::setupTitleBarButtons()
  */
 void MainWindow::setupSignalsSlots()
 {
-    connect(&m_updater, &UpdaterWindow::dontShowUpdateWindowChanged, [=](bool state){m_dontShowUpdateWindow = state;});    
+    connect(&m_updater, &UpdaterWindow::dontShowUpdateWindowChanged, [=](bool state){m_dontShowUpdateWindow = state;});
     // Style Editor Window
     connect(&m_styleEditorWindow, &StyleEditorWindow::changeFontType, this, [=](FontTypeface fontType){changeEditorFontTypeFromStyleButtons(fontType);});
     connect(&m_styleEditorWindow, &StyleEditorWindow::changeFontSize, this, [=](FontSizeAction fontSizeAction){changeEditorFontSizeFromStyleButtons(fontSizeAction);});
@@ -738,9 +759,23 @@ void MainWindow::setupTextEditStyleSheet(int paddingLeft, int paddingRight)
 {
     m_textEdit->setDocumentPadding(paddingLeft, 0, paddingRight, 2);
 
+#if defined(Q_OS_LINUX)
+    QString ss = QString("QTextEdit {background-color: %1;} "
+                         "QTextEdit{selection-background-color: rgb(63, 99, 139);}"
+                         "QScrollBar::handle:vertical:hover { background: rgb(170, 170, 171); } "
+                         "QScrollBar::handle:vertical:pressed { background: rgb(149, 149, 149); } "
+                         "QScrollBar::handle:vertical { border-radius: 4px; background: rgb(188, 188, 188); min-height: 20px; }  "
+                         "QScrollBar::vertical {border-radius: 4px; width: 8px; color: rgba(255, 255, 255,0);} "
+                         "QScrollBar {margin: 0; background: transparent;} "
+                         "QScrollBar:hover { background-color: rgb(217, 217, 217);}"
+                         "QScrollBar::add-line:vertical { width:0px; height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
+                         "QScrollBar::sub-line:vertical { width:0px; height: 0px; subcontrol-position: top; subcontrol-origin: margin; }"
+                         ).arg(m_currentEditorBackgroundColor.name());
+#else
     QString ss = QString("QTextEdit {background-color: %1;} "
                          "QTextEdit{selection-background-color: rgb(63, 99, 139);}"
                          ).arg(m_currentEditorBackgroundColor.name());
+#endif
 
     m_textEdit->setStyleSheet(ss);
 }
@@ -781,7 +816,7 @@ void MainWindow::alignTextEditText()
  * And install this class event filter to catch when text edit is having focus
  */
 void MainWindow::setupTextEdit()
-{   
+{
     setupTextEditStyleSheet(0, 0);
     m_textEdit->installEventFilter(this);
     m_textEdit->verticalScrollBar()->installEventFilter(this);
@@ -914,9 +949,9 @@ void MainWindow::restoreStates()
 
 #if defined(Q_OS_LINUX)
     /// Set margin to zero if the window is maximized
-    if (isMaximized()) {
-        setMargins(QMargins(0,0,0,0));
-    }
+//    if (isMaximized()) {
+//        setMargins(QMargins(0,0,0,0));
+//    }
 #endif
 
     if(m_settingsDatabase->value(QStringLiteral("dontShowUpdateWindow"), "NULL") != "NULL")
@@ -1960,15 +1995,14 @@ void MainWindow::fullscreenWindow()
     if(isFullScreen()){
         if(!isMaximized()) {
             m_noteListWidth = m_splitter->sizes().at(0) != 0 ? m_splitter->sizes().at(0) : m_noteListWidth;
-            QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
-
-            setMargins(margins);
+//            QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
+//            setMargins(margins);
         }
 
         setWindowState(windowState() & ~Qt::WindowFullScreen);
     }else{
         setWindowState(windowState() | Qt::WindowFullScreen);
-        setMargins(QMargins(0,0,0,0));
+//        setMargins(QMargins(0,0,0,0));
     }
 
 #elif _WIN32
@@ -2000,7 +2034,7 @@ void MainWindow::maximizeWindow()
 
     }else{
         setWindowState(windowState() | Qt::WindowMaximized);
-        setMargins(QMargins(0,0,0,0));
+//        setMargins(QMargins(0,0,0,0));
     }
 #elif _WIN32
     if(isMaximized()){
@@ -2023,8 +2057,8 @@ void MainWindow::maximizeWindow()
 void MainWindow::minimizeWindow()
 {
 #if defined(Q_OS_LINUX)
-    QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
-    setMargins(margins);
+//    QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
+//    setMargins(margins);
 #endif
 
     // BUG : QTBUG-57902 minimize doesn't store the window state before minimizing
@@ -2209,10 +2243,15 @@ void MainWindow::collapseNoteList()
     m_splitter->setSizes(sizes);
     m_splitter->setCollapsible(0, false);
 
+    if(!m_isFrameRightTopWidgetsVisible) {
 #ifdef __APPLE__
-    if(!m_isFrameRightTopWidgetsVisible)
         this->setStandardWindowButtonsMacVisibility(false);
+#else
+        m_redCloseButton->setVisible(false);
+        m_yellowMinimizeButton->setVisible(false);
+        m_greenMaximizeButton->setVisible(false);
 #endif
+    }
 }
 
 /*!
@@ -2230,6 +2269,10 @@ void MainWindow::expandNoteList()
 
 #ifdef __APPLE__
     this->setStandardWindowButtonsMacVisibility(true);
+#else
+    m_redCloseButton->setVisible(true);
+    m_yellowMinimizeButton->setVisible(true);
+    m_greenMaximizeButton->setVisible(true);
 #endif
 }
 
@@ -3053,7 +3096,6 @@ double MainWindow::gaussianDist(double x, const double center, double sigma) con
  */
 void MainWindow::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    qDebug() << "here";
 #ifndef __APPLE__
     maximizeWindow();
 #else
@@ -3094,15 +3136,22 @@ void MainWindow::setVisibilityOfFrameRightNonEditor(bool isVisible)
         m_styleEditorButton->setVisible(false);
     }
 
-#ifdef __APPLE__
-    // If the notes list is collapsed, hide the traffic light buttons
+
+    // If the notes list is collapsed, hide the window buttons
     if(m_splitter != Q_NULLPTR) {
         QList<int> sizes = m_splitter->sizes();
         if(sizes.at(0) == 0) {
+#ifdef __APPLE__
+
             this->setStandardWindowButtonsMacVisibility(isVisible);
-        }
-    }
+#else
+            m_redCloseButton->setVisible(isVisible);
+            m_yellowMinimizeButton->setVisible(isVisible);
+            m_greenMaximizeButton->setVisible(isVisible);
 #endif
+        }
+
+    }
 }
 
 /*!
@@ -3413,6 +3462,15 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         }
         break;
     }
+    case QEvent::MouseMove:
+    {
+        // Apperantly we need this if m_layoutMargin is set to 0
+        if(object == ui->frame ||
+                object == ui->frameLeft ||
+                object == ui->frameRight ||
+                object == ui->frameRightTop)
+            mouseMoveEvent(static_cast<QMouseEvent*>(event));
+    }
     default:
         break;
     }
@@ -3525,18 +3583,25 @@ void MainWindow::setUseNativeWindowFrame(bool useNativeWindowFrame)
 #endif
 
 
-#if defined(Q_OS_LINUX)
-    if (useNativeWindowFrame || isMaximized()) {
-        ui->centralWidget->layout()->setContentsMargins(QMargins());
-    } else {
-        QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
-        ui->centralWidget->layout()->setContentsMargins(margins);
-    }
-#endif
+//#if defined(Q_OS_LINUX)
+//    if (useNativeWindowFrame || isMaximized()) {
+//        ui->centralWidget->layout()->setContentsMargins(QMargins());
+//    } else {
+//        QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
+//        ui->centralWidget->layout()->setContentsMargins(margins);
+//    }
+//#endif
 
-    adjustUpperWidgets(m_useNativeWindowFrame);
+//#ifndef _WIN32
+//    if (useNativeWindowFrame || isMaximized()) {
+//        ui->centralWidget->layout()->setContentsMargins(QMargins());
+//    } else {
+//        QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
+//        ui->centralWidget->layout()->setContentsMargins(margins);
+//    }
+//#endif
 
-    QCoreApplication::processEvents();
+    adjustUpperWidgets(useNativeWindowFrame);
 
     setMainWindowVisibility(true);
 }
