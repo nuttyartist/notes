@@ -403,7 +403,11 @@ void MainWindow::setupKeyboardShortcuts()
         if(isHidden()
                 || windowState() == Qt::WindowMinimized
                 || qApp->applicationState() == Qt::ApplicationInactive)
+#ifdef __APPLE__
+            this->raise();
+#else
             this->activateWindow();
+#endif
         m_textEdit->setDisabled(false);
         m_searchEdit->setDisabled(false);
     });
