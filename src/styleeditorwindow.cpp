@@ -112,6 +112,7 @@ StyleEditorWindow::~StyleEditorWindow()
 void StyleEditorWindow::buttonClicked(QPushButton* button)
 {
     m_currentlyClickedButton = button;
+    bool shouldBeClicked = true;
 
     if(button == m_ui->serifButton ||
             button == m_ui->sansSerifButton ||
@@ -132,8 +133,14 @@ void StyleEditorWindow::buttonClicked(QPushButton* button)
     }
 
     if(button == m_ui->fullWidthButton) {
-        m_ui->fullWidthButton->setStyleSheet(getStyleSheetForButton(ButtonState::Clicked));
-        m_isFullWidthClicked = true;
+        if(m_isFullWidthClicked) {
+            m_ui->fullWidthButton->setStyleSheet(getStyleSheetForButton(ButtonState::Hovered));
+            m_isFullWidthClicked = false;
+            shouldBeClicked = false;
+        } else {
+            m_ui->fullWidthButton->setStyleSheet(getStyleSheetForButton(ButtonState::Clicked));
+            m_isFullWidthClicked = true;
+        }
     }
 
     if(button == m_ui->increaseWidthButton ||
@@ -142,7 +149,8 @@ void StyleEditorWindow::buttonClicked(QPushButton* button)
         m_isFullWidthClicked = false;
     }
 
-    button->setStyleSheet(getStyleSheetForButton(ButtonState::Clicked));
+    if(shouldBeClicked)
+        button->setStyleSheet(getStyleSheetForButton(ButtonState::Clicked));
 
     if(button != m_currentSelectedFontButton && button != m_currentSelectedThemeButton && button != m_ui->fullWidthButton) {
         QTimer::singleShot(200, this, [this]{m_currentlyClickedButton->setStyleSheet(getStyleSheetForButton(ButtonState::Normal));});
@@ -339,6 +347,7 @@ bool StyleEditorWindow::eventFilter(QObject *object, QEvent *event)
         QList<QPushButton*> listChildrenButtons = findChildren<QPushButton*>();
         foreach(QPushButton* childButton, listChildrenButtons) {
              if((object == childButton && !isSelectedButton(childButton))) {
+                 qDebug() << "here";
                  childButton->setStyleSheet(getStyleSheetForButton(ButtonState::Hovered));
              }
         }

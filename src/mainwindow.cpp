@@ -1534,7 +1534,10 @@ void MainWindow::changeEditorTextWidthFromStyleButtons(EditorTextWidth editorTex
 {
     switch(editorTextWidth) {
     case EditorTextWidth::FullWidth:
-        m_textEdit->setLineWrapMode(QTextEdit::WidgetWidth);
+        if(m_textEdit->lineWrapMode() != QTextEdit::WidgetWidth)
+            m_textEdit->setLineWrapMode(QTextEdit::WidgetWidth);
+        else
+            m_textEdit->setLineWrapMode(QTextEdit::FixedColumnWidth);
         break;
     case EditorTextWidth::Increase:
         m_textEdit->setLineWrapMode(QTextEdit::FixedColumnWidth);
