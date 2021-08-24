@@ -90,7 +90,7 @@ linux:!android {
     Project = "$$TARGET-$$VERSION"
 
     AuthorEmail = \"awesomeness.notes@gmail.com\"
-    AuthorName = \"Nutty Artist\"
+    AuthorName = \"Ruby Mamistvalove\"
 
     deb.target   = deb
     deb.depends  = fix_deb_dependencies
