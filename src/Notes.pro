@@ -51,14 +51,14 @@ HEADERS  += \
     aboutwindow.h \
     customDocument.h \
     editorsettingsbutton.h \
-    styleEditorWindow.h \
-    framelesswindow.h
+    framelesswindow.h \
+    styleeditorwindow.h
 
 FORMS += \
     $$PWD/mainwindow.ui \
     $$PWD/updaterwindow.ui \
     aboutwindow.ui \
-    styleEditorWindow.ui
+    styleeditorwindow.ui
 
 RESOURCES += \
     $$PWD/images.qrc \

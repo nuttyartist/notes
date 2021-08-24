@@ -31,7 +31,7 @@
 #include "notemodel.h"
 #include "noteview.h"
 #include "updaterwindow.h"
-#include "styleEditorWindow.h"
+#include "styleeditorwindow.h"
 #include "dbmanager.h"
 #include "markdownhighlighter.h"
 #include "customDocument.h"

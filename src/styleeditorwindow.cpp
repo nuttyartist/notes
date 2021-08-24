@@ -1,5 +1,5 @@
-#include "styleEditorWindow.h"
-#include "ui_styleEditorWindow.h"
+#include "styleeditorwindow.h"
+#include "ui_styleeditorwindow.h"
 
 #include <QDebug>
 #include <QTimer>
