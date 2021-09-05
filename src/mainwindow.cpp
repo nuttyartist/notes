@@ -848,6 +848,15 @@ void MainWindow::setupTextEdit()
     } else if(QFont("Helvetica").exactMatch()) {
         m_listOfSansSerifFonts.push_front("Helvetica");
     }
+#elif _WIN32
+     if(QFont("Calibri").exactMatch())
+         m_listOfSansSerifFonts.push_front("Calibri");
+
+     if(QFont("Arial").exactMatch())
+         m_listOfSansSerifFonts.push_front("Arial");
+
+     if(QFont("Segoe UI").exactMatch())
+         m_listOfSansSerifFonts.push_front("Segoe UI");
 #endif
 
     // This is done because for now where we're only handling plain text,
