@@ -10,13 +10,21 @@
 NoteWidgetDelegate::NoteWidgetDelegate(QObject *parent)
     : QStyledItemDelegate(parent),
 #ifdef __APPLE__
-      m_titleFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto"), 13, 65),
-      m_titleSelectedFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto"), 13),
-      m_dateFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto"), 13),
+      m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")),
+#elif _WIN32
+      m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI") : QStringLiteral("Roboto")),
 #else
-      m_titleFont(QStringLiteral("Roboto"), 10, 60),
-      m_titleSelectedFont(QStringLiteral("Roboto"), 10),
-      m_dateFont(QStringLiteral("Roboto"), 10),
+      m_displayFont(QStringLiteral("Roboto")),
+#endif
+
+#ifdef __APPLE__
+      m_titleFont(m_displayFont, 13, 65),
+      m_titleSelectedFont(m_displayFont, 13),
+      m_dateFont(m_displayFont, 13),
+#else
+      m_titleFont(m_displayFont, 10, 60),
+      m_titleSelectedFont(m_displayFont, 10),
+      m_dateFont(m_displayFont, 10),
 #endif
       m_titleColor(26, 26, 26),
       m_dateColor(132, 132, 132),

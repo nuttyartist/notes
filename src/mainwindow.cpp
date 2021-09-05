@@ -89,7 +89,13 @@ MainWindow::MainWindow(QWidget *parent) :
                                , 80    // Serif
                                , 80}), // SansSerif
     m_currentFontTypeface(FontTypeface::SansSerif),
+#ifdef __APPLE__
     m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")),
+#elif _WIN32
+    m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI") : QStringLiteral("Roboto")),
+#else
+    m_displayFont(QStringLiteral("Roboto")),
+#endif
     m_currentEditorBackgroundColor(247, 247, 247),
     m_currentRightFrameColor(247, 247, 247),
     m_currentTheme(Theme::Light),

@@ -20,6 +20,9 @@ AboutWindow::AboutWindow(QWidget *parent) :
 #ifdef __APPLE__
     QFont fontToUse = QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto");
     m_ui->aboutText->setFont(fontToUse);
+#elif _WIN32
+    QFont fontToUse = QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI") : QStringLiteral("Roboto");
+    m_ui->aboutText->setFont(fontToUse);
 #else
     m_ui->aboutText->setFont(QFont(QStringLiteral("Roboto")));
 #endif

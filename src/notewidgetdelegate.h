@@ -43,6 +43,7 @@ private:
     void paintSeparator(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     QString parseDateTime(const QDateTime& dateTime) const;
 
+    QString m_displayFont;
     QFont m_titleFont;
     QFont m_titleSelectedFont;
     QFont m_dateFont;

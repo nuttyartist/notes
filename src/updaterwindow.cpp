@@ -71,19 +71,19 @@ UpdaterWindow::UpdaterWindow(QWidget *parent) :
 
     /* Change fonts */
 #ifdef __APPLE__
-    this->setFont(QFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")));
-    m_ui->changelog->setFont(QFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")));
+    QFont fontToUse = QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto");
+#elif _WIN32
+    QFont fontToUse = QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI") : QStringLiteral("Roboto");
+#else
+    QFont fontToUse = QFont(QStringLiteral("Roboto"));
+#endif
+
+    this->setFont(fontToUse);
+    m_ui->changelog->setFont(fontToUse);
     m_ui->changelog->setTextColor(QColor(26, 26, 26));
     foreach(QWidget *widgetChild, this->findChildren<QWidget *>()) {
-        widgetChild->setFont(QFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")));
+        widgetChild->setFont(fontToUse);
     }
-#else
-    setFont(QFont(QStringLiteral("Roboto")));
-    m_ui->changelog->setFont(QFont(QStringLiteral("Roboto")));
-    foreach(QWidget *widgetChild, this->findChildren<QWidget *>()) {
-        widgetChild->setFont(QFont(QStringLiteral("Roboto")));
-    }
-#endif
 
 
     /* Connect UI signals/slots */

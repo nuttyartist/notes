@@ -20,8 +20,6 @@ StyleEditorWindow::StyleEditorWindow(QWidget *parent) :
     this->setWindowTitle(tr("Editor Settings"));
     this->setWindowFlags(Qt::Window | Qt::WindowStaysOnTopHint);
 
-    this->setFont(QFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")));
-
     m_ui->serifButton->setToolTip("Change the text editor font to a serif font.\nClick again to try different fonts");
     m_ui->sansSerifButton->setToolTip("Change the text editor font to a sans-serif font.\nClick again to try different fonts");
     m_ui->monoButton->setToolTip("Change the text editor font to a monospace font.\nClick again to try different fonts");
@@ -67,11 +65,16 @@ StyleEditorWindow::StyleEditorWindow(QWidget *parent) :
         fontDisplayName = QStringLiteral("Roboto");
     }
 
+#elif _WIN32
+    fontDisplayName = QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI") : QStringLiteral("Roboto");
+
 #else
 
     fontDisplayName = QStringLiteral("Roboto");
 
 #endif
+
+    this->setFont(QFont(fontDisplayName));
 
 #ifdef __APPLE__
     int fontDisplaySize = 13;
