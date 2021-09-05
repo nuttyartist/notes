@@ -54,7 +54,13 @@ int main(int argc, char *argv[])
 
     // Mate
     QFontDatabase::addApplicationFont (":/fonts/mate/Mate-Regular.ttf");
-    QFontDatabase::addApplicationFont (":/fonts/trykker/Mate-Italic.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/mate/Mate-Italic.ttf");
+
+    // PT Serif
+    QFontDatabase::addApplicationFont (":/fonts/ptserif/PTSerif-Regular.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/ptserif/PTSerif-Italic.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/ptserif/PTSerif-Bold.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/ptserif/PTSerif-BoldItalic.ttf");
 
     // Josefin Sans
     QFontDatabase::addApplicationFont (":/fonts/josefinsans/JosefinSans-ThinItalic.ttf");

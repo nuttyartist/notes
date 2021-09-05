@@ -62,5 +62,9 @@
         <file>fonts/sourcesanspro/SourceSansPro-Regular.ttf</file>
         <file>fonts/sourcesanspro/SourceSansPro-SemiBold.ttf</file>
         <file>fonts/sourcesanspro/SourceSansPro-SemiBoldItalic.ttf</file>
+        <file>fonts/ptserif/PTSerif-Bold.ttf</file>
+        <file>fonts/ptserif/PTSerif-BoldItalic.ttf</file>
+        <file>fonts/ptserif/PTSerif-Italic.ttf</file>
+        <file>fonts/ptserif/PTSerif-Regular.ttf</file>
     </qresource>
 </RCC>
