@@ -100,6 +100,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_currentRightFrameColor(247, 247, 247),
     m_currentTheme(Theme::Light),
     m_currentEditorTextColor(247, 247, 247),
+    m_currentThemeBackgroundColor(247, 247, 247),
     m_areNonEditorWidgetsVisible(true),
     m_isFrameRightTopWidgetsVisible(true)
 {
@@ -637,24 +638,18 @@ void MainWindow::autoCheckForUpdates()
     m_updater.checkForUpdates(false);
 }
 
-/*!
- * \brief MainWindow::setupSearchEdit
- * Set the lineedit to start a bit to the right and end a bit to the left (pedding)
- */
-void MainWindow::setupSearchEdit()
+void MainWindow::setSearchEditStyleSheet(bool isFocused = false)
 {
-    QLineEdit* searchEdit = m_searchEdit;
+    QColor textColor = m_currentTheme == Theme::Dark ? m_currentEditorTextColor : QColor(26, 26, 26);
 
-    searchEdit->setAttribute(Qt::WA_MacShowFocusRect, 0);
-
-    searchEdit->setStyleSheet(QStringLiteral("QLineEdit{ "
+    m_searchEdit->setStyleSheet(QStringLiteral("QLineEdit{ "
                                              "  padding-left: 21px;"
                                              "  padding-right: 19px;"
-                                             "  border: 1px solid rgb(205, 205, 205);"
+                                             "  border: %2;"
                                              "  border-radius: 3px;"
-                                             "  background: rgb(255, 255, 255);"
+                                             "  background: %1;"
                                              "  selection-background-color: rgb(61, 155, 218);"
-                                             "  color: rgb(26, 26, 26);"
+                                             "  color: %3;"
                                              "} "
                                              "QLineEdit:focus { "
                                              "  border: 2px solid rgb(61, 155, 218);"
@@ -662,10 +657,24 @@ void MainWindow::setupSearchEdit()
                                              "QToolButton { "
                                              "  border: none; "
                                              "  padding: 0px;"
-                                             "}"));
+                                             "}").arg(m_currentThemeBackgroundColor.name(),
+                                                      isFocused ? "2px solid rgb(61, 155, 218)" : "1px solid rgb(205, 205, 205)",                                                      textColor.name()));
+}
+
+/*!
+ * \brief MainWindow::setupSearchEdit
+ * Set the lineedit to start a bit to the right and end a bit to the left (pedding)
+ */
+void MainWindow::setupSearchEdit()
+{
+//    QLineEdit* searchEdit = m_searchEdit;
+
+    m_searchEdit->setAttribute(Qt::WA_MacShowFocusRect, 0);
+
+    setSearchEditStyleSheet(false);
 
     // clear button
-    m_clearButton = new QToolButton(searchEdit);
+    m_clearButton = new QToolButton(m_searchEdit);
     QPixmap pixmap(QStringLiteral(":images/closeButton.png"));
     m_clearButton->setIcon(QIcon(pixmap));
     QSize clearSize(15, 15);
@@ -674,7 +683,7 @@ void MainWindow::setupSearchEdit()
     m_clearButton->hide();
 
     // search button
-    QToolButton *searchButton = new QToolButton(searchEdit);
+    QToolButton *searchButton = new QToolButton(m_searchEdit);
     QPixmap newPixmap(QStringLiteral(":images/magnifyingGlass.png"));
     searchButton->setIcon(QIcon(newPixmap));
     QSize searchSize(24, 25);
@@ -682,14 +691,14 @@ void MainWindow::setupSearchEdit()
     searchButton->setCursor(Qt::ArrowCursor);
 
     // layout
-    QBoxLayout* layout = new QBoxLayout(QBoxLayout::RightToLeft, searchEdit);
+    QBoxLayout* layout = new QBoxLayout(QBoxLayout::RightToLeft, m_searchEdit);
     layout->setContentsMargins(0,0,3,0);
     layout->addWidget(m_clearButton);
     layout->addStretch();
     layout->addWidget(searchButton);
-    searchEdit->setLayout(layout);
+    m_searchEdit->setLayout(layout);
 
-    searchEdit->installEventFilter(this);
+    m_searchEdit->installEventFilter(this);
 }
 
 /*!
@@ -755,13 +764,14 @@ void MainWindow::resetEditorSettings()
     m_currentCharsLimitPerFont.sansSerif = 80;
     m_textEdit->setLineWrapMode(QTextEdit::FixedColumnWidth);
     m_textEdit->setWordWrapMode(QTextOption::WordWrap);
+    m_currentTheme = Theme::Light;
 
     m_styleEditorWindow.changeSelectedFont(FontTypeface::Mono, m_listOfMonoFonts.at(m_chosenMonoFontIndex));
     m_styleEditorWindow.changeSelectedFont(FontTypeface::Serif, m_listOfSerifFonts.at(m_chosenSerifFontIndex));
     m_styleEditorWindow.changeSelectedFont(FontTypeface::SansSerif, m_listOfSansSerifFonts.at(m_chosenSansSerifFontIndex));
 
     setCurrentFontBasedOnTypeface(m_currentFontTypeface);
-    setTheme(Theme::Light);
+    setTheme(m_currentTheme);
     m_styleEditorWindow.restoreSelectedOptions(false, m_currentFontTypeface, m_currentTheme);
 }
 
@@ -1191,6 +1201,8 @@ void MainWindow::loadNotes(QList<NoteData *> noteList, int noteCounter)
 
     m_noteCounter = noteCounter;
 
+    setTheme(m_currentTheme); // TODO: If we don't put this here, mainwindow will not update its background color, but this is not a proper place
+
     createOrSelectFirstNote();
 }
 
@@ -1606,38 +1618,46 @@ void MainWindow::setTheme(Theme theme)
     switch(theme) {
     case Theme::Light:
     {
+        m_currentThemeBackgroundColor = QColor(247, 247, 247);
         m_currentEditorTextColor = QColor(26, 26, 26);
+        m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
+        m_currentRightFrameColor = m_currentThemeBackgroundColor;
+        this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(247, 247, 247); }"));
         m_textEdit->setTextColor(m_currentEditorTextColor);
         m_noteView->setTheme(NoteView::Theme::Light);
-        m_currentEditorBackgroundColor = QColor(247, 247, 247);
-        m_currentRightFrameColor = QColor(247, 247, 247);
-        m_styleEditorWindow.setTheme(Theme::Light, QColor(247, 247, 247), m_currentEditorTextColor);
-        m_aboutWindow.setTheme(QColor(247, 247, 247), m_currentEditorTextColor);
+        m_styleEditorWindow.setTheme(Theme::Light, m_currentThemeBackgroundColor, m_currentEditorTextColor);
+        m_aboutWindow.setTheme(m_currentThemeBackgroundColor, m_currentEditorTextColor);
         break;
     }
     case Theme::Dark:
     {
+        m_currentThemeBackgroundColor = QColor(26, 26, 26);
         m_currentEditorTextColor = QColor(204, 204, 204);
+        m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
+        m_currentRightFrameColor = m_currentThemeBackgroundColor;
+        this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(26, 26, 26); }"));
         m_textEdit->setTextColor(m_currentEditorTextColor);
         m_noteView->setTheme(NoteView::Theme::Dark);
-        m_currentEditorBackgroundColor = QColor(26, 26, 26);
-        m_currentRightFrameColor = QColor(26, 26, 26);
-        m_styleEditorWindow.setTheme(Theme::Dark, QColor(26, 26, 26), m_currentEditorTextColor);
-        m_aboutWindow.setTheme(QColor(26, 26, 26), m_currentEditorTextColor);
+        m_styleEditorWindow.setTheme(Theme::Dark, m_currentThemeBackgroundColor, m_currentEditorTextColor);
+        m_aboutWindow.setTheme(m_currentThemeBackgroundColor, m_currentEditorTextColor);
         break;
     }
     case Theme::Sepia:
     {
+        m_currentThemeBackgroundColor = QColor(251, 240, 217);
         m_currentEditorTextColor = QColor(95, 74, 50);
+        m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
+        m_currentRightFrameColor = m_currentThemeBackgroundColor;
+        this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(251, 240, 217); }"));
         m_textEdit->setTextColor(m_currentEditorTextColor);
         m_noteView->setTheme(NoteView::Theme::Sepia);
-        m_currentEditorBackgroundColor = QColor(251, 240, 217);
-        m_currentRightFrameColor = QColor(251, 240, 217);
-        m_styleEditorWindow.setTheme(Theme::Sepia, QColor(251, 240, 217), QColor(26, 26, 26));
-        m_aboutWindow.setTheme(QColor(251, 240, 217), QColor(26, 26, 26));
+        m_styleEditorWindow.setTheme(Theme::Sepia, m_currentThemeBackgroundColor, QColor(26, 26, 26));
+        m_aboutWindow.setTheme(m_currentThemeBackgroundColor, QColor(26, 26, 26));
         break;
     }
     }
+
+    setSearchEditStyleSheet(false);
 
     int verticalScrollBarValueToRestore = m_textEdit->verticalScrollBar()->value();
     m_textEdit->setText(m_textEdit->toPlainText()); // TODO: Update the text color without setting the text
@@ -3388,44 +3408,13 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         }
 
         if(object == m_searchEdit){
-            QString ss = QStringLiteral("QLineEdit{ "
-                                 "  padding-left: 21px;"
-                                 "  padding-right: 19px;"
-                                 "  border: 2px solid rgb(61, 155, 218);"
-                                 "  border-radius: 3px;"
-                                 "  background: rgb(255, 255, 255);"
-                                 "  selection-background-color: rgb(61, 155, 218);"
-                                 "  color: rgb(26, 26, 26);"
-                                 "} "
-                                 "QToolButton { "
-                                 "  border: none; "
-                                 "  padding: 0px;"
-                                 "}"
-                                 );
-
-            m_noteView->setCurrentRowActive(false);
-            m_searchEdit->setStyleSheet(ss);
+            setSearchEditStyleSheet(true);
         }
         break;
     }
     case QEvent::FocusOut:{
         if(object == m_searchEdit){
-            QString ss = QStringLiteral("QLineEdit{ "
-                                 "  padding-left: 21px;"
-                                 "  padding-right: 19px;"
-                                 "  border: 1px solid rgb(205, 205, 205);"
-                                 "  border-radius: 3px;"
-                                 "  background: rgb(255, 255, 255);"
-                                 "  selection-background-color: rgb(61, 155, 218);"
-                                 "  color: rgb(26, 26, 26);"
-                                 "} "
-                                 "QToolButton { "
-                                 "  border: none; "
-                                 "  padding: 0px;"
-                                 "}"
-                                 );
-
-            m_searchEdit->setStyleSheet(ss);
+            setSearchEditStyleSheet(false);
         }
         break;
     }

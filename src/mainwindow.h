@@ -186,6 +186,7 @@ private:
     QColor m_currentRightFrameColor;
     Theme m_currentTheme;
     QColor m_currentEditorTextColor;
+    QColor m_currentThemeBackgroundColor;
     bool m_areNonEditorWidgetsVisible;
     bool m_isFrameRightTopWidgetsVisible;
 
@@ -233,6 +234,7 @@ private:
     void setCurrentFontBasedOnTypeface(FontTypeface selectedFontTypeFace);
     void setVisibilityOfFrameRightNonEditor(bool isVisible);
     void adjustUpperWidgets(bool shouldPushUp);
+    void setSearchEditStyleSheet(bool isFocused);
 
     void dropShadow(QPainter& painter, ShadowType type, ShadowSide side);
     void fillRectWithGradient(QPainter& painter, const QRect& rect, QGradient& gradient);

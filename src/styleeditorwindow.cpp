@@ -98,6 +98,15 @@ StyleEditorWindow::StyleEditorWindow(QWidget *parent) :
     }
 
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S), this, SLOT(toggleWindowVisibility()));
+
+    m_ui->decreaseButton->setIcon(QIcon(QStringLiteral(":images/minus.png")));
+    m_ui->increaseButton->setIcon(QIcon(QStringLiteral(":images/plus.png")));
+    QIcon decreaseWidthIcon(QStringLiteral(":images/decrease-width.png"));
+    QIcon increaseWidthIcon(QStringLiteral(":images/increase-width.png"));
+    m_ui->decreaseWidthButton->setIcon(decreaseWidthIcon);
+    m_ui->decreaseWidthButton->setIconSize(decreaseWidthIcon.actualSize(m_ui->decreaseWidthButton->size()));
+    m_ui->increaseWidthButton->setIcon(increaseWidthIcon);
+    m_ui->increaseWidthButton->setIconSize(increaseWidthIcon.actualSize(m_ui->increaseWidthButton->size()));
 }
 
 StyleEditorWindow::~StyleEditorWindow()
@@ -268,11 +277,35 @@ void StyleEditorWindow::setTheme(Theme theme, QColor themeColor, QColor textColo
     m_currentTheme = theme;
     m_currentThemeColor = themeColor;
     m_currentFontColor = textColor;
+
+    if(theme == Theme::Dark) {
+        m_ui->decreaseButton->setIcon(QIcon(QStringLiteral(":images/minus-dark.png")));
+        m_ui->increaseButton->setIcon(QIcon(QStringLiteral(":images/plus-dark.png")));
+        QIcon decreaseWidthIcon(QStringLiteral(":images/decrease-width-dark.png"));
+        QIcon increaseWidthIcon(QStringLiteral(":images/increase-width-dark.png"));
+        m_ui->decreaseWidthButton->setIcon(decreaseWidthIcon);
+        m_ui->decreaseWidthButton->setIconSize(decreaseWidthIcon.actualSize(m_ui->decreaseWidthButton->size()));
+        m_ui->increaseWidthButton->setIcon(increaseWidthIcon);
+        m_ui->increaseWidthButton->setIconSize(increaseWidthIcon.actualSize(m_ui->increaseWidthButton->size()));
+    } else {
+        m_ui->decreaseButton->setIcon(QIcon(QStringLiteral(":images/minus.png")));
+        m_ui->increaseButton->setIcon(QIcon(QStringLiteral(":images/plus.png")));
+        QIcon decreaseWidthIcon(QStringLiteral(":images/decrease-width.png"));
+        QIcon increaseWidthIcon(QStringLiteral(":images/increase-width.png"));
+        m_ui->decreaseWidthButton->setIcon(decreaseWidthIcon);
+        m_ui->decreaseWidthButton->setIconSize(decreaseWidthIcon.actualSize(m_ui->decreaseWidthButton->size()));
+        m_ui->increaseWidthButton->setIcon(increaseWidthIcon);
+        m_ui->increaseWidthButton->setIconSize(increaseWidthIcon.actualSize(m_ui->increaseWidthButton->size()));
+    }
+
+    m_ui->monoButton->setTheme(theme);
+    m_ui->serifButton->setTheme(theme);
+    m_ui->sansSerifButton->setTheme(theme);
     m_ui->monoButton->changeFont(m_selectedMonoFontFamilyName, QStringLiteral("mono"), m_currentFontColor);
-    m_ui->monoButton->repaint();
     m_ui->serifButton->changeFont(m_selectedSerifFontFamilyName, QStringLiteral("serif"), m_currentFontColor);
-    m_ui->serifButton->repaint();
     m_ui->sansSerifButton->changeFont(m_selectedSansSerifFontFamilyName, QStringLiteral("sansSerif"), m_currentFontColor);
+    m_ui->monoButton->repaint();
+    m_ui->serifButton->repaint();
     m_ui->sansSerifButton->repaint();
 
     QList<QPushButton*> listChildrenButtons = findChildren<QPushButton*>();
@@ -350,7 +383,6 @@ bool StyleEditorWindow::eventFilter(QObject *object, QEvent *event)
         QList<QPushButton*> listChildrenButtons = findChildren<QPushButton*>();
         foreach(QPushButton* childButton, listChildrenButtons) {
              if((object == childButton && !isSelectedButton(childButton))) {
-                 qDebug() << "here";
                  childButton->setStyleSheet(getStyleSheetForButton(ButtonState::Hovered));
              }
         }

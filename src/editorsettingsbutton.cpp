@@ -37,6 +37,26 @@ void EditorSettingsButton::paintEvent(QPaintEvent *p)
 #endif
     painter.drawText(rowPosX, currentY, rowWidth, rowHeight, Qt::AlignHCenter, QStringLiteral("Aa"));
 
+    QString arrowImagePath;
+    switch (m_currentTheme) {
+        case Theme::Dark:
+        arrowImagePath = QStringLiteral(":images/arrow-right-dark.png");
+        break;
+    default:
+        arrowImagePath = QStringLiteral(":images/arrow-right.png");
+        break;
+    }
+
+#ifdef __APPLE__
+    painter.drawImage(rowPosX+115, currentY+30, QImage(arrowImagePath));
+    painter.setFont(QFont(QStringLiteral("Roboto"), 9, QFont::Normal));
+    painter.drawText(rowPosX+52, currentY+42, rowWidth, rowHeight, Qt::AlignHCenter, QStringLiteral("Next"));
+#else
+    painter.drawImage(rowPosX+109, currentY+24, QImage(arrowImagePath));
+    painter.setFont(QFont(QStringLiteral("Roboto"), 5, QFont::Normal));
+    painter.drawText(rowPosX+46, currentY+36, rowWidth, rowHeight, Qt::AlignHCenter, QStringLiteral("Next"));
+#endif
+
 #ifdef __APPLE__
     currentY += 48;
     painter.setFont(QFont(m_currentFontName, 14, QFont::Normal));
@@ -69,3 +89,16 @@ void EditorSettingsButton::changeFont(QString fontName, QString fontTypeface, QC
     m_currentFontTypeface = fontTypeface;
     m_currentFontColor = fontColor;
 }
+
+/*!
+ * \brief EditorSettingsButton::changeFont
+ * Change the font used for the button
+ * \param fontName
+ * \param fontTypeface
+ * \param fontColor
+ */
+void EditorSettingsButton::setTheme(Theme theme)
+{
+    m_currentTheme = theme;
+}
+
