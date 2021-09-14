@@ -37,5 +37,15 @@
         <file>images/windows_minimize_hovered.png</file>
         <file>images/windows_minimize_pressed.png</file>
         <file>images/windows_minimize_regular.png</file>
+        <file>images/arrow-right.png</file>
+        <file>images/arrow-right-dark.png</file>
+        <file>images/plus.png</file>
+        <file>images/plus-dark.png</file>
+        <file>images/minus.png</file>
+        <file>images/minus-dark.png</file>
+        <file>images/decrease-width.png</file>
+        <file>images/decrease-width-dark.png</file>
+        <file>images/increase-width-dark.png</file>
+        <file>images/increase-width.png</file>
     </qresource>
 </RCC>

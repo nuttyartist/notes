@@ -33,7 +33,11 @@ SOURCES += \
     $$PWD/noteview.cpp \
     $$PWD/singleinstance.cpp \
     $$PWD/updaterwindow.cpp \
-    $$PWD/dbmanager.cpp
+    $$PWD/dbmanager.cpp \
+    aboutwindow.cpp \
+    customdocument.cpp \
+    editorsettingsbutton.cpp \
+    styleeditorwindow.cpp
 
 HEADERS  += \
     $$PWD/mainwindow.h \
@@ -43,11 +47,18 @@ HEADERS  += \
     $$PWD/noteview.h \
     $$PWD/singleinstance.h \
     $$PWD/updaterwindow.h \
-    $$PWD/dbmanager.h
+    $$PWD/dbmanager.h \
+    aboutwindow.h \
+    customDocument.h \
+    editorsettingsbutton.h \
+    framelesswindow.h \
+    styleeditorwindow.h
 
 FORMS += \
     $$PWD/mainwindow.ui \
-    $$PWD/updaterwindow.ui
+    $$PWD/updaterwindow.ui \
+    aboutwindow.ui \
+    styleeditorwindow.ui
 
 RESOURCES += \
     $$PWD/images.qrc \
@@ -79,7 +90,7 @@ linux:!android {
     Project = "$$TARGET-$$VERSION"
 
     AuthorEmail = \"awesomeness.notes@gmail.com\"
-    AuthorName = \"Nutty Artist\"
+    AuthorName = \"Ruby Mamistvalove\"
 
     deb.target   = deb
     deb.depends  = fix_deb_dependencies
@@ -129,9 +140,14 @@ linux:!android {
 macx {
     DESTDIR = $$PWD/../bin
     ICON = $$PWD/images\notes_icon.icns
+    OBJECTIVE_SOURCES += \
+                framelesswindow.mm
+    LIBS += -framework Cocoa
 }
 
 win32 {
     DESTDIR = $$PWD/../bin
     RC_FILE = $$PWD/images\notes.rc
+    SOURCES += \
+        framelesswindow.cpp
 }

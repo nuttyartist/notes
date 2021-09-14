@@ -11,12 +11,19 @@ class NoteView : public QListView
     friend class tst_NoteView;
 
 public:
+    enum class Theme {
+        Light,
+        Dark,
+        Sepia
+    };
+
     explicit NoteView(QWidget* parent = Q_NULLPTR);
     ~NoteView();
 
     void animateAddedRow(const QModelIndex &parent, int start, int end);
     void setAnimationEnabled(bool isEnabled);
     void setCurrentRowActive(bool isActive);
+    void setTheme(Theme theme);
 
 protected:
     void paintEvent(QPaintEvent *e) Q_DECL_OVERRIDE;
@@ -30,6 +37,7 @@ private:
     bool m_animationEnabled;
     bool m_isMousePressed;
     int m_rowHeight;
+    QColor m_currentBackgroundColor;
 
     void setupSignalsSlots();
     void setupStyleSheet();

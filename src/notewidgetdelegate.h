@@ -1,6 +1,7 @@
 #ifndef NOTEWIDGETDELEGATE_H
 #define NOTEWIDGETDELEGATE_H
 
+#include "noteview.h"
 #include <QStyledItemDelegate>
 #include <QTimeLine>
 
@@ -34,6 +35,7 @@ public:
     void setHoveredIndex(const QModelIndex &hoveredIndex);
     void setRowRightOffset(int rowRightOffset);
     void setActive(bool isActive);
+    void setTheme(NoteView::Theme theme);
 
 private:
     void paintBackground(QPainter* painter, const QStyleOptionViewItem &option, const QModelIndex &index)const;
@@ -41,6 +43,7 @@ private:
     void paintSeparator(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     QString parseDateTime(const QDateTime& dateTime) const;
 
+    QString m_displayFont;
     QFont m_titleFont;
     QFont m_titleSelectedFont;
     QFont m_dateFont;

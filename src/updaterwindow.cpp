@@ -70,8 +70,21 @@ UpdaterWindow::UpdaterWindow(QWidget *parent) :
     setWindowTitle(qApp->applicationName()+ " " + tr("Updater"));
 
     /* Change fonts */
-    setFont(QFont("Roboto"));
-    m_ui->changelog->setFont(QFont("Arimo"));
+#ifdef __APPLE__
+    QFont fontToUse = QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto");
+#elif _WIN32
+    QFont fontToUse = QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI") : QStringLiteral("Roboto");
+#else
+    QFont fontToUse = QFont(QStringLiteral("Roboto"));
+#endif
+
+    this->setFont(fontToUse);
+    m_ui->changelog->setFont(fontToUse);
+    m_ui->changelog->setTextColor(QColor(26, 26, 26));
+    foreach(QWidget *widgetChild, this->findChildren<QWidget *>()) {
+        widgetChild->setFont(fontToUse);
+    }
+
 
     /* Connect UI signals/slots */
     connect(m_ui->closeButton,  &QPushButton::clicked, this, &UpdaterWindow::close);
@@ -185,9 +198,12 @@ void UpdaterWindow::resetControls()
     m_ui->timeLabel->setText(tr("Time remaining")+ ": " + tr("unknown"));
 
     /* Set changelog text */
-    m_ui->changelog->setText(m_updater->getChangelog(UPDATES_URL));
+    QString changelogText = m_updater->getChangelog(UPDATES_URL);
+    m_ui->changelog->setText(changelogText);
     if(m_ui->changelog->toPlainText().isEmpty()){
         m_ui->changelog->setText("<p>No changelog found...</p>");
+    } else {
+        m_ui->changelog->setText(changelogText.append("\n")); // Don't know why currently changelog box is dissapearing at the bottom, so I add a new line to see the text.
     }
 
     /* Enable/disable update button */

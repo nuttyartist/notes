@@ -30,14 +30,22 @@
 #include "notemodel.h"
 #include "noteview.h"
 #include "updaterwindow.h"
+#include "styleeditorwindow.h"
 #include "dbmanager.h"
 #include "markdownhighlighter.h"
+#include "customDocument.h"
+#include "aboutwindow.h"
+#include "framelesswindow.h"
 
 namespace Ui {
 class MainWindow;
 }
 
+#if defined(Q_OS_LINUX)
 class MainWindow : public QMainWindow
+#else
+class MainWindow : public CFramelessWindow
+#endif
 {
     Q_OBJECT
 
@@ -109,7 +117,8 @@ private:
     QPushButton* m_newNoteButton;
     QPushButton* m_trashButton;
     QPushButton* m_dotsButton;
-    QTextEdit* m_textEdit;
+    QPushButton* m_styleEditorButton;
+    CustomDocument* m_textEdit;
     QLineEdit* m_searchEdit;
     QLabel* m_editorDateLabel;
     QSplitter *m_splitter;
@@ -131,6 +140,8 @@ private:
     MarkdownHighlighter *m_highlighter;
 
     UpdaterWindow m_updater;
+    StyleEditorWindow m_styleEditorWindow;
+    AboutWindow m_aboutWindow;
     StretchSide m_stretchSide;
     Autostart m_autostart;
     int m_mousePressX;
@@ -140,6 +151,10 @@ private:
     int m_layoutMargin;
     int m_shadowWidth;
     int m_noteListWidth;
+    int m_smallEditorWidth;
+    int m_largeEditorWidth;
+    int m_currentMinimumEditorPadding;
+    int m_currentAdaptableEditorPadding;
     bool m_canMoveWindow;
     bool m_canStretchWindow;
     bool m_isTemp;
@@ -149,6 +164,31 @@ private:
     bool m_dontShowUpdateWindow;
     bool m_alwaysStayOnTop;
     bool m_useNativeWindowFrame;
+
+    QStringList m_listOfSerifFonts;
+    QStringList m_listOfSansSerifFonts;
+    QStringList m_listOfMonoFonts;
+    int m_chosenSerifFontIndex;
+    int m_chosenSansSerifFontIndex;
+    int m_chosenMonoFontIndex;
+    int m_editorMediumFontSize;
+    int m_currentFontPointSize;
+    struct m_charsLimitPerFont {
+        int mono;
+        int serif;
+        int sansSerif;
+    } m_currentCharsLimitPerFont;
+    FontTypeface m_currentFontTypeface;
+    QString m_currentFontFamily;
+    QFont m_currentSelectedFont;
+    QString m_displayFont;
+    QColor m_currentEditorBackgroundColor;
+    QColor m_currentRightFrameColor;
+    Theme m_currentTheme;
+    QColor m_currentEditorTextColor;
+    QColor m_currentThemeBackgroundColor;
+    bool m_areNonEditorWidgetsVisible;
+    bool m_isFrameRightTopWidgetsVisible;
 
     void setupMainWindow();
     void setupFonts();
@@ -162,6 +202,9 @@ private:
     void setupSignalsSlots();
     void autoCheckForUpdates();
     void setupSearchEdit();
+    void resetEditorSettings();
+    void setupTextEditStyleSheet(int paddingLeft, int paddingRight);
+    void alignTextEditText();
     void setupTextEdit();
     void setupDatabases();
     void setupModelView();
@@ -188,6 +231,10 @@ private:
     void executeImport(const bool replace);
     void migrateNote(QString notePath);
     void migrateTrash(QString trashPath);
+    void setCurrentFontBasedOnTypeface(FontTypeface selectedFontTypeFace);
+    void setVisibilityOfFrameRightNonEditor(bool isVisible);
+    void adjustUpperWidgets(bool shouldPushUp);
+    void setSearchEditStyleSheet(bool isFocused);
 
     void dropShadow(QPainter& painter, ShadowType type, ShadowSide side);
     void fillRectWithGradient(QPainter& painter, const QRect& rect, QGradient& gradient);
@@ -204,6 +251,8 @@ private slots:
     void onTrashButtonClicked();
     void onDotsButtonPressed();
     void onDotsButtonClicked();
+    void onStyleEditorButtonPressed();
+    void onStyleEditorButtonClicked();
     void onNotePressed(const QModelIndex &index);
     void onTextEditTextChanged();
     void onSearchEditTextChanged(const QString& keyword);
@@ -239,6 +288,12 @@ private slots:
     void setUseNativeWindowFrame(bool useNativeWindowFrame);
     void toggleStayOnTop();
     void onSearchEditReturnPressed();
+    void changeEditorFontTypeFromStyleButtons(FontTypeface fontType);
+    void changeEditorFontSizeFromStyleButtons(FontSizeAction fontSizeAction);
+    void changeEditorTextWidthFromStyleButtons(EditorTextWidth editorTextWidth);
+    void resetEditorToDefaultSettings();
+    void setTheme(Theme theme);
+    void createOrSelectFirstNote();
 
 signals:
     void requestNotesList();

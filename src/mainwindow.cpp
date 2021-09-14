@@ -28,8 +28,13 @@
  * \brief MainWindow::MainWindow
  * \param parent
  */
+#if defined(Q_OS_LINUX)
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow (parent),
+    #else
+MainWindow::MainWindow(QWidget *parent) :
+    CFramelessWindow (parent),
+#endif
     ui (new Ui::MainWindow),
     m_autoSaveTimer(new QTimer(this)),
     m_settingsDatabase(Q_NULLPTR),
@@ -41,6 +46,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_newNoteButton(Q_NULLPTR),
     m_trashButton(Q_NULLPTR),
     m_dotsButton(Q_NULLPTR),
+    m_styleEditorButton(Q_NULLPTR),
     m_textEdit(Q_NULLPTR),
     m_searchEdit(Q_NULLPTR),
     m_editorDateLabel(Q_NULLPTR),
@@ -55,11 +61,15 @@ MainWindow::MainWindow(QWidget *parent) :
     m_proxyModel(new QSortFilterProxyModel(this)),
     m_dbManager(Q_NULLPTR),
     m_dbThread(Q_NULLPTR),
+    m_styleEditorWindow(this),
+    m_aboutWindow(this),
     m_noteCounter(0),
     m_trashCounter(0),
     m_layoutMargin(10),
     m_shadowWidth(10),
     m_noteListWidth(200),
+    m_smallEditorWidth(420),
+    m_largeEditorWidth(1250),
     m_canMoveWindow(false),
     m_canStretchWindow(false),
     m_isTemp(false),
@@ -68,7 +78,31 @@ MainWindow::MainWindow(QWidget *parent) :
     m_isOperationRunning(false),
     m_dontShowUpdateWindow(false),
     m_alwaysStayOnTop(false),
-    m_useNativeWindowFrame(false)
+    m_useNativeWindowFrame(false),
+    m_listOfSerifFonts({QStringLiteral("Trykker"), QStringLiteral("PT Serif"), QStringLiteral("Mate")}),
+    m_listOfSansSerifFonts({QStringLiteral("Source Sans Pro"), QStringLiteral("Roboto"), QStringLiteral("Jost")}),
+    m_listOfMonoFonts({QStringLiteral("iA Writer Mono S"), QStringLiteral("iA Writer Duo S"), QStringLiteral("iA Writer Quattro S")}),
+    m_chosenSerifFontIndex(0),
+    m_chosenSansSerifFontIndex(0),
+    m_chosenMonoFontIndex(0),
+    m_currentCharsLimitPerFont({ 64    // Mono    TODO: is this the proper way to initialize?
+                               , 80    // Serif
+                               , 80}), // SansSerif
+    m_currentFontTypeface(FontTypeface::SansSerif),
+#ifdef __APPLE__
+    m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")),
+#elif _WIN32
+    m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI") : QStringLiteral("Roboto")),
+#else
+    m_displayFont(QStringLiteral("Roboto")),
+#endif
+    m_currentEditorBackgroundColor(247, 247, 247),
+    m_currentRightFrameColor(247, 247, 247),
+    m_currentTheme(Theme::Light),
+    m_currentEditorTextColor(247, 247, 247),
+    m_currentThemeBackgroundColor(247, 247, 247),
+    m_areNonEditorWidgetsVisible(true),
+    m_isFrameRightTopWidgetsVisible(true)
 {
     ui->setupUi(this);
     setupMainWindow();
@@ -159,6 +193,7 @@ void MainWindow::setMainWindowVisibility(bool state)
  */
 void MainWindow::paintEvent(QPaintEvent* event)
 {
+#if !defined(__APPLE__) && !defined(Q_OS_LINUX)
     if (!m_useNativeWindowFrame) {
         QPainter painter(this);
         painter.save();
@@ -178,6 +213,7 @@ void MainWindow::paintEvent(QPaintEvent* event)
 
         painter.restore();
     }
+#endif
 
     QMainWindow::paintEvent(event);
 }
@@ -220,21 +256,30 @@ MainWindow::~MainWindow()
  */
 void MainWindow::setupMainWindow()
 {
-#if defined(Q_OS_LINUX) || defined(__APPLE__)
+#if defined(Q_OS_LINUX)
     this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
-    this->setAttribute(Qt::WA_TranslucentBackground);
+//    this->setAttribute(Qt::WA_TranslucentBackground);
 #elif _WIN32
     this->setWindowFlags(Qt::CustomizeWindowHint);
-#elif
-#error "We don't support that version yet..."
 #endif
 
     m_greenMaximizeButton = new QPushButton(this);
     m_redCloseButton = new QPushButton(this);
     m_yellowMinimizeButton = new QPushButton(this);
+#ifndef __APPLE__
+//    If we want to align window buttons with searchEdit and notesList
+//    QSpacerItem *horizontialSpacer = new QSpacerItem(3, 0, QSizePolicy::Minimum, QSizePolicy::Minimum);
+//    m_trafficLightLayout.addSpacerItem(horizontialSpacer);
     m_trafficLightLayout.addWidget(m_redCloseButton);
     m_trafficLightLayout.addWidget(m_yellowMinimizeButton);
     m_trafficLightLayout.addWidget(m_greenMaximizeButton);
+#else
+    this->setCloseBtnQuit(false);
+    m_layoutMargin = 0;
+    m_greenMaximizeButton->setVisible(false);
+    m_redCloseButton->setVisible(false);
+    m_yellowMinimizeButton->setVisible(false);
+#endif
 
 #ifdef _WIN32
     m_trafficLightLayout.setSpacing(0);
@@ -245,20 +290,25 @@ void MainWindow::setupMainWindow()
     m_newNoteButton = ui->newNoteButton;
     m_trashButton = ui->trashButton;
     m_dotsButton = ui->dotsButton;
+    m_styleEditorButton = ui->styleEditorButton;
     m_searchEdit = ui->searchEdit;
     m_textEdit = ui->textEdit;
     m_editorDateLabel = ui->editorDateLabel;
     m_splitter = ui->splitter;
 
-#ifndef _WIN32
-    QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
-    setMargins(margins);
-#else
+#if defined(Q_OS_LINUX)
+//    QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
+//    setMargins(margins);
+    setMargins(QMargins(0,0,0,0));
+#elif _WIN32
     ui->verticalSpacer->changeSize(0, 7, QSizePolicy::Fixed, QSizePolicy::Fixed);
     ui->verticalSpacer_upEditorDateLabel->changeSize(0, 27, QSizePolicy::Fixed, QSizePolicy::Fixed);
 #endif
     ui->frame->installEventFilter(this);
+    ui->frameRight->setMouseTracking(true);
     ui->centralWidget->setMouseTracking(true);
+    ui->frame->setMouseTracking(true);
+    ui->frameRightTop->setMouseTracking(true);
     this->setMouseTracking(true);
 
     QPalette pal(palette());
@@ -269,6 +319,22 @@ void MainWindow::setupMainWindow()
     m_newNoteButton->setToolTip(tr("Create New Note"));
     m_trashButton->setToolTip(tr("Delete Selected Note"));
     m_dotsButton->setToolTip(tr("Open Menu"));
+    m_styleEditorButton->setToolTip(tr("Style The Editor"));
+
+    m_styleEditorButton->setText(QStringLiteral("Aa"));
+#if __APPLE__
+    m_styleEditorButton->setFont(QFont(QStringLiteral("Roboto"), 20, QFont::Bold));
+#else
+    m_styleEditorButton->setFont(QFont(QStringLiteral("Roboto"), 16, QFont::Bold));
+
+#endif
+    QString ss = QStringLiteral("QPushButton { "
+                 "  border: none; "
+                 "  padding: 0px; "
+                 "  color: rgb(68, 138, 201);"
+                 "}");
+    m_styleEditorButton->setStyleSheet(ss);
+    m_styleEditorButton->installEventFilter(this);
 }
 
 /*!
@@ -277,11 +343,11 @@ void MainWindow::setupMainWindow()
 void MainWindow::setupFonts()
 {
 #ifdef __APPLE__
-    m_searchEdit->setFont(QFont("Helvetica Neue", 12));
-    m_editorDateLabel->setFont(QFont("Helvetica Neue", 12, 65));
+    m_searchEdit->setFont(QFont(m_displayFont, 12));
+    m_editorDateLabel->setFont(QFont(m_displayFont, 12, 65));
 #else
-    m_searchEdit->setFont(QFont(QStringLiteral("Roboto"), 10));
-    m_editorDateLabel->setFont(QFont(QStringLiteral("Roboto"), 10, QFont::Bold));
+    m_searchEdit->setFont(QFont(m_displayFont, 10));
+    m_editorDateLabel->setFont(QFont(m_displayFont, 10, QFont::Bold));
 #endif
 }
 
@@ -325,9 +391,14 @@ void MainWindow::setupKeyboardShortcuts()
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q), this, SLOT(QuitApplication()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_K), this, SLOT(toggleStayOnTop()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_J), this, SLOT(toggleNoteList()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S), this, SLOT(onStyleEditorButtonClicked()));
 
     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
+#if defined(Q_OS_LINUX)
+    shortcut->setShortcut(QKeySequence(QStringLiteral("META+SHIFT+N")));
+#else
     shortcut->setShortcut(QKeySequence(QStringLiteral("META+N")));
+#endif
     connect(shortcut, &QxtGlobalShortcut::activated,[=]() {
         // workaround prevent textEdit and searchEdit
         // from taking 'N' from shortcut
@@ -336,6 +407,14 @@ void MainWindow::setupKeyboardShortcuts()
         setMainWindowVisibility(isHidden()
                                 || windowState() == Qt::WindowMinimized
                                 || qApp->applicationState() == Qt::ApplicationInactive);
+        if(isHidden()
+                || windowState() == Qt::WindowMinimized
+                || qApp->applicationState() == Qt::ApplicationInactive)
+#ifdef __APPLE__
+            this->raise();
+#else
+            this->activateWindow();
+#endif
         m_textEdit->setDisabled(false);
         m_searchEdit->setDisabled(false);
     });
@@ -363,6 +442,7 @@ void MainWindow::setupNewNoteButtonAndTrahButton()
     m_newNoteButton->installEventFilter(this);
     m_trashButton->installEventFilter(this);
     m_dotsButton->installEventFilter(this);
+    m_styleEditorButton->installEventFilter(this);
 }
 
 /*!
@@ -395,10 +475,12 @@ void MainWindow::setupLine()
  */
 void MainWindow::setupRightFrame()
 {
+    ui->frameRightTop->installEventFilter(this);
+
     QString ss = QStringLiteral("QFrame{ "
-                 "  background-image: url(:images/textEdit_background_pattern.png); "
+                 "  background-color: %1; "
                  "  border: none;"
-                 "}");
+                 "}").arg(m_currentRightFrameColor.name());
     ui->frameRight->setStyleSheet(ss);
 }
 
@@ -441,6 +523,12 @@ void MainWindow::setupTitleBarButtons()
 void MainWindow::setupSignalsSlots()
 {
     connect(&m_updater, &UpdaterWindow::dontShowUpdateWindowChanged, [=](bool state){m_dontShowUpdateWindow = state;});
+    // Style Editor Window
+    connect(&m_styleEditorWindow, &StyleEditorWindow::changeFontType, this, [=](FontTypeface fontType){changeEditorFontTypeFromStyleButtons(fontType);});
+    connect(&m_styleEditorWindow, &StyleEditorWindow::changeFontSize, this, [=](FontSizeAction fontSizeAction){changeEditorFontSizeFromStyleButtons(fontSizeAction);});
+    connect(&m_styleEditorWindow, &StyleEditorWindow::changeEditorTextWidth, this, [=](EditorTextWidth editorTextWidth){changeEditorTextWidthFromStyleButtons(editorTextWidth);});
+    connect(&m_styleEditorWindow, &StyleEditorWindow::resetEditorToDefaultSettings, this, [=](){resetEditorToDefaultSettings();});
+    connect(&m_styleEditorWindow, &StyleEditorWindow::changeTheme, this, [=](Theme theme){setTheme(theme);});
     // actions
     // connect(rightToLeftActionion, &QAction::triggered, this, );
     //connect(checkForUpdatesAction, &QAction::triggered, this, );
@@ -463,8 +551,13 @@ void MainWindow::setupSignalsSlots()
     // 3 dots button
     connect(m_dotsButton, &QPushButton::pressed, this, &MainWindow::onDotsButtonPressed);
     connect(m_dotsButton, &QPushButton::clicked, this, &MainWindow::onDotsButtonClicked);
+    // Style Editor Button
+    connect(m_styleEditorButton, &QPushButton::pressed, this, &MainWindow::onStyleEditorButtonPressed);
+    connect(m_styleEditorButton, &QPushButton::clicked, this, &MainWindow::onStyleEditorButtonClicked);
     // text edit text changed
     connect(m_textEdit, &QTextEdit::textChanged, this, &MainWindow::onTextEditTextChanged);
+    // textEdit scrollbar triggered
+    connect(m_textEdit->verticalScrollBar(), &QAbstractSlider::actionTriggered, this, [=](){if(m_isFrameRightTopWidgetsVisible) setVisibilityOfFrameRightNonEditor(false);});
     // line edit text changed
     connect(m_searchEdit, &QLineEdit::textChanged, this, &MainWindow::onSearchEditTextChanged);
     // line edit enter key pressed
@@ -526,6 +619,11 @@ void MainWindow::setupSignalsSlots()
             m_dbManager, &DBManager::onForceLastRowIndexValueRequested, Qt::BlockingQueuedConnection);
 
     connect(m_dbManager, &DBManager::notesReceived, this, &MainWindow::loadNotes);
+
+#ifdef __APPLE__
+    // Replace setUseNativeWindowFrame with just the part that handles pushing things up
+    connect(this, &MainWindow::toggleFullScreen, this, [=](bool isFullScreen){adjustUpperWidgets(isFullScreen);});
+#endif
 }
 
 /*!
@@ -540,24 +638,18 @@ void MainWindow::autoCheckForUpdates()
     m_updater.checkForUpdates(false);
 }
 
-/*!
- * \brief MainWindow::setupSearchEdit
- * Set the lineedit to start a bit to the right and end a bit to the left (pedding)
- */
-void MainWindow::setupSearchEdit()
+void MainWindow::setSearchEditStyleSheet(bool isFocused = false)
 {
-    QLineEdit* searchEdit = m_searchEdit;
+    QColor textColor = m_currentTheme == Theme::Dark ? m_currentEditorTextColor : QColor(26, 26, 26);
 
-    searchEdit->setAttribute(Qt::WA_MacShowFocusRect, 0);
-
-    searchEdit->setStyleSheet(QStringLiteral("QLineEdit{ "
+    m_searchEdit->setStyleSheet(QStringLiteral("QLineEdit{ "
                                              "  padding-left: 21px;"
                                              "  padding-right: 19px;"
-                                             "  border: 1px solid rgb(205, 205, 205);"
+                                             "  border: %2;"
                                              "  border-radius: 3px;"
-                                             "  background: rgb(255, 255, 255);"
+                                             "  background: %1;"
                                              "  selection-background-color: rgb(61, 155, 218);"
-                                             "  color: rgb(26, 26, 26);"
+                                             "  color: %3;"
                                              "} "
                                              "QLineEdit:focus { "
                                              "  border: 2px solid rgb(61, 155, 218);"
@@ -565,10 +657,24 @@ void MainWindow::setupSearchEdit()
                                              "QToolButton { "
                                              "  border: none; "
                                              "  padding: 0px;"
-                                             "}"));
+                                             "}").arg(m_currentThemeBackgroundColor.name(),
+                                                      isFocused ? "2px solid rgb(61, 155, 218)" : "1px solid rgb(205, 205, 205)",                                                      textColor.name()));
+}
+
+/*!
+ * \brief MainWindow::setupSearchEdit
+ * Set the lineedit to start a bit to the right and end a bit to the left (pedding)
+ */
+void MainWindow::setupSearchEdit()
+{
+//    QLineEdit* searchEdit = m_searchEdit;
+
+    m_searchEdit->setAttribute(Qt::WA_MacShowFocusRect, 0);
+
+    setSearchEditStyleSheet(false);
 
     // clear button
-    m_clearButton = new QToolButton(searchEdit);
+    m_clearButton = new QToolButton(m_searchEdit);
     QPixmap pixmap(QStringLiteral(":images/closeButton.png"));
     m_clearButton->setIcon(QIcon(pixmap));
     QSize clearSize(15, 15);
@@ -577,7 +683,7 @@ void MainWindow::setupSearchEdit()
     m_clearButton->hide();
 
     // search button
-    QToolButton *searchButton = new QToolButton(searchEdit);
+    QToolButton *searchButton = new QToolButton(m_searchEdit);
     QPixmap newPixmap(QStringLiteral(":images/magnifyingGlass.png"));
     searchButton->setIcon(QIcon(newPixmap));
     QSize searchSize(24, 25);
@@ -585,14 +691,141 @@ void MainWindow::setupSearchEdit()
     searchButton->setCursor(Qt::ArrowCursor);
 
     // layout
-    QBoxLayout* layout = new QBoxLayout(QBoxLayout::RightToLeft, searchEdit);
+    QBoxLayout* layout = new QBoxLayout(QBoxLayout::RightToLeft, m_searchEdit);
     layout->setContentsMargins(0,0,3,0);
     layout->addWidget(m_clearButton);
     layout->addStretch();
     layout->addWidget(searchButton);
-    searchEdit->setLayout(layout);
+    m_searchEdit->setLayout(layout);
 
-    searchEdit->installEventFilter(this);
+    m_searchEdit->installEventFilter(this);
+}
+
+/*!
+ * \brief MainWindow::setCurrentFontBasedOnTypeface
+ * Set the current font based on a given typeface
+ */
+void MainWindow::setCurrentFontBasedOnTypeface(FontTypeface selectedFontTypeFace)
+{
+    m_currentFontTypeface = selectedFontTypeFace;
+    switch(selectedFontTypeFace) {
+    case FontTypeface::Mono:
+        m_currentFontFamily = m_listOfMonoFonts.at(m_chosenMonoFontIndex);
+        m_textEdit->setLineWrapColumnOrWidth(m_currentCharsLimitPerFont.mono);
+        break;
+    case FontTypeface::Serif:
+        m_currentFontFamily = m_listOfSerifFonts.at(m_chosenSerifFontIndex);
+        m_textEdit->setLineWrapColumnOrWidth(m_currentCharsLimitPerFont.serif);
+        break;
+    case FontTypeface::SansSerif:
+        m_currentFontFamily = m_listOfSansSerifFonts.at(m_chosenSansSerifFontIndex);
+        m_textEdit->setLineWrapColumnOrWidth(m_currentCharsLimitPerFont.sansSerif);
+        break;
+    }
+
+#ifdef __APPLE__
+        int increaseSize = 2;
+#else
+        int increaseSize = 1;
+#endif
+
+        if(m_textEdit->width() < m_smallEditorWidth) {
+            m_currentFontPointSize = m_editorMediumFontSize - 2;
+        } else if(m_textEdit->width() > m_smallEditorWidth && m_textEdit->width() < m_largeEditorWidth) {
+            m_currentFontPointSize = m_editorMediumFontSize;
+        } else if(m_textEdit->width() > m_largeEditorWidth) {
+            m_currentFontPointSize = m_editorMediumFontSize + increaseSize;
+        }
+
+    m_currentSelectedFont = QFont(m_currentFontFamily, m_currentFontPointSize, QFont::Normal);
+    m_textEdit->setFont(m_currentSelectedFont);
+
+    alignTextEditText();
+}
+
+/*!
+ * \brief MainWindow::resetEditorSettings
+ * Reset editor settings to default options
+ */
+void MainWindow::resetEditorSettings()
+{
+    m_currentFontTypeface = FontTypeface::SansSerif;
+    m_chosenMonoFontIndex = 0;
+    m_chosenSerifFontIndex = 0;
+    m_chosenSansSerifFontIndex = 0;
+#ifdef __APPLE__
+    m_editorMediumFontSize = 17;
+#else
+    m_editorMediumFontSize = 13;
+#endif
+    m_currentFontPointSize = m_editorMediumFontSize;
+    m_currentCharsLimitPerFont.mono = 64;
+    m_currentCharsLimitPerFont.serif = 80;
+    m_currentCharsLimitPerFont.sansSerif = 80;
+    m_textEdit->setLineWrapMode(QTextEdit::FixedColumnWidth);
+    m_textEdit->setWordWrapMode(QTextOption::WordWrap);
+    m_currentTheme = Theme::Light;
+
+    m_styleEditorWindow.changeSelectedFont(FontTypeface::Mono, m_listOfMonoFonts.at(m_chosenMonoFontIndex));
+    m_styleEditorWindow.changeSelectedFont(FontTypeface::Serif, m_listOfSerifFonts.at(m_chosenSerifFontIndex));
+    m_styleEditorWindow.changeSelectedFont(FontTypeface::SansSerif, m_listOfSansSerifFonts.at(m_chosenSansSerifFontIndex));
+
+    setCurrentFontBasedOnTypeface(m_currentFontTypeface);
+    setTheme(m_currentTheme);
+    m_styleEditorWindow.restoreSelectedOptions(false, m_currentFontTypeface, m_currentTheme);
+}
+
+void MainWindow::setupTextEditStyleSheet(int paddingLeft, int paddingRight)
+{
+    m_textEdit->setDocumentPadding(paddingLeft, 0, paddingRight, 2);
+
+#if defined(Q_OS_LINUX)
+    QString ss = QString("QTextEdit {background-color: %1;} "
+                         "QTextEdit{selection-background-color: rgb(63, 99, 139);}"
+                         "QScrollBar::handle:vertical:hover { background: rgb(170, 170, 171); } "
+                         "QScrollBar::handle:vertical:pressed { background: rgb(149, 149, 149); } "
+                         "QScrollBar::handle:vertical { border-radius: 4px; background: rgb(188, 188, 188); min-height: 20px; }  "
+                         "QScrollBar::vertical {border-radius: 4px; width: 8px; color: rgba(255, 255, 255,0);} "
+                         "QScrollBar {margin: 0; background: transparent;} "
+                         "QScrollBar:hover { background-color: rgb(217, 217, 217);}"
+                         "QScrollBar::add-line:vertical { width:0px; height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
+                         "QScrollBar::sub-line:vertical { width:0px; height: 0px; subcontrol-position: top; subcontrol-origin: margin; }"
+                         ).arg(m_currentEditorBackgroundColor.name());
+#else
+    QString ss = QString("QTextEdit {background-color: %1;} "
+                         "QTextEdit{selection-background-color: rgb(63, 99, 139);}"
+                         ).arg(m_currentEditorBackgroundColor.name());
+#endif
+
+    m_textEdit->setStyleSheet(ss);
+}
+
+/*!
+ * \brief MainWindow::alignTextEditText
+ * If textEdit's text can be contained (enough space for current chars limit per font)
+ * then, align textEdit's text to the center by padding textEdit's margins
+ */
+void MainWindow::alignTextEditText()
+{
+    if(m_textEdit->lineWrapMode() == QTextEdit::WidgetWidth){
+        setupTextEditStyleSheet(m_currentMinimumEditorPadding, m_currentMinimumEditorPadding);
+        return;
+    }
+
+    QFontMetricsF fm(m_currentSelectedFont);
+    QString limitingStringSample = QString("The quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog");
+    limitingStringSample.truncate(m_textEdit->lineWrapColumnOrWidth());
+    qreal textSamplePixelsWidth = fm.width(limitingStringSample);
+    m_currentAdaptableEditorPadding = (m_textEdit->width() - textSamplePixelsWidth) / 2 - 10;
+
+
+    if(m_textEdit->width() - m_currentMinimumEditorPadding*2 > textSamplePixelsWidth &&
+            m_currentAdaptableEditorPadding > 0 &&
+            m_currentAdaptableEditorPadding > m_currentMinimumEditorPadding) {
+        setupTextEditStyleSheet(m_currentAdaptableEditorPadding, m_currentAdaptableEditorPadding);
+    } else {
+        setupTextEditStyleSheet(m_currentMinimumEditorPadding, m_currentMinimumEditorPadding);
+    }
 }
 
 /*!
@@ -603,33 +836,43 @@ void MainWindow::setupSearchEdit()
  * And install this class event filter to catch when text edit is having focus
  */
 void MainWindow::setupTextEdit()
-{   
-    QString ss = QString("QTextEdit {background-image: url(:images/textEdit_background_pattern.png); padding-left: %1px; padding-right: %2px; padding-bottom:2px;} "
-                         "QTextEdit{selection-background-color: rgb(63, 99, 139);}"
-                         "QScrollBar::handle:vertical:hover { background: rgb(170, 170, 171); } "
-                         "QScrollBar::handle:vertical:pressed { background: rgb(149, 149, 149); } "
-                         "QScrollBar::handle:vertical { border-radius: 4px; background: rgb(188, 188, 188); min-height: 20px; }  "
-                         "QScrollBar::vertical {border-radius: 4px; width: 8px; color: rgba(255, 255, 255,0);} "
-                         "QScrollBar {margin: 0; background: transparent;} "
-                         "QScrollBar:hover { background-color: rgb(217, 217, 217);}"
-                         "QScrollBar::add-line:vertical { width:0px; height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  "
-                         "QScrollBar::sub-line:vertical { width:0px; height: 0px; subcontrol-position: top; subcontrol-origin: margin; }"
-                         ).arg("27", "27");
-
-    m_textEdit->setStyleSheet(ss);
-
+{
+    setupTextEditStyleSheet(0, 0);
     m_textEdit->installEventFilter(this);
     m_textEdit->verticalScrollBar()->installEventFilter(this);
-    m_textEdit->setFont(QFont(QStringLiteral("Arimo"), 11, QFont::Normal));
+    m_textEdit->setCursorWidth(2);
+    m_textEdit->setTextColor(QColor(26, 26, 26));
+    m_textEdit->setWordWrapMode(QTextOption::WordWrap);
+
+#ifdef __APPLE__
+    if(QFont("Avenir Next").exactMatch()) {
+        m_listOfSansSerifFonts.push_front("Avenir Next");
+    } else if(QFont("Avenir").exactMatch()) {
+        m_listOfSansSerifFonts.push_front("Avenir");
+    }
+
+    if(QFont("SF Pro Text").exactMatch()) {
+        m_listOfSansSerifFonts.push_front("SF Pro Text");
+    } else if(QFont("Helvetica Neue").exactMatch()) {
+        m_listOfSansSerifFonts.push_front("Helvetica Neue");
+    } else if(QFont("Helvetica").exactMatch()) {
+        m_listOfSansSerifFonts.push_front("Helvetica");
+    }
+#elif _WIN32
+     if(QFont("Calibri").exactMatch())
+         m_listOfSansSerifFonts.push_front("Calibri");
+
+     if(QFont("Arial").exactMatch())
+         m_listOfSansSerifFonts.push_front("Arial");
+
+     if(QFont("Segoe UI").exactMatch())
+         m_listOfSansSerifFonts.push_front("Segoe UI");
+#endif
 
     // This is done because for now where we're only handling plain text,
     // and we don't want people to past rich text and get something wrong.
     // In future versions, where we'll support rich text, we'll need to change that.
     m_textEdit->setAcceptRichText(false);
-
-#ifdef __APPLE__
-    m_textEdit->setFont(QFont(QStringLiteral("Helvetica Neue"), 14));
-#endif
 }
 
 /*!
@@ -637,6 +880,7 @@ void MainWindow::setupTextEdit()
  */
 void MainWindow::initializeSettingsDatabase()
 {
+    // Why are we not updating the app version in Settings?
     if(m_settingsDatabase->value(QStringLiteral("version"), "NULL") == "NULL")
         m_settingsDatabase->setValue(QStringLiteral("version"), qApp->applicationVersion());
 
@@ -644,8 +888,8 @@ void MainWindow::initializeSettingsDatabase()
         m_settingsDatabase->setValue(QStringLiteral("dontShowUpdateWindow"), m_dontShowUpdateWindow);
 
     if(m_settingsDatabase->value(QStringLiteral("windowGeometry"), "NULL") == "NULL"){
-        int initWidth = 733;
-        int initHeight = 336;
+        int initWidth = 870;
+        int initHeight = 630;
         QPoint center = qApp->desktop()->geometry().center();
         QRect rect(center.x() - initWidth/2, center.y() - initHeight/2, initWidth, initHeight);
         setGeometry(rect);
@@ -729,11 +973,14 @@ void MainWindow::restoreStates()
     if(m_settingsDatabase->value(QStringLiteral("windowGeometry"), "NULL") != "NULL")
         this->restoreGeometry(m_settingsDatabase->value(QStringLiteral("windowGeometry")).toByteArray());
 
-#ifndef _WIN32
+    if(m_settingsDatabase->value(QStringLiteral("editorSettingsWindowGeometry"), "NULL") != "NULL")
+        m_styleEditorWindow.restoreGeometry(m_settingsDatabase->value(QStringLiteral("editorSettingsWindowGeometry")).toByteArray());
+
+#if defined(Q_OS_LINUX)
     /// Set margin to zero if the window is maximized
-    if (isMaximized()) {
-        setMargins(QMargins(0,0,0,0));
-    }
+//    if (isMaximized()) {
+//        setMargins(QMargins(0,0,0,0));
+//    }
 #endif
 
     if(m_settingsDatabase->value(QStringLiteral("dontShowUpdateWindow"), "NULL") != "NULL")
@@ -745,6 +992,88 @@ void MainWindow::restoreStates()
         m_splitter->restoreState(m_settingsDatabase->value(QStringLiteral("splitterSizes")).toByteArray());
     m_noteListWidth = m_splitter->sizes().at(0);
     m_splitter->setCollapsible(0, false);
+
+    QString selectedFontTypefaceFromDatabase = m_settingsDatabase->value(QStringLiteral("selectedFontTypeface"), "NULL").toString();
+    if(selectedFontTypefaceFromDatabase != "NULL") {
+        if(selectedFontTypefaceFromDatabase == "Mono") {
+            m_currentFontTypeface = FontTypeface::Mono;
+        } else if(selectedFontTypefaceFromDatabase == "Serif") {
+            m_currentFontTypeface = FontTypeface::Serif;
+        } else if(selectedFontTypefaceFromDatabase == "SansSerif") {
+            m_currentFontTypeface = FontTypeface::SansSerif;
+        }
+    }
+
+    if(m_settingsDatabase->value(QStringLiteral("editorMediumFontSize"), "NULL") != "NULL") {
+        m_editorMediumFontSize = m_settingsDatabase->value(QStringLiteral("editorMediumFontSize")).toInt();
+    } else {
+#ifdef __APPLE__
+        m_editorMediumFontSize = 17;
+#else
+        m_editorMediumFontSize = 13;
+#endif
+    }
+    m_currentFontPointSize = m_editorMediumFontSize;
+
+    bool isTextFullWidth = false;
+    if(m_settingsDatabase->value(QStringLiteral("isTextFullWidth"), "NULL") != "NULL") {
+        isTextFullWidth = m_settingsDatabase->value(QStringLiteral("isTextFullWidth")).toBool();
+        if(isTextFullWidth) {
+            m_textEdit->setLineWrapMode(QTextEdit::WidgetWidth);
+        } else {
+            m_textEdit->setLineWrapMode(QTextEdit::FixedColumnWidth);
+        }
+    } else {
+        m_textEdit->setLineWrapMode(QTextEdit::FixedColumnWidth);
+    }
+
+    if(m_settingsDatabase->value(QStringLiteral("charsLimitPerFontMono"), "NULL") != "NULL")
+        m_currentCharsLimitPerFont.mono = m_settingsDatabase->value(QStringLiteral("charsLimitPerFontMono")).toInt();
+    if(m_settingsDatabase->value(QStringLiteral("charsLimitPerFontSerif"), "NULL") != "NULL")
+        m_currentCharsLimitPerFont.serif = m_settingsDatabase->value(QStringLiteral("charsLimitPerFontSerif")).toInt();
+    if(m_settingsDatabase->value(QStringLiteral("charsLimitPerFontSansSerif"), "NULL") != "NULL")
+        m_currentCharsLimitPerFont.sansSerif = m_settingsDatabase->value(QStringLiteral("charsLimitPerFontSansSerif")).toInt();
+
+    if(m_settingsDatabase->value(QStringLiteral("chosenMonoFont"), "NULL") != "NULL") {
+        QString fontName = m_settingsDatabase->value(QStringLiteral("chosenMonoFont")).toString();
+        int fontIndex = m_listOfMonoFonts.indexOf(fontName);
+        if(fontIndex != -1) {
+            m_chosenMonoFontIndex = fontIndex;
+        }
+    }
+    if(m_settingsDatabase->value(QStringLiteral("chosenSerifFont"), "NULL") != "NULL") {
+        QString fontName = m_settingsDatabase->value(QStringLiteral("chosenSerifFont")).toString();
+        int fontIndex = m_listOfSerifFonts.indexOf(fontName);
+        if(fontIndex != -1) {
+            m_chosenSerifFontIndex = fontIndex;
+        }
+    }
+    if(m_settingsDatabase->value(QStringLiteral("chosenSansSerifFont"), "NULL") != "NULL") {
+        QString fontName = m_settingsDatabase->value(QStringLiteral("chosenSansSerifFont")).toString();
+        int fontIndex = m_listOfSansSerifFonts.indexOf(fontName);
+        if(fontIndex != -1) {
+            m_chosenSansSerifFontIndex = fontIndex;
+        }
+    }
+
+    if(m_settingsDatabase->value(QStringLiteral("theme"), "NULL") != "NULL") {
+        QString chosenTheme = m_settingsDatabase->value(QStringLiteral("theme")).toString();
+        if (chosenTheme == "Light") {
+            m_currentTheme = Theme::Light;
+        } else if(chosenTheme == "Dark") {
+            m_currentTheme = Theme::Dark;
+        } else if(chosenTheme == "Sepia") {
+            m_currentTheme = Theme::Sepia;
+        }
+    }
+
+    m_styleEditorWindow.changeSelectedFont(FontTypeface::Mono, m_listOfMonoFonts.at(m_chosenMonoFontIndex));
+    m_styleEditorWindow.changeSelectedFont(FontTypeface::Serif, m_listOfSerifFonts.at(m_chosenSerifFontIndex));
+    m_styleEditorWindow.changeSelectedFont(FontTypeface::SansSerif, m_listOfSansSerifFonts.at(m_chosenSansSerifFontIndex));
+
+    setCurrentFontBasedOnTypeface(m_currentFontTypeface);
+    setTheme(m_currentTheme);
+    m_styleEditorWindow.restoreSelectedOptions(isTextFullWidth, m_currentFontTypeface, m_currentTheme);
 }
 
 /*!
@@ -845,6 +1174,16 @@ void MainWindow::showNoteInEditor(const QModelIndex &noteIndex)
 }
 
 /*!
+ * \brief MainWindow::createOrSelectFirstNote
+ * Either create a new note if the user has no notes in the folder
+ * or select the first note from the list
+ */
+void MainWindow::createOrSelectFirstNote() {
+    createNewNoteIfEmpty();
+    selectFirstNote();
+}
+
+/*!
  * \brief MainWindow::loadNotes
  * Load all the notes from database
  * add data to the models
@@ -862,9 +1201,9 @@ void MainWindow::loadNotes(QList<NoteData *> noteList, int noteCounter)
 
     m_noteCounter = noteCounter;
 
-    // TODO: move this from here
-    createNewNoteIfEmpty();
-    selectFirstNote();
+    setTheme(m_currentTheme); // TODO: If we don't put this here, mainwindow will not update its background color, but this is not a proper place
+
+    createOrSelectFirstNote();
 }
 
 /*!
@@ -937,6 +1276,7 @@ void MainWindow::setButtonsAndFieldsEnabled(bool doEnable)
     m_searchEdit->setEnabled(doEnable);
     m_textEdit->setEnabled(doEnable);
     m_dotsButton->setEnabled(doEnable);
+    m_styleEditorButton->setEnabled(doEnable);
 }
 
 /*!
@@ -1019,13 +1359,13 @@ void MainWindow::onDotsButtonClicked()
     mainMenu.setToolTipsVisible(true);
 
 #ifdef __APPLE__
-    mainMenu.setFont(QFont(QStringLiteral("Helvetica Neue"), 13));
-    viewMenu->setFont(QFont(QStringLiteral("Helvetica Neue"), 13));
-    importExportNotesMenu->setFont(QFont(QStringLiteral("Helvetica Neue"), 13));
+    mainMenu.setFont(QFont(m_displayFont, 13));
+    viewMenu->setFont(QFont(m_displayFont, 13));
+    importExportNotesMenu->setFont(QFont(m_displayFont, 13));
 #else
-    mainMenu.setFont(QFont(QStringLiteral("Roboto"), 10, QFont::Normal));
-    viewMenu->setFont(QFont(QStringLiteral("Roboto"), 10, QFont::Normal));
-    importExportNotesMenu->setFont(QFont(QStringLiteral("Roboto"), 10, QFont::Normal));
+    mainMenu.setFont(QFont(m_displayFont, 10, QFont::Normal));
+    viewMenu->setFont(QFont(m_displayFont, 10, QFont::Normal));
+    importExportNotesMenu->setFont(QFont(m_displayFont, 10, QFont::Normal));
 #endif
 
     // note list visiblity action
@@ -1071,6 +1411,13 @@ void MainWindow::onDotsButtonClicked()
     autostartAction->setCheckable(true);
     autostartAction->setChecked(m_autostart.isAutostart());
 
+    // About Notes
+    QAction* aboutAction = mainMenu.addAction(tr("About Notes"));
+    connect (aboutAction, &QAction::triggered, this, [&]() {
+
+        m_aboutWindow.show();
+    });
+
     mainMenu.addSeparator();
 
     // Close the app
@@ -1106,17 +1453,217 @@ void MainWindow::onDotsButtonClicked()
     stayOnTopAction->setToolTip(tr("Always keep the notes application on top of all windows"));
     stayOnTopAction->setCheckable(true);
     stayOnTopAction->setChecked(m_alwaysStayOnTop);
-    connect(stayOnTopAction, &QAction::triggered, this, &MainWindow::stayOnTop);
+    connect(stayOnTopAction, &QAction::triggered, this, &MainWindow::toggleStayOnTop);
 #endif
 
+#ifndef __APPLE__
     // Use native frame action
     QAction* useNativeFrameAction = viewMenu->addAction(tr("Use native window frame"));
     useNativeFrameAction->setToolTip(tr("Use the window frame provided by the window manager"));
     useNativeFrameAction->setCheckable(true);
     useNativeFrameAction->setChecked(m_useNativeWindowFrame);
     connect(useNativeFrameAction, &QAction::triggered, this, &MainWindow::askBeforeSettingNativeWindowFrame);
+#endif
 
     mainMenu.exec(m_dotsButton->mapToGlobal(QPoint(0, m_dotsButton->height())));
+}
+
+/*!
+ * \brief MainWindow::onStyleEditorButtonPressed
+ * When the Style Editor Button is pressed, set it's icon accordingly
+ */
+void MainWindow::onStyleEditorButtonPressed()
+{
+    QString ss = QStringLiteral("QPushButton { "
+                 "  border: none; "
+                 "  padding: 0px; "
+                 "  color: rgb(39, 85, 125);"
+                 "}");
+    m_styleEditorButton->setStyleSheet(ss);
+}
+
+/*!
+ * \brief MainWindow::onStyleEditorButtonClicked
+ * Open up the editor's styling menu when clicking the Style Editor Button
+ */
+void MainWindow::onStyleEditorButtonClicked()
+{
+    QString ss = QStringLiteral("QPushButton { "
+                 "  border: none; "
+                 "  padding: 0px; "
+                 "  color: rgb(68, 138, 201);"
+                 "}");
+    m_styleEditorButton->setStyleSheet(ss);
+
+
+    if(m_settingsDatabase->value(QStringLiteral("editorSettingsWindowGeometry"), "NULL") == "NULL")
+        m_styleEditorWindow.move(m_newNoteButton->mapToGlobal(QPoint(-m_styleEditorWindow.width()-m_newNoteButton->width(),m_newNoteButton->height())));
+
+    if(m_styleEditorWindow.isVisible()) {
+        m_styleEditorWindow.hide();
+    } else {
+        m_styleEditorWindow.show();
+        m_styleEditorWindow.setFocus();
+    }
+}
+
+/*!
+ * \brief MainWindow::changeEditorFontTypeFromStyleButtons
+ * Change the font based on the type passed from the Style Editor Window
+ */
+void MainWindow::changeEditorFontTypeFromStyleButtons(FontTypeface fontTypeface)
+{
+    if(m_currentFontTypeface == fontTypeface) {
+        switch(fontTypeface) {
+        case FontTypeface::Mono:
+            m_chosenMonoFontIndex = m_chosenMonoFontIndex < m_listOfMonoFonts.length()-1 ? m_chosenMonoFontIndex + 1 : 0;
+            break;
+        case FontTypeface::Serif:
+            m_chosenSerifFontIndex = m_chosenSerifFontIndex < m_listOfSerifFonts.length()-1 ? m_chosenSerifFontIndex + 1 : 0;
+            break;
+        case FontTypeface::SansSerif:
+            m_chosenSansSerifFontIndex = m_chosenSansSerifFontIndex < m_listOfSansSerifFonts.length()-1 ? m_chosenSansSerifFontIndex + 1 : 0;
+            break;
+        }
+
+    }
+
+    setCurrentFontBasedOnTypeface(fontTypeface);
+
+    m_styleEditorWindow.changeSelectedFont(fontTypeface, m_currentFontFamily);
+}
+
+/*!
+ * \brief MainWindow::changeEditorFontSizeFromStyleButtons
+ * Change the font size based on the button pressed in the Style Editor Window
+ * Increase / Decrease
+ */
+void MainWindow::changeEditorFontSizeFromStyleButtons(FontSizeAction fontSizeAction)
+{
+    switch(fontSizeAction) {
+    case FontSizeAction::Increase:
+        m_editorMediumFontSize += 1;
+        setCurrentFontBasedOnTypeface(m_currentFontTypeface);
+        break;
+    case FontSizeAction::Decrease:
+        m_editorMediumFontSize -= 1;
+        setCurrentFontBasedOnTypeface(m_currentFontTypeface);
+        break;
+    }
+}
+
+/*!
+ * \brief MainWindow::changeEditorTextWidthFromStyleButtons
+ * Change the text width of the text editor
+ * FullWidth / Increase / Decrease
+ */
+void MainWindow::changeEditorTextWidthFromStyleButtons(EditorTextWidth editorTextWidth)
+{
+    switch(editorTextWidth) {
+    case EditorTextWidth::FullWidth:
+        if(m_textEdit->lineWrapMode() != QTextEdit::WidgetWidth)
+            m_textEdit->setLineWrapMode(QTextEdit::WidgetWidth);
+        else
+            m_textEdit->setLineWrapMode(QTextEdit::FixedColumnWidth);
+        break;
+    case EditorTextWidth::Increase:
+        m_textEdit->setLineWrapMode(QTextEdit::FixedColumnWidth);
+        switch(m_currentFontTypeface){
+        case FontTypeface::Mono:
+            m_currentCharsLimitPerFont.mono = m_currentCharsLimitPerFont.mono + 1;
+            break;
+        case FontTypeface::Serif:
+            m_currentCharsLimitPerFont.serif = m_currentCharsLimitPerFont.serif + 1;
+            break;
+        case FontTypeface::SansSerif:
+            m_currentCharsLimitPerFont.sansSerif = m_currentCharsLimitPerFont.sansSerif + 1;
+            break;
+        }
+        break;
+    case EditorTextWidth::Decrease:
+        m_textEdit->setLineWrapMode(QTextEdit::FixedColumnWidth);
+        switch(m_currentFontTypeface){
+        case FontTypeface::Mono:
+            m_currentCharsLimitPerFont.mono -= 1;
+            break;
+        case FontTypeface::Serif:
+            m_currentCharsLimitPerFont.serif -= 1;
+            break;
+        case FontTypeface::SansSerif:
+            m_currentCharsLimitPerFont.sansSerif -= 1;
+            break;
+        }
+        break;
+    }
+
+    setCurrentFontBasedOnTypeface(m_currentFontTypeface);
+}
+
+/*!
+ * \brief MainWindow::resetEditorToDefaultSettings
+ * Reset text editor to default settings
+ */
+void MainWindow::resetEditorToDefaultSettings()
+{
+    resetEditorSettings();
+}
+
+/*!
+ * \brief MainWindow::setTheme
+ * Changes the app theme
+ */
+void MainWindow::setTheme(Theme theme)
+{
+    m_currentTheme = theme;
+    switch(theme) {
+    case Theme::Light:
+    {
+        m_currentThemeBackgroundColor = QColor(247, 247, 247);
+        m_currentEditorTextColor = QColor(26, 26, 26);
+        m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
+        m_currentRightFrameColor = m_currentThemeBackgroundColor;
+        this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(247, 247, 247); }"));
+        m_textEdit->setTextColor(m_currentEditorTextColor);
+        m_noteView->setTheme(NoteView::Theme::Light);
+        m_styleEditorWindow.setTheme(Theme::Light, m_currentThemeBackgroundColor, m_currentEditorTextColor);
+        m_aboutWindow.setTheme(m_currentThemeBackgroundColor, m_currentEditorTextColor);
+        break;
+    }
+    case Theme::Dark:
+    {
+        m_currentThemeBackgroundColor = QColor(26, 26, 26);
+        m_currentEditorTextColor = QColor(204, 204, 204);
+        m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
+        m_currentRightFrameColor = m_currentThemeBackgroundColor;
+        this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(26, 26, 26); }"));
+        m_textEdit->setTextColor(m_currentEditorTextColor);
+        m_noteView->setTheme(NoteView::Theme::Dark);
+        m_styleEditorWindow.setTheme(Theme::Dark, m_currentThemeBackgroundColor, m_currentEditorTextColor);
+        m_aboutWindow.setTheme(m_currentThemeBackgroundColor, m_currentEditorTextColor);
+        break;
+    }
+    case Theme::Sepia:
+    {
+        m_currentThemeBackgroundColor = QColor(251, 240, 217);
+        m_currentEditorTextColor = QColor(95, 74, 50);
+        m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
+        m_currentRightFrameColor = m_currentThemeBackgroundColor;
+        this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(251, 240, 217); }"));
+        m_textEdit->setTextColor(m_currentEditorTextColor);
+        m_noteView->setTheme(NoteView::Theme::Sepia);
+        m_styleEditorWindow.setTheme(Theme::Sepia, m_currentThemeBackgroundColor, QColor(26, 26, 26));
+        m_aboutWindow.setTheme(m_currentThemeBackgroundColor, QColor(26, 26, 26));
+        break;
+    }
+    }
+
+    setSearchEditStyleSheet(false);
+
+    int verticalScrollBarValueToRestore = m_textEdit->verticalScrollBar()->value();
+    m_textEdit->setText(m_textEdit->toPlainText()); // TODO: Update the text color without setting the text
+    m_textEdit->verticalScrollBar()->setValue(verticalScrollBarValueToRestore);
+    alignTextEditText();
+    setupRightFrame();
 }
 
 /*!
@@ -1178,6 +1725,8 @@ void MainWindow::onTextEditTextChanged()
             m_isContentModified = true;
 
             m_autoSaveTimer->start(500);
+
+            setVisibilityOfFrameRightNonEditor(false);
         }
 
         m_textEdit->blockSignals(false);
@@ -1484,22 +2033,21 @@ void MainWindow::selectNoteDown()
  */
 void MainWindow::fullscreenWindow()
 {
-#ifndef _WIN32
+#if defined(Q_OS_LINUX)
     if(isFullScreen()){
         if(!isMaximized()) {
             m_noteListWidth = m_splitter->sizes().at(0) != 0 ? m_splitter->sizes().at(0) : m_noteListWidth;
-            QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
-
-            setMargins(margins);
+//            QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
+//            setMargins(margins);
         }
 
         setWindowState(windowState() & ~Qt::WindowFullScreen);
     }else{
         setWindowState(windowState() | Qt::WindowFullScreen);
-        setMargins(QMargins(0,0,0,0));
+//        setMargins(QMargins(0,0,0,0));
     }
 
-#else
+#elif _WIN32
     if(isFullScreen()){
         showNormal();
     }else{
@@ -1514,7 +2062,7 @@ void MainWindow::fullscreenWindow()
  */
 void MainWindow::maximizeWindow()
 {
-#ifndef _WIN32
+#if defined(Q_OS_LINUX)
     if(isMaximized()){
         if(!isFullScreen()){
             m_noteListWidth = m_splitter->sizes().at(0) != 0 ? m_splitter->sizes().at(0) : m_noteListWidth;
@@ -1528,9 +2076,9 @@ void MainWindow::maximizeWindow()
 
     }else{
         setWindowState(windowState() | Qt::WindowMaximized);
-        setMargins(QMargins(0,0,0,0));
+//        setMargins(QMargins(0,0,0,0));
     }
-#else
+#elif _WIN32
     if(isMaximized()){
         setWindowState(windowState() & ~Qt::WindowMaximized);
         setWindowState(windowState() & ~Qt::WindowFullScreen);
@@ -1550,9 +2098,9 @@ void MainWindow::maximizeWindow()
  */
 void MainWindow::minimizeWindow()
 {
-#ifndef _WIN32
-    QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
-    setMargins(margins);
+#if defined(Q_OS_LINUX)
+//    QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
+//    setMargins(margins);
 #endif
 
     // BUG : QTBUG-57902 minimize doesn't store the window state before minimizing
@@ -1736,6 +2284,16 @@ void MainWindow::collapseNoteList()
     sizes[0] = 0;
     m_splitter->setSizes(sizes);
     m_splitter->setCollapsible(0, false);
+
+    if(!m_isFrameRightTopWidgetsVisible) {
+#ifdef __APPLE__
+        this->setStandardWindowButtonsMacVisibility(false);
+#else
+        m_redCloseButton->setVisible(false);
+        m_yellowMinimizeButton->setVisible(false);
+        m_greenMaximizeButton->setVisible(false);
+#endif
+    }
 }
 
 /*!
@@ -1750,6 +2308,14 @@ void MainWindow::expandNoteList()
     sizes[0] = leftWidth;
     sizes[1] = m_splitter->width() - leftWidth;
     m_splitter->setSizes(sizes);
+
+#ifdef __APPLE__
+    this->setStandardWindowButtonsMacVisibility(true);
+#else
+    m_redCloseButton->setVisible(true);
+    m_yellowMinimizeButton->setVisible(true);
+    m_greenMaximizeButton->setVisible(true);
+#endif
 }
 
 /*!
@@ -1878,8 +2444,11 @@ void MainWindow::onRedCloseButtonClicked()
  */
 void MainWindow::closeEvent(QCloseEvent* event)
 {
-    if(windowState() != Qt::WindowFullScreen)
+    if(windowState() != Qt::WindowFullScreen) {
         m_settingsDatabase->setValue(QStringLiteral("windowGeometry"), saveGeometry());
+        if(m_styleEditorWindow.windowState() != Qt::WindowFullScreen)
+            m_settingsDatabase->setValue(QStringLiteral("editorSettingsWindowGeometry"), m_styleEditorWindow.saveGeometry());
+    }
 
     if(m_currentSelectedNoteProxy.isValid()
             &&  m_isContentModified
@@ -1889,8 +2458,43 @@ void MainWindow::closeEvent(QCloseEvent* event)
     }
 
     m_settingsDatabase->setValue(QStringLiteral("dontShowUpdateWindow"), m_dontShowUpdateWindow);
-
     m_settingsDatabase->setValue(QStringLiteral("splitterSizes"), m_splitter->saveState());
+
+    QString currentFontTypefaceString;
+    switch (m_currentFontTypeface) {
+    case FontTypeface::Mono:
+        currentFontTypefaceString = "Mono";
+        break;
+    case FontTypeface::Serif:
+        currentFontTypefaceString = "Serif";
+        break;
+    case FontTypeface::SansSerif:
+        currentFontTypefaceString = "SansSerif";
+        break;
+    }
+    QString currentThemeString;
+    switch (m_currentTheme) {
+    case Theme::Light:
+        currentThemeString = "Light";
+        break;
+    case Theme::Dark:
+        currentThemeString = "Dark";
+        break;
+    case Theme::Sepia:
+        currentThemeString = "Sepia";
+        break;
+    }
+    m_settingsDatabase->setValue(QStringLiteral("selectedFontTypeface"), currentFontTypefaceString);
+    m_settingsDatabase->setValue(QStringLiteral("editorMediumFontSize"), m_editorMediumFontSize);
+    m_settingsDatabase->setValue(QStringLiteral("isTextFullWidth"), m_textEdit->lineWrapMode() == QTextEdit::WidgetWidth ? true : false);
+    m_settingsDatabase->setValue(QStringLiteral("charsLimitPerFontMono"), m_currentCharsLimitPerFont.mono);
+    m_settingsDatabase->setValue(QStringLiteral("charsLimitPerFontSerif"), m_currentCharsLimitPerFont.serif);
+    m_settingsDatabase->setValue(QStringLiteral("charsLimitPerFontSansSerif"), m_currentCharsLimitPerFont.sansSerif);
+    m_settingsDatabase->setValue(QStringLiteral("theme"), currentThemeString);
+    m_settingsDatabase->setValue(QStringLiteral("chosenMonoFont"), m_listOfMonoFonts.at(m_chosenMonoFontIndex));
+    m_settingsDatabase->setValue(QStringLiteral("chosenSerifFont"), m_listOfSerifFonts.at(m_chosenSerifFontIndex));
+    m_settingsDatabase->setValue(QStringLiteral("chosenSansSerifFont"), m_listOfSansSerifFonts.at(m_chosenSansSerifFontIndex));
+
     m_settingsDatabase->sync();
 
     QWidget::closeEvent(event);
@@ -1914,8 +2518,9 @@ void MainWindow::mousePressEvent(QMouseEvent* event)
                 && m_mousePressY > m_layoutMargin){
 
             m_canMoveWindow = true;
-            QApplication::setOverrideCursor(QCursor(Qt::ClosedHandCursor));
+//            QApplication::setOverrideCursor(QCursor(Qt::ClosedHandCursor));
 
+#ifndef __APPLE__
         }else{
             m_canStretchWindow = true;
 
@@ -1946,6 +2551,7 @@ void MainWindow::mousePressEvent(QMouseEvent* event)
             }else{
                 m_stretchSide = StretchSide::None;
             }
+#endif
         }
 
         event->accept();
@@ -1962,6 +2568,7 @@ void MainWindow::mousePressEvent(QMouseEvent* event)
  */
 void MainWindow::mouseMoveEvent(QMouseEvent* event)
 {
+#ifndef __APPLE__
     if(!m_canStretchWindow && !m_canMoveWindow){
         m_mousePressX = event->x();
         m_mousePressY = event->y();
@@ -2015,13 +2622,16 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
             break;
         }
     }
+#endif
 
     if(m_canMoveWindow){
         int dx = event->globalX() - m_mousePressX;
         int dy = event->globalY() - m_mousePressY;
         move (dx, dy);
 
-    }else if(m_canStretchWindow && !isMaximized() && !isFullScreen()){
+    }
+#ifndef __APPLE__
+    else if(m_canStretchWindow && !isMaximized() && !isFullScreen()){
         int newX = x();
         int newY = y();
         int newWidth = width();
@@ -2114,6 +2724,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
             m_splitter->setSizes(sizes);
         }
     }
+#endif
     event->accept();
 }
 
@@ -2160,7 +2771,7 @@ void MainWindow::mousePressEvent(QMouseEvent* event)
 void MainWindow::mouseMoveEvent(QMouseEvent* event)
 {
     if(m_canMoveWindow){
-        this->setCursor(Qt::ClosedHandCursor);
+//        this->setCursor(Qt::ClosedHandCursor);
         int dx = event->globalX() - m_mousePressX;
         int dy = event->globalY() - m_mousePressY;
         move (dx, dy);
@@ -2176,7 +2787,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
     m_canMoveWindow = false;
-    this->unsetCursor();
+//    this->unsetCursor();
     event->accept();
 }
 #endif
@@ -2527,7 +3138,11 @@ double MainWindow::gaussianDist(double x, const double center, double sigma) con
  */
 void MainWindow::mouseDoubleClickEvent(QMouseEvent *event)
 {
+#ifndef __APPLE__
     maximizeWindow();
+#else
+    this->maximizeWindowMac();
+#endif
     event->accept();
 }
 
@@ -2537,6 +3152,48 @@ void MainWindow::mouseDoubleClickEvent(QMouseEvent *event)
 void MainWindow::leaveEvent(QEvent *)
 {
     this->unsetCursor();
+}
+
+/*!
+ * \brief MainWindow::setVisibilityOfFrameRightNonEditor
+ * Either show or hide all widgets which are not m_textEdit
+ */
+void MainWindow::setVisibilityOfFrameRightNonEditor(bool isVisible)
+{
+    m_isFrameRightTopWidgetsVisible = isVisible;
+
+    if(isVisible) {
+        m_areNonEditorWidgetsVisible = true;
+        m_editorDateLabel->setVisible(true);
+        m_newNoteButton->setVisible(true);
+        m_trashButton->setVisible(true);
+        m_dotsButton->setVisible(true);
+        m_styleEditorButton->setVisible(true);
+    } else {
+        m_areNonEditorWidgetsVisible = false;
+        m_editorDateLabel->setVisible(false);
+        m_newNoteButton->setVisible(false);
+        m_trashButton->setVisible(false);
+        m_dotsButton->setVisible(false);
+        m_styleEditorButton->setVisible(false);
+    }
+
+
+    // If the notes list is collapsed, hide the window buttons
+    if(m_splitter != Q_NULLPTR) {
+        QList<int> sizes = m_splitter->sizes();
+        if(sizes.at(0) == 0) {
+#ifdef __APPLE__
+
+            this->setStandardWindowButtonsMacVisibility(isVisible);
+#else
+            m_redCloseButton->setVisible(isVisible);
+            m_yellowMinimizeButton->setVisible(isVisible);
+            m_greenMaximizeButton->setVisible(isVisible);
+#endif
+        }
+
+    }
 }
 
 /*!
@@ -2598,6 +3255,20 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                 this->setCursor(Qt::PointingHandCursor);
                 m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Hovered.png")));
             }
+
+            if(object == m_styleEditorButton){
+                this->setCursor(Qt::PointingHandCursor);
+                QString ss = QStringLiteral("QPushButton { "
+                                 "  border: none; "
+                                 "  padding: 0px; "
+                                 "  color: rgb(51, 110, 162);"
+                                 "}");
+                m_styleEditorButton->setStyleSheet(ss);
+            }
+
+            if(object == ui->frameRightTop && !m_areNonEditorWidgetsVisible){
+                setVisibilityOfFrameRightNonEditor(true);
+            }
         }
 
         if(object == ui->frame){
@@ -2643,6 +3314,16 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                 this->unsetCursor();
                 m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Regular.png")));
             }
+
+            if(object == m_styleEditorButton){
+                this->unsetCursor();
+                QString ss = QStringLiteral("QPushButton { "
+                                 "  border: none; "
+                                 "  padding: 0px; "
+                                 "  color: rgb(68, 138, 201);"
+                                 "}");
+                m_styleEditorButton->setStyleSheet(ss);
+            }
         }
         break;
     }
@@ -2682,6 +3363,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Regular.png")));
         break;
     }
+#ifndef __APPLE__
     case QEvent::HoverEnter:{
         if(object == m_textEdit->verticalScrollBar()){
             bool isSearching = !m_searchEdit->text().isEmpty();
@@ -2708,6 +3390,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         }
         break;
     }
+#endif
     case QEvent::FocusIn:{
         if(object == m_textEdit){
             if(!m_isOperationRunning){
@@ -2725,46 +3408,34 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         }
 
         if(object == m_searchEdit){
-            QString ss = QStringLiteral("QLineEdit{ "
-                                 "  padding-left: 21px;"
-                                 "  padding-right: 19px;"
-                                 "  border: 2px solid rgb(61, 155, 218);"
-                                 "  border-radius: 3px;"
-                                 "  background: rgb(255, 255, 255);"
-                                 "  selection-background-color: rgb(61, 155, 218);"
-                                 "  color: rgb(26, 26, 26);"
-                                 "} "
-                                 "QToolButton { "
-                                 "  border: none; "
-                                 "  padding: 0px;"
-                                 "}"
-                                 );
-
-            m_noteView->setCurrentRowActive(false);
-            m_searchEdit->setStyleSheet(ss);
+            setSearchEditStyleSheet(true);
         }
         break;
     }
     case QEvent::FocusOut:{
         if(object == m_searchEdit){
-            QString ss = QStringLiteral("QLineEdit{ "
-                                 "  padding-left: 21px;"
-                                 "  padding-right: 19px;"
-                                 "  border: 1px solid rgb(205, 205, 205);"
-                                 "  border-radius: 3px;"
-                                 "  background: rgb(255, 255, 255);"
-                                 "  selection-background-color: rgb(61, 155, 218);"
-                                 "  color: rgb(26, 26, 26);"
-                                 "} "
-                                 "QToolButton { "
-                                 "  border: none; "
-                                 "  padding: 0px;"
-                                 "}"
-                                 );
-
-            m_searchEdit->setStyleSheet(ss);
+            setSearchEditStyleSheet(false);
         }
         break;
+    }
+    case QEvent::Resize:{
+        if(m_textEdit->width() < m_smallEditorWidth) {
+            m_currentMinimumEditorPadding = 15;
+        } else if(m_textEdit->width() > m_smallEditorWidth && m_textEdit->width() < 515) {
+            m_currentMinimumEditorPadding = 40;
+        } else if(m_textEdit->width() > 515 && m_textEdit->width() < 755) {
+            m_currentMinimumEditorPadding = 50;
+        } else if(m_textEdit->width() > 755 && m_textEdit->width() < 775) {
+            m_currentMinimumEditorPadding = 60;
+        } else if(m_textEdit->width() > 775 && m_textEdit->width() < 800) {
+            m_currentMinimumEditorPadding = 70;
+        } else if(m_textEdit->width() > 800) {
+            m_currentMinimumEditorPadding = 80;
+        }
+
+        setCurrentFontBasedOnTypeface(m_currentFontTypeface);
+
+//        alignTextEditText();
     }
     case QEvent::Show:
         if(object == &m_updater){
@@ -2802,6 +3473,15 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         }
         break;
     }
+    case QEvent::MouseMove:
+    {
+        // Apperantly we need this if m_layoutMargin is set to 0
+        if(object == ui->frame ||
+                object == ui->frameLeft ||
+                object == ui->frameRight ||
+                object == ui->frameRightTop)
+            mouseMoveEvent(static_cast<QMouseEvent*>(event));
+    }
     default:
         break;
     }
@@ -2815,6 +3495,9 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
  */
 void MainWindow::stayOnTop(bool checked)
 {
+    m_alwaysStayOnTop = checked;
+
+#ifndef __APPLE__
     Qt::WindowFlags flags = windowFlags();
 
     if (checked)
@@ -2822,10 +3505,11 @@ void MainWindow::stayOnTop(bool checked)
     else
         flags &= ~Qt::WindowStaysOnTopHint;
 
-    m_alwaysStayOnTop = checked;
-
     setWindowFlags(flags);
     setMainWindowVisibility(true);
+#else
+    this->setWindowAlwaysOnTopMac(checked);
+#endif
 }
 
 /*!
@@ -2850,6 +3534,32 @@ void MainWindow::askBeforeSettingNativeWindowFrame()
 }
 
 /*!
+ * \brief MainWindow::adjustUpperWidgets
+ * Either push the widgets up or restore them to their original position
+ * Needed for when using native window or going full screen
+ * \param shouldPushUp
+ */
+void MainWindow::adjustUpperWidgets(bool shouldPushUp)
+{
+    // Adjust space above search field
+    const QSizePolicy policy = ui->verticalSpacer_upSearchEdit->sizePolicy();
+    const int width = ui->verticalSpacer_upSearchEdit->sizeHint().width();
+    ui->verticalSpacer_upSearchEdit->changeSize(width,
+                                                shouldPushUp ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25,
+                                                policy.horizontalPolicy(),
+                                                policy.verticalPolicy());
+    ui->verticalLayout_scrollArea->invalidate();
+
+    // TODO: For some reason the layout update itself only when a button is being hovered upon
+    // Adjust space above text editor
+    ui->verticalSpacer_upEditorDateLabel->changeSize(width,
+                                                     shouldPushUp ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25,
+                                                     policy.horizontalPolicy(),
+                                                     policy.verticalPolicy());
+    ui->verticalLayout_textEdit->invalidate();
+}
+
+/*!
  * \brief MainWindow::setUseNativeWindowFrame
  * \param useNativeWindowFrame
  */
@@ -2861,13 +3571,14 @@ void MainWindow::setUseNativeWindowFrame(bool useNativeWindowFrame)
     m_useNativeWindowFrame = useNativeWindowFrame;
     m_settingsDatabase->setValue(QStringLiteral("useNativeWindowFrame"), useNativeWindowFrame);
 
+#ifndef __APPLE__
     m_greenMaximizeButton->setVisible(!useNativeWindowFrame);
     m_redCloseButton->setVisible(!useNativeWindowFrame);
     m_yellowMinimizeButton->setVisible(!useNativeWindowFrame);
 
     auto flags = windowFlags();
 
-#if defined(Q_OS_LINUX) || defined(__APPLE__)
+#if defined(Q_OS_LINUX)
     if (useNativeWindowFrame)
         flags &= ~Qt::FramelessWindowHint;
     else
@@ -2877,36 +3588,31 @@ void MainWindow::setUseNativeWindowFrame(bool useNativeWindowFrame)
         flags &= ~Qt::CustomizeWindowHint;
     else
         flags |= Qt::CustomizeWindowHint;
-#elif
-#error "We don't support that version yet..."
 #endif
 
     setWindowFlags(flags);
-
-#ifndef _WIN32
-    if (useNativeWindowFrame || isMaximized()) {
-        ui->centralWidget->layout()->setContentsMargins(QMargins());
-    } else {
-        QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
-        ui->centralWidget->layout()->setContentsMargins(margins);
-    }
 #endif
 
-    // Adjust space above search field
-    const QSizePolicy policy = ui->verticalSpacer_upSearchEdit->sizePolicy();
-    const int width = ui->verticalSpacer_upSearchEdit->sizeHint().width();
-    ui->verticalSpacer_upSearchEdit->changeSize(width,
-                                                useNativeWindowFrame ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25,
-                                                policy.horizontalPolicy(),
-                                                policy.verticalPolicy());
-    ui->verticalLayout_scrollArea->invalidate();
 
-    // Adjust space above text editor
-    ui->verticalSpacer_upEditorDateLabel->changeSize(width,
-                                                     useNativeWindowFrame ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25,
-                                                     policy.horizontalPolicy(),
-                                                     policy.verticalPolicy());
-    ui->verticalLayout_textEdit->invalidate();
+//#if defined(Q_OS_LINUX)
+//    if (useNativeWindowFrame || isMaximized()) {
+//        ui->centralWidget->layout()->setContentsMargins(QMargins());
+//    } else {
+//        QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
+//        ui->centralWidget->layout()->setContentsMargins(margins);
+//    }
+//#endif
+
+//#ifndef _WIN32
+//    if (useNativeWindowFrame || isMaximized()) {
+//        ui->centralWidget->layout()->setContentsMargins(QMargins());
+//    } else {
+//        QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
+//        ui->centralWidget->layout()->setContentsMargins(margins);
+//    }
+//#endif
+
+    adjustUpperWidgets(useNativeWindowFrame);
 
     setMainWindowVisibility(true);
 }

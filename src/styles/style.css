@@ -1,10 +1,4 @@
-QWidget {
-    font: 14px "Roboto";
-    color: rgb(26, 26, 26);
-    background-color: rgb(255, 255, 255);
-}
 QTextBrowser {
-    font: 14px "Arimo";
     color: rgb(117, 117, 117);
     border: 1px solid rgb(205, 205, 205);
     background-color: rgb(255, 255, 252);
@@ -38,11 +32,15 @@ QPushButton:pressed {
     border-radius: 5px;
 }
 #timeLabel {
-    font: 13px "Roboto";
+    font: 13px;
 }
 #title {
-    font: 500 25px "Roboto";
+    font: 500 25px;
 }
 #whatsNewLabel, #downloadLabel {
-    font: 500 14px "Roboto";
+    font: 500 14px;
+}
+#UpdaterWindow {
+    color: rgb(26, 26, 26);
+    background-color: rgb(255, 255, 255);
 }
