@@ -37,6 +37,9 @@ SOURCES += \
     aboutwindow.cpp \
     customdocument.cpp \
     editorsettingsbutton.cpp \
+    notetreedelegate.cpp \
+    notetreemodel.cpp \
+    notetreeview.cpp \
     styleeditorwindow.cpp
 
 HEADERS  += \
@@ -52,6 +55,9 @@ HEADERS  += \
     customDocument.h \
     editorsettingsbutton.h \
     framelesswindow.h \
+    notetreedelegate.h \
+    notetreemodel.h \
+    notetreeview.h \
     styleeditorwindow.h
 
 FORMS += \

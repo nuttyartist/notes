@@ -29,6 +29,7 @@
 #include "notedata.h"
 #include "notemodel.h"
 #include "noteview.h"
+#include "notetreemodel.h"
 #include "updaterwindow.h"
 #include "styleeditorwindow.h"
 #include "dbmanager.h"
@@ -36,6 +37,7 @@
 #include "customDocument.h"
 #include "aboutwindow.h"
 #include "framelesswindow.h"
+#include "notetreeview.h"
 
 namespace Ui {
 class MainWindow;
@@ -131,6 +133,8 @@ private:
     NoteView* m_noteView;
     NoteModel* m_noteModel;
     NoteModel* m_deletedNotesModel;
+    NoteTreeView* m_treeView;
+    NoteTreeModel* m_treeModel;
     QSortFilterProxyModel* m_proxyModel;
     QModelIndex m_currentSelectedNoteProxy;
     QModelIndex m_selectedNoteBeforeSearchingInSource;

@@ -9,6 +9,7 @@
 #include "notewidgetdelegate.h"
 #include "qxtglobalshortcut.h"
 #include "updaterwindow.h"
+#include "notetreedelegate.h"
 
 #include <QScrollBar>
 #include <QShortcut>
@@ -58,6 +59,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_noteView(Q_NULLPTR),
     m_noteModel(new NoteModel(this)),
     m_deletedNotesModel(new NoteModel(this)),
+    m_treeView(Q_NULLPTR),
+    m_treeModel(new NoteTreeModel(this)),
     m_proxyModel(new QSortFilterProxyModel(this)),
     m_dbManager(Q_NULLPTR),
     m_dbThread(Q_NULLPTR),
@@ -229,7 +232,8 @@ void MainWindow::resizeEvent(QResizeEvent* event)
         QList<int> sizes = m_splitter->sizes();
         if(sizes.at(0) != 0){
             sizes[0] = m_noteListWidth;
-            sizes[1] = m_splitter->width() - m_noteListWidth;
+            sizes[1] = m_noteListWidth;
+            sizes[2] = m_splitter->width() - m_noteListWidth;
             m_splitter->setSizes(sizes);
         }
     }
@@ -453,6 +457,7 @@ void MainWindow::setupSplitter()
 {
     m_splitter->setCollapsible(0, false);
     m_splitter->setCollapsible(1, false);
+    m_splitter->setCollapsible(2, false);
 }
 
 /*!
@@ -899,7 +904,7 @@ void MainWindow::initializeSettingsDatabase()
     if(m_settingsDatabase->value(QStringLiteral("splitterSizes"), "NULL") == "NULL"){
         m_splitter->resize(width()-2*m_layoutMargin, height()-2*m_layoutMargin);
         QList<int> sizes = m_splitter->sizes();
-        m_noteListWidth = ui->frameLeft->minimumWidth() != 0 ? ui->frameLeft->minimumWidth() : m_noteListWidth;
+        m_noteListWidth = ui->frameMiddle->minimumWidth() != 0 ? ui->frameMiddle->minimumWidth() : m_noteListWidth;
         sizes[0] = m_noteListWidth;
         sizes[1] = m_splitter->width() - m_noteListWidth;
         m_splitter->setSizes(sizes);
@@ -959,6 +964,9 @@ void MainWindow::setupModelView()
 
     m_noteView->setItemDelegate(new NoteWidgetDelegate(m_noteView));
     m_noteView->setModel(m_proxyModel);
+    m_treeView = static_cast<NoteTreeView*>(ui->treeView);
+    m_treeView->setModel(m_treeModel);
+    m_treeView->setItemDelegate(new NoteTreeDelegate(m_treeView));
 }
 
 /*!
@@ -2301,7 +2309,7 @@ void MainWindow::collapseNoteList()
  */
 void MainWindow::expandNoteList()
 {
-    int minWidth = ui->frameLeft->minimumWidth();
+    int minWidth = ui->frameMiddle->minimumWidth();
     int leftWidth = m_noteListWidth < minWidth ? minWidth : m_noteListWidth;
 
     QList<int> sizes = m_splitter->sizes();
@@ -3477,7 +3485,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
     {
         // Apperantly we need this if m_layoutMargin is set to 0
         if(object == ui->frame ||
-                object == ui->frameLeft ||
+                object == ui->frameMiddle ||
                 object == ui->frameRight ||
                 object == ui->frameRightTop)
             mouseMoveEvent(static_cast<QMouseEvent*>(event));
