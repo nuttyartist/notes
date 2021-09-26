@@ -1,8 +1,8 @@
-#include "notetreedelegate.h"
-#include "notetreemodel.h"
+#include "nodetreedelegate.h"
+#include "nodetreemodel.h"
 #include <QPainter>
 
-NoteTreeDelegate::NoteTreeDelegate(QObject *parent):
+NodeTreeDelegate::NodeTreeDelegate(QObject *parent):
     QStyledItemDelegate{parent},
     #ifdef __APPLE__
     m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")),
@@ -32,22 +32,24 @@ NoteTreeDelegate::NoteTreeDelegate(QObject *parent):
 
 }
 
-void NoteTreeDelegate::paint(QPainter *painter,
+void NodeTreeDelegate::paint(QPainter *painter,
                              const QStyleOptionViewItem &option,
                              const QModelIndex &index) const
 {
     painter->setRenderHint(QPainter::Antialiasing);
-    auto itemType = static_cast<NoteItem::Type>(index.data(NoteItem::Roles::ItemType).toInt());
+    auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
+
     switch (itemType) {
-    case NoteItem::Type::RootItem: {
+    case NodeItem::Type::RootItem: {
         break;
     }
-    case NoteItem::Type::AllNoteButton:
-    case NoteItem::Type::TrashButton: {
+    case NodeItem::Type::AllNoteButton:
+    case NodeItem::Type::TrashButton: {
+        paintBackgroundSelectable(painter, option);
         auto iconRect = QRect(option.rect.x() + 5, option.rect.y() + (option.rect.height() - 18) / 2, 14, 18);
-        auto iconPath = index.data(NoteItem::Roles::Icon).toString();
+        auto iconPath = index.data(NodeItem::Roles::Icon).toString();
         painter->drawImage(iconRect, QImage(iconPath));
-        auto displayName = index.data(NoteItem::Roles::DisplayText).toString();
+        auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
         QRect nameRect(option.rect);
         nameRect.setLeft(iconRect.x() + iconRect.width() + 5);
         painter->setPen(m_titleColor);
@@ -55,37 +57,40 @@ void NoteTreeDelegate::paint(QPainter *painter,
         painter->drawText(nameRect, Qt::AlignLeft | Qt::AlignVCenter, displayName);
         break;
     }
-    case NoteItem::Type::FolderSeparator:
-    case NoteItem::Type::TagSeparator:{
+    case NodeItem::Type::FolderSeparator:
+    case NodeItem::Type::TagSeparator:{
         auto textRect = option.rect;
         textRect.moveLeft(textRect.x() + 5);
-        auto displayName = index.data(NoteItem::Roles::DisplayText).toString();
+        auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
         painter->setPen(m_separatorColor);
         painter->setFont(m_titleFont);
         painter->drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter, displayName);
         break;
     }
-    case NoteItem::Type::FolderItem: {
+    case NodeItem::Type::FolderItem: {
+        paintBackgroundSelectable(painter, option);
         QRect nameRect(option.rect);
         nameRect.setLeft(nameRect.x() + 10 + 5);
-        auto displayName = index.data(NoteItem::Roles::DisplayText).toString();
+        auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
         painter->setPen(m_titleColor);
         painter->setFont(m_titleFont);
         painter->drawText(nameRect, Qt::AlignLeft | Qt::AlignVCenter, displayName);
         break;
     }
-    case NoteItem::Type::NoteItem: {
+    case NodeItem::Type::NoteItem: {
+        paintBackgroundSelectable(painter, option);
         QRect nameRect(option.rect);
         nameRect.setLeft(nameRect.x() + 10 + 5);
-        auto displayName = index.data(NoteItem::Roles::DisplayText).toString();
+        auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
         painter->setPen(m_titleColor);
         painter->setFont(m_titleFont);
         painter->drawText(nameRect, Qt::AlignLeft | Qt::AlignVCenter, displayName);
         break;
     }
-    case NoteItem::Type::TagItem: {
+    case NodeItem::Type::TagItem: {
+        paintBackgroundSelectable(painter, option);
         auto iconRect = QRect(option.rect.x() + 10, option.rect.y() + (option.rect.height() - 14) / 2, 14, 14);
-        auto tagColor = index.data(NoteItem::Roles::TagColor).toString();
+        auto tagColor = index.data(NodeItem::Roles::TagColor).toString();
         painter->setBrush(QColor(tagColor));
         painter->setPen(QColor(tagColor));
         painter->drawEllipse(iconRect);
@@ -93,7 +98,7 @@ void NoteTreeDelegate::paint(QPainter *painter,
         painter->setPen(Qt::black);
         QRect nameRect(option.rect);
         nameRect.setLeft(iconRect.x() + iconRect.width() + 5);
-        auto displayName = index.data(NoteItem::Roles::DisplayText).toString();
+        auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
         painter->setPen(m_titleColor);
         painter->setFont(m_titleFont);
         painter->drawText(nameRect, Qt::AlignLeft | Qt::AlignVCenter, displayName);
@@ -102,11 +107,20 @@ void NoteTreeDelegate::paint(QPainter *painter,
     }
 }
 
-QSize NoteTreeDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+void NodeTreeDelegate::paintBackgroundSelectable(QPainter *painter, const QStyleOptionViewItem &option) const
+{
+    if((option.state & QStyle::State_Selected) == QStyle::State_Selected){
+                painter->fillRect(option.rect, QBrush(m_ActiveColor));
+    } else if((option.state & QStyle::State_MouseOver) == QStyle::State_MouseOver){
+        painter->fillRect(option.rect, QBrush(m_hoverColor));
+    }
+}
+
+QSize NodeTreeDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     QSize result = QStyledItemDelegate::sizeHint(option, index);
-    auto itemType = static_cast<NoteItem::Type>(index.data(NoteItem::Roles::ItemType).toInt());
-    if (itemType == NoteItem::Type::FolderSeparator || itemType == NoteItem::Type::TagSeparator) {
+    auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
+    if (itemType == NodeItem::Type::FolderSeparator || itemType == NodeItem::Type::TagSeparator) {
         result.setHeight(25);
     } else {
         result.setHeight(30);

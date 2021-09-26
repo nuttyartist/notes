@@ -1,17 +1,27 @@
-#ifndef NOTEDATA_H
-#define NOTEDATA_H
+#ifndef NODEDATA_H
+#define NODEDATA_H
 
 #include <QObject>
 #include <QDateTime>
+#include <QList>
 
-class NoteData : public QObject
+namespace SpecialNodeID {
+    enum Value {
+        RootFolder = 0,
+        TrashFolder = 1,
+        DefaultNotesFolder = 2,
+    };
+}
+
+class NodeData
 {
-    Q_OBJECT
-
-    friend class tst_NoteData;
-
 public:
-    explicit NoteData(QObject *parent = Q_NULLPTR);
+    explicit NodeData();
+
+    enum Type {
+        Note = 0,
+        Folder
+    };
 
     int id() const;
     void setId(const int& id);
@@ -40,6 +50,14 @@ public:
     QDateTime deletionDateTime() const;
     void setDeletionDateTime(const QDateTime& deletionDateTime);
 
+    NodeData::Type nodeType() const;
+    void setNodeType(NodeData::Type newNodeType);
+
+    int parentId() const;
+    void setParentId(int newParentId);
+
+    int relativePosition() const;
+    void setRelativePosition(int newRelativePosition);
 
 private:
     int m_id;
@@ -51,9 +69,14 @@ private:
     bool m_isModified;
     bool m_isSelected;
     int m_scrollBarPosition;
+    NodeData::Type m_nodeType;
+    int m_parentId;
+    int m_relativePosition;
 };
 
-QDataStream &operator<<(QDataStream &stream, const NoteData* noteData);
-QDataStream &operator>>(QDataStream &stream, NoteData *&noteData);
+Q_DECLARE_METATYPE(NodeData)
 
-#endif // NOTEDATA_H
+QDataStream &operator<<(QDataStream &stream, const NodeData* nodeData);
+QDataStream &operator>>(QDataStream &stream, NodeData *&nodeData);
+
+#endif // NODEDATA_H

@@ -9,7 +9,7 @@
 #include "notewidgetdelegate.h"
 #include "qxtglobalshortcut.h"
 #include "updaterwindow.h"
-#include "notetreedelegate.h"
+#include "nodetreedelegate.h"
 
 #include <QScrollBar>
 #include <QShortcut>
@@ -60,7 +60,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_noteModel(new NoteModel(this)),
     m_deletedNotesModel(new NoteModel(this)),
     m_treeView(Q_NULLPTR),
-    m_treeModel(new NoteTreeModel(this)),
+    m_treeModel(new NodeTreeModel(this)),
     m_proxyModel(new QSortFilterProxyModel(this)),
     m_dbManager(Q_NULLPTR),
     m_dbThread(Q_NULLPTR),
@@ -170,6 +170,9 @@ void MainWindow::InitData()
     if (qApp->arguments().contains(QStringLiteral("--autostart"))) {
         setMainWindowVisibility(false);
     }
+
+    // init tree view
+    emit requestNodesTree();
 }
 
 /*!
@@ -605,7 +608,9 @@ void MainWindow::setupSignalsSlots()
 
     // MainWindow <-> DBManager
     connect(this, &MainWindow::requestNotesList,
-            m_dbManager,&DBManager::onNotesListRequested, Qt::BlockingQueuedConnection);
+            m_dbManager, &DBManager::onNotesListRequested, Qt::BlockingQueuedConnection);
+    connect(this, &MainWindow::requestNodesTree,
+            m_dbManager, &DBManager::onNodeTreeRequested, Qt::BlockingQueuedConnection);
     connect(this, &MainWindow::requestCreateUpdateNote,
             m_dbManager, &DBManager::onCreateUpdateRequested, Qt::BlockingQueuedConnection);
     connect(this, &MainWindow::requestDeleteNote,
@@ -624,6 +629,7 @@ void MainWindow::setupSignalsSlots()
             m_dbManager, &DBManager::onForceLastRowIndexValueRequested, Qt::BlockingQueuedConnection);
 
     connect(m_dbManager, &DBManager::notesReceived, this, &MainWindow::loadNotes);
+    connect(m_dbManager, &DBManager::nodesTreeReceived, this, &MainWindow::loadNodesTree);
 
 #ifdef __APPLE__
     // Replace setUseNativeWindowFrame with just the part that handles pushing things up
@@ -964,9 +970,9 @@ void MainWindow::setupModelView()
 
     m_noteView->setItemDelegate(new NoteWidgetDelegate(m_noteView));
     m_noteView->setModel(m_proxyModel);
-    m_treeView = static_cast<NoteTreeView*>(ui->treeView);
+    m_treeView = static_cast<NodeTreeView*>(ui->treeView);
     m_treeView->setModel(m_treeModel);
-    m_treeView->setItemDelegate(new NoteTreeDelegate(m_treeView));
+    m_treeView->setItemDelegate(new NodeTreeDelegate(m_treeView));
 }
 
 /*!
@@ -1137,11 +1143,11 @@ QString MainWindow::getNoteDateEditor(QString dateEdited)
  * \param noteID
  * \return
  */
-NoteData* MainWindow::generateNote(const int noteID)
+NodeData *MainWindow::generateNote(const int noteID)
 {
-    NoteData* newNote = new NoteData(this);
+    auto newNote = new NodeData();
     newNote->setId(noteID);
-
+    newNote->setNodeType(NodeData::Note);
     QDateTime noteDate = QDateTime::currentDateTime();
     newNote->setCreationDateTime(noteDate);
     newNote->setLastModificationDateTime(noteDate);
@@ -1200,11 +1206,11 @@ void MainWindow::createOrSelectFirstNote() {
  * \param noteList
  * \param noteCounter
  */
-void MainWindow::loadNotes(QList<NoteData *> noteList, int noteCounter)
+void MainWindow::loadNotes(QList<NodeData *> noteList, int noteCounter)
 {
     if(!noteList.isEmpty()){
         m_noteModel->addListNote(noteList);
-        m_noteModel->sort(0,Qt::AscendingOrder);
+        m_noteModel->sort(0, Qt::AscendingOrder);
     }
 
     m_noteCounter = noteCounter;
@@ -1212,6 +1218,11 @@ void MainWindow::loadNotes(QList<NoteData *> noteList, int noteCounter)
     setTheme(m_currentTheme); // TODO: If we don't put this here, mainwindow will not update its background color, but this is not a proper place
 
     createOrSelectFirstNote();
+}
+
+void MainWindow::loadNodesTree(QVector<NodeData> nodeTree)
+{
+    m_treeModel->setNodeTree(nodeTree);
 }
 
 /*!
@@ -1223,7 +1234,7 @@ void MainWindow::saveNoteToDB(const QModelIndex& noteIndex)
 {
     if(noteIndex.isValid() && m_isContentModified){
         QModelIndex indexInSrc = m_proxyModel->mapToSource(noteIndex);
-        NoteData* note = m_noteModel->getNote(indexInSrc);
+        NodeData* note = m_noteModel->getNote(indexInSrc);
         if(note != Q_NULLPTR)
             emit requestCreateUpdateNote(note);
 
@@ -1239,7 +1250,7 @@ void MainWindow::removeNoteFromDB(const QModelIndex& noteIndex)
 {
     if(noteIndex.isValid()){
         QModelIndex indexInSrc = m_proxyModel->mapToSource(noteIndex);
-        NoteData* note = m_noteModel->getNote(indexInSrc);
+        NodeData* note = m_noteModel->getNote(indexInSrc);
         emit requestDeleteNote(note);
     }
 }
@@ -1863,7 +1874,7 @@ void MainWindow::createNewNote()
 
         if(!m_isTemp){
             ++m_noteCounter;
-            NoteData* tmpNote = generateNote(m_noteCounter);
+            NodeData* tmpNote = generateNote(m_noteCounter);
             m_isTemp = true;
 
             // insert the new note to NoteModel
@@ -1900,7 +1911,7 @@ void MainWindow::deleteNote(const QModelIndex &noteIndex, bool isFromUser)
     if(noteIndex.isValid()){
         // delete from model
         QModelIndex indexToBeRemoved = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
-        NoteData* noteTobeRemoved = m_noteModel->removeNote(indexToBeRemoved);
+        NodeData* noteTobeRemoved = m_noteModel->removeNote(indexToBeRemoved);
 
         if(m_isTemp){
             m_isTemp = false;
@@ -2196,7 +2207,7 @@ void MainWindow::executeImport(const bool replace)
             QMessageBox::information(this, tr("Unable to open file"), file.errorString());
             return;
         }
-        QList<NoteData*> noteList;
+        QList<NodeData*> noteList;
         QDataStream in(&file);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
         in.setVersion(QDataStream::Qt_5_6);
@@ -2938,7 +2949,7 @@ void MainWindow::migrateNote(QString notePath)
     QStringList dbKeys = notesIni.allKeys();
 
     m_noteCounter = notesIni.value(QStringLiteral("notesCounter"), "0").toInt();
-    QList<NoteData *> noteList;
+    QList<NodeData *> noteList;
 
     auto it = dbKeys.begin();
     for(; it < dbKeys.end()-1; it += 3){
@@ -2948,7 +2959,7 @@ void MainWindow::migrateNote(QString notePath)
         // sync db index with biggest notes id
         m_noteCounter = m_noteCounter < id ? id : m_noteCounter;
 
-        NoteData* newNote = new NoteData();
+        NodeData* newNote = new NodeData();
         newNote->setId(id);
 
         QString createdDateDB = notesIni.value(noteName + QStringLiteral("/dateCreated"), "Error").toString();
@@ -2979,7 +2990,7 @@ void MainWindow::migrateTrash(QString trashPath)
     QSettings trashIni(trashPath, QSettings::IniFormat);
     QStringList dbKeys = trashIni.allKeys();
 
-    QList<NoteData *> noteList;
+    QList<NodeData *> noteList;
 
     auto it = dbKeys.begin();
     for(; it < dbKeys.end()-1; it += 3){
@@ -2989,7 +3000,7 @@ void MainWindow::migrateTrash(QString trashPath)
         // sync db index with biggest notes id
         m_noteCounter = m_noteCounter < id ? id : m_noteCounter;
 
-        NoteData* newNote = new NoteData();
+        NodeData* newNote = new NodeData();
         newNote->setId(id);
 
         QString createdDateDB = trashIni.value(noteName + QStringLiteral("/dateCreated"), "Error").toString();

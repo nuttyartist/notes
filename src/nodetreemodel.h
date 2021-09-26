@@ -1,12 +1,15 @@
-#ifndef NOTETREEMODEL_H
-#define NOTETREEMODEL_H
+#ifndef NODETREEMODEL_H
+#define NODETREEMODEL_H
 
 #include <QAbstractItemModel>
 #include <QModelIndex>
 #include <QVariant>
 #include <QHash>
+#include <QVector>
 
-namespace NoteItem {
+#include "nodedata.h"
+
+namespace NodeItem {
     enum Roles {
         ItemType = Qt::UserRole,
         DisplayText = Qt::DisplayRole,
@@ -27,32 +30,32 @@ namespace NoteItem {
     };
 };
 
-class NoteTreeItem {
+class NodeTreeItem {
 public:
-    explicit NoteTreeItem(const QHash<NoteItem::Roles, QVariant> &data, NoteTreeItem *parentItem = nullptr);
-    ~NoteTreeItem();
+    explicit NodeTreeItem(const QHash<NodeItem::Roles, QVariant> &data, NodeTreeItem *parentItem = nullptr);
+    ~NodeTreeItem();
 
-    void appendChild(NoteTreeItem *child);
+    void appendChild(NodeTreeItem *child);
 
-    NoteTreeItem *child(int row);
+    NodeTreeItem *child(int row);
     int childCount() const;
     int columnCount() const;
-    QVariant data(NoteItem::Roles role) const;
+    QVariant data(NodeItem::Roles role) const;
     int row() const;
-    NoteTreeItem *parentItem();
+    NodeTreeItem *parentItem();
 
 private:
-    QVector<NoteTreeItem*> m_childItems;
-    QHash<NoteItem::Roles, QVariant> m_itemData;
-    NoteTreeItem *m_parentItem;
+    QVector<NodeTreeItem*> m_childItems;
+    QHash<NodeItem::Roles, QVariant> m_itemData;
+    NodeTreeItem *m_parentItem;
 };
 
-class NoteTreeModel : public QAbstractItemModel
+class NodeTreeModel : public QAbstractItemModel
 {
     Q_OBJECT
 public:
-    explicit NoteTreeModel(QObject *parent = nullptr);
-    ~NoteTreeModel();
+    explicit NodeTreeModel(QObject *parent = nullptr);
+    ~NodeTreeModel();
 signals:
 
 
@@ -63,13 +66,19 @@ public:
     virtual int rowCount(const QModelIndex &parent) const override;
     virtual int columnCount(const QModelIndex &parent) const override;
     virtual QVariant data(const QModelIndex &index, int role) const override;
+public slots:
+    void setNodeTree(QVector<NodeData> nodeData);
+
 private:
-    NoteTreeItem *rootItem;
-    void setupModelData(const QStringList &lines, NoteTreeItem *parent);
+    NodeTreeItem *rootItem;
+    void loadNodeTree(QVector<NodeData> nodeData, NodeTreeItem* rootNode);
+    void appendAllNotesAndTrashButton(NodeTreeItem* rootNode);
+    void appendFolderSeparator(NodeTreeItem* rootNode);
+    void appendTagsSeparator(NodeTreeItem* rootNode);
 
     // QAbstractItemModel interface
 public:
     virtual Qt::ItemFlags flags(const QModelIndex &index) const override;
 };
 
-#endif // NOTETREEMODEL_H
+#endif // NODETREEMODEL_H

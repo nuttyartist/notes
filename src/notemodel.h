@@ -2,7 +2,7 @@
 #define NOTEMODEL_H
 
 #include <QAbstractListModel>
-#include "notedata.h"
+#include "nodedata.h"
 
 class NoteModel : public QAbstractListModel
 {
@@ -24,11 +24,11 @@ public:
     explicit NoteModel(QObject *parent = Q_NULLPTR);
     ~NoteModel();
 
-    QModelIndex addNote(NoteData* note);
-    QModelIndex insertNote(NoteData* note, int row);
-    NoteData* getNote(const QModelIndex& index);
-    void addListNote(QList<NoteData*> noteList);
-    NoteData* removeNote(const QModelIndex& noteIndex);
+    QModelIndex addNote(NodeData* note);
+    QModelIndex insertNote(NodeData* note, int row);
+    NodeData* getNote(const QModelIndex& index);
+    void addListNote(QList<NodeData*> noteList);
+    NodeData* removeNote(const QModelIndex& noteIndex);
     bool moveRow(const QModelIndex& sourceParent,
                  int sourceRow,
                  const QModelIndex& destinationParent,
@@ -42,7 +42,7 @@ public:
     void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
 
 private:
-    QList<NoteData *> m_noteList;
+    QList<NodeData *> m_noteList;
 
 signals:
     void noteRemoved();

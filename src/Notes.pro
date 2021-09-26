@@ -27,7 +27,6 @@ include ($$PWD/../3rdParty/qautostart/src/qautostart.pri)
 SOURCES += \
     $$PWD/main.cpp\
     $$PWD/mainwindow.cpp \
-    $$PWD/notedata.cpp \
     $$PWD/notewidgetdelegate.cpp \
     $$PWD/notemodel.cpp \
     $$PWD/noteview.cpp \
@@ -37,14 +36,14 @@ SOURCES += \
     aboutwindow.cpp \
     customdocument.cpp \
     editorsettingsbutton.cpp \
-    notetreedelegate.cpp \
-    notetreemodel.cpp \
-    notetreeview.cpp \
+    nodedata.cpp \
+    nodetreedelegate.cpp \
+    nodetreemodel.cpp \
+    nodetreeview.cpp \
     styleeditorwindow.cpp
 
 HEADERS  += \
     $$PWD/mainwindow.h \
-    $$PWD/notedata.h \
     $$PWD/notewidgetdelegate.h \
     $$PWD/notemodel.h \
     $$PWD/noteview.h \
@@ -55,9 +54,10 @@ HEADERS  += \
     customDocument.h \
     editorsettingsbutton.h \
     framelesswindow.h \
-    notetreedelegate.h \
-    notetreemodel.h \
-    notetreeview.h \
+    nodedata.h \
+    nodetreedelegate.h \
+    nodetreemodel.h \
+    nodetreeview.h \
     styleeditorwindow.h
 
 FORMS += \

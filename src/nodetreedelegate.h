@@ -1,13 +1,13 @@
-#ifndef NOTETREEDELEGATE_H
-#define NOTETREEDELEGATE_H
+#ifndef NODETREEDELEGATE_H
+#define NODETREEDELEGATE_H
 
 #include <QStyledItemDelegate>
 
-class NoteTreeDelegate : public QStyledItemDelegate
+class NodeTreeDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
 public:
-    explicit NoteTreeDelegate(QObject *parent = Q_NULLPTR);
+    explicit NodeTreeDelegate(QObject *parent = Q_NULLPTR);
 
 signals:
 
@@ -16,6 +16,9 @@ signals:
 public:
     virtual void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
     virtual QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+
+private:
+    void paintBackgroundSelectable(QPainter *painter, const QStyleOptionViewItem &option) const;
 
 private:
     QString m_displayFont;
@@ -32,4 +35,4 @@ private:
     QColor m_defaultColor;
 };
 
-#endif // NOTETREEDELEGATE_H
+#endif // NODETREEDELEGATE_H

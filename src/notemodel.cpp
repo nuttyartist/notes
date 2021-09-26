@@ -12,7 +12,7 @@ NoteModel::~NoteModel()
 
 }
 
-QModelIndex NoteModel::addNote(NoteData* note)
+QModelIndex NoteModel::addNote(NodeData* note)
 {
     const int rowCnt = rowCount();
     beginInsertRows(QModelIndex(), rowCnt, rowCnt);
@@ -22,7 +22,7 @@ QModelIndex NoteModel::addNote(NoteData* note)
     return createIndex(rowCnt, 0);
 }
 
-QModelIndex NoteModel::insertNote(NoteData *note, int row)
+QModelIndex NoteModel::insertNote(NodeData *note, int row)
 {
     if(row >= rowCount()){
         return addNote(note);
@@ -35,7 +35,7 @@ QModelIndex NoteModel::insertNote(NoteData *note, int row)
     return createIndex(row,0);
 }
 
-NoteData* NoteModel::getNote(const QModelIndex& index)
+NodeData* NoteModel::getNote(const QModelIndex& index)
 {
     if(index.isValid()){
         return m_noteList.at(index.row());
@@ -44,7 +44,7 @@ NoteData* NoteModel::getNote(const QModelIndex& index)
     }
 }
 
-void NoteModel::addListNote(QList<NoteData *> noteList)
+void NoteModel::addListNote(QList<NodeData *> noteList)
 {
     int start = rowCount();
     int end = start + noteList.count()-1;
@@ -53,11 +53,11 @@ void NoteModel::addListNote(QList<NoteData *> noteList)
     endInsertRows();
 }
 
-NoteData* NoteModel::removeNote(const QModelIndex &noteIndex)
+NodeData* NoteModel::removeNote(const QModelIndex &noteIndex)
 {
     int row = noteIndex.row();
     beginRemoveRows(QModelIndex(), row, row);
-    NoteData* note = m_noteList.takeAt(row);
+    NodeData* note = m_noteList.takeAt(row);
     endRemoveRows();
 
     return note;
@@ -92,7 +92,7 @@ QVariant NoteModel::data(const QModelIndex &index, int role) const
     if (index.row() < 0 || index.row() >= m_noteList.count())
         return QVariant();
 
-    NoteData* note = m_noteList[index.row()];
+    NodeData* note = m_noteList[index.row()];
     if(role == NoteID){
         return note->id();
     }else if(role == NoteFullTitle){
@@ -117,7 +117,7 @@ bool NoteModel::setData(const QModelIndex &index, const QVariant &value, int rol
     if (!index.isValid())
         return false;
 
-    NoteData* note = m_noteList[index.row()];
+    NodeData* note = m_noteList[index.row()];
 
 
     if(role == NoteID){
@@ -165,7 +165,7 @@ void NoteModel::sort(int column, Qt::SortOrder order)
     Q_UNUSED(column)
     Q_UNUSED(order)
 
-    std::stable_sort(m_noteList.begin(), m_noteList.end(), [](NoteData* lhs, NoteData* rhs){
+    std::stable_sort(m_noteList.begin(), m_noteList.end(), [](NodeData* lhs, NodeData* rhs){
         return lhs->lastModificationdateTime() > rhs->lastModificationdateTime();
     });
 

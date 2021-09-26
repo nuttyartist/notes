@@ -152,7 +152,7 @@ NoteData #dateLabel{
             </spacer>
            </item>
            <item>
-            <widget class="NoteTreeView" name="treeView"/>
+            <widget class="NodeTreeView" name="treeView"/>
            </item>
           </layout>
          </widget>
@@ -826,9 +826,9 @@ p, li { white-space: pre-wrap; }
    <header>customDocument.h</header>
   </customwidget>
   <customwidget>
-   <class>NoteTreeView</class>
+   <class>NodeTreeView</class>
    <extends>QTreeView</extends>
-   <header>notetreeview.h</header>
+   <header>nodetreeview.h</header>
   </customwidget>
  </customwidgets>
  <resources>

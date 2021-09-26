@@ -26,10 +26,10 @@
 
 #include <QAutostart>
 
-#include "notedata.h"
+#include "nodedata.h"
 #include "notemodel.h"
 #include "noteview.h"
-#include "notetreemodel.h"
+#include "nodetreemodel.h"
 #include "updaterwindow.h"
 #include "styleeditorwindow.h"
 #include "dbmanager.h"
@@ -37,7 +37,7 @@
 #include "customDocument.h"
 #include "aboutwindow.h"
 #include "framelesswindow.h"
-#include "notetreeview.h"
+#include "nodetreeview.h"
 
 namespace Ui {
 class MainWindow;
@@ -133,8 +133,8 @@ private:
     NoteView* m_noteView;
     NoteModel* m_noteModel;
     NoteModel* m_deletedNotesModel;
-    NoteTreeView* m_treeView;
-    NoteTreeModel* m_treeModel;
+    NodeTreeView* m_treeView;
+    NodeTreeModel* m_treeModel;
     QSortFilterProxyModel* m_proxyModel;
     QModelIndex m_currentSelectedNoteProxy;
     QModelIndex m_selectedNoteBeforeSearchingInSource;
@@ -219,7 +219,7 @@ private:
     void restoreStates();
     QString getFirstLine(const QString& str);
     QString getNoteDateEditor (QString dateEdited);
-    NoteData* generateNote(const int noteID);
+    NodeData* generateNote(const int noteID);
     QDateTime getQDateTime(QString date);
     void showNoteInEditor(const QModelIndex& noteIndex);
     void sortNotesList(QStringList &stringNotesList);
@@ -248,7 +248,9 @@ private:
 
 private slots:
     void InitData();
-    void loadNotes(QList<NoteData *> noteList, int noteCounter);
+    void loadNotes(QList<NodeData *> noteList, int noteCounter);
+    void loadNodesTree(QVector<NodeData> nodeTree);
+
     void onNewNoteButtonPressed();
     void onNewNoteButtonClicked();
     void onTrashButtonPressed();
@@ -300,15 +302,16 @@ private slots:
     void createOrSelectFirstNote();
 
 signals:
+    void requestNodesTree();
     void requestNotesList();
     void requestOpenDBManager(QString path, bool doCreate);
-    void requestCreateUpdateNote(NoteData* note);
-    void requestDeleteNote(NoteData* note);
-    void requestRestoreNotes(QList<NoteData *> noteList);
-    void requestImportNotes(QList<NoteData *> noteList);
+    void requestCreateUpdateNote(NodeData* note);
+    void requestDeleteNote(NodeData* note);
+    void requestRestoreNotes(QList<NodeData *> noteList);
+    void requestImportNotes(QList<NodeData *> noteList);
     void requestExportNotes(QString fileName);
-    void requestMigrateNotes(QList<NoteData *> noteList);
-    void requestMigrateTrash(QList<NoteData *> noteList);
+    void requestMigrateNotes(QList<NodeData *> noteList);
+    void requestMigrateTrash(QList<NodeData *> noteList);
     void requestForceLastRowIndexValue(int index);
 };
 
