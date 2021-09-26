@@ -30,7 +30,7 @@ int NodeTreeItem::childCount() const
 
 int NodeTreeItem::columnCount() const
 {
-    return m_itemData.count();
+    return 1;
 }
 
 QVariant NodeTreeItem::data(NodeItem::Roles role) const
@@ -43,6 +43,11 @@ NodeTreeItem *NodeTreeItem::parentItem()
     return m_parentItem;
 }
 
+void NodeTreeItem::setParentItem(NodeTreeItem *parentItem)
+{
+    m_parentItem = parentItem;
+}
+
 int NodeTreeItem::row() const
 {
     if (m_parentItem) {
@@ -52,101 +57,45 @@ int NodeTreeItem::row() const
     return 0;
 }
 
-NodeTreeModel::NodeTreeModel(QObject *parent) : QAbstractItemModel(parent)
+NodeTreeModel::NodeTreeModel(QObject *parent) :
+    QAbstractItemModel(parent),
+    rootItem(nullptr)
 {
     auto hs = QHash<NodeItem::Roles, QVariant>{};
     hs[NodeItem::Roles::ItemType] = NodeItem::Type::RootItem;
     rootItem = new NodeTreeItem(hs);
-
-    {
-        auto hs = QHash<NodeItem::Roles, QVariant>{};
-        hs[NodeItem::Roles::ItemType] = NodeItem::Type::AllNoteButton;
-        hs[NodeItem::Roles::DisplayText] = tr("All Notes");
-        hs[NodeItem::Roles::Icon] = ":/images/trashCan_Regular.png";
-        auto allNodeButton = new NodeTreeItem(hs, rootItem);
-        rootItem->appendChild(allNodeButton);
-    }
-    {
-        auto hs = QHash<NodeItem::Roles, QVariant>{};
-        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TrashButton;
-        hs[NodeItem::Roles::DisplayText] = tr("Trash");
-        hs[NodeItem::Roles::Icon] = ":/images/trashCan_Hovered.png";
-        auto trashButton = new NodeTreeItem(hs, rootItem);
-        rootItem->appendChild(trashButton);
-    }
-    {
-        auto hs = QHash<NodeItem::Roles, QVariant>{};
-        hs[NodeItem::Roles::ItemType] = NodeItem::Type::FolderSeparator;
-        hs[NodeItem::Roles::DisplayText] = tr("Folders");
-        auto folderSepButton = new NodeTreeItem(hs, rootItem);
-        rootItem->appendChild(folderSepButton);
-    }
-    {
-        auto hs = QHash<NodeItem::Roles, QVariant>{};
-        hs[NodeItem::Roles::ItemType] = NodeItem::Type::FolderItem;
-        hs[NodeItem::Roles::DisplayText] = tr("Notes");
-        auto notesFolder = new NodeTreeItem(hs, rootItem);
-        rootItem->appendChild(notesFolder);
-    }
-    {
-        auto hs = QHash<NodeItem::Roles, QVariant>{};
-        hs[NodeItem::Roles::ItemType] = NodeItem::Type::FolderItem;
-        hs[NodeItem::Roles::DisplayText] = tr("Poems");
-        hs[NodeItem::Roles::Icon] = "";
-        auto poemsFolder = new NodeTreeItem(hs, rootItem);
-        rootItem->appendChild(poemsFolder);
-        hs = QHash<NodeItem::Roles, QVariant>{};
-        hs[NodeItem::Roles::ItemType] = NodeItem::Type::FolderItem;
-        hs[NodeItem::Roles::DisplayText] = tr("Novels");
-        hs[NodeItem::Roles::Icon] = "";
-        auto novelsFolder = new NodeTreeItem(hs, poemsFolder);
-        poemsFolder->appendChild(novelsFolder);
-        hs = QHash<NodeItem::Roles, QVariant>{};
-        hs[NodeItem::Roles::ItemType] = NodeItem::Type::NoteItem;
-        hs[NodeItem::Roles::DisplayText] = tr("Alice's Adventure");
-        hs[NodeItem::Roles::Icon] = "";
-        auto aliceNote = new NodeTreeItem(hs, novelsFolder);
-        novelsFolder->appendChild(aliceNote);
-    }
-    {
-        auto hs = QHash<NodeItem::Roles, QVariant>{};
-        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagSeparator;
-        hs[NodeItem::Roles::DisplayText] = tr("Tags");
-        auto tagSepButton = new NodeTreeItem(hs, rootItem);
-        rootItem->appendChild(tagSepButton);
-    }
-    {
-        auto hs = QHash<NodeItem::Roles, QVariant>{};
-        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
-        hs[NodeItem::Roles::DisplayText] = "Important";
-        hs[NodeItem::Roles::TagColor] = "#f75a51";
-        auto tagSepButton = new NodeTreeItem(hs, rootItem);
-        rootItem->appendChild(tagSepButton);
-    }
-    {
-        auto hs = QHash<NodeItem::Roles, QVariant>{};
-        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
-        hs[NodeItem::Roles::DisplayText] = "Free-time";
-        hs[NodeItem::Roles::TagColor] = "#338df7";
-        auto tagSepButton = new NodeTreeItem(hs, rootItem);
-        rootItem->appendChild(tagSepButton);
-    }
-    {
-        auto hs = QHash<NodeItem::Roles, QVariant>{};
-        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
-        hs[NodeItem::Roles::DisplayText] = "Needs-editing";
-        hs[NodeItem::Roles::TagColor] = "#f7a233";
-        auto tagSepButton = new NodeTreeItem(hs, rootItem);
-        rootItem->appendChild(tagSepButton);
-    }
-    {
-        auto hs = QHash<NodeItem::Roles, QVariant>{};
-        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
-        hs[NodeItem::Roles::DisplayText] = "When-home";
-        hs[NodeItem::Roles::TagColor] = "#4bcf5f";
-        auto tagSepButton = new NodeTreeItem(hs, rootItem);
-        rootItem->appendChild(tagSepButton);
-    }
+//    {
+//        auto hs = QHash<NodeItem::Roles, QVariant>{};
+//        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
+//        hs[NodeItem::Roles::DisplayText] = "Important";
+//        hs[NodeItem::Roles::TagColor] = "#f75a51";
+//        auto tagSepButton = new NodeTreeItem(hs, rootItem);
+//        rootItem->appendChild(tagSepButton);
+//    }
+//    {
+//        auto hs = QHash<NodeItem::Roles, QVariant>{};
+//        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
+//        hs[NodeItem::Roles::DisplayText] = "Free-time";
+//        hs[NodeItem::Roles::TagColor] = "#338df7";
+//        auto tagSepButton = new NodeTreeItem(hs, rootItem);
+//        rootItem->appendChild(tagSepButton);
+//    }
+//    {
+//        auto hs = QHash<NodeItem::Roles, QVariant>{};
+//        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
+//        hs[NodeItem::Roles::DisplayText] = "Needs-editing";
+//        hs[NodeItem::Roles::TagColor] = "#f7a233";
+//        auto tagSepButton = new NodeTreeItem(hs, rootItem);
+//        rootItem->appendChild(tagSepButton);
+//    }
+//    {
+//        auto hs = QHash<NodeItem::Roles, QVariant>{};
+//        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
+//        hs[NodeItem::Roles::DisplayText] = "When-home";
+//        hs[NodeItem::Roles::TagColor] = "#4bcf5f";
+//        auto tagSepButton = new NodeTreeItem(hs, rootItem);
+//        rootItem->appendChild(tagSepButton);
+//    }
 }
 
 NodeTreeModel::~NodeTreeModel()
@@ -154,12 +103,23 @@ NodeTreeModel::~NodeTreeModel()
     delete rootItem;
 }
 
+void NodeTreeModel::appendChildNodeToParent(const QModelIndex &parentIndex,
+                                            const QHash<NodeItem::Roles, QVariant> &data)
+{
+    if (rootItem) {
+        auto parentItem = static_cast<NodeTreeItem*>(parentIndex.internalPointer());
+        auto nodeItem = new NodeTreeItem(data, parentItem);
+        beginInsertRows(parentIndex, parentIndex.row(), parentIndex.row() + 1);
+        parentItem->appendChild(nodeItem);
+        endInsertRows();
+    }
+}
+
 QModelIndex NodeTreeModel::index(int row, int column, const QModelIndex &parent) const
 {
     if (!hasIndex(row, column, parent)) {
         return QModelIndex();
     }
-
     NodeTreeItem *parentItem;
 
     if (!parent.isValid()) {
@@ -259,6 +219,7 @@ void NodeTreeModel::loadNodeTree(QVector<NodeData> nodeData, NodeTreeItem *rootN
                 continue;
             }
             hs[NodeItem::Roles::DisplayText] = node.fullTitle();
+            hs[NodeItem::Roles::NodeId] = node.id();
             auto nodeItem = new NodeTreeItem(hs, rootNode);
             itemMap[node.id()] = nodeItem;
         }
@@ -270,10 +231,14 @@ void NodeTreeModel::loadNodeTree(QVector<NodeData> nodeData, NodeTreeItem *rootN
                 node.id() != SpecialNodeID::TrashFolder &&
                 node.parentId() != SpecialNodeID::TrashFolder) {
             auto parentNode = itemMap.find(node.parentId());
-            if (parentNode != itemMap.end()) {
-                (*parentNode)->appendChild(itemMap[node.id()]);
+            auto nodeItem = itemMap.find(node.id());
+            if (parentNode != itemMap.end() &&
+                    nodeItem != itemMap.end()) {
+                (*parentNode)->appendChild(*nodeItem);
+                (*nodeItem)->setParentItem(*parentNode);
             } else {
-                qDebug() << "Can't find parent node";
+                qDebug() << "Can't find node!";
+                continue;
             }
         }
     }

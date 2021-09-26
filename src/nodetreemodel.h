@@ -14,7 +14,8 @@ namespace NodeItem {
         ItemType = Qt::UserRole,
         DisplayText = Qt::DisplayRole,
         Icon = Qt::DecorationRole,
-        TagColor = Qt::UserRole + 1
+        TagColor = Qt::UserRole + 1,
+        NodeId
     };
     enum Type {
         AllNoteButton = 1,
@@ -43,7 +44,7 @@ public:
     QVariant data(NodeItem::Roles role) const;
     int row() const;
     NodeTreeItem *parentItem();
-
+    void setParentItem(NodeTreeItem* parentItem);
 private:
     QVector<NodeTreeItem*> m_childItems;
     QHash<NodeItem::Roles, QVariant> m_itemData;
@@ -56,6 +57,9 @@ class NodeTreeModel : public QAbstractItemModel
 public:
     explicit NodeTreeModel(QObject *parent = nullptr);
     ~NodeTreeModel();
+
+    void appendChildNodeToParent(const QModelIndex& parentIndex,
+                                 const QHash<NodeItem::Roles, QVariant>& data);
 signals:
 
 

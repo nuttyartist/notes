@@ -1,5 +1,7 @@
 #include "nodetreeview.h"
 #include "nodetreemodel.h"
+#include <QMenu>
+#include <QAction>
 
 NodeTreeView::NodeTreeView(QWidget *parent) : QTreeView(parent)
 {
@@ -20,6 +22,13 @@ NodeTreeView::NodeTreeView(QWidget *parent) : QTreeView(parent)
                 this, SIGNAL(clicked(const QModelIndex &)),
                 this, SLOT(onClicked(const QModelIndex &))
                 );
+    setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(this, SIGNAL(customContextMenuRequested(const QPoint &)),
+            this, SLOT(onCustomContextMenu(const QPoint &)));
+    contextMenu = new QMenu(this);
+    QAction* addFolderAction = new QAction(tr("Add"), this);
+    connect(addFolderAction, &QAction::triggered, this, &NodeTreeView::addFolderRequested);
+    contextMenu->addAction(addFolderAction);
 }
 
 void NodeTreeView::onClicked(const QModelIndex &index)
@@ -47,5 +56,16 @@ void NodeTreeView::onClicked(const QModelIndex &index)
     case NodeItem::Type::TagItem: {
         break;
     }
+    }
+}
+
+void NodeTreeView::onCustomContextMenu(const QPoint &point)
+{
+    QModelIndex index = indexAt(point);
+    if (index.isValid()) {
+        auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
+        if (itemType == NodeItem::Type::FolderItem) {
+            contextMenu->exec(viewport()->mapToGlobal(point));
+        }
     }
 }

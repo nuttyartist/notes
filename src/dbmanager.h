@@ -25,7 +25,6 @@ private:
     QVector<NodeData> getAllNodes();
 
     bool addNote(NodeData* note);
-    void addNode(const NodeData& node);
 
     bool removeNote(NodeData* note);
     bool permanantlyRemoveAllNotes();
@@ -48,6 +47,8 @@ public slots:
     void onMigrateNotesRequested(QList<NodeData *> noteList);
     void onMigrateTrashRequested(QList<NodeData *> noteList);
     void onForceLastRowIndexValueRequested(int index);
+    int addNode(const NodeData& node);
+
 };
 
 #endif // DBMANAGER_H

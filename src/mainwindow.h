@@ -301,6 +301,7 @@ private slots:
     void setTheme(Theme theme);
     void createOrSelectFirstNote();
 
+    void onAddFolderRequested();
 signals:
     void requestNodesTree();
     void requestNotesList();

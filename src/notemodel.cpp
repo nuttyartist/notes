@@ -119,7 +119,6 @@ bool NoteModel::setData(const QModelIndex &index, const QVariant &value, int rol
 
     NodeData* note = m_noteList[index.row()];
 
-
     if(role == NoteID){
         note->setId(value.toInt());
     }else if(role == NoteFullTitle){

@@ -630,7 +630,7 @@ void MainWindow::setupSignalsSlots()
 
     connect(m_dbManager, &DBManager::notesReceived, this, &MainWindow::loadNotes);
     connect(m_dbManager, &DBManager::nodesTreeReceived, this, &MainWindow::loadNodesTree);
-
+    connect(m_treeView, &NodeTreeView::addFolderRequested, this, &MainWindow::onAddFolderRequested);
 #ifdef __APPLE__
     // Replace setUseNativeWindowFrame with just the part that handles pushing things up
     connect(this, &MainWindow::toggleFullScreen, this, [=](bool isFullScreen){adjustUpperWidgets(isFullScreen);});
@@ -1195,6 +1195,35 @@ void MainWindow::showNoteInEditor(const QModelIndex &noteIndex)
 void MainWindow::createOrSelectFirstNote() {
     createNewNoteIfEmpty();
     selectFirstNote();
+}
+
+void MainWindow::onAddFolderRequested()
+{
+    auto currentIndex = m_treeView->currentIndex();
+    auto type = static_cast<NodeItem::Type>(currentIndex.data(NodeItem::Roles::ItemType).toInt());
+    if (type == NodeItem::FolderItem) {
+        auto parentId = currentIndex.data(NodeItem::Roles::NodeId).toInt();
+        int newlyCreatedNodeId;
+        NodeData newFolder;
+        newFolder.setNodeType(NodeData::Folder);
+        QDateTime noteDate = QDateTime::currentDateTime();
+        newFolder.setCreationDateTime(noteDate);
+        newFolder.setLastModificationDateTime(noteDate);
+        newFolder.setFullTitle(QStringLiteral("New Folder"));
+        newFolder.setParentId(parentId);
+
+        QMetaObject::invokeMethod(m_dbManager, "addNode", Qt::BlockingQueuedConnection,
+                                  Q_RETURN_ARG(int, newlyCreatedNodeId),
+                                  Q_ARG(NodeData, newFolder)
+                                  );
+
+        QHash<NodeItem::Roles, QVariant> hs;
+        hs[NodeItem::Roles::ItemType] = NodeItem::Type::FolderItem;
+        hs[NodeItem::Roles::DisplayText] = newFolder.fullTitle();
+        hs[NodeItem::Roles::NodeId] = newlyCreatedNodeId;
+        m_treeModel->appendChildNodeToParent(currentIndex, hs);
+        m_treeView->expand(currentIndex);
+    }
 }
 
 /*!

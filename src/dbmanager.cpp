@@ -302,7 +302,7 @@ bool DBManager::addNote(NodeData* note)
     return (query.numRowsAffected() == 1);
 }
 
-void DBManager::addNode(const NodeData &node)
+int DBManager::addNode(const NodeData &node)
 {
     QSqlQuery query;
     QString emptyStr;
@@ -354,6 +354,7 @@ void DBManager::addNode(const NodeData &node)
     query.prepare(R"(UPDATE "metadata" SET "value"=:value WHERE "key"='next_node_id';)");
     query.bindValue(":value", nodeId + 1);
     query.exec();
+    return nodeId;
 }
 
 /*!
