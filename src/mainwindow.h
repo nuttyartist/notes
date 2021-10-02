@@ -138,7 +138,6 @@ private:
     NodeTreeModel* m_treeModel;
     NodeTreeDelegate* m_treeDelegate;
     QVector<QModelIndex> m_treeSeparator;
-    QSortFilterProxyModel* m_proxyModel;
     QModelIndex m_currentSelectedNoteProxy;
     QModelIndex m_selectedNoteBeforeSearchingInSource;
     QQueue<QString> m_searchQueue;

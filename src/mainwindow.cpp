@@ -62,7 +62,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_treeView(Q_NULLPTR),
     m_treeModel(new NodeTreeModel(this)),
     m_treeDelegate(Q_NULLPTR),
-    m_proxyModel(new QSortFilterProxyModel(this)),
     m_dbManager(Q_NULLPTR),
     m_dbThread(Q_NULLPTR),
     m_styleEditorWindow(this),
@@ -575,13 +574,13 @@ void MainWindow::setupSignalsSlots()
     connect(m_noteView, &NoteView::pressed, this, &MainWindow::onNotePressed);
     // noteView viewport pressed
     connect(m_noteView, &NoteView::viewportPressed, this, [this](){
-        if(m_isTemp && m_proxyModel->rowCount() > 1){
-            QModelIndex indexInProxy = m_proxyModel->index(1, 0);
-            selectNote(indexInProxy);
-        }else if(m_isTemp && m_proxyModel->rowCount() == 1){
-            QModelIndex indexInProxy = m_proxyModel->index(0, 0);
+        if(m_isTemp && m_noteModel->rowCount() > 1){
+            QModelIndex indexInListView = m_noteModel->index(1, 0);
+            selectNote(indexInListView);
+        }else if(m_isTemp && m_noteModel->rowCount() == 1){
+            QModelIndex indexInListView = m_noteModel->index(0, 0);
             m_editorDateLabel->clear();
-            deleteNote(indexInProxy, false);
+            deleteNote(indexInListView, false);
         }
     });
     // note model rows moved
@@ -966,13 +965,9 @@ void MainWindow::setupDatabases()
 void MainWindow::setupModelView()
 {
     m_noteView = static_cast<NoteView*>(ui->listView);
-    m_proxyModel->setSourceModel(m_noteModel);
-    m_proxyModel->setFilterKeyColumn(0);
-    m_proxyModel->setFilterRole(NoteModel::NoteContent);
-    m_proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
 
     m_noteView->setItemDelegate(new NoteWidgetDelegate(m_noteView));
-    m_noteView->setModel(m_proxyModel);
+    m_noteView->setModel(m_noteModel);
     m_treeView = static_cast<NodeTreeView*>(ui->treeView);
     m_treeView->setModel(m_treeModel);
     m_treeDelegate = new NodeTreeDelegate(m_treeView);
@@ -1290,11 +1285,8 @@ void MainWindow::loadNodesTree(QVector<NodeData> nodeTree)
 void MainWindow::saveNoteToDB(const QModelIndex& noteIndex)
 {
     if(noteIndex.isValid() && m_isContentModified){
-        QModelIndex indexInSrc = m_proxyModel->mapToSource(noteIndex);
-        if (indexInSrc.isValid()) {
-            NodeData note = m_noteModel->getNote(indexInSrc);
-            emit requestCreateUpdateNote(note);
-        }
+        NodeData note = m_noteModel->getNote(noteIndex);
+        emit requestCreateUpdateNote(note);
         m_isContentModified = false;
     }
 }
@@ -1305,12 +1297,9 @@ void MainWindow::saveNoteToDB(const QModelIndex& noteIndex)
  */
 void MainWindow::removeNoteFromDB(const QModelIndex& noteIndex)
 {
-    if(noteIndex.isValid()){
-        QModelIndex indexInSrc = m_proxyModel->mapToSource(noteIndex);
-        if (indexInSrc.isValid()) {
-            NodeData note = m_noteModel->getNote(indexInSrc);
-            emit requestDeleteNote(note);
-        }
+    if (noteIndex.isValid()) {
+        NodeData note = m_noteModel->getNote(noteIndex);
+        emit requestDeleteNote(note);
     }
 }
 
@@ -1320,8 +1309,8 @@ void MainWindow::removeNoteFromDB(const QModelIndex& noteIndex)
  */
 void MainWindow::selectFirstNote()
 {
-    if(m_proxyModel->rowCount() > 0){
-        QModelIndex index = m_proxyModel->index(0,0);
+    if(m_noteModel->rowCount() > 0){
+        QModelIndex index = m_noteModel->index(0,0);
         m_noteView->selectionModel()->select(index, QItemSelectionModel::ClearAndSelect);
         m_noteView->setCurrentIndex(index);
 
@@ -1336,7 +1325,7 @@ void MainWindow::selectFirstNote()
  */
 void MainWindow::createNewNoteIfEmpty()
 {
-    if(m_proxyModel->rowCount() == 0)
+    if(m_noteModel->rowCount() == 0)
         createNewNote();
 }
 
@@ -1756,7 +1745,7 @@ void MainWindow::setTheme(Theme theme)
 void MainWindow::onNotePressed(const QModelIndex& index)
 {
     if(sender() != Q_NULLPTR){
-        QModelIndex indexInProxy = m_proxyModel->index(index.row(), 0);
+        QModelIndex indexInProxy = m_noteModel->index(index.row(), 0);
         selectNote(indexInProxy);
         m_noteView->setCurrentRowActive(false);
     }
@@ -1776,14 +1765,15 @@ void MainWindow::onTextEditTextChanged()
         if(m_textEdit->toPlainText() != content){
 
             // move note to the top of the list
-            QModelIndex sourceIndex = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
+//            QModelIndex sourceIndex = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
             if(m_currentSelectedNoteProxy.row() != 0){
                 moveNoteToTop();
-            }else if(!m_searchEdit->text().isEmpty() && sourceIndex.row() != 0){
-                m_noteView->setAnimationEnabled(false);
-                moveNoteToTop();
-                m_noteView->setAnimationEnabled(true);
             }
+//            }else if(!m_searchEdit->text().isEmpty() && sourceIndex.row() != 0){
+//                m_noteView->setAnimationEnabled(false);
+//                moveNoteToTop();
+//                m_noteView->setAnimationEnabled(true);
+//            }
 
             // Get the new data
             QString firstline = getFirstLine(m_textEdit->toPlainText());
@@ -1797,8 +1787,7 @@ void MainWindow::onTextEditTextChanged()
             dataValue[NoteModel::NoteFullTitle] = QVariant::fromValue(firstline);
             dataValue[NoteModel::NoteLastModificationDateTime] = QVariant::fromValue(dateTime);
 
-            QModelIndex index = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
-            m_noteModel->setItemData(index, dataValue);
+            m_noteModel->setItemData(m_currentSelectedNoteProxy, dataValue);
 
             m_isContentModified = true;
 
@@ -1852,7 +1841,7 @@ void MainWindow::onSearchEditTextChanged(const QString& keyword)
         }else if(!m_selectedNoteBeforeSearchingInSource.isValid()
                  && m_currentSelectedNoteProxy.isValid()){
 
-            m_selectedNoteBeforeSearchingInSource = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
+            m_selectedNoteBeforeSearchingInSource = m_currentSelectedNoteProxy;
         }
 
         if(m_currentSelectedNoteProxy.isValid()
@@ -1870,8 +1859,7 @@ void MainWindow::onSearchEditTextChanged(const QString& keyword)
             if(str.isEmpty()){
                 m_noteView->setFocusPolicy(Qt::StrongFocus);
                 clearSearch();
-                QModelIndex indexInProxy = m_proxyModel->mapFromSource(m_selectedNoteBeforeSearchingInSource);
-                selectNote(indexInProxy);
+                selectNote(m_selectedNoteBeforeSearchingInSource);
                 m_selectedNoteBeforeSearchingInSource = QModelIndex();
             }else{
                 m_noteView->setFocusPolicy(Qt::NoFocus);
@@ -1898,11 +1886,11 @@ void MainWindow::onClearButtonClicked()
         clearSearch();
 
         if(m_noteModel->rowCount() > 0){
-            QModelIndex indexInProxy = m_proxyModel->mapFromSource(m_selectedNoteBeforeSearchingInSource);
+            QModelIndex indexInProxy = m_selectedNoteBeforeSearchingInSource;
             int row = m_selectedNoteBeforeSearchingInSource.row();
-            if(row == m_noteModel->rowCount())
-                indexInProxy = m_proxyModel->index(m_proxyModel->rowCount()-1,0);
-
+            if(row == m_noteModel->rowCount()) {
+                indexInProxy = m_noteModel->index(m_noteModel->rowCount()-1,0);
+            }
             selectNote(indexInProxy);
         }else{
             m_currentSelectedNoteProxy = QModelIndex();
@@ -1945,7 +1933,7 @@ void MainWindow::createNewNote()
             m_editorDateLabel->setText(dateTimeForEditor);
 
             // update the current selected index
-            m_currentSelectedNoteProxy = m_proxyModel->mapFromSource(indexSrc);
+            m_currentSelectedNoteProxy = indexSrc;
 
         }else{
             int row = m_currentSelectedNoteProxy.row();
@@ -2014,7 +2002,7 @@ void MainWindow::deleteSelectedNote()
 
             // update the index of the selected note before searching
             if(!m_searchEdit->text().isEmpty()){
-                QModelIndex currentIndexInSource = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
+                QModelIndex currentIndexInSource = m_currentSelectedNoteProxy;
                 int beforeSearchSelectedRow = m_selectedNoteBeforeSearchingInSource.row();
                 if(currentIndexInSource.row() < beforeSearchSelectedRow){
                     m_selectedNoteBeforeSearchingInSource = m_noteModel->index(beforeSearchSelectedRow-1);
@@ -2883,12 +2871,12 @@ void MainWindow::moveNoteToTop()
         m_noteView->scrollToTop();
 
         // move the current selected note to the top
-        QModelIndex sourceIndex = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
+        QModelIndex sourceIndex = m_currentSelectedNoteProxy;
         QModelIndex destinationIndex = m_noteModel->index(0);
         m_noteModel->moveRow(sourceIndex, sourceIndex.row(), destinationIndex, 0);
 
         // update the current item
-        m_currentSelectedNoteProxy = m_proxyModel->mapFromSource(destinationIndex);
+        m_currentSelectedNoteProxy = destinationIndex;
         m_noteView->setCurrentIndex(m_currentSelectedNoteProxy);
     }else{
         qDebug() << "MainWindow::moveNoteTop : m_currentSelectedNoteProxy not valid";
@@ -2912,8 +2900,6 @@ void MainWindow::clearSearch()
     m_editorDateLabel->clear();
     m_textEdit->blockSignals(false);
 
-    m_proxyModel->setFilterFixedString(QString());
-
     m_clearButton->hide();
     m_searchEdit->setFocus();
 }
@@ -2924,19 +2910,19 @@ void MainWindow::clearSearch()
  */
 void MainWindow::findNotesContain(const QString& keyword)
 {
-    m_proxyModel->setFilterFixedString(keyword);
-    m_clearButton->show();
+//    m_proxyModel->setFilterFixedString(keyword);
+//    m_clearButton->show();
 
-    m_textEdit->blockSignals(true);
-    m_textEdit->clear();
-    m_editorDateLabel->clear();
-    m_textEdit->blockSignals(false);
+//    m_textEdit->blockSignals(true);
+//    m_textEdit->clear();
+//    m_editorDateLabel->clear();
+//    m_textEdit->blockSignals(false);
 
-    if(m_proxyModel->rowCount() > 0){
-        selectFirstNote();
-    }else{
-        m_currentSelectedNoteProxy = QModelIndex();
-    }
+//    if(m_proxyModel->rowCount() > 0){
+//        selectFirstNote();
+//    }else{
+//        m_currentSelectedNoteProxy = QModelIndex();
+//    }
 }
 
 /*!
@@ -2949,7 +2935,7 @@ void MainWindow::selectNote(const QModelIndex &noteIndex)
         // save the position of text edit scrollbar
         if(!m_isTemp && m_currentSelectedNoteProxy.isValid()){
             int pos = m_textEdit->verticalScrollBar()->value();
-            QModelIndex indexSrc = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
+            QModelIndex indexSrc = m_currentSelectedNoteProxy;
             m_noteModel->setData(indexSrc, QVariant::fromValue(pos), NoteModel::NoteScrollbarPos);
         }
 
@@ -2959,7 +2945,7 @@ void MainWindow::selectNote(const QModelIndex &noteIndex)
         if(m_isTemp && noteIndex.row() != 0){
             // delete the unmodified new note
             deleteNote(m_currentSelectedNoteProxy, false);
-            m_currentSelectedNoteProxy = m_proxyModel->index(noteIndex.row()-1, 0);
+            m_currentSelectedNoteProxy = m_noteModel->index(noteIndex.row()-1, 0);
         }else if(!m_isTemp
                  && m_currentSelectedNoteProxy.isValid()
                  && noteIndex != m_currentSelectedNoteProxy
@@ -3477,7 +3463,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                         clearSearch();
                         createNewNote();
                     }
-                }else if(m_proxyModel->rowCount() == 0){
+                }else if(m_noteModel->rowCount() == 0){
                     createNewNote();
                 }
             }
