@@ -11,7 +11,8 @@
  * \param parent
  */
 DBManager::DBManager(QObject *parent)
-    : QObject(parent)
+    : QObject(parent),
+      m_pathSeperator(QStringLiteral("☃"))
 {
     qRegisterMetaType<QList<NodeData*> >("QList<NodeData*>");
     qRegisterMetaType<QVector<NodeData>>("QVector<NodeData>");
@@ -55,7 +56,8 @@ void DBManager::createTables()
                         R"(    "content"	TEXT,)"
                         R"(    "node_type"	INTEGER NOT NULL,)"
                         R"(    "parent_id"	INTEGER NOT NULL,)"
-                        R"(    "relative_position"	INTEGER NOT NULL)"
+                        R"(    "relative_position"	INTEGER NOT NULL,)"
+                        R"(    "absolute_path"	TEXT NOT NULL)"
                         R"();)";
     query.exec(nodeTable);
 
@@ -180,13 +182,13 @@ NodeData *DBManager::getNote(QString id)
  * \param note
  * \return
  */
-bool DBManager::isNoteExist(NodeData* note)
+bool DBManager::isNodeExist(const NodeData& node)
 {
     QSqlQuery query;
     
-    int id = note->id();
-    QString queryStr = QStringLiteral("SELECT EXISTS(SELECT 1 FROM active_notes WHERE id = %1 LIMIT 1 )")
-            .arg(id);
+    int id = node.id();
+    QString queryStr = QStringLiteral("SELECT EXISTS(SELECT 1 FROM node_table WHERE id = :id LIMIT 1 )");
+    query.bindValue(":id", id);
     query.exec(queryStr);
     query.next();
     
@@ -261,45 +263,10 @@ QVector<NodeData> DBManager::getAllNodes()
             nodeList.append(node);
         }
     } else {
-        qDebug() << "getAllNodes query failed!";
+        qDebug() << "getAllNodes query failed!" << query.lastError();
     }
 
     return nodeList;
-}
-
-/*!
- * \brief DBManager::addNote
- * \param note
- * \return
- */
-bool DBManager::addNote(NodeData* note)
-{
-    QSqlQuery query;
-    QString emptyStr;
-    
-    qint64 epochTimeDateCreated = note->creationDateTime()
-            .toMSecsSinceEpoch();
-    QString content = note->content()
-            .replace("'","''")
-            .replace(QChar('\x0'), emptyStr);
-    QString fullTitle = note->fullTitle()
-            .replace("'","''")
-            .replace(QChar('\x0'), emptyStr);
-    
-    qint64 epochTimeDateLastModified = note->lastModificationdateTime().isNull() ? epochTimeDateCreated
-                                                                                 : note->lastModificationdateTime().toMSecsSinceEpoch();
-    
-    QString queryStr = QString("INSERT INTO active_notes "
-                               "(creation_date, modification_date, deletion_date, content, full_title) "
-                               "VALUES (%1, %2, -1, '%3', '%4');")
-            .arg(epochTimeDateCreated)
-            .arg(epochTimeDateLastModified)
-            .arg(content)
-            .arg(fullTitle);
-    
-    query.exec(queryStr);
-    
-    return (query.numRowsAffected() == 1);
 }
 
 int DBManager::addNode(const NodeData &node)
@@ -321,6 +288,7 @@ int DBManager::addNode(const NodeData &node)
 
     int relationalPosition = 0;
     if (node.parentId() != -1) {
+        // DIEPDTN: wrong algorithm, need fix
         query.prepare("SELECT COUNT(*) FROM node_table WHERE parent_id = :parent_id");
         query.bindValue(":parent_id", node.parentId());
         query.exec();
@@ -334,9 +302,14 @@ int DBManager::addNode(const NodeData &node)
     query.last();
     int nodeId = query.value(0).toInt();
     query.finish();
+    QString absolutePath;
+    if (node.parentId() != -1) {
+        absolutePath = getNodeAbsolutePath(node.parentId());
+    }
+    absolutePath += m_pathSeperator + QString::number(nodeId);
     QString queryStr = R"(INSERT INTO "node_table")"
-                       R"(("id", "title", "creation_date", "modification_date", "deletion_date", "content", "node_type", "parent_id", "relative_position"))"
-                       R"(VALUES (:id, :title, :creation_date, :modification_date, :deletion_date, :content, :node_type, :parent_id, :relative_position);)";
+                       R"(("id", "title", "creation_date", "modification_date", "deletion_date", "content", "node_type", "parent_id", "relative_position", "absolute_path"))"
+                       R"(VALUES (:id, :title, :creation_date, :modification_date, :deletion_date, :content, :node_type, :parent_id, :relative_position, :absolute_path);)";
 
     query.prepare(queryStr);
     query.bindValue(":id", nodeId);
@@ -348,6 +321,7 @@ int DBManager::addNode(const NodeData &node)
     query.bindValue(":node_type", static_cast<int>(node.nodeType()));
     query.bindValue(":parent_id", node.parentId());
     query.bindValue(":relative_position", relationalPosition);
+    query.bindValue(":absolute_path", absolutePath);
     query.exec();
     query.finish();
 
@@ -362,40 +336,40 @@ int DBManager::addNode(const NodeData &node)
  * \param note
  * \return
  */
-bool DBManager::removeNote(NodeData* note)
+bool DBManager::removeNote(const NodeData &note)
 {
-    QSqlQuery query;
-    QString emptyStr;
+//    QSqlQuery query;
+//    QString emptyStr;
     
-    int id = note->id();
-    QString queryStr = QStringLiteral("DELETE FROM active_notes "
-                                      "WHERE id=%1").arg(id);
-    query.exec(queryStr);
-    bool removed = (query.numRowsAffected() == 1);
+//    int id = note->id();
+//    QString queryStr = QStringLiteral("DELETE FROM active_notes "
+//                                      "WHERE id=%1").arg(id);
+//    query.exec(queryStr);
+//    bool removed = (query.numRowsAffected() == 1);
     
-    qint64 epochTimeDateCreated = note->creationDateTime().toMSecsSinceEpoch();
-    qint64 epochTimeDateModified = note->lastModificationdateTime().toMSecsSinceEpoch();
-    qint64 epochTimeDateDeleted = note->deletionDateTime().toMSecsSinceEpoch();
-    QString content = note->content()
-            .replace("'","''")
-            .replace(QChar('\x0'), emptyStr);
-    QString fullTitle = note->fullTitle()
-            .replace("'","''")
-            .replace(QChar('\x0'), emptyStr);
+//    qint64 epochTimeDateCreated = note->creationDateTime().toMSecsSinceEpoch();
+//    qint64 epochTimeDateModified = note->lastModificationdateTime().toMSecsSinceEpoch();
+//    qint64 epochTimeDateDeleted = note->deletionDateTime().toMSecsSinceEpoch();
+//    QString content = note->content()
+//            .replace("'","''")
+//            .replace(QChar('\x0'), emptyStr);
+//    QString fullTitle = note->fullTitle()
+//            .replace("'","''")
+//            .replace(QChar('\x0'), emptyStr);
     
-    queryStr = QString("INSERT INTO deleted_notes "
-                       "VALUES (%1, %2, %3, %4, '%5', '%6');")
-            .arg(id)
-            .arg(epochTimeDateCreated)
-            .arg(epochTimeDateModified)
-            .arg(epochTimeDateDeleted)
-            .arg(content)
-            .arg(fullTitle);
+//    queryStr = QString("INSERT INTO deleted_notes "
+//                       "VALUES (%1, %2, %3, %4, '%5', '%6');")
+//            .arg(id)
+//            .arg(epochTimeDateCreated)
+//            .arg(epochTimeDateModified)
+//            .arg(epochTimeDateDeleted)
+//            .arg(content)
+//            .arg(fullTitle);
     
-    query.exec(queryStr);
-    bool addedToTrashDB = (query.numRowsAffected() == 1);
+//    query.exec(queryStr);
+//    bool addedToTrashDB = (query.numRowsAffected() == 1);
     
-    return (removed && addedToTrashDB);
+    return false; //(removed && addedToTrashDB);
 }
 
 /*!
@@ -413,23 +387,23 @@ bool DBManager::permanantlyRemoveAllNotes()
  * \param note
  * \return
  */
-bool DBManager::updateNote(NodeData* note)
+bool DBManager::updateNoteContent(const NodeData& note)
 {
     QSqlQuery query;
     QString emptyStr;
     
-    int id = note->id();
-    qint64 epochTimeDateModified = note->lastModificationdateTime().toMSecsSinceEpoch();
-    QString content = note->content().replace(QChar('\x0'), emptyStr);
-    QString fullTitle = note->fullTitle().replace(QChar('\x0'), emptyStr);
+    int id = note.id();
+    qint64 epochTimeDateModified = note.lastModificationdateTime().toMSecsSinceEpoch();
+    QString content = note.content().replace(QChar('\x0'), emptyStr);
+    QString fullTitle = note.fullTitle().replace(QChar('\x0'), emptyStr);
     
-    query.prepare(QStringLiteral("UPDATE active_notes SET modification_date = :date, content = :content, "
-                                 "full_title = :title WHERE id = :id"));
-    query.bindValue(QStringLiteral(":date"), epochTimeDateModified);
+    query.prepare(QStringLiteral("UPDATE node_table SET modification_date = :modification_date, content = :content, "
+                                 "title = :title WHERE id = :id AND node_type = :node_type;"));
+    query.bindValue(QStringLiteral(":modification_date"), epochTimeDateModified);
     query.bindValue(QStringLiteral(":content"), content);
     query.bindValue(QStringLiteral(":title"), fullTitle);
     query.bindValue(QStringLiteral(":id"), id);
-    
+    query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
     if (!query.exec()) {
         qWarning () << __func__ << ": " << query.lastError();
     }
@@ -503,6 +477,17 @@ bool DBManager::migrateTrash(NodeData* note)
     return (query.numRowsAffected() == 1);
 }
 
+QString DBManager::getNodeAbsolutePath(int nodeId)
+{
+    QSqlQuery query;
+    query.prepare("SELECT absolute_path FROM node_table WHERE id = :id");
+    query.bindValue(":id", nodeId);
+    query.exec();
+    query.last();
+    auto absolutePath = query.value(0).toString();
+    return absolutePath;
+}
+
 void DBManager::onNodeTreeRequested()
 {
     QVector<NodeData> nodeList;
@@ -513,15 +498,80 @@ void DBManager::onNodeTreeRequested()
 /*!
  * \brief DBManager::onNotesListRequested
  */
-void DBManager::onNotesListRequested()
+void DBManager::onNotesListRequested(int parentID, bool isRecursive)
 {
-    int noteCounter;
-    QList<NodeData *> noteList;
-    
-    noteCounter = getLastRowID();
-    noteList    = getAllNotes();
-    
-    emit notesReceived(noteList, noteCounter);
+    QVector<NodeData> nodeList;
+    QSqlQuery query;
+    if (!isRecursive) {
+        query.prepare(R"(SELECT)"
+                      R"("id",)"
+                      R"("title",)"
+                      R"("creation_date",)"
+                      R"("modification_date",)"
+                      R"("deletion_date",)"
+                      R"("content",)"
+                      R"("node_type",)"
+                      R"("parent_id",)"
+                      R"("relative_position")"
+                      R"(FROM node_table)"
+                      R"(WHERE parent_id = :parent_id AND node_type = :node_type;)"
+                    );
+        query.bindValue(QStringLiteral(":parent_id"), parentID);
+        query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
+        bool status = query.exec();
+        if(status) {
+            while(query.next()) {
+                NodeData node;
+                node.setId(query.value(0).toInt());
+                node.setFullTitle(query.value(1).toString());
+                node.setCreationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(2).toLongLong()));
+                node.setLastModificationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(3).toLongLong()));
+                node.setDeletionDateTime(QDateTime::fromMSecsSinceEpoch(query.value(4).toLongLong()));
+                node.setContent(query.value(5).toString());
+                node.setNodeType(static_cast<NodeData::Type>(query.value(6).toInt()));
+                node.setParentId(query.value(7).toInt());
+                node.setRelativePosition(query.value(8).toInt());
+                nodeList.append(node);
+            }
+        } else {
+            qDebug() << "Database query failed!";
+        }
+    } else {
+        auto parentPath = getNodeAbsolutePath(parentID);
+        query.prepare(R"(SELECT)"
+                      R"("id",)"
+                      R"("title",)"
+                      R"("creation_date",)"
+                      R"("modification_date",)"
+                      R"("deletion_date",)"
+                      R"("content",)"
+                      R"("node_type",)"
+                      R"("parent_id",)"
+                      R"("relative_position")"
+                      R"(FROM node_table)"
+                      R"(WHERE absolute_path like :path_expr AND node_type = :node_type;)"
+                    );
+        query.bindValue(QStringLiteral(":path_expr"), parentPath + ".%");
+        query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
+
+        bool status = query.exec();
+        if(status) {
+            while(query.next()) {
+                NodeData node;
+                node.setId(query.value(0).toInt());
+                node.setFullTitle(query.value(1).toString());
+                node.setCreationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(2).toLongLong()));
+                node.setLastModificationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(3).toLongLong()));
+                node.setDeletionDateTime(QDateTime::fromMSecsSinceEpoch(query.value(4).toLongLong()));
+                node.setContent(query.value(5).toString());
+                node.setNodeType(static_cast<NodeData::Type>(query.value(6).toInt()));
+                node.setParentId(query.value(7).toInt());
+                node.setRelativePosition(query.value(8).toInt());
+                nodeList.append(node);
+            }
+        }
+    }
+    emit notesReceived(nodeList);
 }
 
 /*!
@@ -538,21 +588,26 @@ void DBManager::onOpenDBManagerRequested(QString path, bool doCreate)
  * \brief DBManager::onCreateUpdateRequested
  * \param note
  */
-void DBManager::onCreateUpdateRequested(NodeData* note)
+void DBManager::onCreateUpdateRequestedNoteContent(const NodeData &note)
 {
-    bool exists = isNoteExist(note);
+    if (note.nodeType() != NodeData::Note) {
+        qDebug() << "Wrong node type";
+        return;
+    }
+    bool exists = isNodeExist(note);
     
-    if(exists)
-        updateNote(note);
-    else
-        addNote(note);
+    if(exists) {
+        updateNoteContent(note);
+    } else {
+        addNode(note);
+    }
 }
 
 /*!
  * \brief DBManager::onDeleteNoteRequested
  * \param note
  */
-void DBManager::onDeleteNoteRequested(NodeData* note)
+void DBManager::onDeleteNoteRequested(const NodeData& note)
 {
     removeNote(note);
 }
@@ -562,10 +617,10 @@ void DBManager::onDeleteNoteRequested(NodeData* note)
  * \param noteList
  */
 void DBManager::onImportNotesRequested(QList<NodeData *> noteList) {
-    QSqlDatabase::database().transaction();
-    for(NodeData* note : noteList)
-        addNote(note);
-    QSqlDatabase::database().commit();
+//    QSqlDatabase::database().transaction();
+//    for(NodeData* note : noteList)
+//        addNote(note);
+//    QSqlDatabase::database().commit();
 }
 
 /*!

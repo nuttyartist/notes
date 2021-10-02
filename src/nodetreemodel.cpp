@@ -1,5 +1,6 @@
 #include "nodetreemodel.h"
 #include <QDebug>
+#include <QRegularExpression>
 
 NodeTreeItem::NodeTreeItem(const QHash<NodeItem::Roles, QVariant> &data, NodeTreeItem *parent)
     : m_itemData(data), m_parentItem(parent)
@@ -13,6 +14,11 @@ NodeTreeItem::~NodeTreeItem()
 void NodeTreeItem::appendChild(NodeTreeItem *item)
 {
     m_childItems.append(item);
+}
+
+void NodeTreeItem::insertChild(int row, NodeTreeItem *child)
+{
+    m_childItems.insert(row, child);
 }
 
 NodeTreeItem *NodeTreeItem::child(int row)
@@ -64,38 +70,38 @@ NodeTreeModel::NodeTreeModel(QObject *parent) :
     auto hs = QHash<NodeItem::Roles, QVariant>{};
     hs[NodeItem::Roles::ItemType] = NodeItem::Type::RootItem;
     rootItem = new NodeTreeItem(hs);
-//    {
-//        auto hs = QHash<NodeItem::Roles, QVariant>{};
-//        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
-//        hs[NodeItem::Roles::DisplayText] = "Important";
-//        hs[NodeItem::Roles::TagColor] = "#f75a51";
-//        auto tagSepButton = new NodeTreeItem(hs, rootItem);
-//        rootItem->appendChild(tagSepButton);
-//    }
-//    {
-//        auto hs = QHash<NodeItem::Roles, QVariant>{};
-//        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
-//        hs[NodeItem::Roles::DisplayText] = "Free-time";
-//        hs[NodeItem::Roles::TagColor] = "#338df7";
-//        auto tagSepButton = new NodeTreeItem(hs, rootItem);
-//        rootItem->appendChild(tagSepButton);
-//    }
-//    {
-//        auto hs = QHash<NodeItem::Roles, QVariant>{};
-//        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
-//        hs[NodeItem::Roles::DisplayText] = "Needs-editing";
-//        hs[NodeItem::Roles::TagColor] = "#f7a233";
-//        auto tagSepButton = new NodeTreeItem(hs, rootItem);
-//        rootItem->appendChild(tagSepButton);
-//    }
-//    {
-//        auto hs = QHash<NodeItem::Roles, QVariant>{};
-//        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
-//        hs[NodeItem::Roles::DisplayText] = "When-home";
-//        hs[NodeItem::Roles::TagColor] = "#4bcf5f";
-//        auto tagSepButton = new NodeTreeItem(hs, rootItem);
-//        rootItem->appendChild(tagSepButton);
-//    }
+    //    {
+    //        auto hs = QHash<NodeItem::Roles, QVariant>{};
+    //        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
+    //        hs[NodeItem::Roles::DisplayText] = "Important";
+    //        hs[NodeItem::Roles::TagColor] = "#f75a51";
+    //        auto tagSepButton = new NodeTreeItem(hs, rootItem);
+    //        rootItem->appendChild(tagSepButton);
+    //    }
+    //    {
+    //        auto hs = QHash<NodeItem::Roles, QVariant>{};
+    //        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
+    //        hs[NodeItem::Roles::DisplayText] = "Free-time";
+    //        hs[NodeItem::Roles::TagColor] = "#338df7";
+    //        auto tagSepButton = new NodeTreeItem(hs, rootItem);
+    //        rootItem->appendChild(tagSepButton);
+    //    }
+    //    {
+    //        auto hs = QHash<NodeItem::Roles, QVariant>{};
+    //        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
+    //        hs[NodeItem::Roles::DisplayText] = "Needs-editing";
+    //        hs[NodeItem::Roles::TagColor] = "#f7a233";
+    //        auto tagSepButton = new NodeTreeItem(hs, rootItem);
+    //        rootItem->appendChild(tagSepButton);
+    //    }
+    //    {
+    //        auto hs = QHash<NodeItem::Roles, QVariant>{};
+    //        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
+    //        hs[NodeItem::Roles::DisplayText] = "When-home";
+    //        hs[NodeItem::Roles::TagColor] = "#4bcf5f";
+    //        auto tagSepButton = new NodeTreeItem(hs, rootItem);
+    //        rootItem->appendChild(tagSepButton);
+    //    }
 }
 
 NodeTreeModel::~NodeTreeModel()
@@ -107,11 +113,50 @@ void NodeTreeModel::appendChildNodeToParent(const QModelIndex &parentIndex,
                                             const QHash<NodeItem::Roles, QVariant> &data)
 {
     if (rootItem) {
-        auto parentItem = static_cast<NodeTreeItem*>(parentIndex.internalPointer());
-        auto nodeItem = new NodeTreeItem(data, parentItem);
-        beginInsertRows(parentIndex, parentIndex.row(), parentIndex.row() + 1);
-        parentItem->appendChild(nodeItem);
-        endInsertRows();
+        const auto type = static_cast<NodeItem::Type>(data[NodeItem::Roles::ItemType].toInt());
+        if (type == NodeItem::Type::FolderItem) {
+            auto parentItem = static_cast<NodeTreeItem*>(parentIndex.internalPointer());
+            if (!parentItem || parentItem == rootItem) {
+                parentItem = rootItem;
+                // need to add folder to folder section
+                // we will insert it before tag seperator
+                int row = 0;
+                for (int i = 0; i < parentItem->childCount(); ++i) {
+                    auto childItem = parentItem->child(i);
+                    auto childType = static_cast<NodeItem::Type>(childItem->data(NodeItem::Roles::ItemType).toInt());
+                    if (childType == NodeItem::Type::TagSeparator) {
+                        row = i;
+                        break;
+                    }
+                }
+                emit layoutAboutToBeChanged();
+                beginInsertRows(parentIndex, row, row);
+                auto nodeItem = new NodeTreeItem(data, parentItem);
+                parentItem->insertChild(row, nodeItem);
+                endInsertRows();
+                emit layoutChanged();
+                emit topLevelItemLayoutChanged();
+            } else {
+                beginInsertRows(parentIndex, parentIndex.row(), parentIndex.row());
+                auto nodeItem = new NodeTreeItem(data, parentItem);
+                parentItem->appendChild(nodeItem);
+                endInsertRows();
+            }
+        } else if (type == NodeItem::Type::TagItem) {
+            //tag always in root level
+            auto parentItem = static_cast<NodeTreeItem*>(parentIndex.internalPointer());
+            if (parentItem != rootItem) {
+                qDebug() << "tag only go into root level";
+                return;
+            }
+            beginInsertRows(parentIndex, parentIndex.row(), parentIndex.row() + 1);
+            auto nodeItem = new NodeTreeItem(data, parentItem);
+            parentItem->appendChild(nodeItem);
+            endInsertRows();
+        } else {
+            qDebug() << "child type not supported with this function";
+            return;
+        }
     }
 }
 
@@ -142,8 +187,10 @@ QModelIndex NodeTreeModel::parent(const QModelIndex &index) const
     }
 
     NodeTreeItem *childItem = static_cast<NodeTreeItem*>(index.internalPointer());
+    if (childItem == rootItem) {
+        return QModelIndex();
+    }
     NodeTreeItem *parentItem = childItem->parentItem();
-
     if (parentItem == rootItem)
         return QModelIndex();
 
@@ -185,6 +232,56 @@ QVariant NodeTreeModel::data(const QModelIndex &index, int role) const
         return QVariant();
     }
     return item->data(static_cast<NodeItem::Roles>(role));
+}
+
+QModelIndex NodeTreeModel::rootIndex() const
+{
+    return createIndex(0, 0, rootItem);
+}
+
+QString NodeTreeModel::getNewFolderPlaceholderName(const QModelIndex &parentIndex)
+{
+    QString result = "New Folder";
+    if (parentIndex.isValid()) {
+        auto parentItem = static_cast<NodeTreeItem*>(parentIndex.internalPointer());
+        if (parentItem) {
+            QRegularExpression reg(R"(^New Folder\s\((\d+)\))");
+            int n = 0;
+            for (int i = 0; i < parentItem->childCount(); ++i) {
+                auto child = parentItem->child(i);
+                auto title = child->data(NodeItem::Roles::DisplayText).toString();
+                if (title.compare("New Folder", Qt::CaseInsensitive) == 0 && n == 0) {
+                    n = 1;
+                }
+                auto match = reg.match(title);
+                if (match.hasMatch()) {
+                    auto cn = match.captured(1).toInt();
+                    if (n <= cn) {
+                        n = cn + 1;
+                    }
+                }
+            }
+            if (n != 0) {
+                result = QStringLiteral("New Folder (%1)").arg(QString::number(n));
+            }
+        }
+    }
+    return result;
+}
+
+QVector<QModelIndex> NodeTreeModel::getSeparatorIndex()
+{
+    QVector<QModelIndex> result;
+    if (rootItem) {
+        for (int i = 0; i < rootItem->childCount(); ++i) {
+            auto child = rootItem->child(i);
+            auto type = static_cast<NodeItem::Type>(child->data(NodeItem::Roles::ItemType).toInt());
+            if (type == NodeItem::Type::FolderSeparator || type == NodeItem::Type::TagSeparator) {
+                result.append(createIndex(i, 0, child));
+            }
+        }
+    }
+    return result;
 }
 
 void NodeTreeModel::setNodeTree(QVector<NodeData> nodeData)

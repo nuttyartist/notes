@@ -26,7 +26,7 @@ NodeTreeView::NodeTreeView(QWidget *parent) : QTreeView(parent)
     connect(this, SIGNAL(customContextMenuRequested(const QPoint &)),
             this, SLOT(onCustomContextMenu(const QPoint &)));
     contextMenu = new QMenu(this);
-    QAction* addFolderAction = new QAction(tr("Add"), this);
+    QAction* addFolderAction = new QAction(tr("Add Subfolder"), this);
     connect(addFolderAction, &QAction::triggered, this, &NodeTreeView::addFolderRequested);
     contextMenu->addAction(addFolderAction);
 }

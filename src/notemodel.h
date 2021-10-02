@@ -24,10 +24,11 @@ public:
     explicit NoteModel(QObject *parent = Q_NULLPTR);
     ~NoteModel();
 
-    QModelIndex addNote(NodeData* note);
-    QModelIndex insertNote(NodeData* note, int row);
-    NodeData* getNote(const QModelIndex& index);
+    QModelIndex addNote(const NodeData& note);
+    QModelIndex insertNote(const NodeData& note, int row);
+    NodeData getNote(const QModelIndex& index);
     void addListNote(QList<NodeData*> noteList);
+    void setListNote(const QVector<NodeData> notes);
     NodeData* removeNote(const QModelIndex& noteIndex);
     bool moveRow(const QModelIndex& sourceParent,
                  int sourceRow,
@@ -42,7 +43,7 @@ public:
     void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
 
 private:
-    QList<NodeData *> m_noteList;
+    QVector<NodeData> m_noteList;
 
 signals:
     void noteRemoved();

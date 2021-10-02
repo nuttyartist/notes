@@ -35,7 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
     #else
 MainWindow::MainWindow(QWidget *parent) :
     CFramelessWindow (parent),
-#endif
+    #endif
     ui (new Ui::MainWindow),
     m_autoSaveTimer(new QTimer(this)),
     m_settingsDatabase(Q_NULLPTR),
@@ -61,6 +61,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_deletedNotesModel(new NoteModel(this)),
     m_treeView(Q_NULLPTR),
     m_treeModel(new NodeTreeModel(this)),
+    m_treeDelegate(Q_NULLPTR),
     m_proxyModel(new QSortFilterProxyModel(this)),
     m_dbManager(Q_NULLPTR),
     m_dbThread(Q_NULLPTR),
@@ -92,13 +93,13 @@ MainWindow::MainWindow(QWidget *parent) :
                                , 80    // Serif
                                , 80}), // SansSerif
     m_currentFontTypeface(FontTypeface::SansSerif),
-#ifdef __APPLE__
+    #ifdef __APPLE__
     m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")),
-#elif _WIN32
+    #elif _WIN32
     m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI") : QStringLiteral("Roboto")),
-#else
+    #else
     m_displayFont(QStringLiteral("Roboto")),
-#endif
+    #endif
     m_currentEditorBackgroundColor(247, 247, 247),
     m_currentRightFrameColor(247, 247, 247),
     m_currentTheme(Theme::Light),
@@ -156,14 +157,14 @@ void MainWindow::InitData()
         connect(watcher, &QFutureWatcher<void>::finished, this, [&, pd](){
             pd->deleteLater();
             setButtonsAndFieldsEnabled(true);
-            emit requestNotesList();
+            emit requestNotesList(SpecialNodeID::RootFolder, true);
         });
 
         QFuture<void> migration = QtConcurrent::run(this, &MainWindow::checkMigration);
         watcher->setFuture(migration);
 
     } else {
-        emit requestNotesList();
+        emit requestNotesList(SpecialNodeID::RootFolder, true);
     }
 
     /// Check if it is running with an argument (ex. hide)
@@ -265,7 +266,7 @@ void MainWindow::setupMainWindow()
 {
 #if defined(Q_OS_LINUX)
     this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
-//    this->setAttribute(Qt::WA_TranslucentBackground);
+    //    this->setAttribute(Qt::WA_TranslucentBackground);
 #elif _WIN32
     this->setWindowFlags(Qt::CustomizeWindowHint);
 #endif
@@ -274,9 +275,9 @@ void MainWindow::setupMainWindow()
     m_redCloseButton = new QPushButton(this);
     m_yellowMinimizeButton = new QPushButton(this);
 #ifndef __APPLE__
-//    If we want to align window buttons with searchEdit and notesList
-//    QSpacerItem *horizontialSpacer = new QSpacerItem(3, 0, QSizePolicy::Minimum, QSizePolicy::Minimum);
-//    m_trafficLightLayout.addSpacerItem(horizontialSpacer);
+    //    If we want to align window buttons with searchEdit and notesList
+    //    QSpacerItem *horizontialSpacer = new QSpacerItem(3, 0, QSizePolicy::Minimum, QSizePolicy::Minimum);
+    //    m_trafficLightLayout.addSpacerItem(horizontialSpacer);
     m_trafficLightLayout.addWidget(m_redCloseButton);
     m_trafficLightLayout.addWidget(m_yellowMinimizeButton);
     m_trafficLightLayout.addWidget(m_greenMaximizeButton);
@@ -304,8 +305,8 @@ void MainWindow::setupMainWindow()
     m_splitter = ui->splitter;
 
 #if defined(Q_OS_LINUX)
-//    QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
-//    setMargins(margins);
+    //    QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
+    //    setMargins(margins);
     setMargins(QMargins(0,0,0,0));
 #elif _WIN32
     ui->verticalSpacer->changeSize(0, 7, QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -612,7 +613,7 @@ void MainWindow::setupSignalsSlots()
     connect(this, &MainWindow::requestNodesTree,
             m_dbManager, &DBManager::onNodeTreeRequested, Qt::BlockingQueuedConnection);
     connect(this, &MainWindow::requestCreateUpdateNote,
-            m_dbManager, &DBManager::onCreateUpdateRequested, Qt::BlockingQueuedConnection);
+            m_dbManager, &DBManager::onCreateUpdateRequestedNoteContent, Qt::BlockingQueuedConnection);
     connect(this, &MainWindow::requestDeleteNote,
             m_dbManager, &DBManager::onDeleteNoteRequested);
     connect(this, &MainWindow::requestRestoreNotes,
@@ -631,6 +632,8 @@ void MainWindow::setupSignalsSlots()
     connect(m_dbManager, &DBManager::notesReceived, this, &MainWindow::loadNotes);
     connect(m_dbManager, &DBManager::nodesTreeReceived, this, &MainWindow::loadNodesTree);
     connect(m_treeView, &NodeTreeView::addFolderRequested, this, &MainWindow::onAddFolderRequested);
+    connect(m_treeDelegate, &NodeTreeDelegate::addFolderRequested, this, &MainWindow::onAddFolderRequested);
+    connect(m_treeModel, &NodeTreeModel::topLevelItemLayoutChanged, this, &MainWindow::updateTreeViewSeparator);
 #ifdef __APPLE__
     // Replace setUseNativeWindowFrame with just the part that handles pushing things up
     connect(this, &MainWindow::toggleFullScreen, this, [=](bool isFullScreen){adjustUpperWidgets(isFullScreen);});
@@ -678,7 +681,7 @@ void MainWindow::setSearchEditStyleSheet(bool isFocused = false)
  */
 void MainWindow::setupSearchEdit()
 {
-//    QLineEdit* searchEdit = m_searchEdit;
+    //    QLineEdit* searchEdit = m_searchEdit;
 
     m_searchEdit->setAttribute(Qt::WA_MacShowFocusRect, 0);
 
@@ -735,18 +738,18 @@ void MainWindow::setCurrentFontBasedOnTypeface(FontTypeface selectedFontTypeFace
     }
 
 #ifdef __APPLE__
-        int increaseSize = 2;
+    int increaseSize = 2;
 #else
-        int increaseSize = 1;
+    int increaseSize = 1;
 #endif
 
-        if(m_textEdit->width() < m_smallEditorWidth) {
-            m_currentFontPointSize = m_editorMediumFontSize - 2;
-        } else if(m_textEdit->width() > m_smallEditorWidth && m_textEdit->width() < m_largeEditorWidth) {
-            m_currentFontPointSize = m_editorMediumFontSize;
-        } else if(m_textEdit->width() > m_largeEditorWidth) {
-            m_currentFontPointSize = m_editorMediumFontSize + increaseSize;
-        }
+    if(m_textEdit->width() < m_smallEditorWidth) {
+        m_currentFontPointSize = m_editorMediumFontSize - 2;
+    } else if(m_textEdit->width() > m_smallEditorWidth && m_textEdit->width() < m_largeEditorWidth) {
+        m_currentFontPointSize = m_editorMediumFontSize;
+    } else if(m_textEdit->width() > m_largeEditorWidth) {
+        m_currentFontPointSize = m_editorMediumFontSize + increaseSize;
+    }
 
     m_currentSelectedFont = QFont(m_currentFontFamily, m_currentFontPointSize, QFont::Normal);
     m_textEdit->setFont(m_currentSelectedFont);
@@ -870,14 +873,14 @@ void MainWindow::setupTextEdit()
         m_listOfSansSerifFonts.push_front("Helvetica");
     }
 #elif _WIN32
-     if(QFont("Calibri").exactMatch())
-         m_listOfSansSerifFonts.push_front("Calibri");
+    if(QFont("Calibri").exactMatch())
+        m_listOfSansSerifFonts.push_front("Calibri");
 
-     if(QFont("Arial").exactMatch())
-         m_listOfSansSerifFonts.push_front("Arial");
+    if(QFont("Arial").exactMatch())
+        m_listOfSansSerifFonts.push_front("Arial");
 
-     if(QFont("Segoe UI").exactMatch())
-         m_listOfSansSerifFonts.push_front("Segoe UI");
+    if(QFont("Segoe UI").exactMatch())
+        m_listOfSansSerifFonts.push_front("Segoe UI");
 #endif
 
     // This is done because for now where we're only handling plain text,
@@ -972,7 +975,8 @@ void MainWindow::setupModelView()
     m_noteView->setModel(m_proxyModel);
     m_treeView = static_cast<NodeTreeView*>(ui->treeView);
     m_treeView->setModel(m_treeModel);
-    m_treeView->setItemDelegate(new NodeTreeDelegate(m_treeView));
+    m_treeDelegate = new NodeTreeDelegate(m_treeView);
+    m_treeView->setItemDelegate(m_treeDelegate);
 }
 
 /*!
@@ -992,9 +996,9 @@ void MainWindow::restoreStates()
 
 #if defined(Q_OS_LINUX)
     /// Set margin to zero if the window is maximized
-//    if (isMaximized()) {
-//        setMargins(QMargins(0,0,0,0));
-//    }
+    //    if (isMaximized()) {
+    //        setMargins(QMargins(0,0,0,0));
+    //    }
 #endif
 
     if(m_settingsDatabase->value(QStringLiteral("dontShowUpdateWindow"), "NULL") != "NULL")
@@ -1143,15 +1147,15 @@ QString MainWindow::getNoteDateEditor(QString dateEdited)
  * \param noteID
  * \return
  */
-NodeData *MainWindow::generateNote(const int noteID)
+NodeData MainWindow::generateNote(const int noteID)
 {
-    auto newNote = new NodeData();
-    newNote->setId(noteID);
-    newNote->setNodeType(NodeData::Note);
+    NodeData newNote;
+    newNote.setId(noteID);
+    newNote.setNodeType(NodeData::Note);
     QDateTime noteDate = QDateTime::currentDateTime();
-    newNote->setCreationDateTime(noteDate);
-    newNote->setLastModificationDateTime(noteDate);
-    newNote->setFullTitle(QStringLiteral("New Note"));
+    newNote.setCreationDateTime(noteDate);
+    newNote.setLastModificationDateTime(noteDate);
+    newNote.setFullTitle(QStringLiteral("New Note"));
 
     return newNote;
 }
@@ -1200,49 +1204,72 @@ void MainWindow::createOrSelectFirstNote() {
 void MainWindow::onAddFolderRequested()
 {
     auto currentIndex = m_treeView->currentIndex();
-    auto type = static_cast<NodeItem::Type>(currentIndex.data(NodeItem::Roles::ItemType).toInt());
-    if (type == NodeItem::FolderItem) {
-        auto parentId = currentIndex.data(NodeItem::Roles::NodeId).toInt();
-        int newlyCreatedNodeId;
-        NodeData newFolder;
-        newFolder.setNodeType(NodeData::Folder);
-        QDateTime noteDate = QDateTime::currentDateTime();
-        newFolder.setCreationDateTime(noteDate);
-        newFolder.setLastModificationDateTime(noteDate);
-        newFolder.setFullTitle(QStringLiteral("New Folder"));
-        newFolder.setParentId(parentId);
+    int parentId = SpecialNodeID::RootFolder;
+    if (currentIndex.isValid()) {
+        auto type = static_cast<NodeItem::Type>(currentIndex.data(NodeItem::Roles::ItemType).toInt());
+        if (type == NodeItem::FolderItem) {
+            parentId = currentIndex.data(NodeItem::Roles::NodeId).toInt();
+        } else if (type == NodeItem::NoteItem) {
+            qDebug() << "Can create folder under this item";
+            return;
+        } else {
+            currentIndex = m_treeModel->rootIndex();
+        }
+    } else {
+        currentIndex = m_treeModel->rootIndex();
+    }
+    int newlyCreatedNodeId;
+    NodeData newFolder;
+    newFolder.setNodeType(NodeData::Folder);
+    QDateTime noteDate = QDateTime::currentDateTime();
+    newFolder.setCreationDateTime(noteDate);
+    newFolder.setLastModificationDateTime(noteDate);
+    newFolder.setFullTitle(m_treeModel->getNewFolderPlaceholderName(currentIndex));
+    newFolder.setParentId(parentId);
 
-        QMetaObject::invokeMethod(m_dbManager, "addNode", Qt::BlockingQueuedConnection,
-                                  Q_RETURN_ARG(int, newlyCreatedNodeId),
-                                  Q_ARG(NodeData, newFolder)
-                                  );
+    QMetaObject::invokeMethod(m_dbManager, "addNode", Qt::BlockingQueuedConnection,
+                              Q_RETURN_ARG(int, newlyCreatedNodeId),
+                              Q_ARG(NodeData, newFolder)
+                              );
 
-        QHash<NodeItem::Roles, QVariant> hs;
-        hs[NodeItem::Roles::ItemType] = NodeItem::Type::FolderItem;
-        hs[NodeItem::Roles::DisplayText] = newFolder.fullTitle();
-        hs[NodeItem::Roles::NodeId] = newlyCreatedNodeId;
-        m_treeModel->appendChildNodeToParent(currentIndex, hs);
+    QHash<NodeItem::Roles, QVariant> hs;
+    hs[NodeItem::Roles::ItemType] = NodeItem::Type::FolderItem;
+    hs[NodeItem::Roles::DisplayText] = newFolder.fullTitle();
+    hs[NodeItem::Roles::NodeId] = newlyCreatedNodeId;
+    m_treeModel->appendChildNodeToParent(currentIndex, hs);
+    if (!m_treeView->isExpanded(currentIndex)) {
         m_treeView->expand(currentIndex);
+    }
+}
+
+void MainWindow::updateTreeViewSeparator()
+{
+    for (const auto& sep : m_treeSeparator) {
+        m_treeView->closePersistentEditor(sep);
+    }
+    m_treeSeparator = m_treeModel->getSeparatorIndex();
+    for (const auto& sep : m_treeSeparator) {
+        m_treeView->openPersistentEditor(sep);
     }
 }
 
 /*!
  * \brief MainWindow::loadNotes
  * Load all the notes from database
- * add data to the models
+ * to the list model
  * sort them according to the date
  * update scrollbar stylesheet
  * \param noteList
  * \param noteCounter
  */
-void MainWindow::loadNotes(QList<NodeData *> noteList, int noteCounter)
+void MainWindow::loadNotes(QVector<NodeData> noteList)
 {
     if(!noteList.isEmpty()){
-        m_noteModel->addListNote(noteList);
+        m_noteModel->setListNote(noteList);
         m_noteModel->sort(0, Qt::AscendingOrder);
     }
 
-    m_noteCounter = noteCounter;
+    m_noteCounter = noteList.size();
 
     setTheme(m_currentTheme); // TODO: If we don't put this here, mainwindow will not update its background color, but this is not a proper place
 
@@ -1252,6 +1279,7 @@ void MainWindow::loadNotes(QList<NodeData *> noteList, int noteCounter)
 void MainWindow::loadNodesTree(QVector<NodeData> nodeTree)
 {
     m_treeModel->setNodeTree(nodeTree);
+    updateTreeViewSeparator();
 }
 
 /*!
@@ -1263,10 +1291,10 @@ void MainWindow::saveNoteToDB(const QModelIndex& noteIndex)
 {
     if(noteIndex.isValid() && m_isContentModified){
         QModelIndex indexInSrc = m_proxyModel->mapToSource(noteIndex);
-        NodeData* note = m_noteModel->getNote(indexInSrc);
-        if(note != Q_NULLPTR)
+        if (indexInSrc.isValid()) {
+            NodeData note = m_noteModel->getNote(indexInSrc);
             emit requestCreateUpdateNote(note);
-
+        }
         m_isContentModified = false;
     }
 }
@@ -1279,8 +1307,10 @@ void MainWindow::removeNoteFromDB(const QModelIndex& noteIndex)
 {
     if(noteIndex.isValid()){
         QModelIndex indexInSrc = m_proxyModel->mapToSource(noteIndex);
-        NodeData* note = m_noteModel->getNote(indexInSrc);
-        emit requestDeleteNote(note);
+        if (indexInSrc.isValid()) {
+            NodeData note = m_noteModel->getNote(indexInSrc);
+            emit requestDeleteNote(note);
+        }
     }
 }
 
@@ -1903,14 +1933,14 @@ void MainWindow::createNewNote()
 
         if(!m_isTemp){
             ++m_noteCounter;
-            NodeData* tmpNote = generateNote(m_noteCounter);
+            NodeData tmpNote = generateNote(m_noteCounter);
             m_isTemp = true;
 
             // insert the new note to NoteModel
             QModelIndex indexSrc = m_noteModel->insertNote(tmpNote, 0);
 
             // update the editor header date label
-            QString dateTimeFromDB = tmpNote->lastModificationdateTime().toString(Qt::ISODate);
+            QString dateTimeFromDB = tmpNote.lastModificationdateTime().toString(Qt::ISODate);
             QString dateTimeForEditor = getNoteDateEditor(dateTimeFromDB);
             m_editorDateLabel->setText(dateTimeForEditor);
 
@@ -1937,37 +1967,37 @@ void MainWindow::createNewNote()
  */
 void MainWindow::deleteNote(const QModelIndex &noteIndex, bool isFromUser)
 {
-    if(noteIndex.isValid()){
-        // delete from model
-        QModelIndex indexToBeRemoved = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
-        NodeData* noteTobeRemoved = m_noteModel->removeNote(indexToBeRemoved);
+//    if(noteIndex.isValid()){
+//        // delete from model
+//        QModelIndex indexToBeRemoved = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
+//        NodeData* noteTobeRemoved = m_noteModel->removeNote(indexToBeRemoved);
 
-        if(m_isTemp){
-            m_isTemp = false;
-            --m_noteCounter;
-        }else{
-            noteTobeRemoved->setDeletionDateTime(QDateTime::currentDateTime());
-            emit requestDeleteNote(noteTobeRemoved);
-        }
+//        if(m_isTemp){
+//            m_isTemp = false;
+//            --m_noteCounter;
+//        }else{
+//            noteTobeRemoved->setDeletionDateTime(QDateTime::currentDateTime());
+//            emit requestDeleteNote(noteTobeRemoved);
+//        }
 
-        if(isFromUser){
-            // clear text edit and time date label
-            m_editorDateLabel->clear();
-            m_textEdit->blockSignals(true);
-            m_textEdit->clear();
-            m_textEdit->clearFocus();
-            m_textEdit->blockSignals(false);
+//        if(isFromUser){
+//            // clear text edit and time date label
+//            m_editorDateLabel->clear();
+//            m_textEdit->blockSignals(true);
+//            m_textEdit->clear();
+//            m_textEdit->clearFocus();
+//            m_textEdit->blockSignals(false);
 
-            if(m_noteModel->rowCount() > 0){
-                QModelIndex index = m_noteView->currentIndex();
-                m_currentSelectedNoteProxy = index;
-            }else{
-                m_currentSelectedNoteProxy = QModelIndex();
-            }
-        }
-    }else{
-        qDebug() << "MainWindow::deleteNote noteIndex is not valid";
-    }
+//            if(m_noteModel->rowCount() > 0){
+//                QModelIndex index = m_noteView->currentIndex();
+//                m_currentSelectedNoteProxy = index;
+//            }else{
+//                m_currentSelectedNoteProxy = QModelIndex();
+//            }
+//        }
+//    }else{
+//        qDebug() << "MainWindow::deleteNote noteIndex is not valid";
+//    }
 
     m_noteView->setFocus();
 }
@@ -2085,14 +2115,14 @@ void MainWindow::fullscreenWindow()
     if(isFullScreen()){
         if(!isMaximized()) {
             m_noteListWidth = m_splitter->sizes().at(0) != 0 ? m_splitter->sizes().at(0) : m_noteListWidth;
-//            QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
-//            setMargins(margins);
+            //            QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
+            //            setMargins(margins);
         }
 
         setWindowState(windowState() & ~Qt::WindowFullScreen);
     }else{
         setWindowState(windowState() | Qt::WindowFullScreen);
-//        setMargins(QMargins(0,0,0,0));
+        //        setMargins(QMargins(0,0,0,0));
     }
 
 #elif _WIN32
@@ -2124,7 +2154,7 @@ void MainWindow::maximizeWindow()
 
     }else{
         setWindowState(windowState() | Qt::WindowMaximized);
-//        setMargins(QMargins(0,0,0,0));
+        //        setMargins(QMargins(0,0,0,0));
     }
 #elif _WIN32
     if(isMaximized()){
@@ -2147,8 +2177,8 @@ void MainWindow::maximizeWindow()
 void MainWindow::minimizeWindow()
 {
 #if defined(Q_OS_LINUX)
-//    QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
-//    setMargins(margins);
+    //    QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
+    //    setMargins(margins);
 #endif
 
     // BUG : QTBUG-57902 minimize doesn't store the window state before minimizing
@@ -2277,7 +2307,7 @@ void MainWindow::executeImport(const bool replace)
         setButtonsAndFieldsEnabled(true);
 
         m_noteModel->clearNotes();
-        emit requestNotesList();
+        emit requestNotesList(SpecialNodeID::RootFolder, true);
     }
 }
 
@@ -2566,7 +2596,7 @@ void MainWindow::mousePressEvent(QMouseEvent* event)
                 && m_mousePressY > m_layoutMargin){
 
             m_canMoveWindow = true;
-//            QApplication::setOverrideCursor(QCursor(Qt::ClosedHandCursor));
+            //            QApplication::setOverrideCursor(QCursor(Qt::ClosedHandCursor));
 
 #ifndef __APPLE__
         }else{
@@ -2819,7 +2849,7 @@ void MainWindow::mousePressEvent(QMouseEvent* event)
 void MainWindow::mouseMoveEvent(QMouseEvent* event)
 {
     if(m_canMoveWindow){
-//        this->setCursor(Qt::ClosedHandCursor);
+        //        this->setCursor(Qt::ClosedHandCursor);
         int dx = event->globalX() - m_mousePressX;
         int dy = event->globalY() - m_mousePressY;
         move (dx, dy);
@@ -2835,7 +2865,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
     m_canMoveWindow = false;
-//    this->unsetCursor();
+    //    this->unsetCursor();
     event->accept();
 }
 #endif
@@ -3483,7 +3513,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
 
         setCurrentFontBasedOnTypeface(m_currentFontTypeface);
 
-//        alignTextEditText();
+        //        alignTextEditText();
     }
     case QEvent::Show:
         if(object == &m_updater){
@@ -3642,23 +3672,23 @@ void MainWindow::setUseNativeWindowFrame(bool useNativeWindowFrame)
 #endif
 
 
-//#if defined(Q_OS_LINUX)
-//    if (useNativeWindowFrame || isMaximized()) {
-//        ui->centralWidget->layout()->setContentsMargins(QMargins());
-//    } else {
-//        QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
-//        ui->centralWidget->layout()->setContentsMargins(margins);
-//    }
-//#endif
+    //#if defined(Q_OS_LINUX)
+    //    if (useNativeWindowFrame || isMaximized()) {
+    //        ui->centralWidget->layout()->setContentsMargins(QMargins());
+    //    } else {
+    //        QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
+    //        ui->centralWidget->layout()->setContentsMargins(margins);
+    //    }
+    //#endif
 
-//#ifndef _WIN32
-//    if (useNativeWindowFrame || isMaximized()) {
-//        ui->centralWidget->layout()->setContentsMargins(QMargins());
-//    } else {
-//        QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
-//        ui->centralWidget->layout()->setContentsMargins(margins);
-//    }
-//#endif
+    //#ifndef _WIN32
+    //    if (useNativeWindowFrame || isMaximized()) {
+    //        ui->centralWidget->layout()->setContentsMargins(QMargins());
+    //    } else {
+    //        QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
+    //        ui->centralWidget->layout()->setContentsMargins(margins);
+    //    }
+    //#endif
 
     adjustUpperWidgets(useNativeWindowFrame);
 

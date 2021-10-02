@@ -37,7 +37,7 @@ public:
     ~NodeTreeItem();
 
     void appendChild(NodeTreeItem *child);
-
+    void insertChild(int row, NodeTreeItem *child);
     NodeTreeItem *child(int row);
     int childCount() const;
     int columnCount() const;
@@ -60,8 +60,11 @@ public:
 
     void appendChildNodeToParent(const QModelIndex& parentIndex,
                                  const QHash<NodeItem::Roles, QVariant>& data);
-signals:
-
+    QModelIndex rootIndex() const;
+    QString getNewFolderPlaceholderName(const QModelIndex& parentIndex);
+    QVector<QModelIndex> getSeparatorIndex();
+public slots:
+    void setNodeTree(QVector<NodeData> nodeData);
 
     // QAbstractItemModel interface
 public:
@@ -70,9 +73,11 @@ public:
     virtual int rowCount(const QModelIndex &parent) const override;
     virtual int columnCount(const QModelIndex &parent) const override;
     virtual QVariant data(const QModelIndex &index, int role) const override;
-public slots:
-    void setNodeTree(QVector<NodeData> nodeData);
-
+    // QAbstractItemModel interface
+public:
+    virtual Qt::ItemFlags flags(const QModelIndex &index) const override;
+signals:
+    void topLevelItemLayoutChanged();
 private:
     NodeTreeItem *rootItem;
     void loadNodeTree(QVector<NodeData> nodeData, NodeTreeItem* rootNode);
@@ -80,9 +85,7 @@ private:
     void appendFolderSeparator(NodeTreeItem* rootNode);
     void appendTagsSeparator(NodeTreeItem* rootNode);
 
-    // QAbstractItemModel interface
-public:
-    virtual Qt::ItemFlags flags(const QModelIndex &index) const override;
+
 };
 
 #endif // NODETREEMODEL_H

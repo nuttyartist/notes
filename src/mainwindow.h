@@ -42,6 +42,7 @@
 namespace Ui {
 class MainWindow;
 }
+class NodeTreeDelegate;
 
 #if defined(Q_OS_LINUX)
 class MainWindow : public QMainWindow
@@ -135,6 +136,8 @@ private:
     NoteModel* m_deletedNotesModel;
     NodeTreeView* m_treeView;
     NodeTreeModel* m_treeModel;
+    NodeTreeDelegate* m_treeDelegate;
+    QVector<QModelIndex> m_treeSeparator;
     QSortFilterProxyModel* m_proxyModel;
     QModelIndex m_currentSelectedNoteProxy;
     QModelIndex m_selectedNoteBeforeSearchingInSource;
@@ -219,7 +222,7 @@ private:
     void restoreStates();
     QString getFirstLine(const QString& str);
     QString getNoteDateEditor (QString dateEdited);
-    NodeData* generateNote(const int noteID);
+    NodeData generateNote(const int noteID);
     QDateTime getQDateTime(QString date);
     void showNoteInEditor(const QModelIndex& noteIndex);
     void sortNotesList(QStringList &stringNotesList);
@@ -248,7 +251,7 @@ private:
 
 private slots:
     void InitData();
-    void loadNotes(QList<NodeData *> noteList, int noteCounter);
+    void loadNotes(QVector<NodeData> noteList);
     void loadNodesTree(QVector<NodeData> nodeTree);
 
     void onNewNoteButtonPressed();
@@ -302,12 +305,13 @@ private slots:
     void createOrSelectFirstNote();
 
     void onAddFolderRequested();
+    void updateTreeViewSeparator();
 signals:
     void requestNodesTree();
-    void requestNotesList();
+    void requestNotesList(int parentID, bool isRecursive);
     void requestOpenDBManager(QString path, bool doCreate);
-    void requestCreateUpdateNote(NodeData* note);
-    void requestDeleteNote(NodeData* note);
+    void requestCreateUpdateNote(const NodeData& note);
+    void requestDeleteNote(const NodeData& note);
     void requestRestoreNotes(QList<NodeData *> noteList);
     void requestImportNotes(QList<NodeData *> noteList);
     void requestExportNotes(QString fileName);

@@ -1,6 +1,10 @@
 #include "nodetreedelegate.h"
 #include "nodetreemodel.h"
 #include <QPainter>
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QDebug>
 
 NodeTreeDelegate::NodeTreeDelegate(QObject *parent):
     QStyledItemDelegate{parent},
@@ -27,7 +31,8 @@ NodeTreeDelegate::NodeTreeDelegate(QObject *parent):
     m_hoverColor(207, 207, 207),
     m_applicationInactiveColor(207, 207, 207),
     m_separatorColor(221, 221, 221),
-    m_defaultColor(255, 255, 255)
+    m_defaultColor(255, 255, 255),
+    m_separatorTextColor(143, 143, 143)
 {
 
 }
@@ -110,7 +115,7 @@ void NodeTreeDelegate::paint(QPainter *painter,
 void NodeTreeDelegate::paintBackgroundSelectable(QPainter *painter, const QStyleOptionViewItem &option) const
 {
     if((option.state & QStyle::State_Selected) == QStyle::State_Selected){
-                painter->fillRect(option.rect, QBrush(m_ActiveColor));
+        painter->fillRect(option.rect, QBrush(m_ActiveColor));
     } else if((option.state & QStyle::State_MouseOver) == QStyle::State_MouseOver){
         painter->fillRect(option.rect, QBrush(m_hoverColor));
     }
@@ -126,4 +131,37 @@ QSize NodeTreeDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
         result.setHeight(30);
     }
     return result;
+}
+
+QWidget *NodeTreeDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
+    if (itemType == NodeItem::Type::FolderSeparator || itemType == NodeItem::Type::TagSeparator) {
+        auto widget = new QWidget(parent);
+        widget->setContentsMargins(0, 0, 0, 0);
+        auto layout = new QHBoxLayout(widget);
+        layout->setContentsMargins(5, 0, 0, 0);
+        widget->setLayout(layout);
+        auto label = new QLabel(widget);
+        auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
+        label->setStyleSheet(QStringLiteral("QLabel{color: rgb(%1, %2, %3);}")
+                             .arg(QString::number(m_separatorTextColor.red()),
+                                  QString::number(m_separatorTextColor.green()),
+                                  QString::number(m_separatorTextColor.blue())));
+        label->setFont(m_titleFont);
+        label->setText(displayName);
+        layout->addWidget(label);
+        auto addButton = new QPushButton(parent);
+        addButton->setText("+");
+        if (itemType == NodeItem::Type::FolderSeparator) {
+            connect(addButton, &QPushButton::clicked,
+                    this, &NodeTreeDelegate::addFolderRequested);
+        } else {
+            connect(addButton, &QPushButton::clicked,
+                    this, &NodeTreeDelegate::addTagRequested);
+        }
+        layout->addWidget(addButton, 1, Qt::AlignRight);
+        return widget;
+    }
+    return nullptr;
 }
