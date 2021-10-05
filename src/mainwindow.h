@@ -138,7 +138,7 @@ private:
     NodeTreeModel* m_treeModel;
     NodeTreeDelegate* m_treeDelegate;
     QVector<QModelIndex> m_treeSeparator;
-    QModelIndex m_currentSelectedNoteProxy;
+    QModelIndex m_currentSelectedNote;
     QModelIndex m_selectedNoteBeforeSearchingInSource;
     QQueue<QString> m_searchQueue;
     DBManager* m_dbManager;
@@ -152,7 +152,6 @@ private:
     Autostart m_autostart;
     int m_mousePressX;
     int m_mousePressY;
-    int m_noteCounter;
     int m_trashCounter;
     int m_layoutMargin;
     int m_shadowWidth;
@@ -221,7 +220,6 @@ private:
     void restoreStates();
     QString getFirstLine(const QString& str);
     QString getNoteDateEditor (QString dateEdited);
-    NodeData generateNote(const int noteID);
     QDateTime getQDateTime(QString date);
     void showNoteInEditor(const QModelIndex& noteIndex);
     void sortNotesList(QStringList &stringNotesList);

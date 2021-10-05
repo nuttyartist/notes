@@ -296,12 +296,7 @@ int DBManager::addNode(const NodeData &node)
         relationalPosition = query.value(0).toInt();
         query.finish();
     }
-    query.prepare("SELECT value FROM metadata WHERE key = :key");
-    query.bindValue(":key", "next_node_id");
-    query.exec();
-    query.last();
-    int nodeId = query.value(0).toInt();
-    query.finish();
+    int nodeId = nextAvailableNodeId();
     QString absolutePath;
     if (node.parentId() != -1) {
         absolutePath = getNodeAbsolutePath(node.parentId());
@@ -328,6 +323,17 @@ int DBManager::addNode(const NodeData &node)
     query.prepare(R"(UPDATE "metadata" SET "value"=:value WHERE "key"='next_node_id';)");
     query.bindValue(":value", nodeId + 1);
     query.exec();
+    return nodeId;
+}
+
+int DBManager::nextAvailableNodeId()
+{
+    QSqlQuery query;
+    query.prepare("SELECT value FROM metadata WHERE key = :key");
+    query.bindValue(":key", "next_node_id");
+    query.exec();
+    query.last();
+    int nodeId = query.value(0).toInt();
     return nodeId;
 }
 
@@ -391,8 +397,12 @@ bool DBManager::updateNoteContent(const NodeData& note)
 {
     QSqlQuery query;
     QString emptyStr;
-    
+
     int id = note.id();
+    if (id == SpecialNodeID::InvalidNoteId) {
+        qDebug() << "Invalid Note ID";
+        return false;
+    }
     qint64 epochTimeDateModified = note.lastModificationdateTime().toMSecsSinceEpoch();
     QString content = note.content().replace(QChar('\x0'), emptyStr);
     QString fullTitle = note.fullTitle().replace(QChar('\x0'), emptyStr);
@@ -503,7 +513,7 @@ void DBManager::onNotesListRequested(int parentID, bool isRecursive)
     QVector<NodeData> nodeList;
     QSqlQuery query;
     if (!isRecursive) {
-        query.prepare(R"(SELECT)"
+        query.prepare(R"(SELECT )"
                       R"("id",)"
                       R"("title",)"
                       R"("creation_date",)"
@@ -512,9 +522,9 @@ void DBManager::onNotesListRequested(int parentID, bool isRecursive)
                       R"("content",)"
                       R"("node_type",)"
                       R"("parent_id",)"
-                      R"("relative_position")"
-                      R"(FROM node_table)"
-                      R"(WHERE parent_id = :parent_id AND node_type = :node_type;)"
+                      R"("relative_position" )"
+                      R"(FROM node_table )"
+                      R"(WHERE parent_id = (:parent_id) AND node_type = (:node_type);)"
                     );
         query.bindValue(QStringLiteral(":parent_id"), parentID);
         query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
@@ -534,11 +544,12 @@ void DBManager::onNotesListRequested(int parentID, bool isRecursive)
                 nodeList.append(node);
             }
         } else {
-            qDebug() << "Database query failed!";
+            qDebug() << __LINE__ << "Database query failed!" << query.lastError();
+            qDebug() << query.lastQuery().toStdString().c_str();
         }
     } else {
         auto parentPath = getNodeAbsolutePath(parentID);
-        query.prepare(R"(SELECT)"
+        query.prepare(R"(SELECT )"
                       R"("id",)"
                       R"("title",)"
                       R"("creation_date",)"
@@ -547,9 +558,9 @@ void DBManager::onNotesListRequested(int parentID, bool isRecursive)
                       R"("content",)"
                       R"("node_type",)"
                       R"("parent_id",)"
-                      R"("relative_position")"
-                      R"(FROM node_table)"
-                      R"(WHERE absolute_path like :path_expr AND node_type = :node_type;)"
+                      R"("relative_position" )"
+                      R"(FROM node_table )"
+                      R"(WHERE absolute_path like (:path_expr) AND node_type = (:node_type);)"
                     );
         query.bindValue(QStringLiteral(":path_expr"), parentPath + ".%");
         query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
@@ -569,9 +580,11 @@ void DBManager::onNotesListRequested(int parentID, bool isRecursive)
                 node.setRelativePosition(query.value(8).toInt());
                 nodeList.append(node);
             }
+        } else {
+            qDebug() << __LINE__ << "Database query failed!" << query.lastError();
         }
     }
-    emit notesReceived(nodeList);
+    emit notesListReceived(nodeList);
 }
 
 /*!

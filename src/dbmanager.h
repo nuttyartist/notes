@@ -31,7 +31,7 @@ private:
 
     QString getNodeAbsolutePath(int nodeId);
 signals:
-    void notesReceived(QVector<NodeData> noteList);
+    void notesListReceived(QVector<NodeData> noteList);
     void nodesTreeReceived(QVector<NodeData> nodeTree);
 public slots:
     void onNodeTreeRequested();
@@ -46,6 +46,7 @@ public slots:
     void onMigrateTrashRequested(QList<NodeData *> noteList);
     void onForceLastRowIndexValueRequested(int index);
     int addNode(const NodeData& node);
+    int nextAvailableNodeId();
 private:
     QString m_pathSeperator;
 };

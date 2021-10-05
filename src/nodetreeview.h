@@ -13,6 +13,7 @@ public:
 
 signals:
     void addFolderRequested();
+    void loadNotesRequested(int folderID, bool isRecursive);
 
 private slots:
     void onClicked(const QModelIndex& index);

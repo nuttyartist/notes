@@ -41,13 +41,17 @@ void NodeTreeView::onClicked(const QModelIndex &index)
         break;
     }
     case NodeItem::Type::AllNoteButton: {
+        emit loadNotesRequested(SpecialNodeID::RootFolder, true);
         break;
     }
     case NodeItem::Type::TrashButton: {
+        emit loadNotesRequested(SpecialNodeID::TrashFolder, true);
         break;
     }
     case NodeItem::Type::FolderItem: {
         expand(index);
+        auto folderId = index.data(NodeItem::Roles::NodeId).toInt();
+        emit loadNotesRequested(folderId, false);
         break;
     }
     case NodeItem::Type::NoteItem: {
