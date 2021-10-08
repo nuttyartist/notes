@@ -1240,11 +1240,7 @@ void MainWindow::updateTreeViewSeparator()
  */
 void MainWindow::loadNotes(QVector<NodeData> noteList)
 {
-    if(!noteList.isEmpty()){
-        m_noteModel->setListNote(noteList);
-//        m_noteModel->sort(0, Qt::AscendingOrder);
-    }
-
+    m_noteModel->setListNote(noteList);
     setTheme(m_currentTheme); // TODO: If we don't put this here, mainwindow will not update its background color, but this is not a proper place
 
     createOrSelectFirstNote();
@@ -1744,7 +1740,6 @@ void MainWindow::onTextEditTextChanged()
         if(m_textEdit->toPlainText() != content){
 
             // move note to the top of the list
-//            QModelIndex sourceIndex = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
             if(m_currentSelectedNote.row() != 0){
                 moveNoteToTop();
             }

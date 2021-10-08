@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QSqlError>
 #include <QtConcurrent>
+#include <QSqlRecord>
 
 /*!
  * \brief DBManager::DBManager
@@ -185,13 +186,13 @@ NodeData *DBManager::getNote(QString id)
 bool DBManager::isNodeExist(const NodeData& node)
 {
     QSqlQuery query;
-    
+
     int id = node.id();
     QString queryStr = QStringLiteral("SELECT EXISTS(SELECT 1 FROM node_table WHERE id = :id LIMIT 1 )");
+    query.prepare(queryStr);
     query.bindValue(":id", id);
-    query.exec(queryStr);
+    query.exec();
     query.next();
-    
     return query.value(0).toInt() == 1;
 }
 
