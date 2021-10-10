@@ -17,6 +17,7 @@ DBManager::DBManager(QObject *parent)
 {
     qRegisterMetaType<QList<NodeData*> >("QList<NodeData*>");
     qRegisterMetaType<QVector<NodeData>>("QVector<NodeData>");
+    qRegisterMetaType<NodeTagTreeData>("NodeTagTreeData");
 }
 
 /*!
@@ -71,7 +72,7 @@ void DBManager::createTables()
                        R"(    "id"	INTEGER NOT NULL,)"
                        R"(    "name"	TEXT NOT NULL,)"
                        R"(    "color"	TEXT NOT NULL,)"
-                       R"(    "relational_position"	INTEGER NOT NULL)"
+                       R"(    "relative_position"	INTEGER NOT NULL)"
                        R"();)";
     query.exec(tagTable);
 
@@ -119,66 +120,6 @@ void DBManager::createTables()
 }
 
 /*!
- * \brief DBManager::getLastRowID
- * \return
- */
-int DBManager::getLastRowID()
-{
-    QSqlQuery query;
-    query.exec("SELECT seq from SQLITE_SEQUENCE WHERE name='active_notes';");
-    query.next();
-    return query.value(0).toInt();
-}
-
-/*!
- * \brief DBManager::forceLastRowIndexValue
- * \param indexValue
- * \return
- */
-bool DBManager::forceLastRowIndexValue(const int indexValue)
-{
-    QSqlQuery query;
-    QString queryStr = QStringLiteral("UPDATE SQLITE_SEQUENCE "
-                                      "SET seq=%1 "
-                                      "WHERE name='active_notes';").arg(indexValue);
-    query.exec(queryStr);
-    return query.numRowsAffected() == 1;
-}
-
-/*!
- * \brief DBManager::getNote
- * \param id
- * \return
- */
-NodeData *DBManager::getNote(QString id)
-{
-    QSqlQuery query;
-    
-    int parsedId = id.split('_')[1].toInt();
-    QString queryStr = QStringLiteral("SELECT * FROM active_notes WHERE id = %1 LIMIT 1").arg(parsedId);
-    query.exec(queryStr);
-    
-    if (query.first()) {
-        NodeData* note = new NodeData();
-        int id =  query.value(0).toInt();
-        qint64 epochDateTimeCreation = query.value(1).toLongLong();
-        QDateTime dateTimeCreation = QDateTime::fromMSecsSinceEpoch(epochDateTimeCreation);
-        qint64 epochDateTimeModification= query.value(2).toLongLong();
-        QDateTime dateTimeModification = QDateTime::fromMSecsSinceEpoch(epochDateTimeModification);
-        QString content = query.value(4).toString();
-        QString fullTitle = query.value(5).toString();
-        
-        note->setId(id);
-        note->setCreationDateTime(dateTimeCreation);
-        note->setLastModificationDateTime(dateTimeModification);
-        note->setContent(content);
-        note->setFullTitle(fullTitle);
-        return note;
-    }
-    return Q_NULLPTR;
-}
-
-/*!
  * \brief DBManager::isNoteExist
  * \param note
  * \return
@@ -196,40 +137,6 @@ bool DBManager::isNodeExist(const NodeData& node)
     return query.value(0).toInt() == 1;
 }
 
-/*!
- * \brief DBManager::getAllNotes
- * \return
- */
-QList<NodeData *> DBManager::getAllNotes()
-{
-    QList<NodeData *> noteList;
-    
-    QSqlQuery query;
-    query.prepare("SELECT * FROM active_notes");
-    bool status = query.exec();
-    if(status){
-        while(query.next()){
-            NodeData* note = new NodeData();
-            int id =  query.value(0).toInt();
-            qint64 epochDateTimeCreation = query.value(1).toLongLong();
-            QDateTime dateTimeCreation = QDateTime::fromMSecsSinceEpoch(epochDateTimeCreation);
-            qint64 epochDateTimeModification= query.value(2).toLongLong();
-            QDateTime dateTimeModification = QDateTime::fromMSecsSinceEpoch(epochDateTimeModification);
-            QString content = query.value(4).toString();
-            QString fullTitle = query.value(5).toString();
-            
-            note->setId(id);
-            note->setCreationDateTime(dateTimeCreation);
-            note->setLastModificationDateTime(dateTimeModification);
-            note->setContent(content);
-            note->setFullTitle(fullTitle);
-            
-            noteList.push_back(note);
-        }
-    }
-    
-    return noteList;
-}
 
 QVector<NodeData> DBManager::getAllNodes()
 {
@@ -268,6 +175,29 @@ QVector<NodeData> DBManager::getAllNodes()
     }
 
     return nodeList;
+}
+
+QVector<TagData> DBManager::getAllTagInfo()
+{
+    QVector<TagData> tagList;
+
+    QSqlQuery query;
+    query.prepare(R"(SELECT "id","name","color","relative_position" FROM tag_table;)");
+    bool status = query.exec();
+    if(status) {
+        while(query.next()) {
+            TagData tag;
+            tag.setId(query.value(0).toInt());
+            tag.setName(query.value(1).toString());
+            tag.setColor(query.value(2).toString());
+            tag.setRelativePosition(query.value(3).toInt());
+            tagList.append(tag);
+        }
+    } else {
+        qDebug() << "getAllTagInfo query failed!" << query.lastError();
+    }
+
+    return tagList;
 }
 
 int DBManager::addNode(const NodeData &node)
@@ -323,8 +253,40 @@ int DBManager::addNode(const NodeData &node)
 
     query.prepare(R"(UPDATE "metadata" SET "value"=:value WHERE "key"='next_node_id';)");
     query.bindValue(":value", nodeId + 1);
-    query.exec();
+    if (!query.exec()) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+    }
     return nodeId;
+}
+
+int DBManager::addTag(const TagData &tag)
+{
+    QSqlQuery query;
+
+    int relationalPosition = -1;
+    int id = nextAvailableTagId();
+
+    QString queryStr = R"(INSERT INTO "tag_table" )"
+                       R"(("id","name","color","relative_position") )"
+                       R"(VALUES (:id, :name, :color, :relative_position);)";
+
+
+    query.prepare(queryStr);
+    query.bindValue(":id", id);
+    query.bindValue(":name", tag.name());
+    query.bindValue(":color", tag.color());
+    query.bindValue(":relative_position", relationalPosition);
+    if (!query.exec()) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+    }
+    query.finish();
+
+    query.prepare(R"(UPDATE "metadata" SET "value"=:value WHERE "key"='next_tag_id';)");
+    query.bindValue(":value", id + 1);
+    if (!query.exec()) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+    }
+    return id;
 }
 
 int DBManager::nextAvailableNodeId()
@@ -332,7 +294,22 @@ int DBManager::nextAvailableNodeId()
     QSqlQuery query;
     query.prepare("SELECT value FROM metadata WHERE key = :key");
     query.bindValue(":key", "next_node_id");
-    query.exec();
+    if (!query.exec()) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+    }
+    query.last();
+    int nodeId = query.value(0).toInt();
+    return nodeId;
+}
+
+int DBManager::nextAvailableTagId()
+{
+    QSqlQuery query;
+    query.prepare("SELECT value FROM metadata WHERE key = :key");
+    query.bindValue(":key", "next_tag_id");
+    if (!query.exec()) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+    }
     query.last();
     int nodeId = query.value(0).toInt();
     return nodeId;
@@ -499,11 +476,12 @@ QString DBManager::getNodeAbsolutePath(int nodeId)
     return absolutePath;
 }
 
-void DBManager::onNodeTreeRequested()
+void DBManager::onNodeTagTreeRequested()
 {
-    QVector<NodeData> nodeList;
-    nodeList = getAllNodes();
-    emit nodesTreeReceived(nodeList);
+    NodeTagTreeData d;
+    d.nodeTreeData = getAllNodes();
+    d.tagTreeData = getAllTagInfo();
+    emit nodesTagTreeReceived(d);
 }
 
 /*!
@@ -652,23 +630,23 @@ void DBManager::onRestoreNotesRequested(QList<NodeData*> noteList) {
  */
 void DBManager::onExportNotesRequested(QString fileName)
 {
-    QList<NodeData *> noteList;
-    QFile file(fileName);
-    file.open(QIODevice::WriteOnly);
-    QDataStream out(&file);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-    out.setVersion(QDataStream::Qt_5_6);
-#elif QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
-    out.setVersion(QDataStream::Qt_5_4);
-#elif QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
-    out.setVersion(QDataStream::Qt_5_2);
-#endif
-    noteList = getAllNotes();
-    out << noteList;
-    file.close();
+//    QList<NodeData *> noteList;
+//    QFile file(fileName);
+//    file.open(QIODevice::WriteOnly);
+//    QDataStream out(&file);
+//#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
+//    out.setVersion(QDataStream::Qt_5_6);
+//#elif QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+//    out.setVersion(QDataStream::Qt_5_4);
+//#elif QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
+//    out.setVersion(QDataStream::Qt_5_2);
+//#endif
+//    noteList = getAllNotes();
+//    out << noteList;
+//    file.close();
     
-    qDeleteAll(noteList);
-    noteList.clear();
+//    qDeleteAll(noteList);
+//    noteList.clear();
 }
 
 /*!
@@ -677,13 +655,13 @@ void DBManager::onExportNotesRequested(QString fileName)
  */
 void DBManager::onMigrateNotesRequested(QList<NodeData *> noteList)
 {
-    QSqlDatabase::database().transaction();
-    for(NodeData* note : noteList)
-        migrateNote(note);
-    QSqlDatabase::database().commit();
+//    QSqlDatabase::database().transaction();
+//    for(NodeData* note : noteList)
+//        migrateNote(note);
+//    QSqlDatabase::database().commit();
     
-    qDeleteAll(noteList);
-    noteList.clear();
+//    qDeleteAll(noteList);
+//    noteList.clear();
 }
 
 /*!
@@ -692,20 +670,12 @@ void DBManager::onMigrateNotesRequested(QList<NodeData *> noteList)
  */
 void DBManager::onMigrateTrashRequested(QList<NodeData *> noteList)
 {
-    QSqlDatabase::database().transaction();
-    for(NodeData* note : noteList)
-        migrateTrash(note);
-    QSqlDatabase::database().commit();
+//    QSqlDatabase::database().transaction();
+//    for(NodeData* note : noteList)
+//        migrateTrash(note);
+//    QSqlDatabase::database().commit();
     
-    qDeleteAll(noteList);
-    noteList.clear();
+//    qDeleteAll(noteList);
+//    noteList.clear();
 }
 
-/*!
- * \brief DBManager::onForceLastRowIndexValueRequested
- * \param index
- */
-void DBManager::onForceLastRowIndexValueRequested(int index)
-{
-    forceLastRowIndexValue(index);
-}

@@ -70,38 +70,6 @@ NodeTreeModel::NodeTreeModel(QObject *parent) :
     auto hs = QHash<NodeItem::Roles, QVariant>{};
     hs[NodeItem::Roles::ItemType] = NodeItem::Type::RootItem;
     rootItem = new NodeTreeItem(hs);
-    //    {
-    //        auto hs = QHash<NodeItem::Roles, QVariant>{};
-    //        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
-    //        hs[NodeItem::Roles::DisplayText] = "Important";
-    //        hs[NodeItem::Roles::TagColor] = "#f75a51";
-    //        auto tagSepButton = new NodeTreeItem(hs, rootItem);
-    //        rootItem->appendChild(tagSepButton);
-    //    }
-    //    {
-    //        auto hs = QHash<NodeItem::Roles, QVariant>{};
-    //        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
-    //        hs[NodeItem::Roles::DisplayText] = "Free-time";
-    //        hs[NodeItem::Roles::TagColor] = "#338df7";
-    //        auto tagSepButton = new NodeTreeItem(hs, rootItem);
-    //        rootItem->appendChild(tagSepButton);
-    //    }
-    //    {
-    //        auto hs = QHash<NodeItem::Roles, QVariant>{};
-    //        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
-    //        hs[NodeItem::Roles::DisplayText] = "Needs-editing";
-    //        hs[NodeItem::Roles::TagColor] = "#f7a233";
-    //        auto tagSepButton = new NodeTreeItem(hs, rootItem);
-    //        rootItem->appendChild(tagSepButton);
-    //    }
-    //    {
-    //        auto hs = QHash<NodeItem::Roles, QVariant>{};
-    //        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
-    //        hs[NodeItem::Roles::DisplayText] = "When-home";
-    //        hs[NodeItem::Roles::TagColor] = "#4bcf5f";
-    //        auto tagSepButton = new NodeTreeItem(hs, rootItem);
-    //        rootItem->appendChild(tagSepButton);
-    //    }
 }
 
 NodeTreeModel::~NodeTreeModel()
@@ -149,10 +117,13 @@ void NodeTreeModel::appendChildNodeToParent(const QModelIndex &parentIndex,
                 qDebug() << "tag only go into root level";
                 return;
             }
+            emit layoutAboutToBeChanged();
             beginInsertRows(parentIndex, parentIndex.row(), parentIndex.row() + 1);
             auto nodeItem = new NodeTreeItem(data, parentItem);
             parentItem->appendChild(nodeItem);
             endInsertRows();
+            emit layoutChanged();
+            emit topLevelItemLayoutChanged();
         } else {
             qDebug() << "child type not supported with this function";
             return;
@@ -269,6 +240,34 @@ QString NodeTreeModel::getNewFolderPlaceholderName(const QModelIndex &parentInde
     return result;
 }
 
+QString NodeTreeModel::getNewTagPlaceholderName()
+{
+    QString result = "New Tag";
+    if (rootItem) {
+        QRegularExpression reg(R"(^New Tag\s\((\d+)\))");
+        int n = 0;
+        for (int i = 0; i < rootItem->childCount(); ++i) {
+            auto child = rootItem->child(i);
+            auto title = child->data(NodeItem::Roles::DisplayText).toString();
+            if (title.compare("New Tag", Qt::CaseInsensitive) == 0 && n == 0) {
+                n = 1;
+            }
+            auto match = reg.match(title);
+            if (match.hasMatch()) {
+                auto cn = match.captured(1).toInt();
+                if (n <= cn) {
+                    n = cn + 1;
+                }
+            }
+        }
+        if (n != 0) {
+            result = QStringLiteral("New Tag (%1)").arg(QString::number(n));
+        }
+    }
+
+    return result;
+}
+
 QVector<QModelIndex> NodeTreeModel::getSeparatorIndex()
 {
     QVector<QModelIndex> result;
@@ -284,7 +283,7 @@ QVector<QModelIndex> NodeTreeModel::getSeparatorIndex()
     return result;
 }
 
-void NodeTreeModel::setNodeTree(QVector<NodeData> nodeData)
+void NodeTreeModel::setTreeData(const NodeTagTreeData &treeData)
 {
     beginResetModel();
     delete rootItem;
@@ -293,12 +292,13 @@ void NodeTreeModel::setNodeTree(QVector<NodeData> nodeData)
     rootItem = new NodeTreeItem(hs);
     appendAllNotesAndTrashButton(rootItem);
     appendFolderSeparator(rootItem);
-    loadNodeTree(nodeData, rootItem);
+    loadNodeTree(treeData.nodeTreeData, rootItem);
     appendTagsSeparator(rootItem);
+    loadTagList(treeData.tagTreeData, rootItem);
     endResetModel();
 }
 
-void NodeTreeModel::loadNodeTree(QVector<NodeData> nodeData, NodeTreeItem *rootNode)
+void NodeTreeModel::loadNodeTree(const QVector<NodeData> &nodeData, NodeTreeItem *rootNode)
 {
     QHash<int, NodeTreeItem *> itemMap;
     itemMap[SpecialNodeID::RootFolder] = rootNode;
@@ -347,7 +347,7 @@ void NodeTreeModel::appendAllNotesAndTrashButton(NodeTreeItem *rootNode)
         auto hs = QHash<NodeItem::Roles, QVariant>{};
         hs[NodeItem::Roles::ItemType] = NodeItem::Type::AllNoteButton;
         hs[NodeItem::Roles::DisplayText] = tr("All Notes");
-        hs[NodeItem::Roles::Icon] = ":/images/trashCan_Regular.png";
+        hs[NodeItem::Roles::Icon] = ":/images/all-notes-icon.png";
         auto allNodeButton = new NodeTreeItem(hs, rootNode);
         rootNode->appendChild(allNodeButton);
     }
@@ -355,7 +355,7 @@ void NodeTreeModel::appendAllNotesAndTrashButton(NodeTreeItem *rootNode)
         auto hs = QHash<NodeItem::Roles, QVariant>{};
         hs[NodeItem::Roles::ItemType] = NodeItem::Type::TrashButton;
         hs[NodeItem::Roles::DisplayText] = tr("Trash");
-        hs[NodeItem::Roles::Icon] = ":/images/trashCan_Hovered.png";
+        hs[NodeItem::Roles::Icon] = ":/images/trash-icon.png";
         auto trashButton = new NodeTreeItem(hs, rootNode);
         rootNode->appendChild(trashButton);
     }
@@ -377,6 +377,19 @@ void NodeTreeModel::appendTagsSeparator(NodeTreeItem *rootNode)
     hs[NodeItem::Roles::DisplayText] = tr("Tags");
     auto tagSepButton = new NodeTreeItem(hs, rootNode);
     rootNode->appendChild(tagSepButton);
+}
+
+void NodeTreeModel::loadTagList(const QVector<TagData> &tagData, NodeTreeItem *rootNode)
+{
+    for (const auto& tag: tagData) {
+        auto hs = QHash<NodeItem::Roles, QVariant>{};
+        hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
+        hs[NodeItem::Roles::DisplayText] = tag.name();
+        hs[NodeItem::Roles::TagColor] = tag.color();
+
+        auto tagItem = new NodeTreeItem(hs, rootNode);
+        rootNode->appendChild(tagItem);
+    }
 }
 
 Qt::ItemFlags NodeTreeModel::flags(const QModelIndex &index) const

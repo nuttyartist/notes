@@ -47,5 +47,12 @@
         <file>images/decrease-width-dark.png</file>
         <file>images/increase-width-dark.png</file>
         <file>images/increase-width.png</file>
+        <file>images/all-notes-icon.png</file>
+        <file>images/notes_icon.icns</file>
+        <file>images/notes_icon.ico</file>
+        <file>images/notes.rc</file>
+        <file>images/trash-icon.png</file>
+        <file>images/tree-node-expanded.png</file>
+        <file>images/tree-node-normal.png</file>
     </qresource>
 </RCC>

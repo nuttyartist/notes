@@ -1,10 +1,10 @@
 #include "nodetreedelegate.h"
 #include "nodetreemodel.h"
 #include <QPainter>
-#include <QPushButton>
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QDebug>
+#include "pushbuttontype.h"
 
 NodeTreeDelegate::NodeTreeDelegate(QObject *parent):
     QStyledItemDelegate{parent},
@@ -25,8 +25,9 @@ NodeTreeDelegate::NodeTreeDelegate(QObject *parent):
     m_dateFont(m_displayFont, 10),
     #endif
     m_titleColor(26, 26, 26),
+    m_titleSelectedColor(255, 255, 255),
     m_dateColor(132, 132, 132),
-    m_ActiveColor(218, 233, 239),
+    m_ActiveColor(68, 138, 201),
     m_notActiveColor(175, 212, 228),
     m_hoverColor(207, 207, 207),
     m_applicationInactiveColor(207, 207, 207),
@@ -51,13 +52,17 @@ void NodeTreeDelegate::paint(QPainter *painter,
     case NodeItem::Type::AllNoteButton:
     case NodeItem::Type::TrashButton: {
         paintBackgroundSelectable(painter, option);
-        auto iconRect = QRect(option.rect.x() + 5, option.rect.y() + (option.rect.height() - 18) / 2, 14, 18);
+        auto iconRect = QRect(option.rect.x() + 5, option.rect.y() + (option.rect.height() - 20) / 2, 18, 20);
         auto iconPath = index.data(NodeItem::Roles::Icon).toString();
         painter->drawImage(iconRect, QImage(iconPath));
         auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
         QRect nameRect(option.rect);
         nameRect.setLeft(iconRect.x() + iconRect.width() + 5);
-        painter->setPen(m_titleColor);
+        if((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
+            painter->setPen(m_titleSelectedColor);
+        } else {
+            painter->setPen(m_titleColor);
+        }
         painter->setFont(m_titleFont);
         painter->drawText(nameRect, Qt::AlignLeft | Qt::AlignVCenter, displayName);
         break;
@@ -74,10 +79,23 @@ void NodeTreeDelegate::paint(QPainter *painter,
     }
     case NodeItem::Type::FolderItem: {
         paintBackgroundSelectable(painter, option);
+        auto iconRect = QRect(option.rect.x() + 5, option.rect.y() + (option.rect.height() - 20) / 2, 20, 20);
+        QString iconPath;
+        if((option.state & QStyle::State_Open) == QStyle::State_Open) {
+            iconPath = ":/images/tree-node-expanded.png";
+        } else {
+            iconPath = ":/images/tree-node-normal.png";
+        }
+        painter->drawImage(iconRect, QImage(iconPath));
         QRect nameRect(option.rect);
-        nameRect.setLeft(nameRect.x() + 10 + 5);
+//        nameRect.setLeft(nameRect.x() + 10 + 5);
+        nameRect.setLeft(iconRect.x() + iconRect.width() + 5);
         auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
-        painter->setPen(m_titleColor);
+        if((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
+            painter->setPen(m_titleSelectedColor);
+        } else {
+            painter->setPen(m_titleColor);
+        }
         painter->setFont(m_titleFont);
         painter->drawText(nameRect, Qt::AlignLeft | Qt::AlignVCenter, displayName);
         break;
@@ -87,7 +105,11 @@ void NodeTreeDelegate::paint(QPainter *painter,
         QRect nameRect(option.rect);
         nameRect.setLeft(nameRect.x() + 10 + 5);
         auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
-        painter->setPen(m_titleColor);
+        if((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
+            painter->setPen(m_titleSelectedColor);
+        } else {
+            painter->setPen(m_titleColor);
+        }
         painter->setFont(m_titleFont);
         painter->drawText(nameRect, Qt::AlignLeft | Qt::AlignVCenter, displayName);
         break;
@@ -104,7 +126,11 @@ void NodeTreeDelegate::paint(QPainter *painter,
         QRect nameRect(option.rect);
         nameRect.setLeft(iconRect.x() + iconRect.width() + 5);
         auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
-        painter->setPen(m_titleColor);
+        if((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
+            painter->setPen(m_titleSelectedColor);
+        } else {
+            painter->setPen(m_titleColor);
+        }
         painter->setFont(m_titleFont);
         painter->drawText(nameRect, Qt::AlignLeft | Qt::AlignVCenter, displayName);
         break;
@@ -151,8 +177,21 @@ QWidget *NodeTreeDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
         label->setFont(m_titleFont);
         label->setText(displayName);
         layout->addWidget(label);
-        auto addButton = new QPushButton(parent);
-        addButton->setText("+");
+        auto addButton = new PushButtonType(parent);
+        addButton->setMaximumSize({33, 25});
+        addButton->setMinimumSize({33, 25});
+        addButton->setCursor(QCursor(Qt::PointingHandCursor));
+        addButton->setFocusPolicy(Qt::TabFocus);
+        QIcon icon;
+        icon.addFile(QString::fromUtf8(":/images/newNote_Regular.png"), QSize(), QIcon::Normal, QIcon::Off);
+        addButton->setNormalIcon(QIcon(QString::fromUtf8(":/images/newNote_Regular.png")));
+        addButton->setHoveredIcon(QIcon(QString::fromUtf8(":/images/newNote_Hovered.png")));
+        addButton->setPressedIcon(QIcon(QString::fromUtf8(":/images/newNote_Pressed.png")));
+        addButton->setIconSize(QSize(16, 16));
+        addButton->setStyleSheet(QStringLiteral(R"(QPushButton { )"
+                                                R"(    border: none; )"
+                                                R"(    padding: 0px; )"
+                                                R"(})"));
         if (itemType == NodeItem::Type::FolderSeparator) {
             connect(addButton, &QPushButton::clicked,
                     this, &NodeTreeDelegate::addFolderRequested);

@@ -214,7 +214,6 @@ private:
     void setupDatabases();
     void setupModelView();
     void initializeSettingsDatabase();
-    void createNewNoteIfEmpty();
     void setLayoutForScrollArea();
     void setButtonsAndFieldsEnabled(bool doEnable);
     void restoreStates();
@@ -248,8 +247,8 @@ private:
 
 private slots:
     void InitData();
-    void loadNotes(QVector<NodeData> noteList);
-    void loadNodesTree(QVector<NodeData> nodeTree);
+    void loadNoteListModel(QVector<NodeData> noteList);
+    void loadTreeModel(const NodeTagTreeData& treeData);
 
     void onNewNoteButtonPressed();
     void onNewNoteButtonClicked();
@@ -299,9 +298,9 @@ private slots:
     void changeEditorTextWidthFromStyleButtons(EditorTextWidth editorTextWidth);
     void resetEditorToDefaultSettings();
     void setTheme(Theme theme);
-    void createOrSelectFirstNote();
 
     void onAddFolderRequested();
+    void onAddTagRequested();
     void updateTreeViewSeparator();
 signals:
     void requestNodesTree();
@@ -314,7 +313,6 @@ signals:
     void requestExportNotes(QString fileName);
     void requestMigrateNotes(QList<NodeData *> noteList);
     void requestMigrateTrash(QList<NodeData *> noteList);
-    void requestForceLastRowIndexValue(int index);
 };
 
 #endif // MAINWINDOW_H

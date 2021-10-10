@@ -2,8 +2,15 @@
 #define DBMANAGER_H
 
 #include "nodedata.h"
+#include "tagdata.h"
 #include <QObject>
 #include <QtSql/QSqlDatabase>
+#include <QPair>
+
+struct NodeTagTreeData {
+    QVector<NodeData> nodeTreeData;
+    QVector<TagData> tagTreeData;
+};
 
 class DBManager : public QObject
 {
@@ -14,14 +21,11 @@ public:
 private:
     void open(const QString& path, bool doCreate = false);
     void createTables();
-    int  getLastRowID();
-    bool forceLastRowIndexValue(const int indexValue);
 
-    NodeData* getNote(QString id);
     bool isNodeExist(const NodeData& node);
 
-    QList<NodeData *> getAllNotes();
     QVector<NodeData> getAllNodes();
+    QVector<TagData> getAllTagInfo();
 
     bool removeNote(const NodeData& note);
     bool permanantlyRemoveAllNotes();
@@ -32,9 +36,10 @@ private:
     QString getNodeAbsolutePath(int nodeId);
 signals:
     void notesListReceived(QVector<NodeData> noteList);
-    void nodesTreeReceived(QVector<NodeData> nodeTree);
+    void nodesTagTreeReceived(const NodeTagTreeData& treeData);
+
 public slots:
-    void onNodeTreeRequested();
+    void onNodeTagTreeRequested();
     void onNotesListRequested(int parentID, bool isRecursive);
     void onOpenDBManagerRequested(QString path, bool doCreate);
     void onCreateUpdateRequestedNoteContent(const NodeData& note);
@@ -44,9 +49,11 @@ public slots:
     void onExportNotesRequested(QString fileName);
     void onMigrateNotesRequested(QList<NodeData *> noteList);
     void onMigrateTrashRequested(QList<NodeData *> noteList);
-    void onForceLastRowIndexValueRequested(int index);
+
     int addNode(const NodeData& node);
+    int addTag(const TagData& tag);
     int nextAvailableNodeId();
+    int nextAvailableTagId();
 private:
     QString m_pathSeperator;
 };

@@ -40,7 +40,9 @@ SOURCES += \
     nodetreedelegate.cpp \
     nodetreemodel.cpp \
     nodetreeview.cpp \
-    styleeditorwindow.cpp
+    pushbuttontype.cpp \
+    styleeditorwindow.cpp \
+    tagdata.cpp
 
 HEADERS  += \
     $$PWD/mainwindow.h \
@@ -58,7 +60,9 @@ HEADERS  += \
     nodetreedelegate.h \
     nodetreemodel.h \
     nodetreeview.h \
-    styleeditorwindow.h
+    pushbuttontype.h \
+    styleeditorwindow.h \
+    tagdata.h
 
 FORMS += \
     $$PWD/mainwindow.ui \

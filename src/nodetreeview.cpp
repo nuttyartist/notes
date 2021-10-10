@@ -6,16 +6,25 @@
 NodeTreeView::NodeTreeView(QWidget *parent) : QTreeView(parent)
 {
     setHeaderHidden(true);
-    setStyleSheet(R"(QTreeView {)"
-                 R"(   border-style: none;)"
-                 R"(   background-color: rgb(255, 255, 255);)"
-                 R"(   selection-background-color: white;)"
-                 R"(   selection-color: white;)"
-                 R"(})"
-                 R"()"
-                 R"(QTreeView::branch{)"
-                 R"(   border-image: url(none.png);)"
-                 R"(})"
+    setStyleSheet(
+                R"(QTreeView {)"
+                R"(    border-style: none;)"
+                R"(    background-color: rgb(255, 255, 255);)"
+                R"(    selection-background-color: white;)"
+                R"(    selection-color: white;)"
+                R"(})"
+                R"()"
+                R"(QTreeView::branch{)"
+                R"(    border-image: url(none.png);)"
+                R"(})"
+                R"(QScrollBar::handle:vertical:hover { background: rgb(170, 170, 171); } )"
+                R"(QScrollBar::handle:vertical:pressed { background: rgb(149, 149, 149); } )"
+                R"(QScrollBar::handle:vertical { border-radius: 4px; background: rgb(188, 188, 188); min-height: 20px; }  )"
+                R"(QScrollBar::vertical {border-radius: 4px; width: 8px; color: rgba(255, 255, 255,0);} )"
+                R"(QScrollBar {margin: 0; background: transparent;} )"
+                R"(QScrollBar:hover { background-color: rgb(217, 217, 217);})"
+                R"(QScrollBar::add-line:vertical { width:0px; height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  )"
+                R"(QScrollBar::sub-line:vertical { width:0px; height: 0px; subcontrol-position: top; subcontrol-origin: margin; })"
                 );
     setRootIsDecorated(false);
     QObject::connect(

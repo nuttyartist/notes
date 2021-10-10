@@ -28,6 +28,7 @@ private:
     QFont m_titleSelectedFont;
     QFont m_dateFont;
     QColor m_titleColor;
+    QColor m_titleSelectedColor;
     QColor m_dateColor;
     QColor m_ActiveColor;
     QColor m_notActiveColor;

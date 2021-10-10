@@ -8,6 +8,7 @@
 #include <QVector>
 
 #include "nodedata.h"
+#include "dbmanager.h"
 
 namespace NodeItem {
     enum Roles {
@@ -62,9 +63,10 @@ public:
                                  const QHash<NodeItem::Roles, QVariant>& data);
     QModelIndex rootIndex() const;
     QString getNewFolderPlaceholderName(const QModelIndex& parentIndex);
+    QString getNewTagPlaceholderName();
     QVector<QModelIndex> getSeparatorIndex();
 public slots:
-    void setNodeTree(QVector<NodeData> nodeData);
+    void setTreeData(const NodeTagTreeData& treeData);
 
     // QAbstractItemModel interface
 public:
@@ -80,12 +82,11 @@ signals:
     void topLevelItemLayoutChanged();
 private:
     NodeTreeItem *rootItem;
-    void loadNodeTree(QVector<NodeData> nodeData, NodeTreeItem* rootNode);
+    void loadNodeTree(const QVector<NodeData>& nodeData, NodeTreeItem* rootNode);
     void appendAllNotesAndTrashButton(NodeTreeItem* rootNode);
     void appendFolderSeparator(NodeTreeItem* rootNode);
     void appendTagsSeparator(NodeTreeItem* rootNode);
-
-
+    void loadTagList(const QVector<TagData>& tagData, NodeTreeItem* rootNode);
 };
 
 #endif // NODETREEMODEL_H
