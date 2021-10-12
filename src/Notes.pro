@@ -36,6 +36,7 @@ SOURCES += \
     aboutwindow.cpp \
     customdocument.cpp \
     editorsettingsbutton.cpp \
+    foldertreedelegateeditor.cpp \
     nodedata.cpp \
     nodetreedelegate.cpp \
     nodetreemodel.cpp \
@@ -55,6 +56,7 @@ HEADERS  += \
     aboutwindow.h \
     customDocument.h \
     editorsettingsbutton.h \
+    foldertreedelegateeditor.h \
     framelesswindow.h \
     nodedata.h \
     nodetreedelegate.h \

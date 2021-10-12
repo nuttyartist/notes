@@ -3,11 +3,13 @@
 
 #include <QStyledItemDelegate>
 
+class QTreeView;
+
 class NodeTreeDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
 public:
-    explicit NodeTreeDelegate(QObject *parent = Q_NULLPTR);
+    explicit NodeTreeDelegate(QTreeView* view, QObject *parent = Q_NULLPTR);
 
 signals:
     void addFolderRequested();
@@ -37,6 +39,7 @@ private:
     QColor m_separatorColor;
     QColor m_defaultColor;
     QColor m_separatorTextColor;
+    QTreeView* m_view;
 };
 
 #endif // NODETREEDELEGATE_H

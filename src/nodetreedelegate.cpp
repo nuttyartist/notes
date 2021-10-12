@@ -5,8 +5,9 @@
 #include <QLabel>
 #include <QDebug>
 #include "pushbuttontype.h"
+#include "foldertreedelegateeditor.h"
 
-NodeTreeDelegate::NodeTreeDelegate(QObject *parent):
+NodeTreeDelegate::NodeTreeDelegate(QTreeView *view, QObject *parent):
     QStyledItemDelegate{parent},
     #ifdef __APPLE__
     m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")),
@@ -33,7 +34,8 @@ NodeTreeDelegate::NodeTreeDelegate(QObject *parent):
     m_applicationInactiveColor(207, 207, 207),
     m_separatorColor(221, 221, 221),
     m_defaultColor(255, 255, 255),
-    m_separatorTextColor(143, 143, 143)
+    m_separatorTextColor(143, 143, 143),
+    m_view(view)
 {
 
 }
@@ -45,6 +47,7 @@ void NodeTreeDelegate::paint(QPainter *painter,
     painter->setRenderHint(QPainter::Antialiasing);
     auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
 
+    painter->fillRect(option.rect, Qt::white);
     switch (itemType) {
     case NodeItem::Type::RootItem: {
         break;
@@ -182,8 +185,6 @@ QWidget *NodeTreeDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
         addButton->setMinimumSize({33, 25});
         addButton->setCursor(QCursor(Qt::PointingHandCursor));
         addButton->setFocusPolicy(Qt::TabFocus);
-        QIcon icon;
-        icon.addFile(QString::fromUtf8(":/images/newNote_Regular.png"), QSize(), QIcon::Normal, QIcon::Off);
         addButton->setNormalIcon(QIcon(QString::fromUtf8(":/images/newNote_Regular.png")));
         addButton->setHoveredIcon(QIcon(QString::fromUtf8(":/images/newNote_Hovered.png")));
         addButton->setPressedIcon(QIcon(QString::fromUtf8(":/images/newNote_Pressed.png")));
@@ -201,6 +202,11 @@ QWidget *NodeTreeDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
         }
         layout->addWidget(addButton, 1, Qt::AlignRight);
         return widget;
+    } else if (itemType == NodeItem::Type::FolderItem) {
+        auto widget = new FolderTreeDelegateEditor(m_view, option, index, parent);
+        return widget;
+    } else if (itemType == NodeItem::Type::NoteItem) {
+        return nullptr;
     }
     return nullptr;
 }

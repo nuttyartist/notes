@@ -137,7 +137,6 @@ private:
     NodeTreeView* m_treeView;
     NodeTreeModel* m_treeModel;
     NodeTreeDelegate* m_treeDelegate;
-    QVector<QModelIndex> m_treeSeparator;
     QModelIndex m_currentSelectedNote;
     QModelIndex m_selectedNoteBeforeSearchingInSource;
     QQueue<QString> m_searchQueue;

@@ -54,5 +54,6 @@
         <file>images/trash-icon.png</file>
         <file>images/tree-node-expanded.png</file>
         <file>images/tree-node-normal.png</file>
+        <file>images/3dots_Highlighted.png</file>
     </qresource>
 </RCC>

@@ -969,7 +969,7 @@ void MainWindow::setupModelView()
     m_noteView->setModel(m_noteModel);
     m_treeView = static_cast<NodeTreeView*>(ui->treeView);
     m_treeView->setModel(m_treeModel);
-    m_treeDelegate = new NodeTreeDelegate(m_treeView);
+    m_treeDelegate = new NodeTreeDelegate(m_treeView, m_treeView);
     m_treeView->setItemDelegate(m_treeDelegate);
 }
 
@@ -1194,7 +1194,11 @@ void MainWindow::onAddFolderRequested()
     QDateTime noteDate = QDateTime::currentDateTime();
     newFolder.setCreationDateTime(noteDate);
     newFolder.setLastModificationDateTime(noteDate);
-    newFolder.setFullTitle(m_treeModel->getNewFolderPlaceholderName(currentIndex));
+    if (parentId != SpecialNodeID::RootFolder) {
+        newFolder.setFullTitle(m_treeModel->getNewFolderPlaceholderName(currentIndex));
+    } else {
+        newFolder.setFullTitle(m_treeModel->getNewFolderPlaceholderName(m_treeModel->rootIndex()));
+    }
     newFolder.setParentId(parentId);
 
     QMetaObject::invokeMethod(m_dbManager, "addNode", Qt::BlockingQueuedConnection,
@@ -1244,13 +1248,7 @@ void MainWindow::onAddTagRequested()
 
 void MainWindow::updateTreeViewSeparator()
 {
-    for (const auto& sep : m_treeSeparator) {
-        m_treeView->closePersistentEditor(sep);
-    }
-    m_treeSeparator = m_treeModel->getSeparatorIndex();
-    for (const auto& sep : m_treeSeparator) {
-        m_treeView->openPersistentEditor(sep);
-    }
+    m_treeView->setTreeSeparator(m_treeModel->getSeparatorIndex());
 }
 
 /*!
