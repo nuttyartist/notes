@@ -28,7 +28,7 @@
 
 #include "nodedata.h"
 #include "notemodel.h"
-#include "noteview.h"
+#include "notelistview.h"
 #include "nodetreemodel.h"
 #include "updaterwindow.h"
 #include "styleeditorwindow.h"
@@ -43,6 +43,7 @@ namespace Ui {
 class MainWindow;
 }
 class NodeTreeDelegate;
+class ModelViewDatabaseConnector;
 
 #if defined(Q_OS_LINUX)
 class MainWindow : public QMainWindow
@@ -131,12 +132,12 @@ private:
     QAction* m_quitAction;
     QMenu* m_trayIconMenu;
 
-    NoteView* m_noteView;
+    NoteListView* m_noteView;
     NoteModel* m_noteModel;
     NoteModel* m_deletedNotesModel;
     NodeTreeView* m_treeView;
     NodeTreeModel* m_treeModel;
-    NodeTreeDelegate* m_treeDelegate;
+    ModelViewDatabaseConnector* m_modelViewDatabaseConnector;
     QModelIndex m_currentSelectedNote;
     QModelIndex m_selectedNoteBeforeSearchingInSource;
     QQueue<QString> m_searchQueue;
@@ -247,7 +248,6 @@ private:
 private slots:
     void InitData();
     void loadNoteListModel(QVector<NodeData> noteList);
-    void loadTreeModel(const NodeTagTreeData& treeData);
 
     void onNewNoteButtonPressed();
     void onNewNoteButtonClicked();
@@ -298,9 +298,6 @@ private slots:
     void resetEditorToDefaultSettings();
     void setTheme(Theme theme);
 
-    void onAddFolderRequested();
-    void onAddTagRequested();
-    void updateTreeViewSeparator();
 signals:
     void requestNodesTree();
     void requestNotesList(int parentID, bool isRecursive);

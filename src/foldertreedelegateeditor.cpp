@@ -4,9 +4,11 @@
 #include <QPainter>
 #include <QDebug>
 #include <QTreeView>
+#include <QMouseEvent>
 #include "pushbuttontype.h"
 #include "nodetreemodel.h"
 #include "nodetreeview.h"
+#include "labeledittype.h"
 
 FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
                                                    const QStyleOptionViewItem &option,
@@ -35,8 +37,24 @@ FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
     m_expandIcon->setScaledContents(true);
     layout->addWidget(m_expandIcon);
 
-    m_label = new QLabel(this);
+    m_label = new LabelEditType(this);
     m_label->setFont(m_titleFont);
+    QSizePolicy labelPolicy;
+    labelPolicy.setVerticalPolicy(QSizePolicy::Expanding);
+    labelPolicy.setHorizontalPolicy(QSizePolicy::Expanding);
+    m_label->setSizePolicy(labelPolicy);
+    m_label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    connect(m_label, &LabelEditType::editingStarted, this, [this] {
+        auto tree_view = dynamic_cast<NodeTreeView*>(m_view);
+        tree_view->setIsEditing(true);
+    });
+    connect(m_label, &LabelEditType::editingFinished, this, [this] (const QString& label) {
+        auto tree_view = dynamic_cast<NodeTreeView*>(m_view);
+        tree_view->onRenameFolderFinished(label);
+        tree_view->setIsEditing(false);
+    });
+    connect(dynamic_cast<NodeTreeView*>(m_view), &NodeTreeView::renameFolderRequested,
+            m_label, &LabelEditType::openEditor);
     layout->addWidget(m_label);
     m_contextButton = new PushButtonType(parent);
     m_contextButton->setMaximumSize({33, 25});
@@ -98,4 +116,13 @@ void FolderTreeDelegateEditor::paintEvent(QPaintEvent *event)
         painter.fillRect(rect(), QBrush(m_hoverColor));
     }
     QWidget::paintEvent(event);
+}
+
+void FolderTreeDelegateEditor::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    if (m_label->geometry().contains(event->pos())) {
+        m_label->openEditor();
+    } else {
+        QWidget::mouseDoubleClickEvent(event);
+    }
 }

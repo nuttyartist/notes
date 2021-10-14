@@ -54,6 +54,7 @@ public slots:
     int addTag(const TagData& tag);
     int nextAvailableNodeId();
     int nextAvailableTagId();
+    void renameNode(int id, const QString& newName);
 private:
     QString m_pathSeperator;
 };

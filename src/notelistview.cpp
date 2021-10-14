@@ -1,4 +1,4 @@
-#include "noteview.h"
+#include "notelistview.h"
 #include "notewidgetdelegate.h"
 #include <QDebug>
 #include <QPainter>
@@ -9,7 +9,7 @@
 #include <QTimer>
 #include <QScrollBar>
 
-NoteView::NoteView(QWidget *parent)
+NoteListView::NoteListView(QWidget *parent)
     : QListView( parent ),
       m_isScrollBarHidden(true),
       m_animationEnabled(true),
@@ -22,11 +22,11 @@ NoteView::NoteView(QWidget *parent)
     QTimer::singleShot(0, this, SLOT(init()));
 }
 
-NoteView::~NoteView()
+NoteListView::~NoteListView()
 {
 }
 
-void NoteView::animateAddedRow(const QModelIndex& parent, int start, int end)
+void NoteListView::animateAddedRow(const QModelIndex& parent, int start, int end)
 {
     Q_UNUSED(parent)
     Q_UNUSED(end)
@@ -49,7 +49,7 @@ void NoteView::animateAddedRow(const QModelIndex& parent, int start, int end)
 /**
  * @brief Reimplemented from QWidget::paintEvent()
  */
-void NoteView::paintEvent(QPaintEvent *e)
+void NoteListView::paintEvent(QPaintEvent *e)
 {
     NoteWidgetDelegate* delegate = static_cast<NoteWidgetDelegate*>(itemDelegate());
     if(delegate != Q_NULLPTR)
@@ -61,7 +61,7 @@ void NoteView::paintEvent(QPaintEvent *e)
 /**
  * @brief Reimplemented from QAbstractItemView::rowsInserted().
  */
-void NoteView::rowsInserted(const QModelIndex &parent, int start, int end)
+void NoteListView::rowsInserted(const QModelIndex &parent, int start, int end)
 {
 
     if(start == end && m_animationEnabled)
@@ -73,7 +73,7 @@ void NoteView::rowsInserted(const QModelIndex &parent, int start, int end)
 /**
  * @brief Reimplemented from QAbstractItemView::rowsAboutToBeRemoved().
  */
-void NoteView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end)
+void NoteListView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end)
 {
     if(start == end){
         NoteWidgetDelegate* delegate = static_cast<NoteWidgetDelegate*>(itemDelegate());
@@ -97,7 +97,7 @@ void NoteView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int en
     QListView::rowsAboutToBeRemoved(parent, start, end);
 }
 
-void NoteView::rowsAboutToBeMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd,
+void NoteListView::rowsAboutToBeMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd,
                                   const QModelIndex &destinationParent, int destinationRow)
 {
     Q_UNUSED(sourceParent)
@@ -124,7 +124,7 @@ void NoteView::rowsAboutToBeMoved(const QModelIndex &sourceParent, int sourceSta
     }
 }
 
-void NoteView::rowsMoved(const QModelIndex &parent, int start, int end,
+void NoteListView::rowsMoved(const QModelIndex &parent, int start, int end,
                          const QModelIndex &destination, int row)
 {
     Q_UNUSED(parent)
@@ -151,7 +151,7 @@ void NoteView::rowsMoved(const QModelIndex &parent, int start, int end,
     }
 }
 
-void NoteView::init()
+void NoteListView::init()
 {
     setMouseTracking(true);
     setUpdatesEnabled(true);
@@ -161,25 +161,25 @@ void NoteView::init()
     setupSignalsSlots();
 }
 
-void NoteView::mouseMoveEvent(QMouseEvent*e)
+void NoteListView::mouseMoveEvent(QMouseEvent*e)
 {
     if(!m_isMousePressed)
         QListView::mouseMoveEvent(e);
 }
 
-void NoteView::mousePressEvent(QMouseEvent*e)
+void NoteListView::mousePressEvent(QMouseEvent*e)
 {
     m_isMousePressed = true;
     QListView::mousePressEvent(e);
 }
 
-void NoteView::mouseReleaseEvent(QMouseEvent*e)
+void NoteListView::mouseReleaseEvent(QMouseEvent*e)
 {
     m_isMousePressed = false;
     QListView::mouseReleaseEvent(e);
 }
 
-bool NoteView::viewportEvent(QEvent*e)
+bool NoteListView::viewportEvent(QEvent*e)
 {
     if(model() != Q_NULLPTR){
         switch (e->type()) {
@@ -212,7 +212,7 @@ bool NoteView::viewportEvent(QEvent*e)
     return QListView::viewportEvent(e);
 }
 
-void NoteView::setCurrentRowActive(bool isActive)
+void NoteListView::setCurrentRowActive(bool isActive)
 {
     NoteWidgetDelegate* delegate = static_cast<NoteWidgetDelegate*>(itemDelegate());
     if(delegate == Q_NULLPTR)
@@ -222,12 +222,12 @@ void NoteView::setCurrentRowActive(bool isActive)
     viewport()->update(visualRect(currentIndex()));
 }
 
-void NoteView::setAnimationEnabled(bool isEnabled)
+void NoteListView::setAnimationEnabled(bool isEnabled)
 {
     m_animationEnabled = isEnabled;
 }
 
-void NoteView::setupSignalsSlots()
+void NoteListView::setupSignalsSlots()
 {
     // remove/add separator
     // current selectected row changed
@@ -250,7 +250,7 @@ void NoteView::setupSignalsSlots()
     });
 
     // row was entered
-    connect(this, &NoteView::entered,[this](QModelIndex index){
+    connect(this, &NoteListView::entered,[this](QModelIndex index){
         if(model() != Q_NULLPTR){
             if(index.row() > 1){
                 QModelIndex prevPrevIndex = model()->index(index.row()-2, 0);
@@ -271,7 +271,7 @@ void NoteView::setupSignalsSlots()
     });
 
     // viewport was entered
-    connect(this, &NoteView::viewportEntered,[this](){
+    connect(this, &NoteListView::viewportEntered,[this](){
         if(model() != Q_NULLPTR && model()->rowCount() > 1){
             NoteWidgetDelegate* delegate = static_cast<NoteWidgetDelegate *>(itemDelegate());
             if(delegate != Q_NULLPTR)
@@ -301,7 +301,7 @@ void NoteView::setupSignalsSlots()
 /**
  * @brief setup styleSheet
  */
-void NoteView::setupStyleSheet()
+void NoteListView::setupStyleSheet()
 {
 #if defined(Q_OS_LINUX)
     QString ss = QString("QListView {background-color: %1;} "
@@ -325,7 +325,7 @@ void NoteView::setupStyleSheet()
 /**
  * @brief Set theme color for noteView
  */
-void NoteView::setTheme(Theme theme)
+void NoteListView::setTheme(Theme theme)
 {
     switch(theme){
     case Theme::Light:

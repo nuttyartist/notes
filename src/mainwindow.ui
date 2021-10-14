@@ -372,7 +372,7 @@ NoteData #dateLabel{
               </spacer>
              </item>
              <item>
-              <widget class="NoteView" name="listView">
+              <widget class="NoteListView" name="listView">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -800,9 +800,9 @@ p, li { white-space: pre-wrap; }
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>NoteView</class>
+   <class>NoteListView</class>
    <extends>QListView</extends>
-   <header>noteview.h</header>
+   <header>notelistview.h</header>
   </customwidget>
   <customwidget>
    <class>CustomDocument</class>

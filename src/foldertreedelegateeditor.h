@@ -9,6 +9,7 @@
 class QTreeView;
 class QLabel;
 class PushButtonType;
+class LabelEditType;
 
 class FolderTreeDelegateEditor : public QWidget
 {
@@ -31,7 +32,7 @@ private:
     QColor m_activeColor;
     QColor m_hoverColor;
     QTreeView* m_view;
-    QLabel* m_label;
+    LabelEditType* m_label;
     QPixmap m_expanded;
     QPixmap m_notExpanded;
     QLabel* m_expandIcon;
@@ -41,6 +42,7 @@ private:
     // QWidget interface
 protected:
     virtual void paintEvent(QPaintEvent *event) override;
+    virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
 };
 
 #endif // FOLDERTREEDELEGATEEDITOR_H

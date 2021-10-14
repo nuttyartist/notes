@@ -43,6 +43,7 @@ public:
     int childCount() const;
     int columnCount() const;
     QVariant data(NodeItem::Roles role) const;
+    void setData(NodeItem::Roles role, const QVariant& d);
     int row() const;
     NodeTreeItem *parentItem();
     void setParentItem(NodeTreeItem* parentItem);
@@ -78,6 +79,8 @@ public:
     // QAbstractItemModel interface
 public:
     virtual Qt::ItemFlags flags(const QModelIndex &index) const override;
+    virtual bool setData(const QModelIndex &index, const QVariant &value, int role) override;
+
 signals:
     void topLevelItemLayoutChanged();
 private:
@@ -87,6 +90,7 @@ private:
     void appendFolderSeparator(NodeTreeItem* rootNode);
     void appendTagsSeparator(NodeTreeItem* rootNode);
     void loadTagList(const QVector<TagData>& tagData, NodeTreeItem* rootNode);
+
 };
 
 #endif // NODETREEMODEL_H

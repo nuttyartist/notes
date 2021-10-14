@@ -9,7 +9,7 @@
 #include "notewidgetdelegate.h"
 #include "qxtglobalshortcut.h"
 #include "updaterwindow.h"
-#include "nodetreedelegate.h"
+#include "modelviewdatabaseconnector.h"
 
 #include <QScrollBar>
 #include <QShortcut>
@@ -61,7 +61,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_deletedNotesModel(new NoteModel(this)),
     m_treeView(Q_NULLPTR),
     m_treeModel(new NodeTreeModel(this)),
-    m_treeDelegate(Q_NULLPTR),
+    m_modelViewDatabaseConnector(Q_NULLPTR),
     m_dbManager(Q_NULLPTR),
     m_dbThread(Q_NULLPTR),
     m_styleEditorWindow(this),
@@ -570,9 +570,9 @@ void MainWindow::setupSignalsSlots()
     // line edit enter key pressed
     connect(m_searchEdit, &QLineEdit::returnPressed, this, &MainWindow::onSearchEditReturnPressed);
     // note pressed
-    connect(m_noteView, &NoteView::pressed, this, &MainWindow::onNotePressed);
+    connect(m_noteView, &NoteListView::pressed, this, &MainWindow::onNotePressed);
     // noteView viewport pressed
-    connect(m_noteView, &NoteView::viewportPressed, this, [this](){
+    connect(m_noteView, &NoteListView::viewportPressed, this, [this](){
         if(m_isTemp && m_noteModel->rowCount() > 1){
             QModelIndex indexInListView = m_noteModel->index(1, 0);
             selectNote(indexInListView);
@@ -583,8 +583,8 @@ void MainWindow::setupSignalsSlots()
         }
     });
     // note model rows moved
-    connect(m_noteModel, &NoteModel::rowsAboutToBeMoved, m_noteView, &NoteView::rowsAboutToBeMoved);
-    connect(m_noteModel, &NoteModel::rowsMoved, m_noteView, &NoteView::rowsMoved);
+    connect(m_noteModel, &NoteModel::rowsAboutToBeMoved, m_noteView, &NoteListView::rowsAboutToBeMoved);
+    connect(m_noteModel, &NoteModel::rowsMoved, m_noteView, &NoteListView::rowsMoved);
     // auto save timer
     connect(m_autoSaveTimer, &QTimer::timeout, [this](){
         m_autoSaveTimer->stop();
@@ -626,11 +626,6 @@ void MainWindow::setupSignalsSlots()
             m_dbManager, &DBManager::onMigrateTrashRequested, Qt::BlockingQueuedConnection);
 
     connect(m_dbManager, &DBManager::notesListReceived, this, &MainWindow::loadNoteListModel);
-    connect(m_dbManager, &DBManager::nodesTagTreeReceived, this, &MainWindow::loadTreeModel);
-    connect(m_treeView, &NodeTreeView::addFolderRequested, this, &MainWindow::onAddFolderRequested);
-    connect(m_treeDelegate, &NodeTreeDelegate::addFolderRequested, this, &MainWindow::onAddFolderRequested);
-    connect(m_treeDelegate, &NodeTreeDelegate::addTagRequested, this, &MainWindow::onAddTagRequested);
-    connect(m_treeModel, &NodeTreeModel::topLevelItemLayoutChanged, this, &MainWindow::updateTreeViewSeparator);
     connect(m_treeView, &NodeTreeView::loadNotesRequested, this, &MainWindow::requestNotesList);
 #ifdef __APPLE__
     // Replace setUseNativeWindowFrame with just the part that handles pushing things up
@@ -963,14 +958,16 @@ void MainWindow::setupDatabases()
  */
 void MainWindow::setupModelView()
 {
-    m_noteView = static_cast<NoteView*>(ui->listView);
+    m_noteView = static_cast<NoteListView*>(ui->listView);
 
     m_noteView->setItemDelegate(new NoteWidgetDelegate(m_noteView));
     m_noteView->setModel(m_noteModel);
     m_treeView = static_cast<NodeTreeView*>(ui->treeView);
     m_treeView->setModel(m_treeModel);
-    m_treeDelegate = new NodeTreeDelegate(m_treeView, m_treeView);
-    m_treeView->setItemDelegate(m_treeDelegate);
+    m_modelViewDatabaseConnector = new ModelViewDatabaseConnector(m_treeView,
+                                                                  m_treeModel,
+                                                                  m_dbManager,
+                                                                  this);
 }
 
 /*!
@@ -1166,91 +1163,6 @@ void MainWindow::showNoteInEditor(const QModelIndex &noteIndex)
     highlightSearch();
 }
 
-
-void MainWindow::onAddFolderRequested()
-{
-    auto currentIndex = m_treeView->currentIndex();
-    int parentId = SpecialNodeID::RootFolder;
-    if (currentIndex.isValid()) {
-        auto type = static_cast<NodeItem::Type>(currentIndex.data(NodeItem::Roles::ItemType).toInt());
-        if (type == NodeItem::FolderItem) {
-            parentId = currentIndex.data(NodeItem::Roles::NodeId).toInt();
-            // we don't allow subfolder under default notes folder
-            if (parentId == SpecialNodeID::DefaultNotesFolder) {
-                parentId = SpecialNodeID::RootFolder;
-            }
-        } else if (type == NodeItem::NoteItem) {
-            qDebug() << "Can create folder under this item";
-            return;
-        } else {
-            currentIndex = m_treeModel->rootIndex();
-        }
-    } else {
-        currentIndex = m_treeModel->rootIndex();
-    }
-    int newlyCreatedNodeId;
-    NodeData newFolder;
-    newFolder.setNodeType(NodeData::Folder);
-    QDateTime noteDate = QDateTime::currentDateTime();
-    newFolder.setCreationDateTime(noteDate);
-    newFolder.setLastModificationDateTime(noteDate);
-    if (parentId != SpecialNodeID::RootFolder) {
-        newFolder.setFullTitle(m_treeModel->getNewFolderPlaceholderName(currentIndex));
-    } else {
-        newFolder.setFullTitle(m_treeModel->getNewFolderPlaceholderName(m_treeModel->rootIndex()));
-    }
-    newFolder.setParentId(parentId);
-
-    QMetaObject::invokeMethod(m_dbManager, "addNode", Qt::BlockingQueuedConnection,
-                              Q_RETURN_ARG(int, newlyCreatedNodeId),
-                              Q_ARG(NodeData, newFolder)
-                              );
-
-    QHash<NodeItem::Roles, QVariant> hs;
-    hs[NodeItem::Roles::ItemType] = NodeItem::Type::FolderItem;
-    hs[NodeItem::Roles::DisplayText] = newFolder.fullTitle();
-    hs[NodeItem::Roles::NodeId] = newlyCreatedNodeId;
-    if (parentId != SpecialNodeID::RootFolder) {
-        m_treeModel->appendChildNodeToParent(currentIndex, hs);
-        if (!m_treeView->isExpanded(currentIndex)) {
-            m_treeView->expand(currentIndex);
-        }
-    } else {
-        m_treeModel->appendChildNodeToParent(m_treeModel->rootIndex(), hs);
-    }
-}
-
-void MainWindow::onAddTagRequested()
-{
-    int newlyCreatedTagId;
-    TagData newTag;
-    newTag.setName(m_treeModel->getNewTagPlaceholderName());
-    // random color generator
-    double rand = QRandomGenerator::global()->generateDouble();
-    int h = rand * 359;
-    int s = 255;
-    int v = 128 + rand * 127;
-    auto color = QColor::fromHsv(h,s,v);
-
-    newTag.setColor(color.name());
-    QMetaObject::invokeMethod(m_dbManager, "addTag", Qt::BlockingQueuedConnection,
-                              Q_RETURN_ARG(int, newlyCreatedTagId),
-                              Q_ARG(TagData, newTag)
-                              );
-
-    QHash<NodeItem::Roles, QVariant> hs;
-    hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
-    hs[NodeItem::Roles::DisplayText] = newTag.name();
-    hs[NodeItem::Roles::TagColor] = newTag.color();
-    hs[NodeItem::Roles::NodeId] = newlyCreatedTagId;
-    m_treeModel->appendChildNodeToParent(m_treeModel->rootIndex(), hs);
-}
-
-void MainWindow::updateTreeViewSeparator()
-{
-    m_treeView->setTreeSeparator(m_treeModel->getSeparatorIndex());
-}
-
 /*!
  * \brief MainWindow::loadNotes
  * Load all the notes from database
@@ -1268,11 +1180,6 @@ void MainWindow::loadNoteListModel(QVector<NodeData> noteList)
     selectFirstNote();
 }
 
-void MainWindow::loadTreeModel(const NodeTagTreeData &treeData)
-{
-    m_treeModel->setTreeData(treeData);
-    updateTreeViewSeparator();
-}
 
 /*!
  * \brief MainWindow::saveNoteToDB
@@ -1678,7 +1585,7 @@ void MainWindow::setTheme(Theme theme)
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
         this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(247, 247, 247); }"));
         m_textEdit->setTextColor(m_currentEditorTextColor);
-        m_noteView->setTheme(NoteView::Theme::Light);
+        m_noteView->setTheme(NoteListView::Theme::Light);
         m_styleEditorWindow.setTheme(Theme::Light, m_currentThemeBackgroundColor, m_currentEditorTextColor);
         m_aboutWindow.setTheme(m_currentThemeBackgroundColor, m_currentEditorTextColor);
         break;
@@ -1691,7 +1598,7 @@ void MainWindow::setTheme(Theme theme)
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
         this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(26, 26, 26); }"));
         m_textEdit->setTextColor(m_currentEditorTextColor);
-        m_noteView->setTheme(NoteView::Theme::Dark);
+        m_noteView->setTheme(NoteListView::Theme::Dark);
         m_styleEditorWindow.setTheme(Theme::Dark, m_currentThemeBackgroundColor, m_currentEditorTextColor);
         m_aboutWindow.setTheme(m_currentThemeBackgroundColor, m_currentEditorTextColor);
         break;
@@ -1704,7 +1611,7 @@ void MainWindow::setTheme(Theme theme)
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
         this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(251, 240, 217); }"));
         m_textEdit->setTextColor(m_currentEditorTextColor);
-        m_noteView->setTheme(NoteView::Theme::Sepia);
+        m_noteView->setTheme(NoteListView::Theme::Sepia);
         m_styleEditorWindow.setTheme(Theme::Sepia, m_currentThemeBackgroundColor, QColor(26, 26, 26));
         m_aboutWindow.setTheme(m_currentThemeBackgroundColor, QColor(26, 26, 26));
         break;

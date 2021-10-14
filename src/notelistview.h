@@ -1,10 +1,10 @@
-#ifndef NOTEVIEW_H
-#define NOTEVIEW_H
+#ifndef NOTELISTVIEW_H
+#define NOTELISTVIEW_H
 
 #include <QListView>
 #include <QScrollArea>
 
-class NoteView : public QListView
+class NoteListView : public QListView
 {
     Q_OBJECT
 
@@ -17,8 +17,8 @@ public:
         Sepia
     };
 
-    explicit NoteView(QWidget* parent = Q_NULLPTR);
-    ~NoteView();
+    explicit NoteListView(QWidget* parent = Q_NULLPTR);
+    ~NoteListView();
 
     void animateAddedRow(const QModelIndex &parent, int start, int end);
     void setAnimationEnabled(bool isEnabled);
@@ -61,4 +61,4 @@ signals:
 
 };
 
-#endif // NOTEVIEW_H
+#endif // NOTELISTVIEW_H

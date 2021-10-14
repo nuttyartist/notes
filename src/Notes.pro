@@ -29,7 +29,7 @@ SOURCES += \
     $$PWD/mainwindow.cpp \
     $$PWD/notewidgetdelegate.cpp \
     $$PWD/notemodel.cpp \
-    $$PWD/noteview.cpp \
+    $$PWD/notelistview.cpp \
     $$PWD/singleinstance.cpp \
     $$PWD/updaterwindow.cpp \
     $$PWD/dbmanager.cpp \
@@ -37,6 +37,8 @@ SOURCES += \
     customdocument.cpp \
     editorsettingsbutton.cpp \
     foldertreedelegateeditor.cpp \
+    labeledittype.cpp \
+    modelviewdatabaseconnector.cpp \
     nodedata.cpp \
     nodetreedelegate.cpp \
     nodetreemodel.cpp \
@@ -49,7 +51,7 @@ HEADERS  += \
     $$PWD/mainwindow.h \
     $$PWD/notewidgetdelegate.h \
     $$PWD/notemodel.h \
-    $$PWD/noteview.h \
+    $$PWD/notelistview.h \
     $$PWD/singleinstance.h \
     $$PWD/updaterwindow.h \
     $$PWD/dbmanager.h \
@@ -58,6 +60,8 @@ HEADERS  += \
     editorsettingsbutton.h \
     foldertreedelegateeditor.h \
     framelesswindow.h \
+    labeledittype.h \
+    modelviewdatabaseconnector.h \
     nodedata.h \
     nodetreedelegate.h \
     nodetreemodel.h \

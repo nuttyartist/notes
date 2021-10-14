@@ -7,7 +7,8 @@
 
 NodeTreeView::NodeTreeView(QWidget *parent) :
     QTreeView(parent),
-    m_isContextMenuOpened{false}
+    m_isContextMenuOpened{false},
+    m_isEditing{false}
 {
     setHeaderHidden(true);
     setStyleSheet(
@@ -38,15 +39,26 @@ NodeTreeView::NodeTreeView(QWidget *parent) :
             this, &NodeTreeView::onCustomContextMenu);
     contextMenu = new QMenu(this);
     renameFolderAction = new QAction(tr("Rename Folder"), this);
-    connect(renameFolderAction, &QAction::triggered, this, &NodeTreeView::renameFolderRequested);
+    connect(renameFolderAction, &QAction::triggered, this, [this] {
+        setIsEditing(true);
+        emit renameFolderRequested();
+    });
     deleteFolderAction = new QAction(tr("Delete Folder"), this);
-    connect(deleteFolderAction, &QAction::triggered, this, &NodeTreeView::deleteFolderRequested);
+    connect(deleteFolderAction, &QAction::triggered, this, &NodeTreeView::onDeleteNodeAction);
     addSubfolderAction = new QAction(tr("Add Subfolder"), this);
     connect(addSubfolderAction, &QAction::triggered, this, &NodeTreeView::addFolderRequested);
+    contextMenuTimer.setInterval(100);
+    contextMenuTimer.setSingleShot(true);
+    connect(&contextMenuTimer, &QTimer::timeout, this, [this] {
+        if (!m_isEditing) {
+            closeCurrentEditor();
+        }
+    });
+
     connect(contextMenu, &QMenu::aboutToHide, this, [this] {
         m_isContextMenuOpened = false;
-        closePersistentEditor(m_currentHoveringIndex);
-        m_currentHoveringIndex = QModelIndex();
+        // this signal is emmited before QAction::triggered
+        contextMenuTimer.start();
     });
 }
 
@@ -79,6 +91,63 @@ void NodeTreeView::onClicked(const QModelIndex &index)
     case NodeItem::Type::TagItem: {
         break;
     }
+    }
+}
+
+void NodeTreeView::onDeleteNodeAction()
+{
+    auto itemType = static_cast<NodeItem::Type>(m_currentEditingIndex.data(NodeItem::Roles::ItemType).toInt());
+    auto id = m_currentEditingIndex.data(NodeItem::Roles::NodeId).toInt();
+    if (itemType == NodeItem::Type::FolderItem || itemType == NodeItem::Type::NoteItem) {
+        if (id > SpecialNodeID::DefaultNotesFolder) {
+            emit deleteNodeRequested(id);
+        }
+    }
+}
+
+void NodeTreeView::updateEditingIndex(QMouseEvent *event)
+{
+    auto index = indexAt(event->pos());
+    if(indexAt(event->pos()) != m_currentEditingIndex && !m_isContextMenuOpened && !m_isEditing) {
+        auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
+        auto id = index.data(NodeItem::Roles::NodeId).toInt();
+        if ((itemType == NodeItem::Type::FolderItem
+             || itemType == NodeItem::Type::NoteItem)
+                && id != SpecialNodeID::DefaultNotesFolder) {
+            closePersistentEditor(m_currentEditingIndex);
+            openPersistentEditor(index);
+            m_currentEditingIndex = index;
+        } else {
+            closeCurrentEditor();
+        }
+    }
+}
+
+
+void NodeTreeView::closeCurrentEditor()
+{
+    closePersistentEditor(m_currentEditingIndex);
+    m_currentEditingIndex = QModelIndex();
+}
+
+void NodeTreeView::setIsEditing(bool newIsEditing)
+{
+    m_isEditing = newIsEditing;
+}
+
+void NodeTreeView::onRenameFolderFinished(const QString &newName)
+{
+    if (m_currentEditingIndex.isValid()) {
+        auto itemType = static_cast<NodeItem::Type>(m_currentEditingIndex.data(NodeItem::Roles::ItemType).toInt());
+        if (itemType == NodeItem::Type::FolderItem) {
+            QModelIndex index = m_currentEditingIndex;
+            closeCurrentEditor();
+            emit renameFolderInDatabase(index, newName);
+        } else {
+            qDebug() << __FUNCTION__ << "wrong type";
+        }
+    } else {
+        qDebug() << __FUNCTION__ << "m_currentEditingIndex is not valid";
     }
 }
 
@@ -115,29 +184,20 @@ void NodeTreeView::setTreeSeparator(const QVector<QModelIndex> &newTreeSeparator
 
 void NodeTreeView::mouseMoveEvent(QMouseEvent *event)
 {
-    auto index = indexAt(event->pos());
-    if(indexAt(event->pos()) != m_currentHoveringIndex && !m_isContextMenuOpened) {
-        auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
-        if (itemType == NodeItem::Type::FolderItem || itemType == NodeItem::Type::NoteItem) {
-            auto id = index.data(NodeItem::Roles::NodeId).toInt();
-            if (id != SpecialNodeID::DefaultNotesFolder) {
-                closePersistentEditor(m_currentHoveringIndex);
-                openPersistentEditor(index);
-                m_currentHoveringIndex = index;
-            }
-        } else {
-            closePersistentEditor(m_currentHoveringIndex);
-            m_currentHoveringIndex = QModelIndex();
-        }
-    }
+    updateEditingIndex(event);
     QTreeView::mouseMoveEvent(event);
+}
+
+void NodeTreeView::mousePressEvent(QMouseEvent *event)
+{
+    updateEditingIndex(event);
+    QTreeView::mousePressEvent(event);
 }
 
 void NodeTreeView::leaveEvent(QEvent *event)
 {
-    if (!m_isContextMenuOpened) {
-        closePersistentEditor(m_currentHoveringIndex);
-        m_currentHoveringIndex = QModelIndex();
+    if (!m_isContextMenuOpened && !m_isEditing) {
+        closeCurrentEditor();
         QTreeView::leaveEvent(event);
     }
 }

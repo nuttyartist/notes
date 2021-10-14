@@ -44,6 +44,11 @@ QVariant NodeTreeItem::data(NodeItem::Roles role) const
     return m_itemData.value(role, QVariant());
 }
 
+void NodeTreeItem::setData(NodeItem::Roles role, const QVariant &d)
+{
+    m_itemData[role] = d;
+}
+
 NodeTreeItem *NodeTreeItem::parentItem()
 {
     return m_parentItem;
@@ -399,5 +404,18 @@ Qt::ItemFlags NodeTreeModel::flags(const QModelIndex &index) const
     }
 
     return QAbstractItemModel::flags(index);
+}
+
+bool NodeTreeModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    if (index.isValid()) {
+        if (role == NodeItem::Roles::DisplayText) {
+            static_cast<NodeTreeItem*>(index.internalPointer())->setData(
+                        static_cast<NodeItem::Roles>(role), value);
+            emit dataChanged(index, index, {role});
+            return true;
+        }
+    }
+    return false;
 }
 

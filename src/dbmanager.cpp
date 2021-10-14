@@ -315,6 +315,17 @@ int DBManager::nextAvailableTagId()
     return nodeId;
 }
 
+void DBManager::renameNode(int id, const QString &newName)
+{
+    QSqlQuery query;
+    query.prepare(R"(UPDATE "node_table" SET "title"=:title WHERE "id"=:id;)");
+    query.bindValue(":title", newName);
+    query.bindValue(":id", id);
+    if (!query.exec()) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+    }
+}
+
 /*!
  * \brief DBManager::removeNote
  * \param note
