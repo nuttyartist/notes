@@ -138,7 +138,7 @@ bool DBManager::isNodeExist(const NodeData& node)
 }
 
 
-QVector<NodeData> DBManager::getAllNodes()
+QVector<NodeData> DBManager::getAllFolders()
 {
     QVector<NodeData> nodeList;
 
@@ -153,8 +153,9 @@ QVector<NodeData> DBManager::getAllNodes()
                   R"("node_type",)"
                   R"("parent_id",)"
                   R"("relative_position")"
-                  R"(FROM node_table;)"
+                  R"(FROM node_table WHERE node_type=:node_type;)"
                 );
+    query.bindValue(":node_type", static_cast<int>(NodeData::Type::Folder));
     bool status = query.exec();
     if(status) {
         while(query.next()) {
@@ -490,7 +491,7 @@ QString DBManager::getNodeAbsolutePath(int nodeId)
 void DBManager::onNodeTagTreeRequested()
 {
     NodeTagTreeData d;
-    d.nodeTreeData = getAllNodes();
+    d.nodeTreeData = getAllFolders();
     d.tagTreeData = getAllTagInfo();
     emit nodesTagTreeReceived(d);
 }

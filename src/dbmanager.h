@@ -24,7 +24,7 @@ private:
 
     bool isNodeExist(const NodeData& node);
 
-    QVector<NodeData> getAllNodes();
+    QVector<NodeData> getAllFolders();
     QVector<TagData> getAllTagInfo();
 
     bool removeNote(const NodeData& note);
