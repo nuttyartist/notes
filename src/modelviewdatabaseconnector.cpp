@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QRandomGenerator>
 #include <QMetaObject>
+#include <QMessageBox>
 
 ModelViewDatabaseConnector::ModelViewDatabaseConnector(NodeTreeView* treeView,
                                                        NodeTreeModel* treeModel,
@@ -31,6 +32,8 @@ ModelViewDatabaseConnector::ModelViewDatabaseConnector(NodeTreeView* treeView,
             this, &ModelViewDatabaseConnector::onRenameNodeRequestedFromTreeView);
     connect(this, &ModelViewDatabaseConnector::requestRenameNodeInDB,
             m_dbManager, &DBManager::renameNode, Qt::QueuedConnection);
+    connect(m_treeView, &NodeTreeView::deleteNodeRequested,
+            this, &ModelViewDatabaseConnector::onDeleteFolderRequested);
 }
 
 void ModelViewDatabaseConnector::updateTreeViewSeparator()
@@ -128,5 +131,28 @@ void ModelViewDatabaseConnector::onRenameNodeRequestedFromTreeView(const QModelI
     m_treeModel->setData(index, newName, NodeItem::Roles::DisplayText);
     auto id = index.data(NodeItem::Roles::NodeId).toInt();
     emit requestRenameNodeInDB(id, newName);
+}
+
+void ModelViewDatabaseConnector::onDeleteFolderRequested(const QModelIndex &index)
+{
+    auto btn = QMessageBox::question(nullptr, "Are you sure you want to delete this folder",
+                                     "Are you sure you want to delete this folder? All notes and any subfolders will be deleted.");
+    if (btn == QMessageBox::Yes) {
+        auto id = index.data(NodeItem::Roles::NodeId).toInt();
+        if (id < SpecialNodeID::DefaultNotesFolder) {
+            qDebug() << __FUNCTION__ << "Failed while trying to delete folder with id" << id;
+            return;
+        }
+        NodeData node;
+        QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection,
+                                  Q_RETURN_ARG(NodeData, node),
+                                  Q_ARG(int, id)
+                                  );
+        auto parentPath = NodePath{node.absolutePath()}.parentPath();
+        auto parentIndex = m_treeModel->indexFromIdPath(parentPath);
+        m_treeModel->deleteRow(index, parentIndex);
+        QMetaObject::invokeMethod(m_dbManager, "moveFolderToTrash", Qt::QueuedConnection,
+                                  Q_ARG(NodeData, node));
+    }
 }
 

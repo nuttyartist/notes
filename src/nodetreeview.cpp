@@ -100,7 +100,8 @@ void NodeTreeView::onDeleteNodeAction()
     auto id = m_currentEditingIndex.data(NodeItem::Roles::NodeId).toInt();
     if (itemType == NodeItem::Type::FolderItem || itemType == NodeItem::Type::NoteItem) {
         if (id > SpecialNodeID::DefaultNotesFolder) {
-            emit deleteNodeRequested(id);
+            auto index = m_currentEditingIndex;
+            emit deleteNodeRequested(index);
         }
     }
 }

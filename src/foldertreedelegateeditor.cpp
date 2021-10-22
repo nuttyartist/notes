@@ -99,10 +99,12 @@ void FolderTreeDelegateEditor::updateDelegate()
         m_contextButton->setPressedIcon(QIcon(QString::fromUtf8(":/images/3dots_Pressed.png")));
     }
     m_label->setText(displayName);
-    if(m_view->isExpanded(m_index)) {
-        m_expandIcon->setPixmap(m_expanded);
-    } else {
-        m_expandIcon->setPixmap(m_notExpanded);
+    if (m_index.data(NodeItem::Roles::IsExpandable).toBool()) {
+        if(m_view->isExpanded(m_index)) {
+            m_expandIcon->setPixmap(m_expanded);
+        } else {
+            m_expandIcon->setPixmap(m_notExpanded);
+        }
     }
 }
 

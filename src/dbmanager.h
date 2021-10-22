@@ -3,6 +3,7 @@
 
 #include "nodedata.h"
 #include "tagdata.h"
+#include "nodepath.h"
 #include <QObject>
 #include <QtSql/QSqlDatabase>
 #include <QPair>
@@ -17,7 +18,10 @@ class DBManager : public QObject
     Q_OBJECT
 public:
     explicit DBManager(QObject *parent = Q_NULLPTR);
-
+    Q_INVOKABLE NodePath getNodeAbsolutePath(int nodeId);
+    Q_INVOKABLE NodeData getNode(int nodeId);
+    Q_INVOKABLE void moveFolderToTrash(const NodeData& node);
+    Q_INVOKABLE void moveNode(int nodeId, const NodeData& target);
 private:
     void open(const QString& path, bool doCreate = false);
     void createTables();
@@ -33,7 +37,6 @@ private:
     bool migrateNote(NodeData* note);
     bool migrateTrash(NodeData* note);
 
-    QString getNodeAbsolutePath(int nodeId);
 signals:
     void notesListReceived(QVector<NodeData> noteList);
     void nodesTagTreeReceived(const NodeTagTreeData& treeData);
@@ -55,8 +58,6 @@ public slots:
     int nextAvailableNodeId();
     int nextAvailableTagId();
     void renameNode(int id, const QString& newName);
-private:
-    QString m_pathSeperator;
 };
 
 #endif // DBMANAGER_H

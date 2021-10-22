@@ -9,6 +9,7 @@
 
 #include "nodedata.h"
 #include "dbmanager.h"
+#include "nodepath.h"
 
 namespace NodeItem {
     enum Roles {
@@ -16,6 +17,7 @@ namespace NodeItem {
         DisplayText = Qt::DisplayRole,
         Icon = Qt::DecorationRole,
         TagColor = Qt::UserRole + 1,
+        IsExpandable,
         NodeId
     };
     enum Type {
@@ -40,6 +42,7 @@ public:
     void appendChild(NodeTreeItem *child);
     void insertChild(int row, NodeTreeItem *child);
     NodeTreeItem *child(int row);
+    void removeChild(int row);
     int childCount() const;
     int columnCount() const;
     QVariant data(NodeItem::Roles role) const;
@@ -63,9 +66,12 @@ public:
     void appendChildNodeToParent(const QModelIndex& parentIndex,
                                  const QHash<NodeItem::Roles, QVariant>& data);
     QModelIndex rootIndex() const;
+    QModelIndex indexFromIdPath(const NodePath& idPath);
     QString getNewFolderPlaceholderName(const QModelIndex& parentIndex);
     QString getNewTagPlaceholderName();
     QVector<QModelIndex> getSeparatorIndex();
+    void deleteRow(const QModelIndex& rowIndex, const QModelIndex& parentIndex);
+
 public slots:
     void setTreeData(const NodeTagTreeData& treeData);
 
@@ -90,7 +96,6 @@ private:
     void appendFolderSeparator(NodeTreeItem* rootNode);
     void appendTagsSeparator(NodeTreeItem* rootNode);
     void loadTagList(const QVector<TagData>& tagData, NodeTreeItem* rootNode);
-
 };
 
 #endif // NODETREEMODEL_H

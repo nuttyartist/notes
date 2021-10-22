@@ -60,6 +60,9 @@ public:
     int relativePosition() const;
     void setRelativePosition(int newRelativePosition);
 
+    const QString &absolutePath() const;
+    void setAbsolutePath(const QString &newAbsolutePath);
+
 private:
     int m_id;
     QString m_fullTitle;
@@ -73,6 +76,7 @@ private:
     NodeData::Type m_nodeType;
     int m_parentId;
     int m_relativePosition;
+    QString m_absolutePath;
 };
 
 Q_DECLARE_METATYPE(NodeData)

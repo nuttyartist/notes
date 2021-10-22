@@ -2,9 +2,10 @@
 #include <QDataStream>
 
 NodeData::NodeData():
-      m_isModified(false),
-      m_isSelected(false),
-      m_scrollBarPosition(0)
+    m_id{SpecialNodeID::InvalidNoteId},
+    m_isModified(false),
+    m_isSelected(false),
+    m_scrollBarPosition(0)
 {
 
 }
@@ -117,6 +118,16 @@ int NodeData::relativePosition() const
 void NodeData::setRelativePosition(int newRelativePosition)
 {
     m_relativePosition = newRelativePosition;
+}
+
+const QString &NodeData::absolutePath() const
+{
+    return m_absolutePath;
+}
+
+void NodeData::setAbsolutePath(const QString &newAbsolutePath)
+{
+    m_absolutePath = newAbsolutePath;
 }
 
 QDateTime NodeData::creationDateTime() const

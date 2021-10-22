@@ -89,7 +89,9 @@ void NodeTreeDelegate::paint(QPainter *painter,
         } else {
             iconPath = ":/images/tree-node-normal.png";
         }
-        painter->drawImage(iconRect, QImage(iconPath));
+        if (index.data(NodeItem::Roles::IsExpandable).toBool()) {
+            painter->drawImage(iconRect, QImage(iconPath));
+        }
         QRect nameRect(option.rect);
 //        nameRect.setLeft(nameRect.x() + 10 + 5);
         nameRect.setLeft(iconRect.x() + iconRect.width() + 5);

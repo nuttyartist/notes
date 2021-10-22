@@ -40,6 +40,7 @@ SOURCES += \
     labeledittype.cpp \
     modelviewdatabaseconnector.cpp \
     nodedata.cpp \
+    nodepath.cpp \
     nodetreedelegate.cpp \
     nodetreemodel.cpp \
     nodetreeview.cpp \
@@ -63,6 +64,7 @@ HEADERS  += \
     labeledittype.h \
     modelviewdatabaseconnector.h \
     nodedata.h \
+    nodepath.h \
     nodetreedelegate.h \
     nodetreemodel.h \
     nodetreeview.h \

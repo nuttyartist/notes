@@ -29,6 +29,14 @@ NodeTreeItem *NodeTreeItem::child(int row)
     return m_childItems.at(row);
 }
 
+void NodeTreeItem::removeChild(int row)
+{
+    if (row < 0 || row >= m_childItems.size()) {
+        return;
+    }
+    m_childItems.remove(row);
+}
+
 int NodeTreeItem::childCount() const
 {
     return m_childItems.count();
@@ -204,6 +212,9 @@ QVariant NodeTreeModel::data(const QModelIndex &index, int role) const
     }
 
     NodeTreeItem *item = static_cast<NodeTreeItem*>(index.internalPointer());
+    if (static_cast<NodeItem::Roles>(role) == NodeItem::Roles::IsExpandable) {
+        return item->childCount() > 0;
+    }
     if (item->data(NodeItem::Roles::ItemType) == NodeItem::Type::RootItem) {
         return QVariant();
     }
@@ -213,6 +224,41 @@ QVariant NodeTreeModel::data(const QModelIndex &index, int role) const
 QModelIndex NodeTreeModel::rootIndex() const
 {
     return createIndex(0, 0, rootItem);
+}
+
+QModelIndex NodeTreeModel::indexFromIdPath(const NodePath &idPath)
+{
+    if (!rootItem) {
+        return QModelIndex();
+    }
+    auto ps = idPath.seperate();
+    auto item = rootItem;
+    for (const auto& ite : ps) {
+        bool ok = false;
+        auto id = ite.toInt(&ok);
+        if (!ok) {
+            qDebug() << __FUNCTION__ << "Can't convert to id" << ite;
+            return QModelIndex();
+        }
+        if (id == static_cast<int>(item->data(NodeItem::Roles::NodeId).toInt())) {
+            continue;
+        }
+        bool foundChild = false;
+        for (int i = 0 ; i < item->childCount(); ++i) {
+            auto child = item->child(i);
+            if (id == static_cast<int>(child->data(NodeItem::Roles::NodeId).toInt())) {
+                item = child;
+                foundChild = true;
+                break;
+            }
+        }
+        if (!foundChild) {
+            qDebug() << __FUNCTION__ << "Can't find child id" << id << "inside parent"
+                    << static_cast<int>(item->data(NodeItem::Roles::NodeId).toInt());
+            return QModelIndex();
+        }
+    }
+    return createIndex(item->row(), 0, item);
 }
 
 QString NodeTreeModel::getNewFolderPlaceholderName(const QModelIndex &parentIndex)
@@ -286,6 +332,26 @@ QVector<QModelIndex> NodeTreeModel::getSeparatorIndex()
         }
     }
     return result;
+}
+
+void NodeTreeModel::deleteRow(const QModelIndex &rowIndex, const QModelIndex& parentIndex)
+{
+    auto type = static_cast<NodeItem::Type>(rowIndex.data(NodeItem::Roles::ItemType).toInt());
+    auto id = rowIndex.data(NodeItem::Roles::NodeId).toInt();
+    if (!((type == NodeItem::Type::FolderItem ||
+            type == NodeItem::Type::TagItem) &&
+            id > SpecialNodeID::DefaultNotesFolder)) {
+        qDebug() << "Can not delete this row with id" << id;
+        return;
+    }
+
+    auto parentItem = static_cast<NodeTreeItem*>(parentIndex.internalPointer());
+    auto item = static_cast<NodeTreeItem*>(rowIndex.internalPointer());
+    int row = item->row();
+    beginRemoveRows(parentIndex, row, 0);
+    parentItem->removeChild(row);
+    delete item;
+    endRemoveRows();
 }
 
 void NodeTreeModel::setTreeData(const NodeTagTreeData &treeData)

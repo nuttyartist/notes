@@ -2842,11 +2842,11 @@ void MainWindow::selectNote(const QModelIndex &noteIndex)
 {
     if(noteIndex.isValid()){
         // save the position of text edit scrollbar
-        if(!m_isTemp && m_currentSelectedNote.isValid()){
-            int pos = m_textEdit->verticalScrollBar()->value();
-            QModelIndex indexSrc = m_currentSelectedNote;
-            m_noteModel->setData(indexSrc, QVariant::fromValue(pos), NoteModel::NoteScrollbarPos);
-        }
+//        if(!m_isTemp && m_currentSelectedNote.isValid()){
+//            int pos = m_textEdit->verticalScrollBar()->value();
+//            QModelIndex indexSrc = m_currentSelectedNote;
+//            m_noteModel->setData(indexSrc, QVariant::fromValue(pos), NoteModel::NoteScrollbarPos);
+//        }
 
         // show the content of the pressed note in the text editor
         showNoteInEditor(noteIndex);

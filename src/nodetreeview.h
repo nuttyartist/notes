@@ -29,7 +29,7 @@ signals:
     void addFolderRequested();
     void renameFolderRequested();
     void renameFolderInDatabase(const QModelIndex& index, const QString& newName);
-    void deleteNodeRequested(int id);
+    void deleteNodeRequested(const QModelIndex& index);
     void loadNotesRequested(int folderID, bool isRecursive);
 
 private slots:
