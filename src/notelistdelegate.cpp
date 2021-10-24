@@ -1,13 +1,13 @@
-#include "notewidgetdelegate.h"
+#include "notelistdelegate.h"
 #include <QPainter>
 #include <QEvent>
 #include <QDebug>
 #include <QApplication>
 #include <QFontDatabase>
 #include <QtMath>
-#include "notemodel.h"
+#include "notelistmodel.h"
 
-NoteWidgetDelegate::NoteWidgetDelegate(QObject *parent)
+NoteListDelegate::NoteListDelegate(QObject *parent)
     : QStyledItemDelegate(parent),
 #ifdef __APPLE__
       m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")),
@@ -55,7 +55,7 @@ NoteWidgetDelegate::NoteWidgetDelegate(QObject *parent)
     });
 }
 
-void NoteWidgetDelegate::setState(States NewState, QModelIndex index)
+void NoteListDelegate::setState(States NewState, QModelIndex index)
 {
     m_animatedIndex = index;
 
@@ -86,12 +86,12 @@ void NoteWidgetDelegate::setState(States NewState, QModelIndex index)
     m_state = NewState;
 }
 
-void NoteWidgetDelegate::setAnimationDuration(const int duration)
+void NoteListDelegate::setAnimationDuration(const int duration)
 {
     m_timeLine->setDuration(duration);
 }
 
-void NoteWidgetDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     QStyleOptionViewItem opt = option;
     opt.rect.setWidth(option.rect.width() - m_rowRightOffset);
@@ -122,7 +122,7 @@ void NoteWidgetDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
     paintLabels(painter, option, index);
 }
 
-QSize NoteWidgetDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     QSize result = QStyledItemDelegate::sizeHint(option, index);
     if(index == m_animatedIndex){
@@ -140,12 +140,12 @@ QSize NoteWidgetDelegate::sizeHint(const QStyleOptionViewItem &option, const QMo
     return result;
 }
 
-QTimeLine::State NoteWidgetDelegate::animationState()
+QTimeLine::State NoteListDelegate::animationState()
 {
     return m_timeLine->state();
 }
 
-void NoteWidgetDelegate::paintBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     if((option.state & QStyle::State_Selected) == QStyle::State_Selected){
         if(qApp->applicationState() == Qt::ApplicationActive){
@@ -167,18 +167,18 @@ void NoteWidgetDelegate::paintBackground(QPainter *painter, const QStyleOptionVi
     }
 }
 
-void NoteWidgetDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
+void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
     const int leftOffsetX = 10;
     const int topOffsetY = 5;   // space on top of title
     const int spaceY = 1;       // space between title and date
 
-    QString title{index.data(NoteModel::NoteFullTitle).toString()};
+    QString title{index.data(NoteListModel::NoteFullTitle).toString()};
     QFont titleFont = (option.state & QStyle::State_Selected) == QStyle::State_Selected ? m_titleSelectedFont : m_titleFont;
     QFontMetrics fmTitle(titleFont);
     QRect fmRectTitle = fmTitle.boundingRect(title);
 
-    QString date = parseDateTime(index.data(NoteModel::NoteLastModificationDateTime).toDateTime());
+    QString date = parseDateTime(index.data(NoteListModel::NoteLastModificationDateTime).toDateTime());
     QFontMetrics fmDate(m_dateFont);
     QRect fmRectDate = fmDate.boundingRect(title);
 
@@ -241,7 +241,7 @@ void NoteWidgetDelegate::paintLabels(QPainter* painter, const QStyleOptionViewIt
     drawStr(dateRectPosX, dateRectPosY, dateRectWidth, dateRectHeight, m_dateColor, m_dateFont, date);
 }
 
-void NoteWidgetDelegate::paintSeparator(QPainter*painter, const QStyleOptionViewItem&option, const QModelIndex&index) const
+void NoteListDelegate::paintSeparator(QPainter*painter, const QStyleOptionViewItem&option, const QModelIndex&index) const
 {
     Q_UNUSED(index)
 
@@ -255,7 +255,7 @@ void NoteWidgetDelegate::paintSeparator(QPainter*painter, const QStyleOptionView
                       QPoint(posX2, posY));
 }
 
-QString NoteWidgetDelegate::parseDateTime(const QDateTime &dateTime) const
+QString NoteListDelegate::parseDateTime(const QDateTime &dateTime) const
 {
     QLocale usLocale(QLocale("en_US"));
 
@@ -273,27 +273,27 @@ QString NoteWidgetDelegate::parseDateTime(const QDateTime &dateTime) const
     return dateTime.date().toString("M/d/yy");
 }
 
-void NoteWidgetDelegate::setActive(bool isActive)
+void NoteListDelegate::setActive(bool isActive)
 {
     m_isActive = isActive;
 }
 
-void NoteWidgetDelegate::setRowRightOffset(int rowRightOffset)
+void NoteListDelegate::setRowRightOffset(int rowRightOffset)
 {
     m_rowRightOffset = rowRightOffset;
 }
 
-void NoteWidgetDelegate::setHoveredIndex(const QModelIndex &hoveredIndex)
+void NoteListDelegate::setHoveredIndex(const QModelIndex &hoveredIndex)
 {
     m_hoveredIndex = hoveredIndex;
 }
 
-void NoteWidgetDelegate::setCurrentSelectedIndex(const QModelIndex &currentSelectedIndex)
+void NoteListDelegate::setCurrentSelectedIndex(const QModelIndex &currentSelectedIndex)
 {
     m_currentSelectedIndex = currentSelectedIndex;
 }
 
-void NoteWidgetDelegate::setTheme(NoteListView::Theme theme)
+void NoteListDelegate::setTheme(NoteListView::Theme theme)
 {
     switch(theme){
     case NoteListView::Theme::Light:

@@ -1,18 +1,18 @@
-#include "notemodel.h"
+#include "notelistmodel.h"
 #include <QDebug>
 
-NoteModel::NoteModel(QObject *parent)
+NoteListModel::NoteListModel(QObject *parent)
     : QAbstractListModel(parent)
 {
 
 }
 
-NoteModel::~NoteModel()
+NoteListModel::~NoteListModel()
 {
 
 }
 
-QModelIndex NoteModel::addNote(const NodeData& note)
+QModelIndex NoteListModel::addNote(const NodeData& note)
 {
     const int rowCnt = rowCount();
     beginInsertRows(QModelIndex(), rowCnt, rowCnt);
@@ -22,7 +22,7 @@ QModelIndex NoteModel::addNote(const NodeData& note)
     return createIndex(rowCnt, 0);
 }
 
-QModelIndex NoteModel::insertNote(const NodeData &note, int row)
+QModelIndex NoteListModel::insertNote(const NodeData &note, int row)
 {
     if(row >= rowCount()){
         return addNote(note);
@@ -35,39 +35,39 @@ QModelIndex NoteModel::insertNote(const NodeData &note, int row)
     return createIndex(row, 0);
 }
 
-NodeData NoteModel::getNote(const QModelIndex& index)
+NodeData NoteListModel::getNote(const QModelIndex& index) const
 {
     return m_noteList.at(index.row());
 }
 
-void NoteModel::addListNote(QList<NodeData *> noteList)
+QModelIndex NoteListModel::getNoteIndex(int id) const
 {
-    //    int start = rowCount();
-    //    int end = start + noteList.count()-1;
-    //    beginInsertRows(QModelIndex(), start, end);
-    //    m_noteList << noteList;
-    //    endInsertRows();
+    for (int i = 0; i < m_noteList.size(); ++i) {
+        if (m_noteList[i].id() == id) {
+            return createIndex(i, 0);
+        }
+    }
+    return QModelIndex{};
 }
 
-void NoteModel::setListNote(const QVector<NodeData> notes)
+void NoteListModel::setListNote(const QVector<NodeData> notes)
 {
     beginResetModel();
     m_noteList = notes;
     endResetModel();
 }
 
-NodeData* NoteModel::removeNote(const QModelIndex &noteIndex)
+void NoteListModel::removeNote(const QModelIndex &noteIndex)
 {
-    //    int row = noteIndex.row();
-    //    beginRemoveRows(QModelIndex(), row, row);
-    //    NodeData* note = m_noteList.takeAt(row);
-    //    endRemoveRows();
-
-    //    return note;
-    return nullptr;
+    if (noteIndex.isValid()) {
+        int row = noteIndex.row();
+        beginRemoveRows(QModelIndex(), row, row);
+        m_noteList.takeAt(row);
+        endRemoveRows();
+    }
 }
 
-bool NoteModel::moveRow(const QModelIndex &sourceParent, int sourceRow, const QModelIndex &destinationParent, int destinationChild)
+bool NoteListModel::moveRow(const QModelIndex &sourceParent, int sourceRow, const QModelIndex &destinationParent, int destinationChild)
 {
     if(sourceRow<0
             || sourceRow >= m_noteList.count()
@@ -77,21 +77,22 @@ bool NoteModel::moveRow(const QModelIndex &sourceParent, int sourceRow, const QM
         return false;
     }
 
-    beginMoveRows(sourceParent,sourceRow,sourceRow,destinationParent,destinationChild);
-    m_noteList.move(sourceRow,destinationChild);
-    endMoveRows();
-
-    return true;
+    if (beginMoveRows(sourceParent,sourceRow,sourceRow,destinationParent,destinationChild)) {
+        m_noteList.move(sourceRow,destinationChild);
+        endMoveRows();
+        return true;
+    }
+    return false;
 }
 
-void NoteModel::clearNotes()
+void NoteListModel::clearNotes()
 {
     beginResetModel();
     m_noteList.clear();
     endResetModel();
 }
 
-QVariant NoteModel::data(const QModelIndex &index, int role) const
+QVariant NoteListModel::data(const QModelIndex &index, int role) const
 {
     if (index.row() < 0 || index.row() >= m_noteList.count())
         return QVariant();
@@ -116,7 +117,7 @@ QVariant NoteModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-bool NoteModel::setData(const QModelIndex &index, const QVariant &value, int role)
+bool NoteListModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     if (!index.isValid())
         return false;
@@ -148,7 +149,7 @@ bool NoteModel::setData(const QModelIndex &index, const QVariant &value, int rol
     return true;
 }
 
-Qt::ItemFlags NoteModel::flags(const QModelIndex &index) const
+Qt::ItemFlags NoteListModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
         return Qt::ItemIsEnabled;
@@ -156,14 +157,14 @@ Qt::ItemFlags NoteModel::flags(const QModelIndex &index) const
     return QAbstractListModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsEditable ;
 }
 
-int NoteModel::rowCount(const QModelIndex &parent) const
+int NoteListModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent)
 
     return m_noteList.count();
 }
 
-void NoteModel::sort(int column, Qt::SortOrder order)
+void NoteListModel::sort(int column, Qt::SortOrder order)
 {
     Q_UNUSED(column)
     Q_UNUSED(order)

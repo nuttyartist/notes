@@ -1,5 +1,5 @@
-#ifndef MODELVIEWDATABASECONNECTOR_H
-#define MODELVIEWDATABASECONNECTOR_H
+#ifndef TREEVIEWLOGIC_H
+#define TREEVIEWLOGIC_H
 
 #include <QObject>
 #include "dbmanager.h"
@@ -9,11 +9,11 @@ class NodeTreeModel;
 class NodeTreeDelegate;
 class DBManager;
 
-class ModelViewDatabaseConnector : public QObject
+class TreeViewLogic : public QObject
 {
     Q_OBJECT
 public:
-    explicit ModelViewDatabaseConnector(NodeTreeView* treeView,
+    explicit TreeViewLogic(NodeTreeView* treeView,
                                         NodeTreeModel* treeModel,
                                         DBManager* dbManager,
                                         QObject *parent = nullptr);
@@ -37,4 +37,4 @@ private:
     DBManager* m_dbManager;
 };
 
-#endif // MODELVIEWDATABASECONNECTOR_H
+#endif // TREEVIEWLOGIC_H

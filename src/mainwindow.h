@@ -27,13 +27,12 @@
 #include <QAutostart>
 
 #include "nodedata.h"
-#include "notemodel.h"
+#include "notelistmodel.h"
 #include "notelistview.h"
 #include "nodetreemodel.h"
 #include "updaterwindow.h"
 #include "styleeditorwindow.h"
 #include "dbmanager.h"
-#include "markdownhighlighter.h"
 #include "customDocument.h"
 #include "aboutwindow.h"
 #include "framelesswindow.h"
@@ -42,8 +41,9 @@
 namespace Ui {
 class MainWindow;
 }
-class NodeTreeDelegate;
-class ModelViewDatabaseConnector;
+class TreeViewLogic;
+class ListViewLogic;
+class NoteEditorLogic;
 
 #if defined(Q_OS_LINUX)
 class MainWindow : public QMainWindow
@@ -111,7 +111,6 @@ private:
 
     Ui::MainWindow* ui;
 
-    QTimer* m_autoSaveTimer;
     QSettings* m_settingsDatabase;
     QToolButton* m_clearButton;
     QPushButton* m_greenMaximizeButton;
@@ -123,27 +122,26 @@ private:
     QPushButton* m_dotsButton;
     QPushButton* m_styleEditorButton;
     CustomDocument* m_textEdit;
+    NoteEditorLogic* m_noteEditorLogic;
     QLineEdit* m_searchEdit;
     QLabel* m_editorDateLabel;
     QSplitter *m_splitter;
-    bool is_markdown_enabled=true;
     QSystemTrayIcon* m_trayIcon;
     QAction* m_restoreAction;
     QAction* m_quitAction;
     QMenu* m_trayIconMenu;
 
-    NoteListView* m_noteView;
-    NoteModel* m_noteModel;
-    NoteModel* m_deletedNotesModel;
+    NoteListView* m_listView;
+    NoteListModel* m_listModel;
+    ListViewLogic* m_listViewLogic;
     NodeTreeView* m_treeView;
     NodeTreeModel* m_treeModel;
-    ModelViewDatabaseConnector* m_modelViewDatabaseConnector;
+    TreeViewLogic* m_treeViewLogic;
     QModelIndex m_currentSelectedNote;
     QModelIndex m_selectedNoteBeforeSearchingInSource;
     QQueue<QString> m_searchQueue;
     DBManager* m_dbManager;
     QThread* m_dbThread;
-    MarkdownHighlighter *m_highlighter;
 
     UpdaterWindow m_updater;
     StyleEditorWindow m_styleEditorWindow;
@@ -164,7 +162,6 @@ private:
     bool m_canStretchWindow;
     bool m_isTemp;
     bool m_isListViewScrollBarHidden;
-    bool m_isContentModified;
     bool m_isOperationRunning;
     bool m_dontShowUpdateWindow;
     bool m_alwaysStayOnTop;
@@ -217,17 +214,10 @@ private:
     void setLayoutForScrollArea();
     void setButtonsAndFieldsEnabled(bool doEnable);
     void restoreStates();
-    QString getFirstLine(const QString& str);
-    QString getNoteDateEditor (QString dateEdited);
-    QDateTime getQDateTime(QString date);
     void showNoteInEditor(const QModelIndex& noteIndex);
     void sortNotesList(QStringList &stringNotesList);
-    void saveNoteToDB(const QModelIndex& noteIndex);
     void removeNoteFromDB(const QModelIndex& noteIndex);
-    void selectFirstNote();
-    void moveNoteToTop();
     void clearSearch();
-    void highlightSearch() const;
     void findNotesContain(const QString &keyword);
     void selectNote(const QModelIndex& noteIndex);
     void checkMigration();
@@ -247,7 +237,6 @@ private:
 
 private slots:
     void InitData();
-    void loadNoteListModel(QVector<NodeData> noteList);
 
     void onNewNoteButtonPressed();
     void onNewNoteButtonClicked();
@@ -258,7 +247,6 @@ private slots:
     void onStyleEditorButtonPressed();
     void onStyleEditorButtonClicked();
     void onNotePressed(const QModelIndex &index);
-    void onTextEditTextChanged();
     void onSearchEditTextChanged(const QString& keyword);
     void onClearButtonClicked();
     void onGreenMaximizeButtonPressed();
@@ -281,8 +269,6 @@ private slots:
     void checkForUpdates (const bool clicked);
     void collapseNoteList();
     void expandNoteList();
-    void enableMarkdownHighlighter();
-    void disableMarkdownHighlighter();
     void toggleNoteList();
     void importNotesFile(const bool clicked);
     void exportNotesFile(const bool clicked);
@@ -302,7 +288,6 @@ signals:
     void requestNodesTree();
     void requestNotesList(int parentID, bool isRecursive);
     void requestOpenDBManager(QString path, bool doCreate);
-    void requestCreateUpdateNote(const NodeData& note);
     void requestDeleteNote(const NodeData& note);
     void requestRestoreNotes(QList<NodeData *> noteList);
     void requestImportNotes(QList<NodeData *> noteList);

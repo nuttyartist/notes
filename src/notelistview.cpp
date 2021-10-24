@@ -1,5 +1,5 @@
 #include "notelistview.h"
-#include "notewidgetdelegate.h"
+#include "notelistdelegate.h"
 #include <QDebug>
 #include <QPainter>
 #include <QApplication>
@@ -35,9 +35,9 @@ void NoteListView::animateAddedRow(const QModelIndex& parent, int start, int end
     // Note: this line add flikering, seen when the animation runs slow
     selectionModel()->select(idx, QItemSelectionModel::ClearAndSelect);
 
-    NoteWidgetDelegate* delegate = static_cast<NoteWidgetDelegate*>(itemDelegate());
+    NoteListDelegate* delegate = static_cast<NoteListDelegate*>(itemDelegate());
     if(delegate != Q_NULLPTR){
-        delegate->setState( NoteWidgetDelegate::Insert, idx);
+        delegate->setState( NoteListDelegate::Insert, idx);
 
         // TODO find a way to finish this function till the animation stops
         while(delegate->animationState() == QTimeLine::Running){
@@ -51,7 +51,7 @@ void NoteListView::animateAddedRow(const QModelIndex& parent, int start, int end
  */
 void NoteListView::paintEvent(QPaintEvent *e)
 {
-    NoteWidgetDelegate* delegate = static_cast<NoteWidgetDelegate*>(itemDelegate());
+    NoteListDelegate* delegate = static_cast<NoteListDelegate*>(itemDelegate());
     if(delegate != Q_NULLPTR)
         delegate->setCurrentSelectedIndex(currentIndex());
 
@@ -76,15 +76,15 @@ void NoteListView::rowsInserted(const QModelIndex &parent, int start, int end)
 void NoteListView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end)
 {
     if(start == end){
-        NoteWidgetDelegate* delegate = static_cast<NoteWidgetDelegate*>(itemDelegate());
+        NoteListDelegate* delegate = static_cast<NoteListDelegate*>(itemDelegate());
         if(delegate != Q_NULLPTR){
             QModelIndex idx = model()->index(start,0);
             delegate->setCurrentSelectedIndex(QModelIndex());
 
             if(m_animationEnabled){
-                delegate->setState( NoteWidgetDelegate::Remove, idx);
+                delegate->setState( NoteListDelegate::Remove, idx);
             }else{
-                delegate->setState( NoteWidgetDelegate::Normal, idx);
+                delegate->setState( NoteListDelegate::Normal, idx);
             }
 
             // TODO find a way to finish this function till the animation stops
@@ -107,13 +107,13 @@ void NoteListView::rowsAboutToBeMoved(const QModelIndex &sourceParent, int sourc
 
     if(model() != Q_NULLPTR){
         QModelIndex idx = model()->index(sourceStart,0);
-        NoteWidgetDelegate* delegate = static_cast<NoteWidgetDelegate*>(itemDelegate());
+        NoteListDelegate* delegate = static_cast<NoteListDelegate*>(itemDelegate());
         if(delegate != Q_NULLPTR){
 
             if(m_animationEnabled){
-                delegate->setState( NoteWidgetDelegate::MoveOut, idx);
+                delegate->setState( NoteListDelegate::MoveOut, idx);
             }else{
-                delegate->setState( NoteWidgetDelegate::Normal, idx);
+                delegate->setState( NoteListDelegate::Normal, idx);
             }
 
             // TODO find a way to finish this function till the animation stops
@@ -135,14 +135,14 @@ void NoteListView::rowsMoved(const QModelIndex &parent, int start, int end,
     QModelIndex idx = model()->index(row,0);
     setCurrentIndex(idx);
 
-    NoteWidgetDelegate* delegate = static_cast<NoteWidgetDelegate*>(itemDelegate());
+    NoteListDelegate* delegate = static_cast<NoteListDelegate*>(itemDelegate());
     if(delegate == Q_NULLPTR)
         return;
 
     if(m_animationEnabled){
-        delegate->setState( NoteWidgetDelegate::MoveIn, idx );
+        delegate->setState( NoteListDelegate::MoveIn, idx );
     }else{
-        delegate->setState( NoteWidgetDelegate::Normal, idx);
+        delegate->setState( NoteListDelegate::Normal, idx);
     }
 
     // TODO find a way to finish this function till the animation stops
@@ -188,7 +188,7 @@ bool NoteListView::viewportEvent(QEvent*e)
             QModelIndex index = indexAt(QPoint(10, pt.y()));
             if(index.row() > 0){
                 index = model()->index(index.row()-1, 0);
-                NoteWidgetDelegate* delegate = static_cast<NoteWidgetDelegate*>(itemDelegate());
+                NoteListDelegate* delegate = static_cast<NoteListDelegate*>(itemDelegate());
                 if(delegate != Q_NULLPTR){
                     delegate->setHoveredIndex(QModelIndex());
                     viewport()->update(visualRect(index));
@@ -214,7 +214,7 @@ bool NoteListView::viewportEvent(QEvent*e)
 
 void NoteListView::setCurrentRowActive(bool isActive)
 {
-    NoteWidgetDelegate* delegate = static_cast<NoteWidgetDelegate*>(itemDelegate());
+    NoteListDelegate* delegate = static_cast<NoteListDelegate*>(itemDelegate());
     if(delegate == Q_NULLPTR)
         return;
 
@@ -264,7 +264,7 @@ void NoteListView::setupSignalsSlots()
                 viewport()->update(visualRect(prevIndex));
             }
 
-            NoteWidgetDelegate* delegate = static_cast<NoteWidgetDelegate *>(itemDelegate());
+            NoteListDelegate* delegate = static_cast<NoteListDelegate *>(itemDelegate());
             if(delegate != Q_NULLPTR)
                 delegate->setHoveredIndex(index);
         }
@@ -273,7 +273,7 @@ void NoteListView::setupSignalsSlots()
     // viewport was entered
     connect(this, &NoteListView::viewportEntered,[this](){
         if(model() != Q_NULLPTR && model()->rowCount() > 1){
-            NoteWidgetDelegate* delegate = static_cast<NoteWidgetDelegate *>(itemDelegate());
+            NoteListDelegate* delegate = static_cast<NoteListDelegate *>(itemDelegate());
             if(delegate != Q_NULLPTR)
                 delegate->setHoveredIndex(QModelIndex());
 
@@ -286,7 +286,7 @@ void NoteListView::setupSignalsSlots()
     connect(this->verticalScrollBar(), &QScrollBar::rangeChanged,[this](int min, int max){
         Q_UNUSED(min)
 
-        NoteWidgetDelegate* delegate = static_cast<NoteWidgetDelegate*>(itemDelegate());
+        NoteListDelegate* delegate = static_cast<NoteListDelegate*>(itemDelegate());
         if(delegate != Q_NULLPTR){
             if(max > 0){
                 delegate->setRowRightOffset(2);

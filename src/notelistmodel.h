@@ -1,13 +1,11 @@
-#ifndef NOTEMODEL_H
-#define NOTEMODEL_H
+#ifndef NOTELISTMODEL_H
+#define NOTELISTMODEL_H
 
 #include <QAbstractListModel>
 #include "nodedata.h"
 
-class NoteModel : public QAbstractListModel
+class NoteListModel : public QAbstractListModel
 {
-
-    friend class tst_NoteModel;
 
 public:
 
@@ -21,15 +19,15 @@ public:
         NoteScrollbarPos
     };
 
-    explicit NoteModel(QObject *parent = Q_NULLPTR);
-    ~NoteModel();
+    explicit NoteListModel(QObject *parent = Q_NULLPTR);
+    ~NoteListModel();
 
     QModelIndex addNote(const NodeData& note);
     QModelIndex insertNote(const NodeData& note, int row);
-    NodeData getNote(const QModelIndex& index);
-    void addListNote(QList<NodeData*> noteList);
+    NodeData getNote(const QModelIndex& index) const;
+    QModelIndex getNoteIndex(int id) const;
     void setListNote(const QVector<NodeData> notes);
-    NodeData* removeNote(const QModelIndex& noteIndex);
+    void removeNote(const QModelIndex& noteIndex);
     bool moveRow(const QModelIndex& sourceParent,
                  int sourceRow,
                  const QModelIndex& destinationParent,
@@ -49,4 +47,4 @@ signals:
     void noteRemoved();
 };
 
-#endif // NOTEMODEL_H
+#endif // NOTELISTMODEL_H

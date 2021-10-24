@@ -25,20 +25,21 @@ include ($$PWD/../3rdParty/qmarkdowntextedit/qmarkdowntextedit.pri)
 include ($$PWD/../3rdParty/qautostart/src/qautostart.pri)
 
 SOURCES += \
-    $$PWD/main.cpp\
-    $$PWD/mainwindow.cpp \
-    $$PWD/notewidgetdelegate.cpp \
-    $$PWD/notemodel.cpp \
-    $$PWD/notelistview.cpp \
-    $$PWD/singleinstance.cpp \
-    $$PWD/updaterwindow.cpp \
-    $$PWD/dbmanager.cpp \
+    main.cpp\
+    mainwindow.cpp \
+    noteeditorlogic.cpp \
+    notelistdelegate.cpp \
+    notelistmodel.cpp \
+    notelistview.cpp \
+    singleinstance.cpp \
+    updaterwindow.cpp \
+    dbmanager.cpp \
     aboutwindow.cpp \
     customdocument.cpp \
     editorsettingsbutton.cpp \
     foldertreedelegateeditor.cpp \
     labeledittype.cpp \
-    modelviewdatabaseconnector.cpp \
+    listviewlogic.cpp \
     nodedata.cpp \
     nodepath.cpp \
     nodetreedelegate.cpp \
@@ -46,23 +47,25 @@ SOURCES += \
     nodetreeview.cpp \
     pushbuttontype.cpp \
     styleeditorwindow.cpp \
-    tagdata.cpp
+    tagdata.cpp \
+    treeviewlogic.cpp
 
 HEADERS  += \
-    $$PWD/mainwindow.h \
-    $$PWD/notewidgetdelegate.h \
-    $$PWD/notemodel.h \
-    $$PWD/notelistview.h \
-    $$PWD/singleinstance.h \
-    $$PWD/updaterwindow.h \
-    $$PWD/dbmanager.h \
+    mainwindow.h \
+    noteeditorlogic.h \
+    notelistdelegate.h \
+    notelistmodel.h \
+    notelistview.h \
+    singleinstance.h \
+    updaterwindow.h \
+    dbmanager.h \
     aboutwindow.h \
     customDocument.h \
     editorsettingsbutton.h \
     foldertreedelegateeditor.h \
     framelesswindow.h \
     labeledittype.h \
-    modelviewdatabaseconnector.h \
+    listviewlogic.h \
     nodedata.h \
     nodepath.h \
     nodetreedelegate.h \
@@ -70,7 +73,8 @@ HEADERS  += \
     nodetreeview.h \
     pushbuttontype.h \
     styleeditorwindow.h \
-    tagdata.h
+    tagdata.h \
+    treeviewlogic.h
 
 FORMS += \
     $$PWD/mainwindow.ui \

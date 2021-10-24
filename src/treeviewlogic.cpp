@@ -1,4 +1,4 @@
-#include "modelviewdatabaseconnector.h"
+#include "treeviewlogic.h"
 #include "nodetreeview.h"
 #include "nodetreemodel.h"
 #include "nodetreedelegate.h"
@@ -7,7 +7,7 @@
 #include <QMetaObject>
 #include <QMessageBox>
 
-ModelViewDatabaseConnector::ModelViewDatabaseConnector(NodeTreeView* treeView,
+TreeViewLogic::TreeViewLogic(NodeTreeView* treeView,
                                                        NodeTreeModel* treeModel,
                                                        DBManager* dbManager,
                                                        QObject *parent) :
@@ -19,35 +19,38 @@ ModelViewDatabaseConnector::ModelViewDatabaseConnector(NodeTreeView* treeView,
     m_treeDelegate = new NodeTreeDelegate(m_treeView, m_treeView);
     m_treeView->setItemDelegate(m_treeDelegate);
     connect(m_dbManager, &DBManager::nodesTagTreeReceived,
-            this, &ModelViewDatabaseConnector::loadTreeModel);
+            this, &TreeViewLogic::loadTreeModel);
     connect(m_treeModel, &NodeTreeModel::topLevelItemLayoutChanged,
-            this, &ModelViewDatabaseConnector::updateTreeViewSeparator);
+            this, &TreeViewLogic::updateTreeViewSeparator);
     connect(m_treeView, &NodeTreeView::addFolderRequested,
-            this, &ModelViewDatabaseConnector::onAddFolderRequested);
+            this, &TreeViewLogic::onAddFolderRequested);
     connect(m_treeDelegate, &NodeTreeDelegate::addFolderRequested,
-            this, &ModelViewDatabaseConnector::onAddFolderRequested);
+            this, &TreeViewLogic::onAddFolderRequested);
     connect(m_treeDelegate, &NodeTreeDelegate::addTagRequested,
-            this, &ModelViewDatabaseConnector::onAddTagRequested);
+            this, &TreeViewLogic::onAddTagRequested);
     connect(m_treeView, &NodeTreeView::renameFolderInDatabase,
-            this, &ModelViewDatabaseConnector::onRenameNodeRequestedFromTreeView);
-    connect(this, &ModelViewDatabaseConnector::requestRenameNodeInDB,
+            this, &TreeViewLogic::onRenameNodeRequestedFromTreeView);
+    connect(this, &TreeViewLogic::requestRenameNodeInDB,
             m_dbManager, &DBManager::renameNode, Qt::QueuedConnection);
     connect(m_treeView, &NodeTreeView::deleteNodeRequested,
-            this, &ModelViewDatabaseConnector::onDeleteFolderRequested);
+            this, &TreeViewLogic::onDeleteFolderRequested);
+    connect(m_treeView, &NodeTreeView::loadNotesRequested,
+            m_dbManager, &DBManager::onNotesListRequested, Qt::QueuedConnection);
+
 }
 
-void ModelViewDatabaseConnector::updateTreeViewSeparator()
+void TreeViewLogic::updateTreeViewSeparator()
 {
     m_treeView->setTreeSeparator(m_treeModel->getSeparatorIndex());
 }
 
-void ModelViewDatabaseConnector::loadTreeModel(const NodeTagTreeData &treeData)
+void TreeViewLogic::loadTreeModel(const NodeTagTreeData &treeData)
 {
     m_treeModel->setTreeData(treeData);
     updateTreeViewSeparator();
 }
 
-void ModelViewDatabaseConnector::onAddFolderRequested()
+void TreeViewLogic::onAddFolderRequested()
 {
     auto currentIndex = m_treeView->currentIndex();
     int parentId = SpecialNodeID::RootFolder;
@@ -100,7 +103,7 @@ void ModelViewDatabaseConnector::onAddFolderRequested()
     }
 }
 
-void ModelViewDatabaseConnector::onAddTagRequested()
+void TreeViewLogic::onAddTagRequested()
 {
     int newlyCreatedTagId;
     TagData newTag;
@@ -126,14 +129,14 @@ void ModelViewDatabaseConnector::onAddTagRequested()
     m_treeModel->appendChildNodeToParent(m_treeModel->rootIndex(), hs);
 }
 
-void ModelViewDatabaseConnector::onRenameNodeRequestedFromTreeView(const QModelIndex &index, const QString &newName)
+void TreeViewLogic::onRenameNodeRequestedFromTreeView(const QModelIndex &index, const QString &newName)
 {
     m_treeModel->setData(index, newName, NodeItem::Roles::DisplayText);
     auto id = index.data(NodeItem::Roles::NodeId).toInt();
     emit requestRenameNodeInDB(id, newName);
 }
 
-void ModelViewDatabaseConnector::onDeleteFolderRequested(const QModelIndex &index)
+void TreeViewLogic::onDeleteFolderRequested(const QModelIndex &index)
 {
     auto btn = QMessageBox::question(nullptr, "Are you sure you want to delete this folder",
                                      "Are you sure you want to delete this folder? All notes and any subfolders will be deleted.");
