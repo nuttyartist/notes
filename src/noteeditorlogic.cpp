@@ -30,7 +30,6 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit,
     connect(&m_autoSaveTimer, &QTimer::timeout, this, [this]() {
         saveNoteToDB();
     });
-
 }
 
 bool NoteEditorLogic::markdownEnabled() const
@@ -117,10 +116,29 @@ QDateTime NoteEditorLogic::getQDateTime(QString date)
 void NoteEditorLogic::saveNoteToDB()
 {
     if(m_currentNote.id() != SpecialNodeID::InvalidNoteId
-            && m_isContentModified) {
+            && m_isContentModified && !m_isTempNote) {
         emit requestCreateUpdateNote(m_currentNote);
         m_isContentModified = false;
     }
+}
+
+void NoteEditorLogic::closeEditor()
+{
+    if (m_currentNote.id() != SpecialNodeID::InvalidNoteId) {
+        saveNoteToDB();
+        m_textEdit->blockSignals(true);
+        m_textEdit->clear();
+        m_textEdit->setFocus();
+        m_textEdit->blockSignals(false);
+        m_currentNote.setId(SpecialNodeID::InvalidNoteId);
+    } else {
+        qDebug() << "NoteEditorLogic::closeEditor() : m_currentNote is not valid";
+    }
+}
+
+NodeData NoteEditorLogic::currentEditingNote() const
+{
+    return m_currentNote;
 }
 
 /*!

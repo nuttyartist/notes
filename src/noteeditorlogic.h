@@ -29,7 +29,8 @@ public:
     bool isTempNote() const;
     void setIsTempNote(bool newIsTempNote);
     void saveNoteToDB();
-
+    void closeEditor();
+    NodeData currentEditingNote() const;
     static QString getFirstLine(const QString &str);
 public slots:
     void showNoteInEditor(const NodeData& note);

@@ -1653,18 +1653,14 @@ void MainWindow::onClearButtonClicked()
  */
 void MainWindow::createNewNote()
 {
-    if(!m_isOperationRunning){
-        m_isOperationRunning = true;
-
+//    if(!m_isOperationRunning){
+//        m_isOperationRunning = true;
         m_listView->scrollToTop();
+        QModelIndex newNoteIndex;
+        if (!m_noteEditorLogic->isTempNote()){
+            // clear the textEdit
+            m_noteEditorLogic->closeEditor();
 
-        // clear the textEdit
-        m_textEdit->blockSignals(true);
-        m_textEdit->clear();
-        m_textEdit->setFocus();
-        m_textEdit->blockSignals(false);
-
-        if(!m_isTemp){
             NodeData tmpNote;
             tmpNote.setNodeType(NodeData::Note);
             QDateTime noteDate = QDateTime::currentDateTime();
@@ -1682,29 +1678,28 @@ void MainWindow::createNewNote()
             } else {
                 tmpNote.setParentId(SpecialNodeID::DefaultNotesFolder);
             }
-            m_isTemp = true;
             int noteId = SpecialNodeID::InvalidNoteId;
             QMetaObject::invokeMethod(m_dbManager, "nextAvailableNodeId", Qt::BlockingQueuedConnection,
                                       Q_RETURN_ARG(int, noteId)
                                       );
             tmpNote.setId(noteId);
             // insert the new note to NoteListModel
-            // update the current selected index
-            m_currentSelectedNote = m_listModel->insertNote(tmpNote, 0);
+            newNoteIndex = m_listModel->insertNote(tmpNote, 0);
 
-            // update the editor header date label
-            QString dateTimeFromDB = tmpNote.lastModificationdateTime().toString(Qt::ISODate);
-            QString dateTimeForEditor = NoteEditorLogic::getNoteDateEditor(dateTimeFromDB);
-            m_editorDateLabel->setText(dateTimeForEditor);
-
+            // update the editor
+            m_noteEditorLogic->showNoteInEditor(tmpNote);
+            m_noteEditorLogic->setIsTempNote(true);
         } else {
-            int row = m_currentSelectedNote.row();
+            newNoteIndex = m_listModel->getNoteIndex(
+                        m_noteEditorLogic->currentEditingNote().id());
+            int row = newNoteIndex.row();
             m_listView->animateAddedRow(QModelIndex(),row, row);
         }
 
-        m_listView->setCurrentIndex(m_currentSelectedNote);
-        m_isOperationRunning = false;
-    }
+        // update the current selected index
+        m_listView->setCurrentIndex(newNoteIndex);
+//        m_isOperationRunning = false;
+//    }
 }
 
 /*!
