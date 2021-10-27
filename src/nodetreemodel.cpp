@@ -457,6 +457,7 @@ void NodeTreeModel::loadTagList(const QVector<TagData> &tagData, NodeTreeItem *r
         hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
         hs[NodeItem::Roles::DisplayText] = tag.name();
         hs[NodeItem::Roles::TagColor] = tag.color();
+        hs[NodeItem::Roles::NodeId] = tag.id();
 
         auto tagItem = new NodeTreeItem(hs, rootNode);
         rootNode->appendChild(tagItem);

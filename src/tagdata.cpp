@@ -1,7 +1,7 @@
 #include "tagdata.h"
 
 TagData::TagData():
-    m_id{-1},
+    m_id{SpecialTagID::InvalidTagId},
     m_relativePosition{-1}
 {
 

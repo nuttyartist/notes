@@ -44,6 +44,7 @@ class MainWindow;
 class TreeViewLogic;
 class ListViewLogic;
 class NoteEditorLogic;
+class TagPool;
 
 #if defined(Q_OS_LINUX)
 class MainWindow : public QMainWindow
@@ -137,6 +138,7 @@ private:
     NodeTreeView* m_treeView;
     NodeTreeModel* m_treeModel;
     TreeViewLogic* m_treeViewLogic;
+    TagPool* m_tagPool;
     QModelIndex m_currentSelectedNote;
     QModelIndex m_selectedNoteBeforeSearchingInSource;
     QQueue<QString> m_searchQueue;
@@ -246,7 +248,6 @@ private slots:
     void onDotsButtonClicked();
     void onStyleEditorButtonPressed();
     void onStyleEditorButtonClicked();
-    void onNotePressed(const QModelIndex &index);
     void onSearchEditTextChanged(const QString& keyword);
     void onClearButtonClicked();
     void onGreenMaximizeButtonPressed();

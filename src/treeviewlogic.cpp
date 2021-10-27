@@ -8,9 +8,9 @@
 #include <QMessageBox>
 
 TreeViewLogic::TreeViewLogic(NodeTreeView* treeView,
-                                                       NodeTreeModel* treeModel,
-                                                       DBManager* dbManager,
-                                                       QObject *parent) :
+                             NodeTreeModel* treeModel,
+                             DBManager* dbManager,
+                             QObject *parent) :
     QObject(parent),
     m_treeView{treeView},
     m_treeModel{treeModel},
@@ -34,9 +34,10 @@ TreeViewLogic::TreeViewLogic(NodeTreeView* treeView,
             m_dbManager, &DBManager::renameNode, Qt::QueuedConnection);
     connect(m_treeView, &NodeTreeView::deleteNodeRequested,
             this, &TreeViewLogic::onDeleteFolderRequested);
-    connect(m_treeView, &NodeTreeView::loadNotesRequested,
-            m_dbManager, &DBManager::onNotesListRequested, Qt::QueuedConnection);
-
+    connect(m_treeView, &NodeTreeView::loadNotesInFolderRequested,
+            m_dbManager, &DBManager::onNotesListInFolderRequested, Qt::QueuedConnection);
+    connect(m_treeView, &NodeTreeView::loadNotesInTagRequested,
+            m_dbManager, &DBManager::onNotesListInTagRequested, Qt::QueuedConnection);
 }
 
 void TreeViewLogic::updateTreeViewSeparator()
@@ -153,9 +154,14 @@ void TreeViewLogic::onDeleteFolderRequested(const QModelIndex &index)
                                   );
         auto parentPath = NodePath{node.absolutePath()}.parentPath();
         auto parentIndex = m_treeModel->indexFromIdPath(parentPath);
-        m_treeModel->deleteRow(index, parentIndex);
-        QMetaObject::invokeMethod(m_dbManager, "moveFolderToTrash", Qt::QueuedConnection,
-                                  Q_ARG(NodeData, node));
+        if (parentIndex.isValid()) {
+            m_treeModel->deleteRow(index, parentIndex);
+            QMetaObject::invokeMethod(m_dbManager, "moveFolderToTrash", Qt::QueuedConnection,
+                                      Q_ARG(NodeData, node));
+        } else {
+            qDebug() << __FUNCTION__ << "Parent index with path" << parentPath.path()
+                     << "is not valid";
+        }
     }
 }
 

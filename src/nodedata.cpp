@@ -130,6 +130,16 @@ void NodeData::setAbsolutePath(const QString &newAbsolutePath)
     m_absolutePath = newAbsolutePath;
 }
 
+const QSet<int> &NodeData::tagIds() const
+{
+    return m_tagIds;
+}
+
+void NodeData::setTagIds(const QSet<int> &newTagIds)
+{
+    m_tagIds = newTagIds;
+}
+
 QDateTime NodeData::creationDateTime() const
 {
     return m_creationDateTime;

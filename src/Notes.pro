@@ -32,6 +32,10 @@ SOURCES += \
     notelistmodel.cpp \
     notelistview.cpp \
     singleinstance.cpp \
+    taglistdelegate.cpp \
+    taglistmodel.cpp \
+    taglistview.cpp \
+    tagpool.cpp \
     updaterwindow.cpp \
     dbmanager.cpp \
     aboutwindow.cpp \
@@ -57,6 +61,10 @@ HEADERS  += \
     notelistmodel.h \
     notelistview.h \
     singleinstance.h \
+    taglistdelegate.h \
+    taglistmodel.h \
+    taglistview.h \
+    tagpool.h \
     updaterwindow.h \
     dbmanager.h \
     aboutwindow.h \

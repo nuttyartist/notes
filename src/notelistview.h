@@ -4,11 +4,11 @@
 #include <QListView>
 #include <QScrollArea>
 
+class TagPool;
+
 class NoteListView : public QListView
 {
     Q_OBJECT
-
-    friend class tst_NoteView;
 
 public:
     enum class Theme {
@@ -23,7 +23,12 @@ public:
     void animateAddedRow(const QModelIndex &parent, int start, int end);
     void setAnimationEnabled(bool isEnabled);
     void setCurrentRowActive(bool isActive);
-    void setTheme(Theme theme);
+    void setTheme(Theme theme);    
+    void setTagPool(TagPool *newTagPool);
+
+public slots:
+    void onCustomContextMenu(const QPoint& point);
+    void onTagsMenu(const QPoint& point);
 
 protected:
     void paintEvent(QPaintEvent *e) Q_DECL_OVERRIDE;
@@ -31,16 +36,6 @@ protected:
     void mousePressEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
     void mouseReleaseEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
     bool viewportEvent(QEvent* e) Q_DECL_OVERRIDE;
-
-private:
-    bool m_isScrollBarHidden;
-    bool m_animationEnabled;
-    bool m_isMousePressed;
-    int m_rowHeight;
-    QColor m_currentBackgroundColor;
-
-    void setupSignalsSlots();
-    void setupStyleSheet();
 
 public slots:
     void rowsAboutToBeMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd,
@@ -58,7 +53,24 @@ protected slots:
 
 signals:
     void viewportPressed();
+    void addTagRequested(const QModelIndex& index, int tadId);
+private:
+    bool m_isScrollBarHidden;
+    bool m_animationEnabled;
+    bool m_isMousePressed;
+    int m_rowHeight;
+    QColor m_currentBackgroundColor;
+    QMenu* contextMenu;
+    QAction* addToTagAction;
+    QAction* deleteNoteAction;
+    QMenu* tagsMenu;
+    TagPool* m_tagPool;
+    QVector<QAction*> m_addTagActions;
 
+    void setupSignalsSlots();
+    void setupStyleSheet();
+
+    void addCurrentNoteToTag(int tagId);
 };
 
 #endif // NOTELISTVIEW_H

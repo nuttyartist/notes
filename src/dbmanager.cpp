@@ -6,6 +6,7 @@
 #include <QSqlError>
 #include <QtConcurrent>
 #include <QSqlRecord>
+#include <QSet>
 
 /*!
  * \brief DBManager::DBManager
@@ -14,9 +15,10 @@
 DBManager::DBManager(QObject *parent)
     : QObject(parent)
 {
-    qRegisterMetaType<QList<NodeData*> >("QList<NodeData*>");
+    qRegisterMetaType<QList<NodeData*>>("QList<NodeData*>");
     qRegisterMetaType<QVector<NodeData>>("QVector<NodeData>");
     qRegisterMetaType<NodeTagTreeData>("NodeTagTreeData");
+    qRegisterMetaType<QSet<int>>("QSet<int>");
 }
 
 /*!
@@ -170,6 +172,9 @@ QVector<NodeData> DBManager::getAllFolders()
             node.setParentId(query.value(7).toInt());
             node.setRelativePosition(query.value(8).toInt());
             node.setAbsolutePath(query.value(9).toString());
+            if (node.nodeType() == NodeData::Note) {
+                node.setTagIds(getAllTagForNote(node.id()));
+            }
             nodeList.append(node);
         }
     } else {
@@ -200,6 +205,23 @@ QVector<TagData> DBManager::getAllTagInfo()
     }
 
     return tagList;
+}
+
+QSet<int> DBManager::getAllTagForNote(int noteId)
+{
+    QSet<int> tagIds;
+    QSqlQuery query;
+    query.prepare(R"(SELECT "tag_id" FROM tag_relationship WHERE node_id = :node_id;)");
+    query.bindValue(":node_id", noteId);
+    bool status = query.exec();
+    if(status) {
+        while(query.next()) {
+            tagIds.insert(query.value(0).toInt());
+        }
+    } else {
+        qDebug() << __FUNCTION__ << "query failed!" << query.lastError();
+    }
+    return tagIds;
 }
 
 int DBManager::addNode(const NodeData &node)
@@ -234,7 +256,9 @@ int DBManager::addNode(const NodeData &node)
     if (node.parentId() != -1) {
         absolutePath = getNodeAbsolutePath(node.parentId()).path();
     }
+    qDebug() << " parent path " << absolutePath;
     absolutePath += PATH_SEPERATOR + QString::number(nodeId);
+    qDebug() << absolutePath;
     QString queryStr = R"(INSERT INTO "node_table")"
                        R"(("id", "title", "creation_date", "modification_date", "deletion_date", "content", "node_type", "parent_id", "relative_position", "absolute_path"))"
                        R"(VALUES (:id, :title, :creation_date, :modification_date, :deletion_date, :content, :node_type, :parent_id, :relative_position, :absolute_path);)";
@@ -271,8 +295,6 @@ int DBManager::addTag(const TagData &tag)
     QString queryStr = R"(INSERT INTO "tag_table" )"
                        R"(("id","name","color","relative_position") )"
                        R"(VALUES (:id, :name, :color, :relative_position);)";
-
-
     query.prepare(queryStr);
     query.bindValue(":id", id);
     query.bindValue(":name", tag.name());
@@ -288,7 +310,21 @@ int DBManager::addTag(const TagData &tag)
     if (!query.exec()) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
+    auto newTag = tag;
+    newTag.setId(id);
+    emit tagAdded(newTag);
     return id;
+}
+
+void DBManager::addNoteToTag(int noteId, int tagId)
+{
+    QSqlQuery query;
+    query.prepare(R"(INSERT INTO "tag_relationship" ("node_id","tag_id") VALUES (:note_id, :tag_id);)");
+    query.bindValue(":note_id", noteId);
+    query.bindValue(":tag_id", tagId);
+    if (!query.exec()) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+    }
 }
 
 int DBManager::nextAvailableNodeId()
@@ -520,6 +556,9 @@ NodeData DBManager::getNode(int nodeId)
         node.setParentId(query.value(7).toInt());
         node.setRelativePosition(query.value(8).toInt());
         node.setAbsolutePath(query.value(9).toString());
+        if (node.nodeType() == NodeData::Note) {
+            node.setTagIds(getAllTagForNote(node.id()));
+        }
         return node;
     } else {
         qDebug() << "getAllNodes query failed!" << query.lastError();
@@ -593,7 +632,7 @@ void DBManager::onNodeTagTreeRequested()
 /*!
  * \brief DBManager::onNotesListRequested
  */
-void DBManager::onNotesListRequested(int parentID, bool isRecursive)
+void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive)
 {
     QVector<NodeData> nodeList;
     QSqlQuery query;
@@ -663,11 +702,40 @@ void DBManager::onNotesListRequested(int parentID, bool isRecursive)
                 node.setNodeType(static_cast<NodeData::Type>(query.value(6).toInt()));
                 node.setParentId(query.value(7).toInt());
                 node.setRelativePosition(query.value(8).toInt());
+                node.setTagIds(getAllTagForNote(node.id()));
                 nodeList.append(node);
             }
         } else {
             qDebug() << __LINE__ << "Database query failed!" << query.lastError();
         }
+    }
+    emit notesListReceived(nodeList);
+}
+
+void DBManager::onNotesListInTagRequested(int tagId)
+{
+    QVector<NodeData> nodeList;
+    QSqlQuery query;
+    query.prepare(R"(SELECT "node_id" FROM tag_relationship WHERE tag_id = :tag_id;)");
+    query.bindValue(QStringLiteral(":tag_id"), tagId);
+    bool status = query.exec();
+    if(status) {
+        QSet<int> noteIds;
+        while(query.next()) {
+            noteIds.insert(query.value(0).toInt());
+        }
+        for (const auto& id : noteIds) {
+            NodeData node = getNode(id);
+            if (node.id() != SpecialNodeID::InvalidNoteId &&
+                    node.nodeType() == NodeData::Note) {
+                nodeList.append(node);
+            } else {
+                qDebug() << __FUNCTION__ << "Note with id" << id << "is not valid";
+            }
+        }
+    } else {
+        qDebug() << __LINE__ << "Database query failed!" << query.lastError();
+        qDebug() << query.lastQuery().toStdString().c_str();
     }
     emit notesListReceived(nodeList);
 }

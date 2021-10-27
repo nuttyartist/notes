@@ -7,6 +7,7 @@
 #include <QObject>
 #include <QtSql/QSqlDatabase>
 #include <QPair>
+#include <QSet>
 
 struct NodeTagTreeData {
     QVector<NodeData> nodeTreeData;
@@ -30,7 +31,7 @@ private:
 
     QVector<NodeData> getAllFolders();
     QVector<TagData> getAllTagInfo();
-
+    QSet<int> getAllTagForNote(int noteId);
     bool removeNote(const NodeData& note);
     bool permanantlyRemoveAllNotes();
     bool updateNoteContent(const NodeData &note);
@@ -41,9 +42,11 @@ signals:
     void notesListReceived(QVector<NodeData> noteList);
     void nodesTagTreeReceived(const NodeTagTreeData& treeData);
 
+    void tagAdded(const TagData& tag);
 public slots:
     void onNodeTagTreeRequested();
-    void onNotesListRequested(int parentID, bool isRecursive);
+    void onNotesListInFolderRequested(int parentID, bool isRecursive);
+    void onNotesListInTagRequested(int tagId);
     void onOpenDBManagerRequested(QString path, bool doCreate);
     void onCreateUpdateRequestedNoteContent(const NodeData& note);
     void onDeleteNoteRequested(const NodeData &note);
@@ -55,6 +58,7 @@ public slots:
 
     int addNode(const NodeData& node);
     int addTag(const TagData& tag);
+    void addNoteToTag(int noteId, int tagId);
     int nextAvailableNodeId();
     int nextAvailableTagId();
     void renameNode(int id, const QString& newName);

@@ -30,7 +30,8 @@ signals:
     void renameFolderRequested();
     void renameFolderInDatabase(const QModelIndex& index, const QString& newName);
     void deleteNodeRequested(const QModelIndex& index);
-    void loadNotesRequested(int folderID, bool isRecursive);
+    void loadNotesInFolderRequested(int folderID, bool isRecursive);
+    void loadNotesInTagRequested(int tagId);
 
 private slots:
     void onClicked(const QModelIndex& index);

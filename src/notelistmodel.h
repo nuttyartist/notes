@@ -16,7 +16,8 @@ public:
         NoteLastModificationDateTime,
         NoteDeletionDateTime,
         NoteContent,
-        NoteScrollbarPos
+        NoteScrollbarPos,
+        NoteTagsList,
     };
 
     explicit NoteListModel(QObject *parent = Q_NULLPTR);

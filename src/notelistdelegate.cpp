@@ -5,36 +5,41 @@
 #include <QApplication>
 #include <QFontDatabase>
 #include <QtMath>
+#include <QPainterPath>
 #include "notelistmodel.h"
+#include "noteeditorlogic.h"
+#include "tagpool.h"
 
-NoteListDelegate::NoteListDelegate(QObject *parent)
+NoteListDelegate::NoteListDelegate(TagPool *tagPool, QObject *parent)
     : QStyledItemDelegate(parent),
-#ifdef __APPLE__
+      m_tagPool{tagPool},
+      #ifdef __APPLE__
       m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")),
-#elif _WIN32
+      #elif _WIN32
       m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI") : QStringLiteral("Roboto")),
-#else
+      #else
       m_displayFont(QStringLiteral("Roboto")),
-#endif
+      #endif
 
-#ifdef __APPLE__
+      #ifdef __APPLE__
       m_titleFont(m_displayFont, 13, 65),
       m_titleSelectedFont(m_displayFont, 13),
       m_dateFont(m_displayFont, 13),
-#else
+      #else
       m_titleFont(m_displayFont, 10, 60),
       m_titleSelectedFont(m_displayFont, 10),
       m_dateFont(m_displayFont, 10),
-#endif
+      #endif
       m_titleColor(26, 26, 26),
-      m_dateColor(132, 132, 132),
+      m_dateColor(26, 26, 26),
+      m_contentColor(142, 146, 150),
       m_ActiveColor(218, 233, 239),
       m_notActiveColor(175, 212, 228),
       m_hoverColor(207, 207, 207),
       m_applicationInactiveColor(207, 207, 207),
       m_separatorColor(221, 221, 221),
       m_defaultColor(255, 255, 255),
-      m_rowHeight(42),
+      m_rowHeight(106),
       m_maxFrame(200),
       m_rowRightOffset(0),
       m_state(Normal),
@@ -45,11 +50,11 @@ NoteListDelegate::NoteListDelegate(QObject *parent)
     m_timeLine->setUpdateInterval(10);
     m_timeLine->setCurveShape(QTimeLine::EaseInCurve);
 
-    connect( m_timeLine, &QTimeLine::frameChanged, [this](){
+    connect( m_timeLine, &QTimeLine::frameChanged, this, [this](){
         emit sizeHintChanged(m_animatedIndex);
     });
 
-    connect(m_timeLine, &QTimeLine::finished, [this](){
+    connect(m_timeLine, &QTimeLine::finished, this, [this](){
         m_animatedIndex = QModelIndex();
         m_state = Normal;
     });
@@ -125,16 +130,20 @@ void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
 QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     QSize result = QStyledItemDelegate::sizeHint(option, index);
+    int rowHeight = 70;
+    if (index.data(NoteListModel::NoteTagsList).value<QSet<int>>().size() > 0) {
+        rowHeight = m_rowHeight;
+    }
     if(index == m_animatedIndex){
         if(m_state == MoveIn){
-            result.setHeight(m_rowHeight);
+            result.setHeight(rowHeight);
         }else{
             double rate = m_timeLine->currentFrame()/(m_maxFrame * 1.0);
-            double height = m_rowHeight * rate;
+            double height = rowHeight * rate;
             result.setHeight(int(height));
         }
-    }else{
-        result.setHeight(m_rowHeight);
+    } else {
+        result.setHeight(rowHeight);
     }
 
     return result;
@@ -180,7 +189,12 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
 
     QString date = parseDateTime(index.data(NoteListModel::NoteLastModificationDateTime).toDateTime());
     QFontMetrics fmDate(m_dateFont);
-    QRect fmRectDate = fmDate.boundingRect(title);
+    QRect fmRectDate = fmDate.boundingRect(date);
+
+    QString content{index.data(NoteListModel::NoteContent).toString()};
+    content = NoteEditorLogic::getSecondLine(content);
+    QFontMetrics fmContent(titleFont);
+    QRect fmRectContent = fmContent.boundingRect(content);
 
     double rowPosX = option.rect.x();
     double rowPosY = option.rect.y();
@@ -196,8 +210,15 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
     double dateRectWidth = rowWidth - 2.0 * leftOffsetX;
     double dateRectHeight = fmRectDate.height() + spaceY;
 
+    double contentRectPosX = rowPosX + leftOffsetX;
+    double contentRectPosY = dateRectPosY + fmRectDate.height() + topOffsetY + 3;
+    double contentRectWidth = rowWidth - 2.0 * leftOffsetX;
+    double contentRectHeight = fmRectContent.height() + spaceY;
+
     double rowRate = m_timeLine->currentFrame()/(m_maxFrame * 1.0);
     double currRowHeight = m_rowHeight * rowRate;
+
+    double tagsPosY = contentRectPosY + fmRectContent.height() + topOffsetY + 5;
 
     auto drawStr = [painter](double posX, double posY, double width, double height, QColor color, QFont font, QString str){
         QRectF rect(posX, posY, width, height);
@@ -213,9 +234,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
 
             dateRectPosY = titleRectHeight;
             dateRectHeight = fmRectDate.height() + spaceY;
-
         }else{
-
             if((fmRectTitle.height() + topOffsetY) >= ((1.0 - rowRate) * m_rowHeight)){
                 titleRectHeight = (fmRectTitle.height() + topOffsetY) - (1.0 - rowRate) * m_rowHeight;
             }else{
@@ -237,8 +256,11 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
 
     // draw title & date
     title = fmTitle.elidedText(title, Qt::ElideRight, int(titleRectWidth));
+    content = fmContent.elidedText(content, Qt::ElideRight, int(titleRectWidth));
     drawStr(titleRectPosX, titleRectPosY, titleRectWidth, titleRectHeight, m_titleColor, titleFont, title);
     drawStr(dateRectPosX, dateRectPosY, dateRectWidth, dateRectHeight, m_dateColor, m_dateFont, date);
+    drawStr(contentRectPosX, contentRectPosY, contentRectWidth, contentRectHeight, m_contentColor, titleFont, content);
+    paintTagList(tagsPosY, painter, option, index);
 }
 
 void NoteListDelegate::paintSeparator(QPainter*painter, const QStyleOptionViewItem&option, const QModelIndex&index) const
@@ -253,6 +275,46 @@ void NoteListDelegate::paintSeparator(QPainter*painter, const QStyleOptionViewIt
 
     painter->drawLine(QPoint(posX1, posY),
                       QPoint(posX2, posY));
+}
+
+void NoteListDelegate::paintTagList(int top, QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    auto tagIds = index.data(NoteListModel::NoteTagsList).value<QSet<int>>();
+    int left = option.rect.x() + 10;
+
+    for (const auto& id : tagIds) {
+        if (left >= option.rect.width()) {
+            break;
+        }
+        auto tag = m_tagPool->getTag(id);
+        QFontMetrics fmName(m_titleFont);
+        QRect fmRectName = fmName.boundingRect(tag.name());
+
+        auto rect = option.rect;
+        rect.setTop(top);
+        rect.setLeft(left);
+        rect.setHeight(20);
+        rect.setWidth(5 + 12 + 5 + fmRectName.width() + 7);
+        left += rect.width() + 5;
+        QPainterPath path;
+        path.addRoundedRect(rect, 10, 10);
+        if((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
+            painter->fillPath(path, QColor(218, 235, 248));
+        } else {
+            painter->fillPath(path, QColor(227, 234, 243));
+        }
+        auto iconRect = QRect(rect.x() + 5, rect.y() + (rect.height() - 12) / 2, 12, 12);
+        painter->setBrush(QColor(tag.color()));
+        painter->setPen(QColor(tag.color()));
+        painter->drawEllipse(iconRect);
+        painter->setBrush(m_titleColor);
+        painter->setPen(m_titleColor);
+
+        QRect nameRect(rect);
+        nameRect.setLeft(iconRect.x() + iconRect.width() + 5);
+        painter->setFont(m_titleFont);
+        painter->drawText(nameRect, Qt::AlignLeft | Qt::AlignVCenter, tag.name());
+    }
 }
 
 QString NoteListDelegate::parseDateTime(const QDateTime &dateTime) const

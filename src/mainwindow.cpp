@@ -12,6 +12,7 @@
 #include "treeviewlogic.h"
 #include "listviewlogic.h"
 #include "noteeditorlogic.h"
+#include "tagpool.h"
 
 #include <QScrollBar>
 #include <QShortcut>
@@ -62,6 +63,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_treeView(Q_NULLPTR),
     m_treeModel(new NodeTreeModel(this)),
     m_treeViewLogic(Q_NULLPTR),
+    m_tagPool(Q_NULLPTR),
     m_dbManager(Q_NULLPTR),
     m_dbThread(Q_NULLPTR),
     m_styleEditorWindow(this),
@@ -106,7 +108,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_isFrameRightTopWidgetsVisible(true)
 {
     ui->setupUi(this);
-    setupDatabases();
     setupMainWindow();
     setupFonts();
     setupTrayIcon();
@@ -118,6 +119,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setupTitleBarButtons();
     setupSearchEdit();
     setupTextEdit();
+    setupDatabases();
     setupModelView();
     restoreStates();
     setupSignalsSlots();
@@ -298,11 +300,6 @@ void MainWindow::setupMainWindow()
     m_searchEdit = ui->searchEdit;
     m_textEdit = ui->textEdit;
     m_editorDateLabel = ui->editorDateLabel;
-    m_noteEditorLogic = new NoteEditorLogic(m_textEdit,
-                                            m_editorDateLabel,
-                                            m_searchEdit,
-                                            m_dbManager,
-                                            this);
     m_splitter = ui->splitter;
 
 #if defined(Q_OS_LINUX)
@@ -570,8 +567,6 @@ void MainWindow::setupSignalsSlots()
     connect(m_searchEdit, &QLineEdit::textChanged, this, &MainWindow::onSearchEditTextChanged);
     // line edit enter key pressed
     connect(m_searchEdit, &QLineEdit::returnPressed, this, &MainWindow::onSearchEditReturnPressed);
-    // note pressed
-    connect(m_listView, &NoteListView::pressed, this, &MainWindow::onNotePressed);
     // noteView viewport pressed
     connect(m_listView, &NoteListView::viewportPressed, this, [this](){
         if(m_isTemp && m_listModel->rowCount() > 1){
@@ -600,7 +595,7 @@ void MainWindow::setupSignalsSlots()
 
     // MainWindow <-> DBManager
     connect(this, &MainWindow::requestNotesList,
-            m_dbManager, &DBManager::onNotesListRequested, Qt::BlockingQueuedConnection);
+            m_dbManager, &DBManager::onNotesListInFolderRequested, Qt::BlockingQueuedConnection);
     connect(this, &MainWindow::requestNodesTree,
             m_dbManager, &DBManager::onNodeTagTreeRequested, Qt::BlockingQueuedConnection);
     connect(this, &MainWindow::requestDeleteNote,
@@ -947,7 +942,7 @@ void MainWindow::setupDatabases()
     m_dbThread = new QThread;
     m_dbThread->setObjectName(QStringLiteral("dbThread"));
     m_dbManager->moveToThread(m_dbThread);
-    connect(m_dbThread, &QThread::started, [=](){emit requestOpenDBManager(noteDBFilePath, doCreate);});
+    connect(m_dbThread, &QThread::started, this, [=](){emit requestOpenDBManager(noteDBFilePath, doCreate);});
     connect(this, &MainWindow::requestOpenDBManager, m_dbManager, &DBManager::onOpenDBManagerRequested);
     connect(m_dbThread, &QThread::finished, m_dbManager, &QObject::deleteLater);
     m_dbThread->start();
@@ -959,9 +954,12 @@ void MainWindow::setupDatabases()
 void MainWindow::setupModelView()
 {
     m_listView = static_cast<NoteListView*>(ui->listView);
+    m_tagPool = new TagPool(m_dbManager);
+    m_listView->setTagPool(m_tagPool);
     m_listView->setModel(m_listModel);
     m_listViewLogic = new ListViewLogic(m_listView,
                                         m_listModel,
+                                        m_tagPool,
                                         m_dbManager,
                                         this);
     m_treeView = static_cast<NodeTreeView*>(ui->treeView);
@@ -970,6 +968,14 @@ void MainWindow::setupModelView()
                                         m_treeModel,
                                         m_dbManager,
                                         this);
+    m_noteEditorLogic = new NoteEditorLogic(m_textEdit,
+                                            m_editorDateLabel,
+                                            m_searchEdit,
+                                            static_cast<TagListView*>(ui->tagListView),
+                                            m_tagPool,
+                                            m_dbManager,
+                                            this);
+
 }
 
 /*!
@@ -1535,23 +1541,6 @@ void MainWindow::setTheme(Theme theme)
     setupRightFrame();
 }
 
-/*!
- * \brief MainWindow::onNotePressed
- * When clicking on a note in the scrollArea:
- * Unhighlight the previous selected note
- * If selecting a note when temporery note exist, delete the temp note
- * Highlight the selected note
- * Load the selected note content into textedit
- * \param index
- */
-void MainWindow::onNotePressed(const QModelIndex& index)
-{
-    if(sender() != Q_NULLPTR){
-        QModelIndex indexInProxy = m_listModel->index(index.row(), 0);
-        selectNote(indexInProxy);
-        m_listView->setCurrentRowActive(false);
-    }
-}
 
 
 /*!

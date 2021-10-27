@@ -72,23 +72,25 @@ void NodeTreeView::onClicked(const QModelIndex &index)
         break;
     }
     case NodeItem::Type::AllNoteButton: {
-        emit loadNotesRequested(SpecialNodeID::RootFolder, true);
+        emit loadNotesInFolderRequested(SpecialNodeID::RootFolder, true);
         break;
     }
     case NodeItem::Type::TrashButton: {
-        emit loadNotesRequested(SpecialNodeID::TrashFolder, true);
+        emit loadNotesInFolderRequested(SpecialNodeID::TrashFolder, true);
         break;
     }
     case NodeItem::Type::FolderItem: {
         expand(index);
         auto folderId = index.data(NodeItem::Roles::NodeId).toInt();
-        emit loadNotesRequested(folderId, false);
+        emit loadNotesInFolderRequested(folderId, false);
         break;
     }
     case NodeItem::Type::NoteItem: {
         break;
     }
     case NodeItem::Type::TagItem: {
+        auto tagId = index.data(NodeItem::Roles::NodeId).toInt();
+        emit loadNotesInTagRequested(tagId);
         break;
     }
     }

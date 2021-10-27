@@ -10,6 +10,9 @@ class MarkdownHighlighter;
 class QLabel;
 class QLineEdit;
 class DBManager;
+class TagListView;
+class TagListModel;
+class TagPool;
 
 class NoteEditorLogic : public QObject
 {
@@ -18,6 +21,8 @@ public:
     explicit NoteEditorLogic(CustomDocument* textEdit,
                              QLabel* editorDateLabel,
                              QLineEdit* searchEdit,
+                             TagListView* tagListView,
+                             TagPool* tagPool,
                              DBManager* dbManager,
                              QObject *parent = nullptr);
 
@@ -32,6 +37,8 @@ public:
     void closeEditor();
     NodeData currentEditingNote() const;
     static QString getFirstLine(const QString &str);
+    static QString getSecondLine(const QString &str);
+
 public slots:
     void showNoteInEditor(const NodeData& note);
     void onTextEditTextChanged();
@@ -43,17 +50,19 @@ signals:
 
 private:
     static QDateTime getQDateTime(QString date);
-
+    void showTagListForCurrentNote();
 private:
     CustomDocument* m_textEdit;
     MarkdownHighlighter *m_highlighter;
     QLabel* m_editorDateLabel;
     QLineEdit* m_searchEdit;
+    TagListView* m_tagListView;
     DBManager* m_dbManager;
     NodeData m_currentNote;
     bool m_isTempNote;
     bool m_isContentModified;
     QTimer m_autoSaveTimer;
+    TagListModel* m_tagListModel;
 };
 
 #endif // NOTEEDITORLOGIC_H

@@ -2,6 +2,10 @@
 #include "customDocument.h"
 #include "markdownhighlighter.h"
 #include "dbmanager.h"
+#include "taglistview.h"
+#include "taglistmodel.h"
+#include "tagpool.h"
+#include "taglistdelegate.h"
 #include <QScrollBar>
 #include <QLabel>
 #include <QLineEdit>
@@ -11,13 +15,15 @@
 NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit,
                                  QLabel* editorDateLabel,
                                  QLineEdit* searchEdit,
+                                 TagListView *tagListView, TagPool *tagPool,
                                  DBManager *dbManager,
                                  QObject *parent) : QObject(parent),
     m_textEdit{textEdit},
     m_editorDateLabel{editorDateLabel},
     m_searchEdit{searchEdit},
+    m_tagListView{tagListView},
     m_dbManager{dbManager},
-    m_isTempNote{true},
+    m_isTempNote{false},
     m_isContentModified{false}
 {
     m_highlighter = new MarkdownHighlighter(m_textEdit->document());
@@ -30,6 +36,10 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit,
     connect(&m_autoSaveTimer, &QTimer::timeout, this, [this]() {
         saveNoteToDB();
     });
+    m_tagListModel = new TagListModel{this};
+    m_tagListModel->setTagPool(tagPool);
+    m_tagListView->setModel(m_tagListModel);
+    m_tagListView->setItemDelegate(new TagListDelegate{this});
 }
 
 bool NoteEditorLogic::markdownEnabled() const
@@ -55,7 +65,7 @@ void NoteEditorLogic::showNoteInEditor(const NodeData &note)
 {
     m_textEdit->blockSignals(true);
     m_currentNote = note;
-
+    showTagListForCurrentNote();
     /// fixing bug #202
     m_textEdit->setTextBackgroundColor(QColor(255,255,255, 0));
 
@@ -113,6 +123,20 @@ QDateTime NoteEditorLogic::getQDateTime(QString date)
     return dateTime;
 }
 
+void NoteEditorLogic::showTagListForCurrentNote()
+{
+    if (m_currentNote.id() != SpecialNodeID::InvalidNoteId) {
+        auto tagIds = m_currentNote.tagIds();
+        if (tagIds.count() > 0) {
+            m_tagListView->setVisible(true);
+            m_tagListModel->setModelData(tagIds);
+            return;
+        }
+        m_tagListModel->setModelData(tagIds);
+    }
+    m_tagListView->setVisible(false);
+}
+
 void NoteEditorLogic::saveNoteToDB()
 {
     if(m_currentNote.id() != SpecialNodeID::InvalidNoteId
@@ -155,6 +179,17 @@ QString NoteEditorLogic::getFirstLine(const QString& str)
         return "New Note";
 
     QString text = str.trimmed();
+    QTextStream ts(&text);
+    return ts.readLine(FIRST_LINE_MAX);
+}
+
+QString NoteEditorLogic::getSecondLine(const QString &str)
+{
+    auto sl = str.split("\n", QString::SkipEmptyParts);
+    if (sl.size() < 2) {
+        return getFirstLine(str);
+    }
+    QString text = sl[1].trimmed();
     QTextStream ts(&text);
     return ts.readLine(FIRST_LINE_MAX);
 }

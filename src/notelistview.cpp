@@ -8,6 +8,10 @@
 #include <QSortFilterProxyModel>
 #include <QTimer>
 #include <QScrollBar>
+#include <QMenu>
+#include <QAction>
+#include "tagpool.h"
+#include "notelistmodel.h"
 
 NoteListView::NoteListView(QWidget *parent)
     : QListView( parent ),
@@ -15,11 +19,26 @@ NoteListView::NoteListView(QWidget *parent)
       m_animationEnabled(true),
       m_isMousePressed(false),
       m_rowHeight(38),
-      m_currentBackgroundColor(255, 255, 255)
+      m_currentBackgroundColor(255, 255, 255),
+      m_tagPool(nullptr)
 {
     this->setAttribute(Qt::WA_MacShowFocusRect, 0);
 
     QTimer::singleShot(0, this, SLOT(init()));
+    setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(this, &QWidget::customContextMenuRequested,
+            this, &NoteListView::onCustomContextMenu);
+    contextMenu = new QMenu(this);
+    tagsMenu = new QMenu(this);
+    addToTagAction = new QAction(tr("Tags..."), this);
+    connect(addToTagAction, &QAction::triggered, this, [this] {
+        onTagsMenu(visualRect(currentIndex()).bottomLeft());
+    });
+
+    deleteNoteAction = new QAction(tr("Delete Note"), this);
+    connect(deleteNoteAction, &QAction::triggered, this, [this] {
+    });
+
 }
 
 NoteListView::~NoteListView()
@@ -97,8 +116,13 @@ void NoteListView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, in
     QListView::rowsAboutToBeRemoved(parent, start, end);
 }
 
+void NoteListView::setTagPool(TagPool *newTagPool)
+{
+    m_tagPool = newTagPool;
+}
+
 void NoteListView::rowsAboutToBeMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd,
-                                  const QModelIndex &destinationParent, int destinationRow)
+                                      const QModelIndex &destinationParent, int destinationRow)
 {
     Q_UNUSED(sourceParent)
     Q_UNUSED(sourceEnd)
@@ -125,7 +149,7 @@ void NoteListView::rowsAboutToBeMoved(const QModelIndex &sourceParent, int sourc
 }
 
 void NoteListView::rowsMoved(const QModelIndex &parent, int start, int end,
-                         const QModelIndex &destination, int row)
+                             const QModelIndex &destination, int row)
 {
     Q_UNUSED(parent)
     Q_UNUSED(start)
@@ -322,6 +346,14 @@ void NoteListView::setupStyleSheet()
     setStyleSheet(ss);
 }
 
+void NoteListView::addCurrentNoteToTag(int tagId)
+{
+    auto current = currentIndex();
+    if (current.isValid()) {
+        emit addTagRequested(current, tagId);
+    }
+}
+
 /**
  * @brief Set theme color for noteView
  */
@@ -346,4 +378,40 @@ void NoteListView::setTheme(Theme theme)
     }
 
     setupStyleSheet();
+}
+
+void NoteListView::onCustomContextMenu(const QPoint &point)
+{
+    QModelIndex index = indexAt(point);
+    if (index.isValid()) {
+        contextMenu->clear();
+        contextMenu->addAction(addToTagAction);
+        contextMenu->addSeparator();
+        contextMenu->addAction(deleteNoteAction);
+        contextMenu->exec(viewport()->mapToGlobal(point));
+    }
+}
+
+void NoteListView::onTagsMenu(const QPoint &point)
+{
+    tagsMenu->clear();
+    for (auto action : m_addTagActions) {
+        delete action;
+    }
+    m_addTagActions.clear();
+
+    if (m_tagPool) {
+        for (auto id : m_tagPool->tagIds()) {
+            auto tag = m_tagPool->getTag(id);
+            auto tagAction = new QAction(QString("Add to tag ") + tag.name(), this);
+            connect(tagAction, &QAction::triggered, this, [this, id] {
+                addCurrentNoteToTag(id);
+            });
+            tagsMenu->addAction(tagAction);
+            m_addTagActions.append(tagAction);
+        }
+        tagsMenu->exec(viewport()->mapToGlobal(point));
+    } else {
+        qDebug() << __FUNCTION__ << "tag pool is not init yet";
+    }
 }

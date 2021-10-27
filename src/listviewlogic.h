@@ -8,6 +8,7 @@
 class NoteListView;
 class NoteListModel;
 class DBManager;
+class TagPool;
 
 class ListViewLogic : public QObject
 {
@@ -15,18 +16,23 @@ class ListViewLogic : public QObject
 public:
     explicit ListViewLogic(NoteListView* noteView,
                            NoteListModel* noteModel,
+                           TagPool* tagPool,
                            DBManager* dbManager,
                            QObject *parent = nullptr);
+    void selectNote(const QModelIndex &noteIndex);
 
 public slots:
     void moveNoteToTop(const NodeData& note);
     void setNoteData(const NodeData& note);
-
+    void deleteTempNote(const NodeData& note);
 signals:
     void showNoteInEditor(const NodeData& noteData);
+    void requestAddTagDb(int noteId, int tagId);
 
 private slots:
     void loadNoteListModel(QVector<NodeData> noteList);
+    void onAddTagRequest(const QModelIndex& index, int tagIds);
+    void onNotePressed(const QModelIndex& index);
 
 private:
     void selectFirstNote();

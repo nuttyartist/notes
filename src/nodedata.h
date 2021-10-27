@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <QDateTime>
-#include <QList>
+#include <QSet>
 
 namespace SpecialNodeID {
     enum Value {
@@ -63,6 +63,9 @@ public:
     const QString &absolutePath() const;
     void setAbsolutePath(const QString &newAbsolutePath);
 
+    const QSet<int> &tagIds() const;
+    void setTagIds(const QSet<int> &newTagIds);
+
 private:
     int m_id;
     QString m_fullTitle;
@@ -77,6 +80,7 @@ private:
     int m_parentId;
     int m_relativePosition;
     QString m_absolutePath;
+    QSet<int> m_tagIds;
 };
 
 Q_DECLARE_METATYPE(NodeData)
