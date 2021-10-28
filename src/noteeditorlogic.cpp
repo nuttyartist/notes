@@ -23,7 +23,6 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit,
     m_searchEdit{searchEdit},
     m_tagListView{tagListView},
     m_dbManager{dbManager},
-    m_isTempNote{false},
     m_isContentModified{false}
 {
     m_highlighter = new MarkdownHighlighter(m_textEdit->document());
@@ -63,6 +62,7 @@ void NoteEditorLogic::setMarkdownEnabled(bool newMarkdownEnabled)
 
 void NoteEditorLogic::showNoteInEditor(const NodeData &note)
 {
+    emit noteEditClosed(m_currentNote);
     m_textEdit->blockSignals(true);
     m_currentNote = note;
     showTagListForCurrentNote();
@@ -103,7 +103,7 @@ void NoteEditorLogic::onTextEditTextChanged()
             m_currentNote.setContent(m_textEdit->toPlainText());
             m_currentNote.setFullTitle(firstline);
             m_currentNote.setLastModificationDateTime(dateTime);
-
+            m_currentNote.setIsTempNote(false);
             // update note data in list view
             emit updateNoteDataInList(m_currentNote);
             m_isContentModified = true;
@@ -111,7 +111,6 @@ void NoteEditorLogic::onTextEditTextChanged()
             emit setVisibilityOfFrameRightNonEditor(false);
         }
         m_textEdit->blockSignals(false);
-        m_isTempNote = false;
     } else {
         qDebug() << "NoteEditorLogic::onTextEditTextChanged() : m_currentNote is not valid";
     }
@@ -140,7 +139,7 @@ void NoteEditorLogic::showTagListForCurrentNote()
 void NoteEditorLogic::saveNoteToDB()
 {
     if(m_currentNote.id() != SpecialNodeID::InvalidNoteId
-            && m_isContentModified && !m_isTempNote) {
+            && m_isContentModified && !m_currentNote.isTempNote()) {
         emit requestCreateUpdateNote(m_currentNote);
         m_isContentModified = false;
     }
@@ -150,6 +149,7 @@ void NoteEditorLogic::closeEditor()
 {
     if (m_currentNote.id() != SpecialNodeID::InvalidNoteId) {
         saveNoteToDB();
+        emit noteEditClosed(m_currentNote);
         m_textEdit->blockSignals(true);
         m_textEdit->clear();
         m_textEdit->setFocus();
@@ -194,16 +194,6 @@ QString NoteEditorLogic::getSecondLine(const QString &str)
     return ts.readLine(FIRST_LINE_MAX);
 }
 
-bool NoteEditorLogic::isTempNote() const
-{
-    return m_isTempNote;
-}
-
-void NoteEditorLogic::setIsTempNote(bool newIsTempNote)
-{
-    m_isTempNote = newIsTempNote;
-}
-
 QString NoteEditorLogic::getNoteDateEditor(QString dateEdited)
 {
     QDateTime dateTimeEdited(getQDateTime(dateEdited));
@@ -232,4 +222,12 @@ void NoteEditorLogic::highlightSearch() const
         m_textEdit->setTextCursor(extraSelections.first().cursor);
         m_textEdit->setExtraSelections(extraSelections);
     }
+}
+
+bool NoteEditorLogic::isTempNote() const
+{
+    if (m_currentNote.id() != SpecialNodeID::InvalidNoteId && m_currentNote.isTempNote()) {
+        return true;
+    }
+    return false;
 }

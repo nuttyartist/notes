@@ -613,6 +613,8 @@ void MainWindow::setupSignalsSlots()
 
     connect(m_listViewLogic, &ListViewLogic::showNoteInEditor,
             m_noteEditorLogic, &NoteEditorLogic::showNoteInEditor);
+    connect(m_listViewLogic, &ListViewLogic::closeNoteEditor,
+            m_noteEditorLogic, &NoteEditorLogic::closeEditor);
     connect(m_noteEditorLogic, &NoteEditorLogic::setVisibilityOfFrameRightNonEditor,
             this, [this] (bool vl) {
         setVisibilityOfFrameRightNonEditor(vl);
@@ -1672,12 +1674,12 @@ void MainWindow::createNewNote()
                                       Q_RETURN_ARG(int, noteId)
                                       );
             tmpNote.setId(noteId);
+            tmpNote.setIsTempNote(true);
             // insert the new note to NoteListModel
             newNoteIndex = m_listModel->insertNote(tmpNote, 0);
 
             // update the editor
             m_noteEditorLogic->showNoteInEditor(tmpNote);
-            m_noteEditorLogic->setIsTempNote(true);
         } else {
             newNoteIndex = m_listModel->getNoteIndex(
                         m_noteEditorLogic->currentEditingNote().id());

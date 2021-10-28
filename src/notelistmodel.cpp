@@ -114,6 +114,8 @@ QVariant NoteListModel::data(const QModelIndex &index, int role) const
         return note.scrollBarPosition();
     }else if(role == NoteTagsList){
         return QVariant::fromValue(note.tagIds());
+    }else if(role == NoteIsTemp){
+        return note.isTempNote();
     }
 
     return QVariant();
@@ -142,7 +144,9 @@ bool NoteListModel::setData(const QModelIndex &index, const QVariant &value, int
         note.setScrollBarPosition(value.toInt());
     }else if(role == NoteTagsList) {
         note.setTagIds(value.value<QSet<int>>());
-    } else {
+    }else if(role == NoteIsTemp) {
+        note.setIsTempNote(value.toBool());
+    }else {
         return false;
     }
 

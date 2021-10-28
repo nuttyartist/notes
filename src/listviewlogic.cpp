@@ -29,33 +29,12 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
 void ListViewLogic::selectNote(const QModelIndex &noteIndex)
 {
     if(noteIndex.isValid()){
-        // save the position of text edit scrollbar
-        //        if(!m_isTemp && m_currentSelectedNote.isValid()){
-        //            int pos = m_textEdit->verticalScrollBar()->value();
-        //            QModelIndex indexSrc = m_currentSelectedNote;
-        //            m_noteModel->setData(indexSrc, QVariant::fromValue(pos), NoteListModel::NoteScrollbarPos);
-        //        }
-
-        // show the content of the pressed note in the text editor
         auto note = m_listModel->getNote(noteIndex);
+        m_listView->selectionModel()->select(noteIndex, QItemSelectionModel::ClearAndSelect);
+        m_listView->setCurrentIndex(noteIndex);
+        m_listView->scrollTo(noteIndex);
         emit showNoteInEditor(note);
-
-//        if(m_isTemp && noteIndex.row() != 0){
-//            // delete the unmodified new note
-//            deleteNote(m_currentSelectedNote, false);
-//            m_currentSelectedNote = m_listModel->index(noteIndex.row()-1, 0);
-//        }else if(noteIndex != m_currentSelectedNote){
-//            // save if the previous selected note was modified
-//            m_noteEditorLogic->saveNoteToDB();
-//            m_currentSelectedNote = noteIndex;
-//        } else {
-//            m_currentSelectedNote = noteIndex;
-//        }
-
-//        m_listView->selectionModel()->select(m_currentSelectedNote, QItemSelectionModel::ClearAndSelect);
-//        m_listView->setCurrentIndex(m_currentSelectedNote);
-//        m_listView->scrollTo(m_currentSelectedNote);
-    }else{
+    } else {
         qDebug() << "MainWindow::selectNote() : noteIndex is not valid";
     }
 }
@@ -94,9 +73,14 @@ void ListViewLogic::setNoteData(const NodeData &note)
     }
 }
 
-void ListViewLogic::deleteTempNote(const NodeData &note)
+void ListViewLogic::onNoteEditClosed(const NodeData &note)
 {
-
+    if (note.isTempNote()) {
+        QModelIndex noteIndex = m_listModel->getNoteIndex(note.id());
+        if (noteIndex.isValid()) {
+            m_listModel->removeNote(noteIndex);
+        }
+    }
 }
 
 void ListViewLogic::loadNoteListModel(QVector<NodeData> noteList)
@@ -138,11 +122,13 @@ void ListViewLogic::onNotePressed(const QModelIndex &index)
 
 void ListViewLogic::selectFirstNote()
 {
-    if(m_listModel->rowCount() > 0){
+    if (m_listModel->rowCount() > 0){
         QModelIndex index = m_listModel->index(0,0);
         m_listView->selectionModel()->select(index, QItemSelectionModel::ClearAndSelect);
         m_listView->setCurrentIndex(index);
         auto firstNote = m_listModel->getNote(index);
         emit showNoteInEditor(firstNote);
+    } else {
+        emit closeNoteEditor();
     }
 }

@@ -30,11 +30,8 @@ public:
     void setMarkdownEnabled(bool newMarkdownEnabled);
     static QString getNoteDateEditor(QString dateEdited);
     void highlightSearch() const;
-
     bool isTempNote() const;
-    void setIsTempNote(bool newIsTempNote);
     void saveNoteToDB();
-    void closeEditor();
     NodeData currentEditingNote() const;
     static QString getFirstLine(const QString &str);
     static QString getSecondLine(const QString &str);
@@ -42,8 +39,11 @@ public:
 public slots:
     void showNoteInEditor(const NodeData& note);
     void onTextEditTextChanged();
+    void closeEditor();
+
 signals:
     void requestCreateUpdateNote(const NodeData& note);
+    void noteEditClosed(const NodeData& note);
     void setVisibilityOfFrameRightNonEditor(bool);
     void moveNoteToListViewTop(const NodeData& note);
     void updateNoteDataInList(const NodeData& note);
@@ -51,6 +51,7 @@ signals:
 private:
     static QDateTime getQDateTime(QString date);
     void showTagListForCurrentNote();
+
 private:
     CustomDocument* m_textEdit;
     MarkdownHighlighter *m_highlighter;
@@ -59,7 +60,6 @@ private:
     TagListView* m_tagListView;
     DBManager* m_dbManager;
     NodeData m_currentNote;
-    bool m_isTempNote;
     bool m_isContentModified;
     QTimer m_autoSaveTimer;
     TagListModel* m_tagListModel;

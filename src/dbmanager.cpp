@@ -665,6 +665,7 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive)
                 node.setNodeType(static_cast<NodeData::Type>(query.value(6).toInt()));
                 node.setParentId(query.value(7).toInt());
                 node.setRelativePosition(query.value(8).toInt());
+                node.setTagIds(getAllTagForNote(node.id()));
                 nodeList.append(node);
             }
         } else {

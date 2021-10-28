@@ -5,7 +5,8 @@ NodeData::NodeData():
     m_id{SpecialNodeID::InvalidNoteId},
     m_isModified(false),
     m_isSelected(false),
-    m_scrollBarPosition(0)
+    m_scrollBarPosition(0),
+    m_isTempNote{false}
 {
 
 }
@@ -138,6 +139,16 @@ const QSet<int> &NodeData::tagIds() const
 void NodeData::setTagIds(const QSet<int> &newTagIds)
 {
     m_tagIds = newTagIds;
+}
+
+bool NodeData::isTempNote() const
+{
+    return m_isTempNote;
+}
+
+void NodeData::setIsTempNote(bool newIsTempNote)
+{
+    m_isTempNote = newIsTempNote;
 }
 
 QDateTime NodeData::creationDateTime() const

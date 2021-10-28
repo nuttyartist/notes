@@ -24,10 +24,12 @@ public:
 public slots:
     void moveNoteToTop(const NodeData& note);
     void setNoteData(const NodeData& note);
-    void deleteTempNote(const NodeData& note);
+    void onNoteEditClosed(const NodeData& note);
+
 signals:
     void showNoteInEditor(const NodeData& noteData);
     void requestAddTagDb(int noteId, int tagId);
+    void closeNoteEditor();
 
 private slots:
     void loadNoteListModel(QVector<NodeData> noteList);
@@ -36,6 +38,7 @@ private slots:
 
 private:
     void selectFirstNote();
+
 private:
     NoteListView* m_listView;
     NoteListModel* m_listModel;
