@@ -150,14 +150,14 @@ void NoteEditorLogic::closeEditor()
     if (m_currentNote.id() != SpecialNodeID::InvalidNoteId) {
         saveNoteToDB();
         emit noteEditClosed(m_currentNote);
-        m_textEdit->blockSignals(true);
-        m_textEdit->clear();
-        m_textEdit->setFocus();
-        m_textEdit->blockSignals(false);
         m_currentNote.setId(SpecialNodeID::InvalidNoteId);
-    } else {
+    } /*else {
         qDebug() << "NoteEditorLogic::closeEditor() : m_currentNote is not valid";
-    }
+    }*/
+    m_textEdit->blockSignals(true);
+    m_textEdit->clear();
+    m_textEdit->clearFocus();
+    m_textEdit->blockSignals(false);
 }
 
 NodeData NoteEditorLogic::currentEditingNote() const

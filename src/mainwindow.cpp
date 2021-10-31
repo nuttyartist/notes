@@ -3157,11 +3157,11 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                 if(!m_searchEdit->text().isEmpty()){
                     if(!m_currentSelectedNote.isValid()){
                         clearSearch();
-                        createNewNote();
+//                        createNewNote();
                     }
-                }else if(m_listModel->rowCount() == 0){
+                }/*else if(m_listModel->rowCount() == 0){
                     createNewNote();
-                }
+                }*/
             }
             m_listView->setCurrentRowActive(true);
             m_textEdit->setFocus();
