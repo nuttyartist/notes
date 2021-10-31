@@ -23,9 +23,13 @@ TreeViewLogic::TreeViewLogic(NodeTreeView* treeView,
     connect(m_treeModel, &NodeTreeModel::topLevelItemLayoutChanged,
             this, &TreeViewLogic::updateTreeViewSeparator);
     connect(m_treeView, &NodeTreeView::addFolderRequested,
-            this, &TreeViewLogic::onAddFolderRequested);
+            this, [this] {
+        onAddFolderRequested(false);
+    });
     connect(m_treeDelegate, &NodeTreeDelegate::addFolderRequested,
-            this, &TreeViewLogic::onAddFolderRequested);
+            this, [this] {
+        onAddFolderRequested(true);
+    });
     connect(m_treeDelegate, &NodeTreeDelegate::addTagRequested,
             this, &TreeViewLogic::onAddTagRequested);
     connect(m_treeView, &NodeTreeView::renameFolderInDatabase,
@@ -51,11 +55,11 @@ void TreeViewLogic::loadTreeModel(const NodeTagTreeData &treeData)
     updateTreeViewSeparator();
 }
 
-void TreeViewLogic::onAddFolderRequested()
+void TreeViewLogic::onAddFolderRequested(bool fromPlusButton)
 {
     auto currentIndex = m_treeView->currentIndex();
     int parentId = SpecialNodeID::RootFolder;
-    if (currentIndex.isValid()) {
+    if (currentIndex.isValid() && !fromPlusButton) {
         auto type = static_cast<NodeItem::Type>(currentIndex.data(NodeItem::Roles::ItemType).toInt());
         if (type == NodeItem::FolderItem) {
             parentId = currentIndex.data(NodeItem::Roles::NodeId).toInt();

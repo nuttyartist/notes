@@ -23,12 +23,14 @@ public slots:
 private slots:
     void updateTreeViewSeparator();
     void loadTreeModel(const NodeTagTreeData &treeData);
-    void onAddFolderRequested();
     void onAddTagRequested();
     void onRenameNodeRequestedFromTreeView(const QModelIndex& index, const QString& newName);
     void onDeleteFolderRequested(const QModelIndex& index);
 signals:
     void requestRenameNodeInDB(int id, const QString& newName);
+
+private:
+    void onAddFolderRequested(bool fromPlusButton);
 
 private:
     NodeTreeView* m_treeView;
