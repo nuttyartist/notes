@@ -34,8 +34,12 @@ TreeViewLogic::TreeViewLogic(NodeTreeView* treeView,
             this, &TreeViewLogic::onAddTagRequested);
     connect(m_treeView, &NodeTreeView::renameFolderInDatabase,
             this, &TreeViewLogic::onRenameNodeRequestedFromTreeView);
+    connect(m_treeView, &NodeTreeView::renameTagInDatabase,
+            this, &TreeViewLogic::onRenameTagRequestedFromTreeView);
     connect(this, &TreeViewLogic::requestRenameNodeInDB,
             m_dbManager, &DBManager::renameNode, Qt::QueuedConnection);
+    connect(this, &TreeViewLogic::requestRenameTagInDB,
+            m_dbManager, &DBManager::renameTag, Qt::QueuedConnection);
     connect(m_treeView, &NodeTreeView::deleteNodeRequested,
             this, &TreeViewLogic::onDeleteFolderRequested);
     connect(m_treeView, &NodeTreeView::loadNotesInFolderRequested,
@@ -167,5 +171,12 @@ void TreeViewLogic::onDeleteFolderRequested(const QModelIndex &index)
                      << "is not valid";
         }
     }
+}
+
+void TreeViewLogic::onRenameTagRequestedFromTreeView(const QModelIndex &index, const QString &newName)
+{
+    m_treeModel->setData(index, newName, NodeItem::Roles::DisplayText);
+    auto id = index.data(NodeItem::Roles::NodeId).toInt();
+    emit requestRenameTagInDB(id, newName);
 }
 

@@ -6,6 +6,7 @@
 #include <QDebug>
 #include "pushbuttontype.h"
 #include "foldertreedelegateeditor.h"
+#include "tagtreedelegateeditor.h"
 
 NodeTreeDelegate::NodeTreeDelegate(QTreeView *view, QObject *parent):
     QStyledItemDelegate{parent},
@@ -207,8 +208,9 @@ QWidget *NodeTreeDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
     } else if (itemType == NodeItem::Type::FolderItem) {
         auto widget = new FolderTreeDelegateEditor(m_view, option, index, parent);
         return widget;
-    } else if (itemType == NodeItem::Type::NoteItem) {
-        return nullptr;
+    } else if (itemType == NodeItem::Type::TagItem) {
+        auto widget = new TagTreeDelegateEditor(m_view, option, index, parent);
+        return widget;
     }
     return nullptr;
 }

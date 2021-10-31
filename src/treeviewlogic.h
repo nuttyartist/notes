@@ -26,8 +26,10 @@ private slots:
     void onAddTagRequested();
     void onRenameNodeRequestedFromTreeView(const QModelIndex& index, const QString& newName);
     void onDeleteFolderRequested(const QModelIndex& index);
+    void onRenameTagRequestedFromTreeView(const QModelIndex& index, const QString& newName);
 signals:
     void requestRenameNodeInDB(int id, const QString& newName);
+    void requestRenameTagInDB(int id, const QString& newName);
 
 private:
     void onAddFolderRequested(bool fromPlusButton);

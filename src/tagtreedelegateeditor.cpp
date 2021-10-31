@@ -1,4 +1,4 @@
-#include "foldertreedelegateeditor.h"
+#include "tagtreedelegateeditor.h"
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPainter>
@@ -10,7 +10,7 @@
 #include "nodetreeview.h"
 #include "labeledittype.h"
 
-FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
+TagTreeDelegateEditor::TagTreeDelegateEditor(QTreeView *view,
                                                    const QStyleOptionViewItem &option,
                                                    const QModelIndex &index,
                                                    QWidget *parent) :
@@ -29,13 +29,7 @@ FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
     layout->setContentsMargins(5, 0, 0, 0);
     layout->setSpacing(5);
     setLayout(layout);
-    m_expandIcon = new QLabel(this);
-    m_expandIcon->setMinimumSize({20, 20});
-    m_expandIcon->setMaximumSize({20, 20});
-    m_expanded.load(QStringLiteral(":/images/tree-node-expanded.png"));
-    m_notExpanded.load(QStringLiteral(":/images/tree-node-normal.png"));
-    m_expandIcon->setScaledContents(true);
-    layout->addWidget(m_expandIcon);
+    layout->addSpacing(24);
 
     m_label = new LabelEditType(this);
     m_label->setFont(m_titleFont);
@@ -50,10 +44,10 @@ FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
     });
     connect(m_label, &LabelEditType::editingFinished, this, [this] (const QString& label) {
         auto tree_view = dynamic_cast<NodeTreeView*>(m_view);
-        tree_view->onRenameFolderFinished(label);
+        tree_view->onRenameTagFinished(label);
         tree_view->setIsEditing(false);
     });
-    connect(dynamic_cast<NodeTreeView*>(m_view), &NodeTreeView::renameFolderRequested,
+    connect(dynamic_cast<NodeTreeView*>(m_view), &NodeTreeView::renameTagRequested,
             m_label, &LabelEditType::openEditor);
     layout->addWidget(m_label);
     m_contextButton = new PushButtonType(parent);
@@ -78,7 +72,7 @@ FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
     });
 }
 
-void FolderTreeDelegateEditor::updateDelegate()
+void TagTreeDelegateEditor::updateDelegate()
 {
     auto displayName = m_index.data(NodeItem::Roles::DisplayText).toString();
     if(m_view->currentIndex() == m_index) {
@@ -99,16 +93,9 @@ void FolderTreeDelegateEditor::updateDelegate()
         m_contextButton->setPressedIcon(QIcon(QString::fromUtf8(":/images/3dots_Pressed.png")));
     }
     m_label->setText(displayName);
-    if (m_index.data(NodeItem::Roles::IsExpandable).toBool()) {
-        if(m_view->isExpanded(m_index)) {
-            m_expandIcon->setPixmap(m_expanded);
-        } else {
-            m_expandIcon->setPixmap(m_notExpanded);
-        }
-    }
 }
 
-void FolderTreeDelegateEditor::paintEvent(QPaintEvent *event)
+void TagTreeDelegateEditor::paintEvent(QPaintEvent *event)
 {
     updateDelegate();
     QPainter painter(this);
@@ -117,10 +104,16 @@ void FolderTreeDelegateEditor::paintEvent(QPaintEvent *event)
     } else {
         painter.fillRect(rect(), QBrush(m_hoverColor));
     }
+
+    auto iconRect = QRect(rect().x() + 10, rect().y() + (rect().height() - 14) / 2, 14, 14);
+    auto tagColor = m_index.data(NodeItem::Roles::TagColor).toString();
+    painter.setBrush(QColor(tagColor));
+    painter.setPen(QColor(tagColor));
+    painter.drawEllipse(iconRect);
     QWidget::paintEvent(event);
 }
 
-void FolderTreeDelegateEditor::mouseDoubleClickEvent(QMouseEvent *event)
+void TagTreeDelegateEditor::mouseDoubleClickEvent(QMouseEvent *event)
 {
     if (m_label->geometry().contains(event->pos())) {
         m_label->openEditor();

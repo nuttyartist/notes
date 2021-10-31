@@ -16,6 +16,7 @@ public:
     void setTreeSeparator(const QVector<QModelIndex> &newTreeSeparator);
     void setIsEditing(bool newIsEditing);
     void onRenameFolderFinished(const QString& newName);
+    void onRenameTagFinished(const QString& newName);
 
 public slots:
     void onCustomContextMenu(const QPoint& point);
@@ -29,10 +30,14 @@ signals:
     void addFolderRequested();
     void renameFolderRequested();
     void renameFolderInDatabase(const QModelIndex& index, const QString& newName);
+    void renameTagInDatabase(const QModelIndex& index, const QString& newName);
     void deleteNodeRequested(const QModelIndex& index);
     void loadNotesInFolderRequested(int folderID, bool isRecursive);
     void loadNotesInTagRequested(int tagId);
 
+    void renameTagRequested();
+    void changeTagColorRequested();
+    void deleteTagRequested(const QModelIndex& index);
 private slots:
     void onClicked(const QModelIndex& index);
     void onDeleteNodeAction();
@@ -42,6 +47,10 @@ private:
     QAction* renameFolderAction;
     QAction* deleteFolderAction;
     QAction* addSubfolderAction;
+    QAction* renameTagAction;
+    QAction* changeTagColorAction;
+    QAction* deleteTagAction;
+
     QTimer contextMenuTimer;
 
     QVector<QModelIndex> m_treeSeparator;

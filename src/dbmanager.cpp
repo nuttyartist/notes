@@ -364,6 +364,17 @@ void DBManager::renameNode(int id, const QString &newName)
     }
 }
 
+void DBManager::renameTag(int id, const QString &newName)
+{
+    QSqlQuery query;
+    query.prepare(R"(UPDATE "tag_table" SET "name"=:name WHERE "id"=:id;)");
+    query.bindValue(":name", newName);
+    query.bindValue(":id", id);
+    if (!query.exec()) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+    }
+}
+
 /*!
  * \brief DBManager::removeNote
  * \param note

@@ -47,6 +47,17 @@ NodeTreeView::NodeTreeView(QWidget *parent) :
     connect(deleteFolderAction, &QAction::triggered, this, &NodeTreeView::onDeleteNodeAction);
     addSubfolderAction = new QAction(tr("Add Subfolder"), this);
     connect(addSubfolderAction, &QAction::triggered, this, &NodeTreeView::addFolderRequested);
+
+    renameTagAction = new QAction(tr("Rename Tag"), this);
+    connect(renameTagAction, &QAction::triggered, this, [this] {
+        setIsEditing(true);
+        emit renameTagRequested();
+    });
+    changeTagColorAction = new QAction(tr("Change Tag Color"), this);
+    connect(changeTagColorAction, &QAction::triggered, this, &NodeTreeView::changeTagColorRequested);
+    deleteTagAction = new QAction(tr("Delete Tag"), this);
+    connect(deleteTagAction, &QAction::triggered, this, &NodeTreeView::onDeleteNodeAction);
+
     contextMenuTimer.setInterval(100);
     contextMenuTimer.setSingleShot(true);
     connect(&contextMenuTimer, &QTimer::timeout, this, [this] {
@@ -68,7 +79,8 @@ void NodeTreeView::onClicked(const QModelIndex &index)
     switch (itemType) {
     case NodeItem::Type::RootItem:
     case NodeItem::Type::FolderSeparator:
-    case NodeItem::Type::TagSeparator: {
+    case NodeItem::Type::TagSeparator:
+    case NodeItem::Type::NoteItem: {
         break;
     }
     case NodeItem::Type::AllNoteButton: {
@@ -83,9 +95,6 @@ void NodeTreeView::onClicked(const QModelIndex &index)
         expand(index);
         auto folderId = index.data(NodeItem::Roles::NodeId).toInt();
         emit loadNotesInFolderRequested(folderId, false);
-        break;
-    }
-    case NodeItem::Type::NoteItem: {
         break;
     }
     case NodeItem::Type::TagItem: {
@@ -105,6 +114,9 @@ void NodeTreeView::onDeleteNodeAction()
             auto index = m_currentEditingIndex;
             emit deleteNodeRequested(index);
         }
+    } else if (itemType == NodeItem::Type::TagItem) {
+        auto index = m_currentEditingIndex;
+        emit deleteTagRequested(index);
     }
 }
 
@@ -115,8 +127,8 @@ void NodeTreeView::updateEditingIndex(QMouseEvent *event)
         auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
         auto id = index.data(NodeItem::Roles::NodeId).toInt();
         if ((itemType == NodeItem::Type::FolderItem
-             || itemType == NodeItem::Type::NoteItem)
-                && id != SpecialNodeID::DefaultNotesFolder) {
+             && id != SpecialNodeID::DefaultNotesFolder)
+                || itemType == NodeItem::Type::TagItem) {
             closePersistentEditor(m_currentEditingIndex);
             openPersistentEditor(index);
             m_currentEditingIndex = index;
@@ -149,9 +161,25 @@ void NodeTreeView::onRenameFolderFinished(const QString &newName)
         } else {
             qDebug() << __FUNCTION__ << "wrong type";
         }
-    } else {
+    } /*else {
         qDebug() << __FUNCTION__ << "m_currentEditingIndex is not valid";
-    }
+    }*/
+}
+
+void NodeTreeView::onRenameTagFinished(const QString &newName)
+{
+    if (m_currentEditingIndex.isValid()) {
+        auto itemType = static_cast<NodeItem::Type>(m_currentEditingIndex.data(NodeItem::Roles::ItemType).toInt());
+        if (itemType == NodeItem::Type::TagItem) {
+            QModelIndex index = m_currentEditingIndex;
+            closeCurrentEditor();
+            emit renameTagInDatabase(index, newName);
+        } else {
+            qDebug() << __FUNCTION__ << "wrong type";
+        }
+    } /*else {
+        qDebug() << __FUNCTION__ << "m_currentEditingIndex is not valid";
+    }*/
 }
 
 void NodeTreeView::onCustomContextMenu(const QPoint &point)
@@ -170,6 +198,12 @@ void NodeTreeView::onCustomContextMenu(const QPoint &point)
                 contextMenu->addAction(addSubfolderAction);
                 contextMenu->exec(viewport()->mapToGlobal(point));
             }
+        } else if (itemType == NodeItem::Type::TagItem) {
+            m_isContextMenuOpened = true;
+            contextMenu->addAction(renameTagAction);
+            contextMenu->addAction(changeTagColorAction);
+            contextMenu->addAction(deleteTagAction);
+            contextMenu->exec(viewport()->mapToGlobal(point));
         }
     }
 }

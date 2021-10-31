@@ -62,6 +62,7 @@ public slots:
     int nextAvailableNodeId();
     int nextAvailableTagId();
     void renameNode(int id, const QString& newName);
+    void renameTag(int id, const QString& newName);
 };
 
 #endif // DBMANAGER_H

@@ -36,6 +36,7 @@ SOURCES += \
     taglistmodel.cpp \
     taglistview.cpp \
     tagpool.cpp \
+    tagtreedelegateeditor.cpp \
     updaterwindow.cpp \
     dbmanager.cpp \
     aboutwindow.cpp \
@@ -65,6 +66,7 @@ HEADERS  += \
     taglistmodel.h \
     taglistview.h \
     tagpool.h \
+    tagtreedelegateeditor.h \
     updaterwindow.h \
     dbmanager.h \
     aboutwindow.h \
