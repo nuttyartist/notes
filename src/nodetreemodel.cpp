@@ -482,6 +482,12 @@ bool NodeTreeModel::setData(const QModelIndex &index, const QVariant &value, int
             emit dataChanged(index, index, {role});
             return true;
         }
+        if (role == NodeItem::Roles::TagColor) {
+            static_cast<NodeTreeItem*>(index.internalPointer())->setData(
+                        static_cast<NodeItem::Roles>(role), value);
+            emit dataChanged(index, index, {role});
+            return true;
+        }
     }
     return false;
 }

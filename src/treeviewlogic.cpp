@@ -6,6 +6,7 @@
 #include <QRandomGenerator>
 #include <QMetaObject>
 #include <QMessageBox>
+#include <QColorDialog>
 
 TreeViewLogic::TreeViewLogic(NodeTreeView* treeView,
                              NodeTreeModel* treeModel,
@@ -42,6 +43,10 @@ TreeViewLogic::TreeViewLogic(NodeTreeView* treeView,
             m_dbManager, &DBManager::renameTag, Qt::QueuedConnection);
     connect(m_treeView, &NodeTreeView::deleteNodeRequested,
             this, &TreeViewLogic::onDeleteFolderRequested);
+    connect(m_treeView, &NodeTreeView::changeTagColorRequested,
+            this, &TreeViewLogic::onChangeTagColorRequested);
+    connect(this, &TreeViewLogic::requestChangeTagColorInDB,
+            m_dbManager, &DBManager::changeTagColor, Qt::QueuedConnection);
     connect(m_treeView, &NodeTreeView::loadNotesInFolderRequested,
             m_dbManager, &DBManager::onNotesListInFolderRequested, Qt::QueuedConnection);
     connect(m_treeView, &NodeTreeView::loadNotesInTagRequested,
@@ -178,5 +183,18 @@ void TreeViewLogic::onRenameTagRequestedFromTreeView(const QModelIndex &index, c
     m_treeModel->setData(index, newName, NodeItem::Roles::DisplayText);
     auto id = index.data(NodeItem::Roles::NodeId).toInt();
     emit requestRenameTagInDB(id, newName);
+}
+
+void TreeViewLogic::onChangeTagColorRequested(const QModelIndex &index)
+{
+    if (index.isValid()) {
+        auto currentColor = m_treeModel->data(index, NodeItem::Roles::TagColor).toString();
+        auto newColor = QColorDialog::getColor(QColor{currentColor});
+        if (newColor.isValid()) {
+            m_treeModel->setData(index, newColor.name(), NodeItem::Roles::TagColor);
+            auto id = index.data(NodeItem::Roles::NodeId).toInt();
+            emit requestChangeTagColorInDB(id, newColor.name());
+        }
+    }
 }
 

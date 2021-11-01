@@ -375,6 +375,17 @@ void DBManager::renameTag(int id, const QString &newName)
     }
 }
 
+void DBManager::changeTagColor(int id, const QString &newColor)
+{
+    QSqlQuery query;
+    query.prepare(R"(UPDATE "tag_table" SET "color"=:color WHERE "id"=:id;)");
+    query.bindValue(":color", newColor);
+    query.bindValue(":id", id);
+    if (!query.exec()) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+    }
+}
+
 /*!
  * \brief DBManager::removeNote
  * \param note

@@ -54,9 +54,11 @@ NodeTreeView::NodeTreeView(QWidget *parent) :
         emit renameTagRequested();
     });
     changeTagColorAction = new QAction(tr("Change Tag Color"), this);
-    connect(changeTagColorAction, &QAction::triggered, this, &NodeTreeView::changeTagColorRequested);
+    connect(changeTagColorAction, &QAction::triggered, this, &NodeTreeView::onChangeTagColorAction);
     deleteTagAction = new QAction(tr("Delete Tag"), this);
     connect(deleteTagAction, &QAction::triggered, this, &NodeTreeView::onDeleteNodeAction);
+    clearSelectionAction = new QAction(tr("Clear Selection"), this);
+//    connect(deleteTagAction, &QAction::triggered, this, &NodeTreeView::onDeleteNodeAction);
 
     contextMenuTimer.setInterval(100);
     contextMenuTimer.setSingleShot(true);
@@ -117,6 +119,15 @@ void NodeTreeView::onDeleteNodeAction()
     } else if (itemType == NodeItem::Type::TagItem) {
         auto index = m_currentEditingIndex;
         emit deleteTagRequested(index);
+    }
+}
+
+void NodeTreeView::onChangeTagColorAction()
+{
+    auto itemType = static_cast<NodeItem::Type>(m_currentEditingIndex.data(NodeItem::Roles::ItemType).toInt());
+    if (itemType == NodeItem::Type::TagItem) {
+        auto index = m_currentEditingIndex;
+        emit changeTagColorRequested(index);
     }
 }
 
@@ -203,6 +214,8 @@ void NodeTreeView::onCustomContextMenu(const QPoint &point)
             contextMenu->addAction(renameTagAction);
             contextMenu->addAction(changeTagColorAction);
             contextMenu->addAction(deleteTagAction);
+            contextMenu->addSeparator();
+            contextMenu->addAction(clearSelectionAction);
             contextMenu->exec(viewport()->mapToGlobal(point));
         }
     }

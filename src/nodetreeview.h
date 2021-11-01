@@ -36,11 +36,12 @@ signals:
     void loadNotesInTagRequested(int tagId);
 
     void renameTagRequested();
-    void changeTagColorRequested();
+    void changeTagColorRequested(const QModelIndex& index);
     void deleteTagRequested(const QModelIndex& index);
 private slots:
     void onClicked(const QModelIndex& index);
     void onDeleteNodeAction();
+    void onChangeTagColorAction();
 
 private:
     QMenu* contextMenu;
@@ -50,6 +51,7 @@ private:
     QAction* renameTagAction;
     QAction* changeTagColorAction;
     QAction* deleteTagAction;
+    QAction* clearSelectionAction;
 
     QTimer contextMenuTimer;
 
