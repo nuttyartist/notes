@@ -27,7 +27,9 @@ void LabelEditType::openEditor()
 
 void LabelEditType::onFinishedEdit()
 {
-    setText(m_editor->text());
     m_editor->hide();
+    if (!m_editor->text().isEmpty()) {
+        setText(m_editor->text());
+    }
     emit editingFinished(text());
 }

@@ -33,6 +33,8 @@ public:
     bool isTempNote() const;
     void saveNoteToDB();
     NodeData currentEditingNote() const;
+    void deleteCurrentNote();
+
     static QString getFirstLine(const QString &str);
     static QString getSecondLine(const QString &str);
 
@@ -47,7 +49,7 @@ signals:
     void setVisibilityOfFrameRightNonEditor(bool);
     void moveNoteToListViewTop(const NodeData& note);
     void updateNoteDataInList(const NodeData& note);
-
+    void deleteNoteRequested(const NodeData& note);
 private:
     static QDateTime getQDateTime(QString date);
     void showTagListForCurrentNote();

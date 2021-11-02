@@ -25,16 +25,18 @@ public slots:
     void moveNoteToTop(const NodeData& note);
     void setNoteData(const NodeData& note);
     void onNoteEditClosed(const NodeData& note);
-
+    void deleteNoteRequested(const NodeData& note);
 signals:
     void showNoteInEditor(const NodeData& noteData);
     void requestAddTagDb(int noteId, int tagId);
+    void requestRemoveNoteDb(const NodeData& noteData);
     void closeNoteEditor();
 
 private slots:
     void loadNoteListModel(QVector<NodeData> noteList);
     void onAddTagRequest(const QModelIndex& index, int tagIds);
     void onNotePressed(const QModelIndex& index);
+    void deleteNoteRequestedI(const QModelIndex& index);
 
 private:
     void selectFirstNote();

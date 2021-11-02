@@ -391,40 +391,22 @@ void DBManager::changeTagColor(int id, const QString &newColor)
  * \param note
  * \return
  */
-bool DBManager::removeNote(const NodeData &note)
+void DBManager::removeNote(const NodeData &note)
 {
-    //    QSqlQuery query;
-    //    QString emptyStr;
-    
-    //    int id = note->id();
-    //    QString queryStr = QStringLiteral("DELETE FROM active_notes "
-    //                                      "WHERE id=%1").arg(id);
-    //    query.exec(queryStr);
-    //    bool removed = (query.numRowsAffected() == 1);
-    
-    //    qint64 epochTimeDateCreated = note->creationDateTime().toMSecsSinceEpoch();
-    //    qint64 epochTimeDateModified = note->lastModificationdateTime().toMSecsSinceEpoch();
-    //    qint64 epochTimeDateDeleted = note->deletionDateTime().toMSecsSinceEpoch();
-    //    QString content = note->content()
-    //            .replace("'","''")
-    //            .replace(QChar('\x0'), emptyStr);
-    //    QString fullTitle = note->fullTitle()
-    //            .replace("'","''")
-    //            .replace(QChar('\x0'), emptyStr);
-    
-    //    queryStr = QString("INSERT INTO deleted_notes "
-    //                       "VALUES (%1, %2, %3, %4, '%5', '%6');")
-    //            .arg(id)
-    //            .arg(epochTimeDateCreated)
-    //            .arg(epochTimeDateModified)
-    //            .arg(epochTimeDateDeleted)
-    //            .arg(content)
-    //            .arg(fullTitle);
-    
-    //    query.exec(queryStr);
-    //    bool addedToTrashDB = (query.numRowsAffected() == 1);
-    
-    return false; //(removed && addedToTrashDB);
+    if (note.parentId() == SpecialNodeID::TrashFolder) {
+        QSqlQuery query;
+        query.prepare(R"(DELETE FROM "node_table" )"
+                      R"(WHERE id = (:id) AND node_type = (:node_type);)"
+                        );
+        query.bindValue(QStringLiteral(":id"), note.id());
+        query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
+        if (!query.exec()) {
+            qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+        }
+    } else {
+        auto trashFolder = getNode(SpecialNodeID::TrashFolder);
+        moveNode(note.id(), trashFolder);
+    }
 }
 
 /*!

@@ -165,6 +165,21 @@ NodeData NoteEditorLogic::currentEditingNote() const
     return m_currentNote;
 }
 
+void NoteEditorLogic::deleteCurrentNote()
+{
+    if (m_currentNote.id() != SpecialNodeID::InvalidNoteId) {
+        auto noteNeedDeleted = m_currentNote;
+        saveNoteToDB();
+        emit noteEditClosed(m_currentNote);
+        emit deleteNoteRequested(noteNeedDeleted);
+        m_currentNote.setId(SpecialNodeID::InvalidNoteId);
+        m_textEdit->blockSignals(true);
+        m_textEdit->clear();
+        m_textEdit->clearFocus();
+        m_textEdit->blockSignals(false);
+    }
+}
+
 /*!
  * \brief NoteEditorLogic::getFirstLine
  * Get a string 'str' and return only the first line of it

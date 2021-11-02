@@ -54,6 +54,7 @@ protected slots:
 signals:
     void viewportPressed();
     void addTagRequested(const QModelIndex& index, int tadId);
+    void deleteNoteRequested(const QModelIndex& index);
 private:
     bool m_isScrollBarHidden;
     bool m_animationEnabled;

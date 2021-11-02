@@ -32,7 +32,6 @@ private:
     QVector<NodeData> getAllFolders();
     QVector<TagData> getAllTagInfo();
     QSet<int> getAllTagForNote(int noteId);
-    bool removeNote(const NodeData& note);
     bool permanantlyRemoveAllNotes();
     bool updateNoteContent(const NodeData &note);
     bool migrateNote(NodeData* note);
@@ -64,6 +63,7 @@ public slots:
     void renameNode(int id, const QString& newName);
     void renameTag(int id, const QString& newName);
     void changeTagColor(int id, const QString& newColor);
+    void removeNote(const NodeData& note);
 };
 
 #endif // DBMANAGER_H

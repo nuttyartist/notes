@@ -258,7 +258,6 @@ private slots:
     void onRedCloseButtonClicked();
     void createNewNote();
     void deleteNote(const QModelIndex& noteIndex, bool isFromUser=true);
-    void deleteSelectedNote();
     void setFocusOnCurrentNote();
     void selectNoteDown();
     void selectNoteUp();

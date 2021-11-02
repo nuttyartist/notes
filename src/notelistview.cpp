@@ -37,6 +37,10 @@ NoteListView::NoteListView(QWidget *parent)
 
     deleteNoteAction = new QAction(tr("Delete Note"), this);
     connect(deleteNoteAction, &QAction::triggered, this, [this] {
+        auto index = currentIndex();
+        if (index.isValid()) {
+            emit deleteNoteRequested(index);
+        }
     });
 
 }

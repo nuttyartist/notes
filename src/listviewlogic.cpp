@@ -4,6 +4,7 @@
 #include "notelistdelegate.h"
 #include "dbmanager.h"
 #include <QDebug>
+#include <QMessageBox>
 
 ListViewLogic::ListViewLogic(NoteListView* noteView,
                              NoteListModel* noteModel,
@@ -24,6 +25,9 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
 
     connect(m_listView, &NoteListView::addTagRequested, this, &ListViewLogic::onAddTagRequest);
     connect(this, &ListViewLogic::requestAddTagDb, dbManager, &DBManager::addNoteToTag, Qt::QueuedConnection);
+    connect(this, &ListViewLogic::requestRemoveNoteDb, dbManager, &DBManager::removeNote, Qt::QueuedConnection);
+    connect(m_listView, &NoteListView::deleteNoteRequested, this, &ListViewLogic::deleteNoteRequestedI);
+
 }
 
 void ListViewLogic::selectNote(const QModelIndex &noteIndex)
@@ -83,6 +87,12 @@ void ListViewLogic::onNoteEditClosed(const NodeData &note)
     }
 }
 
+void ListViewLogic::deleteNoteRequested(const NodeData &note)
+{
+    auto index = m_listModel->getNoteIndex(note.id());
+    deleteNoteRequestedI(index);
+}
+
 void ListViewLogic::loadNoteListModel(QVector<NodeData> noteList)
 {
     m_listModel->setListNote(noteList);
@@ -118,6 +128,29 @@ void ListViewLogic::onNotePressed(const QModelIndex &index)
     QModelIndex indexInProxy = m_listModel->index(index.row(), 0);
     selectNote(indexInProxy);
     m_listView->setCurrentRowActive(false);
+}
+
+void ListViewLogic::deleteNoteRequestedI(const QModelIndex &index)
+{
+    if (index.isValid()) {
+        auto id = index.data(NoteListModel::NoteID).toInt();
+        NodeData note;
+        QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection,
+                                  Q_RETURN_ARG(NodeData, note),
+                                  Q_ARG(int, id)
+                                  );
+        if (note.parentId() == SpecialNodeID::TrashFolder) {
+            auto btn = QMessageBox::question(nullptr, "Are you sure you want to delete this note permanently",
+                                             "Are you sure you want to delete this note permanently? It will not be recoverable.");
+            if (btn == QMessageBox::Yes) {
+                m_listModel->removeNote(index);
+                emit requestRemoveNoteDb(note);
+            }
+        } else {
+            m_listModel->removeNote(index);
+            emit requestRemoveNoteDb(note);
+        }
+    }
 }
 
 void ListViewLogic::selectFirstNote()

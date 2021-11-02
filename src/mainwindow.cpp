@@ -379,7 +379,7 @@ void MainWindow::setupTrayIcon()
 void MainWindow::setupKeyboardShortcuts()
 {
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_N), this, SLOT(onNewNoteButtonClicked()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_D), this, SLOT(deleteSelectedNote()));
+//    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_D), this, SLOT(deleteSelectedNote()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_F), m_searchEdit, SLOT(setFocus()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_E), m_searchEdit, SLOT(clear()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_L), this, SLOT(setFocusOnCurrentNote()));
@@ -554,7 +554,7 @@ void MainWindow::setupSignalsSlots()
     // delete note button
     connect(m_trashButton, &QPushButton::pressed, this, &MainWindow::onTrashButtonPressed);
     connect(m_trashButton, &QPushButton::clicked, this, &MainWindow::onTrashButtonClicked);
-    connect(m_listModel, &NoteListModel::rowsRemoved, [this](){m_trashButton->setEnabled(true);});
+    connect(m_listModel, &NoteListModel::rowsRemoved, this, [this](){m_trashButton->setEnabled(true);});
     // 3 dots button
     connect(m_dotsButton, &QPushButton::pressed, this, &MainWindow::onDotsButtonPressed);
     connect(m_dotsButton, &QPushButton::clicked, this, &MainWindow::onDotsButtonClicked);
@@ -623,7 +623,8 @@ void MainWindow::setupSignalsSlots()
             m_listViewLogic, &ListViewLogic::moveNoteToTop);
     connect(m_noteEditorLogic, &NoteEditorLogic::updateNoteDataInList,
             m_listViewLogic, &ListViewLogic::setNoteData);
-
+    connect(m_noteEditorLogic, &NoteEditorLogic::deleteNoteRequested,
+            m_listViewLogic, &ListViewLogic::deleteNoteRequested);
 #ifdef __APPLE__
     // Replace setUseNativeWindowFrame with just the part that handles pushing things up
     connect(this, &MainWindow::toggleFullScreen, this, [=](bool isFullScreen){adjustUpperWidgets(isFullScreen);});
@@ -1203,7 +1204,7 @@ void MainWindow::onTrashButtonClicked()
     m_trashButton->setIcon(QIcon(QStringLiteral(":/images/trashCan_Regular.png")));
 
     m_trashButton->blockSignals(true);
-    deleteSelectedNote();
+    m_noteEditorLogic->deleteCurrentNote();
     m_trashButton->blockSignals(false);
 }
 
@@ -1736,32 +1737,6 @@ void MainWindow::deleteNote(const QModelIndex &noteIndex, bool isFromUser)
     //    }
 
     m_listView->setFocus();
-}
-
-/*!
- * \brief MainWindow::deleteSelectedNote
- * Delete the selected note
- */
-void MainWindow::deleteSelectedNote()
-{
-    if(!m_isOperationRunning){
-        m_isOperationRunning = true;
-        if(m_currentSelectedNote.isValid()){
-
-            // update the index of the selected note before searching
-            if(!m_searchEdit->text().isEmpty()){
-                QModelIndex currentIndexInSource = m_currentSelectedNote;
-                int beforeSearchSelectedRow = m_selectedNoteBeforeSearchingInSource.row();
-                if(currentIndexInSource.row() < beforeSearchSelectedRow){
-                    m_selectedNoteBeforeSearchingInSource = m_listModel->index(beforeSearchSelectedRow-1);
-                }
-            }
-
-            deleteNote(m_currentSelectedNote, true);
-            showNoteInEditor(m_currentSelectedNote);
-        }
-        m_isOperationRunning = false;
-    }
 }
 
 /*!
