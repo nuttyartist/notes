@@ -11,9 +11,9 @@
 #include "labeledittype.h"
 
 TagTreeDelegateEditor::TagTreeDelegateEditor(QTreeView *view,
-                                                   const QStyleOptionViewItem &option,
-                                                   const QModelIndex &index,
-                                                   QWidget *parent) :
+                                             const QStyleOptionViewItem &option,
+                                             const QModelIndex &index,
+                                             QWidget *parent) :
     QWidget(parent),
     m_option(option),
     m_index(index),
@@ -115,7 +115,10 @@ void TagTreeDelegateEditor::paintEvent(QPaintEvent *event)
 
 void TagTreeDelegateEditor::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    if (m_label->geometry().contains(event->pos())) {
+    auto iconRect = QRect(rect().x() + 10, rect().y() + (rect().height() - 14) / 2, 14, 14);
+    if (iconRect.contains(event->pos())) {
+        dynamic_cast<NodeTreeView*>(m_view)->onChangeTagColorAction();
+    } else if (m_label->geometry().contains(event->pos())) {
         m_label->openEditor();
     } else {
         QWidget::mouseDoubleClickEvent(event);

@@ -640,7 +640,43 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive)
 {
     QVector<NodeData> nodeList;
     QSqlQuery query;
-    if (!isRecursive) {
+    if (parentID == SpecialNodeID::RootFolder) {
+        query.prepare(R"(SELECT )"
+                      R"("id",)"
+                      R"("title",)"
+                      R"("creation_date",)"
+                      R"("modification_date",)"
+                      R"("deletion_date",)"
+                      R"("content",)"
+                      R"("node_type",)"
+                      R"("parent_id",)"
+                      R"("relative_position" )"
+                      R"(FROM node_table )"
+                      R"(WHERE node_type = (:node_type) AND parent_id != (:parent_id);)"
+                    );
+        query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
+        query.bindValue(QStringLiteral(":parent_id"), static_cast<int>(SpecialNodeID::TrashFolder));
+
+        bool status = query.exec();
+        if(status) {
+            while(query.next()) {
+                NodeData node;
+                node.setId(query.value(0).toInt());
+                node.setFullTitle(query.value(1).toString());
+                node.setCreationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(2).toLongLong()));
+                node.setLastModificationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(3).toLongLong()));
+                node.setDeletionDateTime(QDateTime::fromMSecsSinceEpoch(query.value(4).toLongLong()));
+                node.setContent(query.value(5).toString());
+                node.setNodeType(static_cast<NodeData::Type>(query.value(6).toInt()));
+                node.setParentId(query.value(7).toInt());
+                node.setRelativePosition(query.value(8).toInt());
+                node.setTagIds(getAllTagForNote(node.id()));
+                nodeList.append(node);
+            }
+        } else {
+            qDebug() << __LINE__ << "Database query failed!" << query.lastError();
+        }
+    } else if (!isRecursive) {
         query.prepare(R"(SELECT )"
                       R"("id",)"
                       R"("title",)"

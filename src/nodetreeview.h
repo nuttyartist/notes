@@ -20,6 +20,7 @@ public:
 
 public slots:
     void onCustomContextMenu(const QPoint& point);
+    void onChangeTagColorAction();
 
 protected:
     void mouseMoveEvent(QMouseEvent *event) override;
@@ -41,7 +42,6 @@ signals:
 private slots:
     void onClicked(const QModelIndex& index);
     void onDeleteNodeAction();
-    void onChangeTagColorAction();
 
 private:
     QMenu* contextMenu;
