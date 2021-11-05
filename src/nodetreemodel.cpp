@@ -34,7 +34,7 @@ void NodeTreeItem::removeChild(int row)
     if (row < 0 || row >= m_childItems.size()) {
         return;
     }
-    m_childItems.remove(row);
+    delete m_childItems.takeAt(row);
 }
 
 int NodeTreeItem::childCount() const
@@ -45,6 +45,15 @@ int NodeTreeItem::childCount() const
 int NodeTreeItem::columnCount() const
 {
     return 1;
+}
+
+int NodeTreeItem::recursiveNodeCount() const
+{
+    int res = 1;
+    for (const auto& child: m_childItems) {
+        res += child->recursiveNodeCount();
+    }
+    return res;
 }
 
 QVariant NodeTreeItem::data(NodeItem::Roles role) const
@@ -118,7 +127,7 @@ void NodeTreeModel::appendChildNodeToParent(const QModelIndex &parentIndex,
                 emit layoutChanged();
                 emit topLevelItemLayoutChanged();
             } else {
-                beginInsertRows(parentIndex, parentIndex.row(), parentIndex.row());
+                beginInsertRows(parentIndex, rowCount(parentIndex), rowCount(parentIndex));
                 auto nodeItem = new NodeTreeItem(data, parentItem);
                 parentItem->appendChild(nodeItem);
                 endInsertRows();
@@ -254,7 +263,7 @@ QModelIndex NodeTreeModel::indexFromIdPath(const NodePath &idPath)
         }
         if (!foundChild) {
             qDebug() << __FUNCTION__ << "Can't find child id" << id << "inside parent"
-                    << static_cast<int>(item->data(NodeItem::Roles::NodeId).toInt());
+                     << static_cast<int>(item->data(NodeItem::Roles::NodeId).toInt());
             return QModelIndex();
         }
     }
@@ -334,24 +343,51 @@ QVector<QModelIndex> NodeTreeModel::getSeparatorIndex()
     return result;
 }
 
+QModelIndex NodeTreeModel::getAllNotesButtonIndex()
+{
+    if (rootItem) {
+        for (int i = 0; i < rootItem->childCount(); ++i) {
+            auto child = rootItem->child(i);
+            auto type = static_cast<NodeItem::Type>(child->data(NodeItem::Roles::ItemType).toInt());
+            if (type == NodeItem::Type::AllNoteButton) {
+                return createIndex(i, 0, child);
+            }
+        }
+    }
+    return QModelIndex{};
+}
+
 void NodeTreeModel::deleteRow(const QModelIndex &rowIndex, const QModelIndex& parentIndex)
 {
     auto type = static_cast<NodeItem::Type>(rowIndex.data(NodeItem::Roles::ItemType).toInt());
     auto id = rowIndex.data(NodeItem::Roles::NodeId).toInt();
     if (!((type == NodeItem::Type::FolderItem ||
-            type == NodeItem::Type::TagItem) &&
-            id > SpecialNodeID::DefaultNotesFolder)) {
+           type == NodeItem::Type::TagItem) &&
+          id > SpecialNodeID::DefaultNotesFolder)) {
         qDebug() << "Can not delete this row with id" << id;
         return;
     }
-
     auto parentItem = static_cast<NodeTreeItem*>(parentIndex.internalPointer());
     auto item = static_cast<NodeTreeItem*>(rowIndex.internalPointer());
     int row = item->row();
-    beginRemoveRows(parentIndex, row, 0);
-    parentItem->removeChild(row);
-    delete item;
-    endRemoveRows();
+
+    setData(rowIndex, "deleted", NodeItem::DisplayText);
+    if (parentItem == rootItem) {
+//        emit layoutAboutToBeChanged();
+//        int count = item->recursiveNodeCount();
+//        beginRemoveRows(parentIndex, row, row + count -1);
+        beginResetModel();
+        parentItem->removeChild(row);
+        endResetModel();
+//        endRemoveRows();
+//        emit layoutChanged();
+        emit topLevelItemLayoutChanged();
+    } else {
+        int count = item->recursiveNodeCount();
+        beginRemoveRows(parentIndex, row, row + count -1);
+        parentItem->removeChild(row);
+        endRemoveRows();
+    }
 }
 
 void NodeTreeModel::setTreeData(const NodeTagTreeData &treeData)

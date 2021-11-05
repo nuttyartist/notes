@@ -171,6 +171,7 @@ void TreeViewLogic::onDeleteFolderRequested(const QModelIndex &index)
             m_treeModel->deleteRow(index, parentIndex);
             QMetaObject::invokeMethod(m_dbManager, "moveFolderToTrash", Qt::QueuedConnection,
                                       Q_ARG(NodeData, node));
+            m_treeView->setCurrentIndex(m_treeModel->getAllNotesButtonIndex());
         } else {
             qDebug() << __FUNCTION__ << "Parent index with path" << parentPath.path()
                      << "is not valid";

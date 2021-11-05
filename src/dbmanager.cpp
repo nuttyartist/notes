@@ -178,7 +178,7 @@ QVector<NodeData> DBManager::getAllFolders()
             nodeList.append(node);
         }
     } else {
-        qDebug() << "getAllNodes query failed!" << query.lastError();
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
 
     return nodeList;
@@ -201,7 +201,7 @@ QVector<TagData> DBManager::getAllTagInfo()
             tagList.append(tag);
         }
     } else {
-        qDebug() << "getAllTagInfo query failed!" << query.lastError();
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
 
     return tagList;
@@ -219,7 +219,7 @@ QSet<int> DBManager::getAllTagForNote(int noteId)
             tagIds.insert(query.value(0).toInt());
         }
     } else {
-        qDebug() << __FUNCTION__ << "query failed!" << query.lastError();
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
     return tagIds;
 }
@@ -256,9 +256,7 @@ int DBManager::addNode(const NodeData &node)
     if (node.parentId() != -1) {
         absolutePath = getNodeAbsolutePath(node.parentId()).path();
     }
-    qDebug() << " parent path " << absolutePath;
     absolutePath += PATH_SEPERATOR + QString::number(nodeId);
-    qDebug() << absolutePath;
     QString queryStr = R"(INSERT INTO "node_table")"
                        R"(("id", "title", "creation_date", "modification_date", "deletion_date", "content", "node_type", "parent_id", "relative_position", "absolute_path"))"
                        R"(VALUES (:id, :title, :creation_date, :modification_date, :deletion_date, :content, :node_type, :parent_id, :relative_position, :absolute_path);)";
@@ -446,7 +444,7 @@ bool DBManager::updateNoteContent(const NodeData& note)
     query.bindValue(QStringLiteral(":id"), id);
     query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
     if (!query.exec()) {
-        qWarning () << __func__ << ": " << query.lastError();
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
     return (query.numRowsAffected() == 1);
 }
@@ -565,7 +563,7 @@ NodeData DBManager::getNode(int nodeId)
         }
         return node;
     } else {
-        qDebug() << "getAllNodes query failed!" << query.lastError();
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
     qDebug() << "Can't find node with id" << nodeId;
 
@@ -583,7 +581,7 @@ void DBManager::moveFolderToTrash(const NodeData &node)
     query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Folder));
     bool status = query.exec();
     if(!status) {
-        qDebug() << "moveFolderToTrash query failed!" << query.lastError();
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
     query.clear();
     query.prepare(R"(SELECT id FROM "node_table" )"
@@ -594,10 +592,11 @@ void DBManager::moveFolderToTrash(const NodeData &node)
     status = query.exec();
     QVector<int> childIds;
     if (status) {
-        query.next();
-        childIds.append(query.value(0).toInt());
+        while(query.next()) {
+            childIds.append(query.value(0).toInt());
+        }
     } else {
-        qDebug() << "moveFolderToTrash query failed!" << query.lastError();
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
     auto trashFolder = getNode(SpecialNodeID::TrashFolder);
     for (const auto& id : childIds) {
@@ -621,7 +620,7 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
     query.bindValue(QStringLiteral(":id"), nodeId);
     bool status = query.exec();
     if(!status) {
-        qDebug() << "moveNode query failed!" << query.lastError();
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
 }
 
@@ -674,7 +673,7 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive)
                 nodeList.append(node);
             }
         } else {
-            qDebug() << __LINE__ << "Database query failed!" << query.lastError();
+            qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
         }
     } else if (!isRecursive) {
         query.prepare(R"(SELECT )"
@@ -709,8 +708,7 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive)
                 nodeList.append(node);
             }
         } else {
-            qDebug() << __LINE__ << "Database query failed!" << query.lastError();
-            qDebug() << query.lastQuery().toStdString().c_str();
+            qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
         }
     } else {
         auto parentPath = getNodeAbsolutePath(parentID).path();
@@ -747,7 +745,7 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive)
                 nodeList.append(node);
             }
         } else {
-            qDebug() << __LINE__ << "Database query failed!" << query.lastError();
+            qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
         }
     }
     emit notesListReceived(nodeList);
@@ -775,8 +773,7 @@ void DBManager::onNotesListInTagRequested(int tagId)
             }
         }
     } else {
-        qDebug() << __LINE__ << "Database query failed!" << query.lastError();
-        qDebug() << query.lastQuery().toStdString().c_str();
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
     emit notesListReceived(nodeList);
 }
@@ -810,14 +807,6 @@ void DBManager::onCreateUpdateRequestedNoteContent(const NodeData &note)
     }
 }
 
-/*!
- * \brief DBManager::onDeleteNoteRequested
- * \param note
- */
-void DBManager::onDeleteNoteRequested(const NodeData& note)
-{
-    removeNote(note);
-}
 
 /*!
  * \brief DBManager::onImportNotesRequested

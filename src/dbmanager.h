@@ -48,7 +48,6 @@ public slots:
     void onNotesListInTagRequested(int tagId);
     void onOpenDBManagerRequested(QString path, bool doCreate);
     void onCreateUpdateRequestedNoteContent(const NodeData& note);
-    void onDeleteNoteRequested(const NodeData &note);
     void onImportNotesRequested(QList<NodeData *> noteList);
     void onRestoreNotesRequested(QList<NodeData *> noteList);
     void onExportNotesRequested(QString fileName);

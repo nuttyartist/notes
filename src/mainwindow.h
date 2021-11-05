@@ -218,7 +218,6 @@ private:
     void restoreStates();
     void showNoteInEditor(const QModelIndex& noteIndex);
     void sortNotesList(QStringList &stringNotesList);
-    void removeNoteFromDB(const QModelIndex& noteIndex);
     void clearSearch();
     void findNotesContain(const QString &keyword);
     void selectNote(const QModelIndex& noteIndex);
@@ -288,7 +287,6 @@ signals:
     void requestNodesTree();
     void requestNotesList(int parentID, bool isRecursive);
     void requestOpenDBManager(QString path, bool doCreate);
-    void requestDeleteNote(const NodeData& note);
     void requestRestoreNotes(QList<NodeData *> noteList);
     void requestImportNotes(QList<NodeData *> noteList);
     void requestExportNotes(QString fileName);

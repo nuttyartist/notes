@@ -17,6 +17,7 @@ public:
     void setIsEditing(bool newIsEditing);
     void onRenameFolderFinished(const QString& newName);
     void onRenameTagFinished(const QString& newName);
+    void onCurrentChanged(const QModelIndex& current);
 
 public slots:
     void onCustomContextMenu(const QPoint& point);
@@ -42,7 +43,6 @@ signals:
 private slots:
     void onClicked(const QModelIndex& index);
     void onDeleteNodeAction();
-
 private:
     QMenu* contextMenu;
     QAction* renameFolderAction;
@@ -62,6 +62,9 @@ private:
 
     void updateEditingIndex(QMouseEvent* event);
     void closeCurrentEditor();
+    // QAbstractItemView interface
+protected slots:
+    virtual void currentChanged(const QModelIndex &current, const QModelIndex &previous) override;
 };
 
 #endif // NODETREEVIEW_H

@@ -598,8 +598,6 @@ void MainWindow::setupSignalsSlots()
             m_dbManager, &DBManager::onNotesListInFolderRequested, Qt::BlockingQueuedConnection);
     connect(this, &MainWindow::requestNodesTree,
             m_dbManager, &DBManager::onNodeTagTreeRequested, Qt::BlockingQueuedConnection);
-    connect(this, &MainWindow::requestDeleteNote,
-            m_dbManager, &DBManager::onDeleteNoteRequested);
     connect(this, &MainWindow::requestRestoreNotes,
             m_dbManager, &DBManager::onRestoreNotesRequested, Qt::BlockingQueuedConnection);
     connect(this, &MainWindow::requestImportNotes,
@@ -1128,18 +1126,6 @@ void MainWindow::showNoteInEditor(const QModelIndex &noteIndex)
     m_noteEditorLogic->highlightSearch();
 }
 
-
-/*!
- * \brief MainWindow::removeNoteFromDB
- * \param noteIndex
- */
-void MainWindow::removeNoteFromDB(const QModelIndex& noteIndex)
-{
-    if (noteIndex.isValid()) {
-        NodeData note = m_listModel->getNote(noteIndex);
-        emit requestDeleteNote(note);
-    }
-}
 
 /*!
  * \brief MainWindow::setButtonsAndFieldsEnabled

@@ -45,6 +45,7 @@ public:
     void removeChild(int row);
     int childCount() const;
     int columnCount() const;
+    int recursiveNodeCount() const;
     QVariant data(NodeItem::Roles role) const;
     void setData(NodeItem::Roles role, const QVariant& d);
     int row() const;
@@ -70,6 +71,7 @@ public:
     QString getNewFolderPlaceholderName(const QModelIndex& parentIndex);
     QString getNewTagPlaceholderName();
     QVector<QModelIndex> getSeparatorIndex();
+    QModelIndex getAllNotesButtonIndex();
     void deleteRow(const QModelIndex& rowIndex, const QModelIndex& parentIndex);
 
 public slots:

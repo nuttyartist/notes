@@ -58,7 +58,7 @@ NodeTreeView::NodeTreeView(QWidget *parent) :
     deleteTagAction = new QAction(tr("Delete Tag"), this);
     connect(deleteTagAction, &QAction::triggered, this, &NodeTreeView::onDeleteNodeAction);
     clearSelectionAction = new QAction(tr("Clear Selection"), this);
-//    connect(deleteTagAction, &QAction::triggered, this, &NodeTreeView::onDeleteNodeAction);
+    //    connect(deleteTagAction, &QAction::triggered, this, &NodeTreeView::onDeleteNodeAction);
 
     contextMenuTimer.setInterval(100);
     contextMenuTimer.setSingleShot(true);
@@ -79,29 +79,11 @@ void NodeTreeView::onClicked(const QModelIndex &index)
 {
     auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
     switch (itemType) {
-    case NodeItem::Type::RootItem:
-    case NodeItem::Type::FolderSeparator:
-    case NodeItem::Type::TagSeparator:
-    case NodeItem::Type::NoteItem: {
-        break;
-    }
-    case NodeItem::Type::AllNoteButton: {
-        emit loadNotesInFolderRequested(SpecialNodeID::RootFolder, true);
-        break;
-    }
-    case NodeItem::Type::TrashButton: {
-        emit loadNotesInFolderRequested(SpecialNodeID::TrashFolder, true);
-        break;
-    }
     case NodeItem::Type::FolderItem: {
         expand(index);
-        auto folderId = index.data(NodeItem::Roles::NodeId).toInt();
-        emit loadNotesInFolderRequested(folderId, false);
         break;
     }
-    case NodeItem::Type::TagItem: {
-        auto tagId = index.data(NodeItem::Roles::NodeId).toInt();
-        emit loadNotesInTagRequested(tagId);
+    default: {
         break;
     }
     }
@@ -119,6 +101,37 @@ void NodeTreeView::onDeleteNodeAction()
     } else if (itemType == NodeItem::Type::TagItem) {
         auto index = m_currentEditingIndex;
         emit deleteTagRequested(index);
+    }
+}
+
+void NodeTreeView::onCurrentChanged(const QModelIndex &current)
+{
+    auto itemType = static_cast<NodeItem::Type>(current.data(NodeItem::Roles::ItemType).toInt());
+    switch (itemType) {
+    case NodeItem::Type::RootItem:
+    case NodeItem::Type::FolderSeparator:
+    case NodeItem::Type::TagSeparator:
+    case NodeItem::Type::NoteItem: {
+        break;
+    }
+    case NodeItem::Type::AllNoteButton: {
+        emit loadNotesInFolderRequested(SpecialNodeID::RootFolder, true);
+        break;
+    }
+    case NodeItem::Type::TrashButton: {
+        emit loadNotesInFolderRequested(SpecialNodeID::TrashFolder, true);
+        break;
+    }
+    case NodeItem::Type::FolderItem: {
+        auto folderId = current.data(NodeItem::Roles::NodeId).toInt();
+        emit loadNotesInFolderRequested(folderId, false);
+        break;
+    }
+    case NodeItem::Type::TagItem: {
+        auto tagId = current.data(NodeItem::Roles::NodeId).toInt();
+        emit loadNotesInTagRequested(tagId);
+        break;
+    }
     }
 }
 
@@ -154,6 +167,12 @@ void NodeTreeView::closeCurrentEditor()
 {
     closePersistentEditor(m_currentEditingIndex);
     m_currentEditingIndex = QModelIndex();
+}
+
+void NodeTreeView::currentChanged(const QModelIndex &current, const QModelIndex &previous)
+{
+    QTreeView::currentChanged(current, previous);
+    onCurrentChanged(current);
 }
 
 void NodeTreeView::setIsEditing(bool newIsEditing)
