@@ -49,8 +49,8 @@ TreeViewLogic::TreeViewLogic(NodeTreeView* treeView,
             m_dbManager, &DBManager::changeTagColor, Qt::QueuedConnection);
     connect(m_treeView, &NodeTreeView::loadNotesInFolderRequested,
             m_dbManager, &DBManager::onNotesListInFolderRequested, Qt::QueuedConnection);
-    connect(m_treeView, &NodeTreeView::loadNotesInTagRequested,
-            m_dbManager, &DBManager::onNotesListInTagRequested, Qt::QueuedConnection);
+    connect(m_treeView, &NodeTreeView::loadNotesInTagsRequested,
+            m_dbManager, &DBManager::onNotesListInTagsRequested, Qt::QueuedConnection);
 }
 
 void TreeViewLogic::updateTreeViewSeparator()

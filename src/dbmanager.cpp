@@ -751,29 +751,58 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive)
     emit notesListReceived(nodeList);
 }
 
-void DBManager::onNotesListInTagRequested(int tagId)
+void DBManager::onNotesListInTagsRequested(const QVector<int> &tagIds)
 {
     QVector<NodeData> nodeList;
-    QSqlQuery query;
-    query.prepare(R"(SELECT "node_id" FROM tag_relationship WHERE tag_id = :tag_id;)");
-    query.bindValue(QStringLiteral(":tag_id"), tagId);
-    bool status = query.exec();
-    if(status) {
-        QSet<int> noteIds;
-        while(query.next()) {
-            noteIds.insert(query.value(0).toInt());
+    QVector<QSet<int>> nds;
+    for (const auto& tagId : tagIds) {
+        QSet<int> nd;
+        QSqlQuery query;
+        query.prepare(R"(SELECT "node_id" FROM tag_relationship WHERE tag_id = :tag_id;)");
+        query.bindValue(QStringLiteral(":tag_id"), tagId);
+        bool status = query.exec();
+        if(status) {
+            while(query.next()) {
+                nd.insert(query.value(0).toInt());
+            }
+        } else {
+            qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
         }
-        for (const auto& id : noteIds) {
-            NodeData node = getNode(id);
-            if (node.id() != SpecialNodeID::InvalidNoteId &&
-                    node.nodeType() == NodeData::Note) {
-                nodeList.append(node);
-            } else {
-                qDebug() << __FUNCTION__ << "Note with id" << id << "is not valid";
+        nds.append(nd);
+    }
+    if (nds.size() == 0) {
+        emit notesListReceived(nodeList);
+        return;
+    }
+    QSet<int> noteIds;
+    int nds_id = 0;
+    for (int i = 1; i < nds.size(); ++i) {
+        if (nds[i].size() < nds[nds_id].size()) {
+            nds_id = i;
+        }
+    }
+    for (const int id : nds[nds_id]) {
+        bool ok = true;
+        for (int i = 0; i < nds.size(); ++i) {
+            if (i == nds_id) {
+                continue;
+            }
+            if (!nds[i].contains(id)) {
+                ok = false;
             }
         }
-    } else {
-        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+        if (ok) {
+            noteIds.insert(id);
+        }
+    }
+    for (const auto& id : noteIds) {
+        NodeData node = getNode(id);
+        if (node.id() != SpecialNodeID::InvalidNoteId &&
+                node.nodeType() == NodeData::Note) {
+            nodeList.append(node);
+        } else {
+            qDebug() << __FUNCTION__ << "Note with id" << id << "is not valid";
+        }
     }
     emit notesListReceived(nodeList);
 }

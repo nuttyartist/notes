@@ -34,6 +34,7 @@ NodeTreeView::NodeTreeView(QWidget *parent) :
     setRootIsDecorated(false);
     setMouseTracking(true);
     connect(this, &QAbstractItemView::clicked, this, &NodeTreeView::onClicked);
+    setSelectionMode(QAbstractItemView::MultiSelection);
     setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this, &QWidget::customContextMenuRequested,
             this, &NodeTreeView::onCustomContextMenu);
@@ -58,7 +59,12 @@ NodeTreeView::NodeTreeView(QWidget *parent) :
     deleteTagAction = new QAction(tr("Delete Tag"), this);
     connect(deleteTagAction, &QAction::triggered, this, &NodeTreeView::onDeleteNodeAction);
     clearSelectionAction = new QAction(tr("Clear Selection"), this);
-    //    connect(deleteTagAction, &QAction::triggered, this, &NodeTreeView::onDeleteNodeAction);
+    connect(clearSelectionAction, &QAction::triggered,
+            this, [this] {
+        closeCurrentEditor();
+        clearSelection();
+        setCurrentIndex(QModelIndex());
+    });
 
     contextMenuTimer.setInterval(100);
     contextMenuTimer.setSingleShot(true);
@@ -104,37 +110,6 @@ void NodeTreeView::onDeleteNodeAction()
     }
 }
 
-void NodeTreeView::onCurrentChanged(const QModelIndex &current)
-{
-    auto itemType = static_cast<NodeItem::Type>(current.data(NodeItem::Roles::ItemType).toInt());
-    switch (itemType) {
-    case NodeItem::Type::RootItem:
-    case NodeItem::Type::FolderSeparator:
-    case NodeItem::Type::TagSeparator:
-    case NodeItem::Type::NoteItem: {
-        break;
-    }
-    case NodeItem::Type::AllNoteButton: {
-        emit loadNotesInFolderRequested(SpecialNodeID::RootFolder, true);
-        break;
-    }
-    case NodeItem::Type::TrashButton: {
-        emit loadNotesInFolderRequested(SpecialNodeID::TrashFolder, true);
-        break;
-    }
-    case NodeItem::Type::FolderItem: {
-        auto folderId = current.data(NodeItem::Roles::NodeId).toInt();
-        emit loadNotesInFolderRequested(folderId, false);
-        break;
-    }
-    case NodeItem::Type::TagItem: {
-        auto tagId = current.data(NodeItem::Roles::NodeId).toInt();
-        emit loadNotesInTagRequested(tagId);
-        break;
-    }
-    }
-}
-
 void NodeTreeView::onChangeTagColorAction()
 {
     auto itemType = static_cast<NodeItem::Type>(m_currentEditingIndex.data(NodeItem::Roles::ItemType).toInt());
@@ -169,10 +144,54 @@ void NodeTreeView::closeCurrentEditor()
     m_currentEditingIndex = QModelIndex();
 }
 
+void NodeTreeView::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
+{
+    QTreeView::selectionChanged(selected, deselected);
+    auto indexes = selectedIndexes();
+    QVector<int> tagIds;
+    for (const auto index : indexes) {
+        auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
+        switch (itemType) {
+        case NodeItem::Type::RootItem:
+        case NodeItem::Type::FolderSeparator:
+        case NodeItem::Type::TagSeparator:
+        case NodeItem::Type::NoteItem: {
+            return;
+        }
+        case NodeItem::Type::AllNoteButton: {
+            emit loadNotesInFolderRequested(SpecialNodeID::RootFolder, true);
+            return;
+        }
+        case NodeItem::Type::TrashButton: {
+            emit loadNotesInFolderRequested(SpecialNodeID::TrashFolder, true);
+            return;
+        }
+        case NodeItem::Type::FolderItem: {
+            auto folderId = index.data(NodeItem::Roles::NodeId).toInt();
+            emit loadNotesInFolderRequested(folderId, false);
+            return;
+        }
+        case NodeItem::Type::TagItem: {
+            auto tagId = index.data(NodeItem::Roles::NodeId).toInt();
+            tagIds.append(tagId);
+            break;
+        }
+        }
+    }
+    emit loadNotesInTagsRequested(tagIds);
+}
+
 void NodeTreeView::currentChanged(const QModelIndex &current, const QModelIndex &previous)
 {
     QTreeView::currentChanged(current, previous);
-    onCurrentChanged(current);
+    auto itemType = static_cast<NodeItem::Type>(current.data(NodeItem::Roles::ItemType).toInt());
+    if (itemType == NodeItem::Type::TagItem) {
+        setSelectionMode(QAbstractItemView::MultiSelection);
+    } else {
+        clearSelection();
+        setSelectionMode(QAbstractItemView::SingleSelection);
+        setCurrentIndex(current);
+    }
 }
 
 void NodeTreeView::setIsEditing(bool newIsEditing)

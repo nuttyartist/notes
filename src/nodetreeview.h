@@ -17,7 +17,6 @@ public:
     void setIsEditing(bool newIsEditing);
     void onRenameFolderFinished(const QString& newName);
     void onRenameTagFinished(const QString& newName);
-    void onCurrentChanged(const QModelIndex& current);
 
 public slots:
     void onCustomContextMenu(const QPoint& point);
@@ -35,7 +34,7 @@ signals:
     void renameTagInDatabase(const QModelIndex& index, const QString& newName);
     void deleteNodeRequested(const QModelIndex& index);
     void loadNotesInFolderRequested(int folderID, bool isRecursive);
-    void loadNotesInTagRequested(int tagId);
+    void loadNotesInTagsRequested(const QVector<int>& tagIds);
 
     void renameTagRequested();
     void changeTagColorRequested(const QModelIndex& index);
@@ -62,8 +61,10 @@ private:
 
     void updateEditingIndex(QMouseEvent* event);
     void closeCurrentEditor();
+
     // QAbstractItemView interface
 protected slots:
+    virtual void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected) override;
     virtual void currentChanged(const QModelIndex &current, const QModelIndex &previous) override;
 };
 

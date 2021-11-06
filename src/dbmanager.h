@@ -45,7 +45,7 @@ signals:
 public slots:
     void onNodeTagTreeRequested();
     void onNotesListInFolderRequested(int parentID, bool isRecursive);
-    void onNotesListInTagRequested(int tagId);
+    void onNotesListInTagsRequested(const QVector<int>& tagIds);
     void onOpenDBManagerRequested(QString path, bool doCreate);
     void onCreateUpdateRequestedNoteContent(const NodeData& note);
     void onImportNotesRequested(QList<NodeData *> noteList);
