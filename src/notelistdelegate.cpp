@@ -211,7 +211,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
     double dateRectHeight = fmRectDate.height() + spaceY;
 
     double contentRectPosX = rowPosX + leftOffsetX;
-    double contentRectPosY = dateRectPosY + fmRectDate.height() + topOffsetY + 3;
+    double contentRectPosY = rowPosY + fmRectTitle.height() + fmRectDate.height() + topOffsetY + 3;
     double contentRectWidth = rowWidth - 2.0 * leftOffsetX;
     double contentRectHeight = fmRectContent.height() + spaceY;
 
@@ -234,6 +234,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
 
             dateRectPosY = titleRectHeight;
             dateRectHeight = fmRectDate.height() + spaceY;
+            contentRectPosY = dateRectPosY + dateRectHeight;
         }else{
             if((fmRectTitle.height() + topOffsetY) >= ((1.0 - rowRate) * m_rowHeight)){
                 titleRectHeight = (fmRectTitle.height() + topOffsetY) - (1.0 - rowRate) * m_rowHeight;
@@ -251,6 +252,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
             }
 
             dateRectPosY = titleRectHeight + rowPosY;
+            contentRectPosY = dateRectPosY + dateRectHeight + rowPosY;
         }
     }
 
