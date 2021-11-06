@@ -401,9 +401,37 @@ void DBManager::removeNote(const NodeData &note)
         if (!query.exec()) {
             qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
         }
+        query.clear();
+        query.prepare(R"(DELETE FROM "tag_relationship" )"
+                      R"(WHERE node_id = (:id);)"
+                        );
+        query.bindValue(QStringLiteral(":id"), note.id());
+        if (!query.exec()) {
+            qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+        }
     } else {
         auto trashFolder = getNode(SpecialNodeID::TrashFolder);
         moveNode(note.id(), trashFolder);
+    }
+}
+
+void DBManager::removeTag(int tagId)
+{
+    QSqlQuery query;
+    query.prepare(R"(DELETE FROM "tag_table" )"
+                  R"(WHERE id = (:id);)"
+                    );
+    query.bindValue(QStringLiteral(":id"), tagId);
+    if (!query.exec()) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+    }
+    query.clear();
+    query.prepare(R"(DELETE FROM "tag_relationship" )"
+                  R"(WHERE tag_id = (:id);)"
+                    );
+    query.bindValue(QStringLiteral(":id"), tagId);
+    if (!query.exec()) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
 }
 

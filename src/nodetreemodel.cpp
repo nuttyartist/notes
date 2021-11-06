@@ -361,9 +361,9 @@ void NodeTreeModel::deleteRow(const QModelIndex &rowIndex, const QModelIndex& pa
 {
     auto type = static_cast<NodeItem::Type>(rowIndex.data(NodeItem::Roles::ItemType).toInt());
     auto id = rowIndex.data(NodeItem::Roles::NodeId).toInt();
-    if (!((type == NodeItem::Type::FolderItem ||
-           type == NodeItem::Type::TagItem) &&
-          id > SpecialNodeID::DefaultNotesFolder)) {
+    if (!((type == NodeItem::Type::FolderItem &&
+          id > SpecialNodeID::DefaultNotesFolder) ||
+          type == NodeItem::Type::TagItem)) {
         qDebug() << "Can not delete this row with id" << id;
         return;
     }

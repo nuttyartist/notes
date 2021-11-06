@@ -45,6 +45,8 @@ TreeViewLogic::TreeViewLogic(NodeTreeView* treeView,
             this, &TreeViewLogic::onDeleteFolderRequested);
     connect(m_treeView, &NodeTreeView::changeTagColorRequested,
             this, &TreeViewLogic::onChangeTagColorRequested);
+    connect(m_treeView, &NodeTreeView::deleteTagRequested,
+            this, &TreeViewLogic::onDeleteTagRequested);
     connect(this, &TreeViewLogic::requestChangeTagColorInDB,
             m_dbManager, &DBManager::changeTagColor, Qt::QueuedConnection);
     connect(m_treeView, &NodeTreeView::loadNotesInFolderRequested,
@@ -197,5 +199,14 @@ void TreeViewLogic::onChangeTagColorRequested(const QModelIndex &index)
             emit requestChangeTagColorInDB(id, newColor.name());
         }
     }
+}
+
+void TreeViewLogic::onDeleteTagRequested(const QModelIndex &index)
+{
+    auto id = index.data(NodeItem::Roles::NodeId).toInt();
+    m_treeModel->deleteRow(index, m_treeModel->rootIndex());
+    QMetaObject::invokeMethod(m_dbManager, "removeTag", Qt::QueuedConnection,
+                              Q_ARG(int, id));
+    m_treeView->setCurrentIndex(m_treeModel->getAllNotesButtonIndex());
 }
 

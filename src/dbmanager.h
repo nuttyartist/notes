@@ -63,6 +63,7 @@ public slots:
     void renameTag(int id, const QString& newName);
     void changeTagColor(int id, const QString& newColor);
     void removeNote(const NodeData& note);
+    void removeTag(int tagId);
 };
 
 #endif // DBMANAGER_H
