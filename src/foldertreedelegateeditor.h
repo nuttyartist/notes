@@ -26,6 +26,7 @@ signals:
 private:
     QStyleOptionViewItem m_option;
     QModelIndex m_index;
+    QString m_displayFont;
     QFont m_titleFont;
     QColor m_titleColor;
     QColor m_titleSelectedColor;

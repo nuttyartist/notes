@@ -17,7 +17,18 @@ FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
     QWidget(parent),
     m_option(option),
     m_index(index),
-    m_titleFont(QStringLiteral("Roboto"), 10, 60),
+    #ifdef __APPLE__
+    m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")),
+    #elif _WIN32
+    m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI") : QStringLiteral("Roboto")),
+    #else
+    m_displayFont(QStringLiteral("Roboto")),
+    #endif
+    #ifdef __APPLE__
+    m_titleFont(m_displayFont, 13, 65),
+    #else
+    m_titleFont(m_displayFont, 10, 60),
+    #endif
     m_titleColor(26, 26, 26),
     m_titleSelectedColor(255, 255, 255),
     m_activeColor(68, 138, 201),
