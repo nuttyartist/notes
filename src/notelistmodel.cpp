@@ -116,6 +116,8 @@ QVariant NoteListModel::data(const QModelIndex &index, int role) const
         return QVariant::fromValue(note.tagIds());
     }else if(role == NoteIsTemp){
         return note.isTempNote();
+    }else if(role == NodeParentName){
+        return note.parentName();
     }
 
     return QVariant();
@@ -146,7 +148,9 @@ bool NoteListModel::setData(const QModelIndex &index, const QVariant &value, int
         note.setTagIds(value.value<QSet<int>>());
     }else if(role == NoteIsTemp) {
         note.setIsTempNote(value.toBool());
-    }else {
+    }else if(role == NodeParentName) {
+        note.setParentName(value.toString());
+    } else {
         return false;
     }
 

@@ -14,6 +14,12 @@ struct NodeTagTreeData {
     QVector<TagData> tagTreeData;
 };
 
+struct ListViewInfo {
+    bool isInTag;
+    QVector<int> currentTagList;
+    int parentFolderId;
+};
+
 class DBManager : public QObject
 {
     Q_OBJECT
@@ -38,7 +44,7 @@ private:
     bool migrateTrash(NodeData* note);
 
 signals:
-    void notesListReceived(QVector<NodeData> noteList);
+    void notesListReceived(const QVector<NodeData>& noteList, const ListViewInfo& inf);
     void nodesTagTreeReceived(const NodeTagTreeData& treeData);
 
     void tagAdded(const TagData& tag);

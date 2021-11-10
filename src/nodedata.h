@@ -69,6 +69,9 @@ public:
     bool isTempNote() const;
     void setIsTempNote(bool newIsTempNote);
 
+    const QString &parentName() const;
+    void setParentName(const QString &newParentName);
+
 private:
     int m_id;
     QString m_fullTitle;
@@ -85,6 +88,7 @@ private:
     QString m_absolutePath;
     QSet<int> m_tagIds;
     bool m_isTempNote;
+    QString m_parentName;
 };
 
 Q_DECLARE_METATYPE(NodeData)

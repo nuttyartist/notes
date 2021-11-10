@@ -19,6 +19,7 @@ DBManager::DBManager(QObject *parent)
     qRegisterMetaType<QVector<NodeData>>("QVector<NodeData>");
     qRegisterMetaType<NodeTagTreeData>("NodeTagTreeData");
     qRegisterMetaType<QSet<int>>("QSet<int>");
+    qRegisterMetaType<ListViewInfo>("ListViewInfo");
 }
 
 /*!
@@ -698,6 +699,8 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive)
                 node.setParentId(query.value(7).toInt());
                 node.setRelativePosition(query.value(8).toInt());
                 node.setTagIds(getAllTagForNote(node.id()));
+                auto p = getNode(node.parentId());
+                node.setParentName(p.fullTitle());
                 nodeList.append(node);
             }
         } else {
@@ -776,13 +779,19 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive)
             qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
         }
     }
-    emit notesListReceived(nodeList);
+    ListViewInfo inf;
+    inf.isInTag = false;
+    inf.parentFolderId = parentID;
+    emit notesListReceived(nodeList, inf);
 }
 
 void DBManager::onNotesListInTagsRequested(const QVector<int> &tagIds)
 {
     QVector<NodeData> nodeList;
     QVector<QSet<int>> nds;
+    ListViewInfo inf;
+    inf.isInTag = true;
+    inf.currentTagList = tagIds;
     for (const auto& tagId : tagIds) {
         QSet<int> nd;
         QSqlQuery query;
@@ -799,7 +808,7 @@ void DBManager::onNotesListInTagsRequested(const QVector<int> &tagIds)
         nds.append(nd);
     }
     if (nds.size() == 0) {
-        emit notesListReceived(nodeList);
+        emit notesListReceived(nodeList, inf);
         return;
     }
     QSet<int> noteIds;
@@ -832,7 +841,7 @@ void DBManager::onNotesListInTagsRequested(const QVector<int> &tagIds)
             qDebug() << __FUNCTION__ << "Note with id" << id << "is not valid";
         }
     }
-    emit notesListReceived(nodeList);
+    emit notesListReceived(nodeList, inf);
 }
 
 /*!

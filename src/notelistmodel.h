@@ -19,6 +19,7 @@ public:
         NoteScrollbarPos,
         NoteTagsList,
         NoteIsTemp,
+        NodeParentName,
     };
 
     explicit NoteListModel(QObject *parent = Q_NULLPTR);

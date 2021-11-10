@@ -4,11 +4,12 @@
 #include <QObject>
 #include <QVector>
 #include "nodedata.h"
+#include "dbmanager.h"
 
 class NoteListView;
 class NoteListModel;
-class DBManager;
 class TagPool;
+class NoteListDelegate;
 
 class ListViewLogic : public QObject
 {
@@ -33,7 +34,7 @@ signals:
     void closeNoteEditor();
 
 private slots:
-    void loadNoteListModel(QVector<NodeData> noteList);
+    void loadNoteListModel(const QVector<NodeData>& noteList, const ListViewInfo& inf);
     void onAddTagRequest(const QModelIndex& index, int tagIds);
     void onNotePressed(const QModelIndex& index);
     void deleteNoteRequestedI(const QModelIndex& index);
@@ -45,6 +46,9 @@ private:
     NoteListView* m_listView;
     NoteListModel* m_listModel;
     DBManager* m_dbManager;
+    NoteListDelegate* m_listDelegate;
+
+    ListViewInfo m_listViewInfo;
 };
 
 #endif // LISTVIEWLOGIC_H

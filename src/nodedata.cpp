@@ -151,6 +151,16 @@ void NodeData::setIsTempNote(bool newIsTempNote)
     m_isTempNote = newIsTempNote;
 }
 
+const QString &NodeData::parentName() const
+{
+    return m_parentName;
+}
+
+void NodeData::setParentName(const QString &newParentName)
+{
+    m_parentName = newParentName;
+}
+
 QDateTime NodeData::creationDateTime() const
 {
     return m_creationDateTime;

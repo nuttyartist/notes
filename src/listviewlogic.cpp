@@ -15,7 +15,8 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
     m_listModel{noteModel},
     m_dbManager{dbManager}
 {
-    m_listView->setItemDelegate(new NoteListDelegate(tagPool, m_listView));
+    m_listDelegate = new NoteListDelegate(tagPool, m_listView);
+    m_listView->setItemDelegate(m_listDelegate);
     connect(m_dbManager, &DBManager::notesListReceived, this, &ListViewLogic::loadNoteListModel);
     // note model rows moved
     connect(m_listModel, &NoteListModel::rowsAboutToBeMoved, m_listView, &NoteListView::rowsAboutToBeMoved);
@@ -27,7 +28,6 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
     connect(this, &ListViewLogic::requestAddTagDb, dbManager, &DBManager::addNoteToTag, Qt::QueuedConnection);
     connect(this, &ListViewLogic::requestRemoveNoteDb, dbManager, &DBManager::removeNote, Qt::QueuedConnection);
     connect(m_listView, &NoteListView::deleteNoteRequested, this, &ListViewLogic::deleteNoteRequestedI);
-
 }
 
 void ListViewLogic::selectNote(const QModelIndex &noteIndex)
@@ -93,9 +93,15 @@ void ListViewLogic::deleteNoteRequested(const NodeData &note)
     deleteNoteRequestedI(index);
 }
 
-void ListViewLogic::loadNoteListModel(QVector<NodeData> noteList)
+void ListViewLogic::loadNoteListModel(const QVector<NodeData>& noteList, const ListViewInfo& inf)
 {
     m_listModel->setListNote(noteList);
+    m_listViewInfo = inf;
+    if ((!m_listViewInfo.isInTag) && m_listViewInfo.parentFolderId == SpecialNodeID::RootFolder) {
+        m_listDelegate->setIsInAllNotes(true);
+    } else {
+        m_listDelegate->setIsInAllNotes(false);
+    }
     //    setTheme(m_currentTheme);
     selectFirstNote();
 }
