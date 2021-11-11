@@ -125,7 +125,6 @@ MainWindow::MainWindow(QWidget *parent) :
     setupSignalsSlots();
     autoCheckForUpdates();
 
-
     QTimer::singleShot(200,this, SLOT(InitData()));
 }
 
@@ -623,6 +622,9 @@ void MainWindow::setupSignalsSlots()
             m_listViewLogic, &ListViewLogic::setNoteData);
     connect(m_noteEditorLogic, &NoteEditorLogic::deleteNoteRequested,
             m_listViewLogic, &ListViewLogic::deleteNoteRequested);
+    connect(m_listViewLogic, &ListViewLogic::noteTagListChanged,
+            m_noteEditorLogic, &NoteEditorLogic::onNoteTagListChanged);
+
 #ifdef __APPLE__
     // Replace setUseNativeWindowFrame with just the part that handles pushing things up
     connect(this, &MainWindow::toggleFullScreen, this, [=](bool isFullScreen){adjustUpperWidgets(isFullScreen);});
@@ -1650,11 +1652,14 @@ void MainWindow::createNewNote()
                 auto parentType = static_cast<NodeItem::Type>(parentIndex.data(NodeItem::Roles::ItemType).toInt());
                 if (parentType == NodeItem::Type::FolderItem) {
                     tmpNote.setParentId(parentIndex.data(NodeItem::Roles::NodeId).toInt());
+                    tmpNote.setParentName(parentIndex.data(NodeItem::Roles::DisplayText).toString());
                 } else {
                     tmpNote.setParentId(SpecialNodeID::DefaultNotesFolder);
+                    tmpNote.setParentName("Notes");
                 }
             } else {
                 tmpNote.setParentId(SpecialNodeID::DefaultNotesFolder);
+                tmpNote.setParentName("Notes");
             }
             int noteId = SpecialNodeID::InvalidNoteId;
             QMetaObject::invokeMethod(m_dbManager, "nextAvailableNodeId", Qt::BlockingQueuedConnection,

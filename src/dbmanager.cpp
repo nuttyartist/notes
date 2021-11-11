@@ -372,6 +372,7 @@ void DBManager::renameTag(int id, const QString &newName)
     if (!query.exec()) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
+    emit tagRenamed(id, newName);
 }
 
 void DBManager::changeTagColor(int id, const QString &newColor)
@@ -383,6 +384,7 @@ void DBManager::changeTagColor(int id, const QString &newColor)
     if (!query.exec()) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
+    emit tagColorChanged(id, newColor);
 }
 
 /*!
@@ -434,6 +436,7 @@ void DBManager::removeTag(int tagId)
     if (!query.exec()) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
+    emit tagRemoved(tagId);
 }
 
 /*!

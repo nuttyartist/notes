@@ -32,6 +32,7 @@ signals:
     void requestAddTagDb(int noteId, int tagId);
     void requestRemoveNoteDb(const NodeData& noteData);
     void closeNoteEditor();
+    void noteTagListChanged(int noteId, const QSet<int>& tagIds);
 
 private slots:
     void loadNoteListModel(const QVector<NodeData>& noteList, const ListViewInfo& inf);

@@ -251,9 +251,9 @@ void NodeTreeView::onCustomContextMenu(const QPoint &point)
             m_isContextMenuOpened = true;
             contextMenu->addAction(renameTagAction);
             contextMenu->addAction(changeTagColorAction);
-            contextMenu->addAction(deleteTagAction);
-            contextMenu->addSeparator();
             contextMenu->addAction(clearSelectionAction);
+            contextMenu->addSeparator();
+            contextMenu->addAction(deleteTagAction);
             contextMenu->exec(viewport()->mapToGlobal(point));
         }
     }

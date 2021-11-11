@@ -5,6 +5,7 @@
 #include "dbmanager.h"
 #include <QDebug>
 #include <QMessageBox>
+#include "tagpool.h"
 
 ListViewLogic::ListViewLogic(NoteListView* noteView,
                              NoteListModel* noteModel,
@@ -28,6 +29,13 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
     connect(this, &ListViewLogic::requestAddTagDb, dbManager, &DBManager::addNoteToTag, Qt::QueuedConnection);
     connect(this, &ListViewLogic::requestRemoveNoteDb, dbManager, &DBManager::removeNote, Qt::QueuedConnection);
     connect(m_listView, &NoteListView::deleteNoteRequested, this, &ListViewLogic::deleteNoteRequestedI);
+    connect(tagPool, &TagPool::dataUpdated, this, [this] (int) {
+        if (m_listModel->rowCount() > 0) {
+            emit m_listModel->dataChanged(m_listModel->index(0,0),
+                                          m_listModel->index(m_listModel->rowCount() - 1,0));
+        }
+    });
+
 }
 
 void ListViewLogic::selectNote(const QModelIndex &noteIndex)
@@ -114,6 +122,7 @@ void ListViewLogic::onAddTagRequest(const QModelIndex &index, int tagId)
         auto tagIds = index.data(NoteListModel::NoteTagsList).value<QSet<int>>();
         tagIds.insert(tagId);
         m_listModel->setData(index, QVariant::fromValue(tagIds), NoteListModel::NoteTagsList);
+        emit noteTagListChanged(noteId, tagIds);
     } else {
         qDebug() << __FUNCTION__ << "index is not valid";
     }

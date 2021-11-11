@@ -9,6 +9,7 @@
 #include <QScrollBar>
 #include <QLabel>
 #include <QLineEdit>
+#include <QDebug>
 
 #define FIRST_LINE_MAX 80
 
@@ -39,6 +40,9 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit,
     m_tagListModel->setTagPool(tagPool);
     m_tagListView->setModel(m_tagListModel);
     m_tagListView->setItemDelegate(new TagListDelegate{this});
+    connect(tagPool, &TagPool::dataUpdated, this, [this] (int) {
+        showTagListForCurrentNote();
+    });
 }
 
 bool NoteEditorLogic::markdownEnabled() const
@@ -158,6 +162,14 @@ void NoteEditorLogic::closeEditor()
     m_textEdit->clear();
     m_textEdit->clearFocus();
     m_textEdit->blockSignals(false);
+}
+
+void NoteEditorLogic::onNoteTagListChanged(int noteId, const QSet<int> tagIds)
+{
+    if (m_currentNote.id() == noteId) {
+        m_currentNote.setTagIds(tagIds);
+        showTagListForCurrentNote();
+    }
 }
 
 NodeData NoteEditorLogic::currentEditingNote() const

@@ -16,12 +16,16 @@ public:
     bool contains(int id) const;
     QList<int> tagIds() const;
 
-public slots:
-    void onTagDeleted(int id);
-    void onTagAdded(const TagData& tag);
-    void onTagChanged(const TagData& tag);
 signals:
     void dataReseted();
+    void dataUpdated(int tagId);
+    void tagDeleted(int tagId);
+
+private slots:
+    void onTagDeleted(int id);
+    void onTagAdded(const TagData& tag);
+    void onTagRenamed(int id, const QString& newName);
+    void onTagColorChanged(int id, const QString& newColor);
 
 private:
     QMap<int, TagData> m_pool;

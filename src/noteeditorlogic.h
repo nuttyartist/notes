@@ -42,6 +42,7 @@ public slots:
     void showNoteInEditor(const NodeData& note);
     void onTextEditTextChanged();
     void closeEditor();
+    void onNoteTagListChanged(int noteId, const QSet<int> tagIds);
 
 signals:
     void requestCreateUpdateNote(const NodeData& note);

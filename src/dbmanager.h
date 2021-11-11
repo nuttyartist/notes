@@ -48,6 +48,10 @@ signals:
     void nodesTagTreeReceived(const NodeTagTreeData& treeData);
 
     void tagAdded(const TagData& tag);
+    void tagRemoved(int tagId);
+    void tagRenamed(int tagId, const QString& newName);
+    void tagColorChanged(int tagId, const QString& tagColor);
+
 public slots:
     void onNodeTagTreeRequested();
     void onNotesListInFolderRequested(int parentID, bool isRecursive);
