@@ -257,7 +257,6 @@ private slots:
     void onRedCloseButtonClicked();
     void createNewNote();
     void deleteNote(const QModelIndex& noteIndex, bool isFromUser=true);
-    void setFocusOnCurrentNote();
     void selectNoteDown();
     void selectNoteUp();
     void setFocusOnText();
@@ -282,7 +281,7 @@ private slots:
     void changeEditorTextWidthFromStyleButtons(EditorTextWidth editorTextWidth);
     void resetEditorToDefaultSettings();
     void setTheme(Theme theme);
-
+    void deleteSelectedNote();
 signals:
     void requestNodesTree();
     void requestNotesList(int parentID, bool isRecursive);

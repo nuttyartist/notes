@@ -24,14 +24,19 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
     connect(m_listModel, &NoteListModel::rowsMoved, m_listView, &NoteListView::rowsMoved);
     // note pressed
     connect(m_listView, &NoteListView::pressed, this, &ListViewLogic::onNotePressed);
-
     connect(m_listView, &NoteListView::addTagRequested, this, &ListViewLogic::onAddTagRequest);
     connect(m_listView, &NoteListView::removeTagRequested, this, &ListViewLogic::onRemoveTagRequest);
+    connect(m_listModel, &NoteListModel::rowsRemoved, this, [this] (const QModelIndex &, int , int) {
+        selectNote(m_listView->currentIndex());
+    });
 
     connect(this, &ListViewLogic::requestAddTagDb, dbManager, &DBManager::addNoteToTag, Qt::QueuedConnection);
     connect(this, &ListViewLogic::requestRemoveTagDb, dbManager, &DBManager::removeNoteFromTag, Qt::QueuedConnection);
     connect(this, &ListViewLogic::requestRemoveNoteDb, dbManager, &DBManager::removeNote, Qt::QueuedConnection);
+    connect(this, &ListViewLogic::requestMoveNoteDb, dbManager, &DBManager::moveNode, Qt::QueuedConnection);
     connect(m_listView, &NoteListView::deleteNoteRequested, this, &ListViewLogic::deleteNoteRequestedI);
+    connect(m_listView, &NoteListView::restoreNoteRequested, this, &ListViewLogic::restoreNoteRequestedI);
+
     connect(tagPool, &TagPool::dataUpdated, this, [this] (int) {
         if (m_listModel->rowCount() > 0) {
             emit m_listModel->dataChanged(m_listModel->index(0,0),
@@ -121,6 +126,12 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData>& noteList, const L
     } else {
         m_listDelegate->setIsInAllNotes(false);
     }
+    if ((!m_listViewInfo.isInTag) && m_listViewInfo.parentFolderId == SpecialNodeID::TrashFolder) {
+        m_listView->setIsInTrash(true);
+    } else {
+        m_listView->setIsInTrash(false);
+    }
+
     //    setTheme(m_currentTheme);
     selectFirstNote();
 }
@@ -171,8 +182,7 @@ void ListViewLogic::onRemoveTagRequest(const QModelIndex &index, int tagId)
 
 void ListViewLogic::onNotePressed(const QModelIndex &index)
 {
-    QModelIndex indexInProxy = m_listModel->index(index.row(), 0);
-    selectNote(indexInProxy);
+    selectNote(index);
     m_listView->setCurrentRowActive(false);
 }
 
@@ -195,6 +205,29 @@ void ListViewLogic::deleteNoteRequestedI(const QModelIndex &index)
         } else {
             m_listModel->removeNote(index);
             emit requestRemoveNoteDb(note);
+        }
+    }
+}
+
+void ListViewLogic::restoreNoteRequestedI(const QModelIndex &index)
+{
+    if (index.isValid()) {
+        auto id = index.data(NoteListModel::NoteID).toInt();
+        NodeData note;
+        QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection,
+                                  Q_RETURN_ARG(NodeData, note),
+                                  Q_ARG(int, id)
+                                  );
+        if (note.parentId() == SpecialNodeID::TrashFolder) {
+            m_listModel->removeNote(index);
+            NodeData defaultNotesFolder;
+            QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection,
+                                      Q_RETURN_ARG(NodeData, defaultNotesFolder),
+                                      Q_ARG(int, SpecialNodeID::DefaultNotesFolder)
+                                      );
+            emit requestMoveNoteDb(note.id(), defaultNotesFolder);
+        } else {
+            qDebug() << "Note id" << id << "is currently not in Trash";
         }
     }
 }

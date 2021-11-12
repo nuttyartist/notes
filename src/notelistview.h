@@ -26,6 +26,8 @@ public:
     void setTheme(Theme theme);    
     void setTagPool(TagPool *newTagPool);
 
+    void setIsInTrash(bool newIsInTrash);
+
 public slots:
     void onCustomContextMenu(const QPoint& point);
     void onTagsMenu(const QPoint& point);
@@ -56,6 +58,8 @@ signals:
     void addTagRequested(const QModelIndex& index, int tadId);
     void removeTagRequested(const QModelIndex& index, int tadId);
     void deleteNoteRequested(const QModelIndex& index);
+    void restoreNoteRequested(const QModelIndex& index);
+
 private:
     bool m_isScrollBarHidden;
     bool m_animationEnabled;
@@ -65,9 +69,11 @@ private:
     QMenu* contextMenu;
     QAction* addToTagAction;
     QAction* deleteNoteAction;
+    QAction* restoreNoteAction;
     QMenu* tagsMenu;
     TagPool* m_tagPool;
     QVector<QAction*> m_noteTagActions;
+    bool m_isInTrash;
 
     void setupSignalsSlots();
     void setupStyleSheet();

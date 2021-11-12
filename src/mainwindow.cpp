@@ -378,10 +378,9 @@ void MainWindow::setupTrayIcon()
 void MainWindow::setupKeyboardShortcuts()
 {
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_N), this, SLOT(onNewNoteButtonClicked()));
-//    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_D), this, SLOT(deleteSelectedNote()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_D), this, SLOT(deleteSelectedNote()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_F), m_searchEdit, SLOT(setFocus()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_E), m_searchEdit, SLOT(clear()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_L), this, SLOT(setFocusOnCurrentNote()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Down), this, SLOT(selectNoteDown()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Up), this, SLOT(selectNoteUp()));
     new QShortcut(QKeySequence(Qt::Key_Down), this, SLOT(selectNoteDown()));
@@ -568,14 +567,10 @@ void MainWindow::setupSignalsSlots()
     connect(m_searchEdit, &QLineEdit::returnPressed, this, &MainWindow::onSearchEditReturnPressed);
     // noteView viewport pressed
     connect(m_listView, &NoteListView::viewportPressed, this, [this](){
-        if(m_isTemp && m_listModel->rowCount() > 1){
-            QModelIndex indexInListView = m_listModel->index(1, 0);
-            selectNote(indexInListView);
-        }else if(m_isTemp && m_listModel->rowCount() == 1){
-            QModelIndex indexInListView = m_listModel->index(0, 0);
-            m_editorDateLabel->clear();
-            deleteNote(indexInListView, false);
+        if (m_noteEditorLogic->isTempNote()) {
+            m_noteEditorLogic->closeEditor();
         }
+        m_listViewLogic->selectFirstNote();
     });
     // clear button
     connect(m_clearButton, &QToolButton::clicked, this, &MainWindow::onClearButtonClicked);
@@ -624,7 +619,8 @@ void MainWindow::setupSignalsSlots()
             m_listViewLogic, &ListViewLogic::deleteNoteRequested);
     connect(m_listViewLogic, &ListViewLogic::noteTagListChanged,
             m_noteEditorLogic, &NoteEditorLogic::onNoteTagListChanged);
-
+    connect(m_noteEditorLogic, &NoteEditorLogic::noteEditClosed,
+            m_listViewLogic, &ListViewLogic::onNoteEditClosed);
 #ifdef __APPLE__
     // Replace setUseNativeWindowFrame with just the part that handles pushing things up
     connect(this, &MainWindow::toggleFullScreen, this, [=](bool isFullScreen){adjustUpperWidgets(isFullScreen);});
@@ -1532,7 +1528,10 @@ void MainWindow::setTheme(Theme theme)
     setupRightFrame();
 }
 
-
+void MainWindow::deleteSelectedNote()
+{
+    m_noteEditorLogic->deleteCurrentNote();
+}
 
 /*!
  * \brief MainWindow::onSearchEditTextChanged
@@ -1744,18 +1743,6 @@ void MainWindow::setFocusOnText()
     if(m_currentSelectedNote.isValid() && !m_textEdit->hasFocus()) {
         m_listView->setCurrentRowActive(true);
         m_textEdit->setFocus();
-    }
-}
-
-/*!
- * \brief MainWindow::setFocusOnCurrentNote
- * Set focus on current selected note
- */
-void MainWindow::setFocusOnCurrentNote()
-{
-    if(m_currentSelectedNote.isValid()) {
-        m_listView->setCurrentRowActive(true);
-        m_listView->setFocus();
     }
 }
 
@@ -3125,14 +3112,12 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
     case QEvent::FocusIn:{
         if(object == m_textEdit){
             if(!m_isOperationRunning){
-                if(!m_searchEdit->text().isEmpty()){
-                    if(!m_currentSelectedNote.isValid()){
-                        clearSearch();
-//                        createNewNote();
+                if (m_listModel->rowCount() == 0) {
+                    if(!m_searchEdit->text().isEmpty()) {
+                            clearSearch();
                     }
-                }/*else if(m_listModel->rowCount() == 0){
                     createNewNote();
-                }*/
+                }
             }
             m_listView->setCurrentRowActive(true);
             m_textEdit->setFocus();

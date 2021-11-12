@@ -20,7 +20,8 @@ NoteListView::NoteListView(QWidget *parent)
       m_isMousePressed(false),
       m_rowHeight(38),
       m_currentBackgroundColor(255, 255, 255),
-      m_tagPool(nullptr)
+      m_tagPool(nullptr),
+      m_isInTrash{false}
 {
     this->setAttribute(Qt::WA_MacShowFocusRect, 0);
 
@@ -40,6 +41,13 @@ NoteListView::NoteListView(QWidget *parent)
         auto index = currentIndex();
         if (index.isValid()) {
             emit deleteNoteRequested(index);
+        }
+    });
+    restoreNoteAction = new QAction(tr("Restore Note"), this);
+    connect(restoreNoteAction, &QAction::triggered, this, [this] {
+        auto index = currentIndex();
+        if (index.isValid()) {
+            emit restoreNoteRequested(index);
         }
     });
 
@@ -118,6 +126,11 @@ void NoteListView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, in
     }
 
     QListView::rowsAboutToBeRemoved(parent, start, end);
+}
+
+void NoteListView::setIsInTrash(bool newIsInTrash)
+{
+    m_isInTrash = newIsInTrash;
 }
 
 void NoteListView::setTagPool(TagPool *newTagPool)
@@ -399,6 +412,9 @@ void NoteListView::onCustomContextMenu(const QPoint &point)
         contextMenu->clear();
         contextMenu->addAction(addToTagAction);
         contextMenu->addSeparator();
+        if (m_isInTrash) {
+            contextMenu->addAction(restoreNoteAction);
+        }
         contextMenu->addAction(deleteNoteAction);
         contextMenu->exec(viewport()->mapToGlobal(point));
     }

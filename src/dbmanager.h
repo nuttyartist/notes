@@ -28,7 +28,6 @@ public:
     Q_INVOKABLE NodePath getNodeAbsolutePath(int nodeId);
     Q_INVOKABLE NodeData getNode(int nodeId);
     Q_INVOKABLE void moveFolderToTrash(const NodeData& node);
-    Q_INVOKABLE void moveNode(int nodeId, const NodeData& target);
 private:
     void open(const QString& path, bool doCreate = false);
     void createTables();
@@ -75,6 +74,7 @@ public slots:
     void changeTagColor(int id, const QString& newColor);
     void removeNote(const NodeData& note);
     void removeTag(int tagId);
+    void moveNode(int nodeId, const NodeData& target);
 };
 
 #endif // DBMANAGER_H
