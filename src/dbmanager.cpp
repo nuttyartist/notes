@@ -326,6 +326,18 @@ void DBManager::addNoteToTag(int noteId, int tagId)
     }
 }
 
+void DBManager::removeNoteFromTag(int noteId, int tagId)
+{
+    QSqlQuery query;
+    query.prepare(R"(DELETE FROM "tag_relationship" )"
+                  R"(WHERE node_id = (:note_id) AND tag_id = (:tag_id);)");
+    query.bindValue(":note_id", noteId);
+    query.bindValue(":tag_id", tagId);
+    if (!query.exec()) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+    }
+}
+
 int DBManager::nextAvailableNodeId()
 {
     QSqlQuery query;

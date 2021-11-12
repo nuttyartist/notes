@@ -54,6 +54,7 @@ protected slots:
 signals:
     void viewportPressed();
     void addTagRequested(const QModelIndex& index, int tadId);
+    void removeTagRequested(const QModelIndex& index, int tadId);
     void deleteNoteRequested(const QModelIndex& index);
 private:
     bool m_isScrollBarHidden;
@@ -66,12 +67,14 @@ private:
     QAction* deleteNoteAction;
     QMenu* tagsMenu;
     TagPool* m_tagPool;
-    QVector<QAction*> m_addTagActions;
+    QVector<QAction*> m_noteTagActions;
 
     void setupSignalsSlots();
     void setupStyleSheet();
 
     void addCurrentNoteToTag(int tagId);
+    void removeCurrentNoteFromTag(int tagId);
+
 };
 
 #endif // NOTELISTVIEW_H

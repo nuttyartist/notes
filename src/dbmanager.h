@@ -67,6 +67,7 @@ public slots:
     int addNode(const NodeData& node);
     int addTag(const TagData& tag);
     void addNoteToTag(int noteId, int tagId);
+    void removeNoteFromTag(int noteId, int tagId);
     int nextAvailableNodeId();
     int nextAvailableTagId();
     void renameNode(int id, const QString& newName);

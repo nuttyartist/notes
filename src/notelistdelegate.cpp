@@ -99,6 +99,7 @@ void NoteListDelegate::setAnimationDuration(const int duration)
 
 void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    painter->setRenderHint(QPainter::Antialiasing);
     QStyleOptionViewItem opt = option;
     opt.rect.setWidth(option.rect.width() - m_rowRightOffset);
 
@@ -237,7 +238,6 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
     double rowRate = m_timeLine->currentFrame()/(m_maxFrame * 1.0);
     double currRowHeight = m_rowHeight * rowRate;
 
-    double tagsPosY = contentRectPosY + fmRectContent.height() + topOffsetY + 5;
 
     auto drawStr = [painter](double posX, double posY, double width, double height, QColor color, QFont font, QString str){
         QRectF rect(posX, posY, width, height);
@@ -283,6 +283,8 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
             }
         }
     }
+
+    double tagsPosY = contentRectPosY + fmRectContent.height() + topOffsetY + 5;
 
     // draw title & date
     title = fmTitle.elidedText(title, Qt::ElideRight, int(titleRectWidth));

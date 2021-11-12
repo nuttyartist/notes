@@ -22,6 +22,8 @@ public:
                            QObject *parent = nullptr);
     void selectNote(const QModelIndex &noteIndex);
 
+    const ListViewInfo &listViewInfo() const;
+
 public slots:
     void moveNoteToTop(const NodeData& note);
     void setNoteData(const NodeData& note);
@@ -30,13 +32,15 @@ public slots:
 signals:
     void showNoteInEditor(const NodeData& noteData);
     void requestAddTagDb(int noteId, int tagId);
+    void requestRemoveTagDb(int noteId, int tagId);
     void requestRemoveNoteDb(const NodeData& noteData);
     void closeNoteEditor();
     void noteTagListChanged(int noteId, const QSet<int>& tagIds);
 
 private slots:
     void loadNoteListModel(const QVector<NodeData>& noteList, const ListViewInfo& inf);
-    void onAddTagRequest(const QModelIndex& index, int tagIds);
+    void onAddTagRequest(const QModelIndex& index, int tagId);
+    void onRemoveTagRequest(const QModelIndex& index, int tagId);
     void onNotePressed(const QModelIndex& index);
     void deleteNoteRequestedI(const QModelIndex& index);
 

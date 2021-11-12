@@ -26,7 +26,10 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
     connect(m_listView, &NoteListView::pressed, this, &ListViewLogic::onNotePressed);
 
     connect(m_listView, &NoteListView::addTagRequested, this, &ListViewLogic::onAddTagRequest);
+    connect(m_listView, &NoteListView::removeTagRequested, this, &ListViewLogic::onRemoveTagRequest);
+
     connect(this, &ListViewLogic::requestAddTagDb, dbManager, &DBManager::addNoteToTag, Qt::QueuedConnection);
+    connect(this, &ListViewLogic::requestRemoveTagDb, dbManager, &DBManager::removeNoteFromTag, Qt::QueuedConnection);
     connect(this, &ListViewLogic::requestRemoveNoteDb, dbManager, &DBManager::removeNote, Qt::QueuedConnection);
     connect(m_listView, &NoteListView::deleteNoteRequested, this, &ListViewLogic::deleteNoteRequestedI);
     connect(tagPool, &TagPool::dataUpdated, this, [this] (int) {
@@ -74,12 +77,20 @@ void ListViewLogic::setNoteData(const NodeData &note)
     QModelIndex noteIndex = m_listModel->getNoteIndex(note.id());
     if (noteIndex.isValid()) {
         QMap<int, QVariant> dataValue;
+        auto wasTemp = noteIndex.data(NoteListModel::NoteIsTemp).toBool();
         dataValue[NoteListModel::NoteContent] =  QVariant::fromValue(note.content());
         dataValue[NoteListModel::NoteFullTitle] =  QVariant::fromValue(note.fullTitle());
         dataValue[NoteListModel::NoteLastModificationDateTime] =
                 QVariant::fromValue(note.lastModificationdateTime());
-
+        dataValue[NoteListModel::NoteIsTemp] =
+                QVariant::fromValue(note.isTempNote());
         m_listModel->setItemData(noteIndex, dataValue);
+        if (wasTemp) {
+            auto tagIds = noteIndex.data(NoteListModel::NoteTagsList).value<QSet<int>>();
+            for (auto tagId : tagIds) {
+                emit requestAddTagDb(note.id(), tagId);
+            }
+        }
     } else {
         qDebug() << "ListViewLogic::moveNoteToTop : Note is not in list";
     }
@@ -118,9 +129,29 @@ void ListViewLogic::onAddTagRequest(const QModelIndex &index, int tagId)
 {
     if (index.isValid()) {
         auto noteId = index.data(NoteListModel::NoteID).toInt();
-        emit requestAddTagDb(noteId, tagId);
+        auto isTemp = index.data(NoteListModel::NoteIsTemp).toBool();
+        if (!isTemp) {
+            emit requestAddTagDb(noteId, tagId);
+        }
         auto tagIds = index.data(NoteListModel::NoteTagsList).value<QSet<int>>();
         tagIds.insert(tagId);
+        m_listModel->setData(index, QVariant::fromValue(tagIds), NoteListModel::NoteTagsList);
+        emit noteTagListChanged(noteId, tagIds);
+    } else {
+        qDebug() << __FUNCTION__ << "index is not valid";
+    }
+}
+
+void ListViewLogic::onRemoveTagRequest(const QModelIndex &index, int tagId)
+{
+    if (index.isValid()) {
+        auto noteId = index.data(NoteListModel::NoteID).toInt();
+        auto isTemp = index.data(NoteListModel::NoteIsTemp).toBool();
+        if (!isTemp) {
+            emit requestRemoveTagDb(noteId, tagId);
+        }
+        auto tagIds = index.data(NoteListModel::NoteTagsList).value<QSet<int>>();
+        tagIds.remove(tagId);
         m_listModel->setData(index, QVariant::fromValue(tagIds), NoteListModel::NoteTagsList);
         emit noteTagListChanged(noteId, tagIds);
     } else {
@@ -179,4 +210,9 @@ void ListViewLogic::selectFirstNote()
     } else {
         emit closeNoteEditor();
     }
+}
+
+const ListViewInfo &ListViewLogic::listViewInfo() const
+{
+    return m_listViewInfo;
 }
