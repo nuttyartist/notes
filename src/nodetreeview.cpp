@@ -190,7 +190,7 @@ void NodeTreeView::currentChanged(const QModelIndex &current, const QModelIndex 
     } else {
         clearSelection();
         setSelectionMode(QAbstractItemView::SingleSelection);
-        setCurrentIndex(current);
+        selectionModel()->setCurrentIndex(current, QItemSelectionModel::Current);
     }
 }
 

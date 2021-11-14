@@ -139,9 +139,6 @@ private:
     NodeTreeModel* m_treeModel;
     TreeViewLogic* m_treeViewLogic;
     TagPool* m_tagPool;
-    QModelIndex m_currentSelectedNote;
-    QModelIndex m_selectedNoteBeforeSearchingInSource;
-    QQueue<QString> m_searchQueue;
     DBManager* m_dbManager;
     QThread* m_dbThread;
     QTimer* m_newNoteTimer;
