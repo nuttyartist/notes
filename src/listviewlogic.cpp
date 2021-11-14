@@ -5,15 +5,19 @@
 #include "dbmanager.h"
 #include <QDebug>
 #include <QMessageBox>
+#include <QLineEdit>
+#include <QToolButton>
 #include "tagpool.h"
 
 ListViewLogic::ListViewLogic(NoteListView* noteView,
-                             NoteListModel* noteModel,
+                             NoteListModel* noteModel, QLineEdit *searchEdit, QToolButton *clearButton,
                              TagPool *tagPool,
                              DBManager* dbManager,
                              QObject* parent) : QObject(parent),
     m_listView{noteView},
     m_listModel{noteModel},
+    m_searchEdit{searchEdit},
+    m_clearButton{clearButton},
     m_dbManager{dbManager}
 {
     m_listDelegate = new NoteListDelegate(tagPool, m_listView);
@@ -34,6 +38,8 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
     connect(this, &ListViewLogic::requestRemoveTagDb, dbManager, &DBManager::removeNoteFromTag, Qt::QueuedConnection);
     connect(this, &ListViewLogic::requestRemoveNoteDb, dbManager, &DBManager::removeNote, Qt::QueuedConnection);
     connect(this, &ListViewLogic::requestMoveNoteDb, dbManager, &DBManager::moveNode, Qt::QueuedConnection);
+    connect(this, &ListViewLogic::requestSearchInDb, dbManager, &DBManager::searchForNotes, Qt::QueuedConnection);
+    connect(this, &ListViewLogic::requestClearSearchDb, dbManager, &DBManager::clearSearch, Qt::QueuedConnection);
     connect(m_listView, &NoteListView::deleteNoteRequested, this, &ListViewLogic::deleteNoteRequestedI);
     connect(m_listView, &NoteListView::restoreNoteRequested, this, &ListViewLogic::restoreNoteRequestedI);
 
@@ -43,7 +49,6 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
                                           m_listModel->index(m_listModel->rowCount() - 1,0));
         }
     });
-
 }
 
 void ListViewLogic::selectNote(const QModelIndex &noteIndex)
@@ -117,9 +122,87 @@ void ListViewLogic::deleteNoteRequested(const NodeData &note)
     deleteNoteRequestedI(index);
 }
 
+void ListViewLogic::selectNoteUp()
+{
+    auto currentIndex = m_listView->currentIndex();
+    if(currentIndex.isValid()) {
+        int currentRow = currentIndex.row();
+        QModelIndex aboveIndex = m_listView->model()->index(currentRow - 1, 0);
+        if(aboveIndex.isValid()) {
+            selectNote(aboveIndex);
+            m_listView->setCurrentRowActive(false);
+        }
+        if (!m_searchEdit->text().isEmpty()) {
+            m_searchEdit->setFocus();
+        } else {
+            m_listView->setFocus();
+        }
+    } else {
+        selectFirstNote();
+    }
+}
+
+void ListViewLogic::selectNoteDown()
+{
+    auto currentIndex = m_listView->currentIndex();
+    if(currentIndex.isValid()) {
+        int currentRow = currentIndex.row();
+        QModelIndex belowIndex = m_listView->model()->index(currentRow + 1, 0);
+        if(belowIndex.isValid()){
+            selectNote(belowIndex);
+            m_listView->setCurrentRowActive(false);
+        }
+
+        //if the searchEdit is not empty, set the focus to it
+        if (!m_searchEdit->text().isEmpty()) {
+            m_searchEdit->setFocus();
+        } else {
+            m_listView->setFocus();
+        }
+    } else {
+        selectFirstNote();
+    }
+}
+
+/*!
+ * \brief ListViewLogic::onSearchEditTextChanged
+ * When text on searchEdit change:
+ * If there is a temp note "New Note" while searching, we delete it
+ * Saving the last selected note for recovery after searching
+ * Clear all the notes from scrollArea and
+ * If text is empty, reload all the notes from database
+ * Else, load all the notes contain the string in searchEdit from database
+ * \param keyword
+ */
+
+void ListViewLogic::onSearchEditTextChanged(const QString &keyword)
+{
+    if (keyword.isEmpty()) {
+        clearSearch();
+    } else {
+        if (!m_listViewInfo.isInSearch) {
+            auto index = m_listView->currentIndex();
+            if (index.isValid()) {
+                m_listViewInfo.currentNoteId = index.data(NoteListModel::NoteID).toInt();
+            } else {
+                m_listViewInfo.currentNoteId = SpecialNodeID::InvalidNoteId;
+            }
+        }
+        m_clearButton->show();
+        emit requestSearchInDb(keyword, m_listViewInfo);
+    }
+}
+
+void ListViewLogic::clearSearch()
+{
+    emit requestClearSearchDb(m_listViewInfo);
+    emit requestClearSearchUI();
+}
+
 void ListViewLogic::loadNoteListModel(const QVector<NodeData>& noteList, const ListViewInfo& inf)
 {
     m_listModel->setListNote(noteList);
+    auto currentNoteId = m_listViewInfo.currentNoteId;
     m_listViewInfo = inf;
     if ((!m_listViewInfo.isInTag) && m_listViewInfo.parentFolderId == SpecialNodeID::RootFolder) {
         m_listDelegate->setIsInAllNotes(true);
@@ -133,6 +216,16 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData>& noteList, const L
     }
 
     //    setTheme(m_currentTheme);
+    if (!m_listViewInfo.isInSearch && currentNoteId != SpecialNodeID::InvalidNoteId) {
+        auto index = m_listModel->getNoteIndex(currentNoteId);
+        if (index.isValid()) {
+            m_listView->selectionModel()->select(index, QItemSelectionModel::ClearAndSelect);
+            m_listView->setCurrentIndex(index);
+            auto firstNote = m_listModel->getNote(index);
+            emit showNoteInEditor(firstNote);
+            return;
+        }
+    }
     selectFirstNote();
 }
 

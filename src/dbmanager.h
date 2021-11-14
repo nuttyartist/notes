@@ -15,9 +15,11 @@ struct NodeTagTreeData {
 };
 
 struct ListViewInfo {
+    bool isInSearch;
     bool isInTag;
     QVector<int> currentTagList;
     int parentFolderId;
+    int currentNoteId;
 };
 
 class DBManager : public QObject
@@ -75,6 +77,8 @@ public slots:
     void removeNote(const NodeData& note);
     void removeTag(int tagId);
     void moveNode(int nodeId, const NodeData& target);
+    void searchForNotes(const QString& keyword, const ListViewInfo& inf);
+    void clearSearch(const ListViewInfo& inf);
 };
 
 #endif // DBMANAGER_H

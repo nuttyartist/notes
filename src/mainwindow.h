@@ -144,6 +144,7 @@ private:
     QQueue<QString> m_searchQueue;
     DBManager* m_dbManager;
     QThread* m_dbThread;
+    QTimer* m_newNoteTimer;
 
     UpdaterWindow m_updater;
     StyleEditorWindow m_styleEditorWindow;
@@ -216,11 +217,6 @@ private:
     void setLayoutForScrollArea();
     void setButtonsAndFieldsEnabled(bool doEnable);
     void restoreStates();
-    void showNoteInEditor(const QModelIndex& noteIndex);
-    void sortNotesList(QStringList &stringNotesList);
-    void clearSearch();
-    void findNotesContain(const QString &keyword);
-    void selectNote(const QModelIndex& noteIndex);
     void checkMigration();
     void executeImport(const bool replace);
     void migrateNote(QString notePath);
@@ -247,7 +243,6 @@ private slots:
     void onDotsButtonClicked();
     void onStyleEditorButtonPressed();
     void onStyleEditorButtonClicked();
-    void onSearchEditTextChanged(const QString& keyword);
     void onClearButtonClicked();
     void onGreenMaximizeButtonPressed();
     void onYellowMinimizeButtonPressed();
@@ -256,7 +251,6 @@ private slots:
     void onYellowMinimizeButtonClicked();
     void onRedCloseButtonClicked();
     void createNewNote();
-    void deleteNote(const QModelIndex& noteIndex, bool isFromUser=true);
     void selectNoteDown();
     void selectNoteUp();
     void setFocusOnText();
@@ -282,6 +276,8 @@ private slots:
     void resetEditorToDefaultSettings();
     void setTheme(Theme theme);
     void deleteSelectedNote();
+    void clearSearch();
+
 signals:
     void requestNodesTree();
     void requestNotesList(int parentID, bool isRecursive);

@@ -25,7 +25,7 @@
 #include <QMessageBox>
 #include <QList>
 #include <QWidgetAction>
-
+#include <QTimer>
 
 /*!
  * \brief MainWindow::MainWindow
@@ -66,6 +66,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_tagPool(Q_NULLPTR),
     m_dbManager(Q_NULLPTR),
     m_dbThread(Q_NULLPTR),
+    m_newNoteTimer(Q_NULLPTR),
     m_styleEditorWindow(this),
     m_aboutWindow(this),
     m_trashCounter(0),
@@ -334,10 +335,10 @@ void MainWindow::setupMainWindow()
 
 #endif
     QString ss = QStringLiteral("QPushButton { "
-                 "  border: none; "
-                 "  padding: 0px; "
-                 "  color: rgb(68, 138, 201);"
-                 "}");
+                                "  border: none; "
+                                "  padding: 0px; "
+                                "  color: rgb(68, 138, 201);"
+                                "}");
     m_styleEditorButton->setStyleSheet(ss);
     m_styleEditorButton->installEventFilter(this);
 }
@@ -435,9 +436,9 @@ void MainWindow::setupKeyboardShortcuts()
 void MainWindow::setupNewNoteButtonAndTrahButton()
 {
     QString ss = QStringLiteral("QPushButton { "
-                 "  border: none; "
-                 "  padding: 0px; "
-                 "}");
+                                "  border: none; "
+                                "  padding: 0px; "
+                                "}");
 
     m_newNoteButton->setStyleSheet(ss);
     m_trashButton->setStyleSheet(ss);
@@ -483,9 +484,9 @@ void MainWindow::setupRightFrame()
     ui->frameRightTop->installEventFilter(this);
 
     QString ss = QStringLiteral("QFrame{ "
-                 "  background-color: %1; "
-                 "  border: none;"
-                 "}").arg(m_currentRightFrameColor.name());
+                                "  background-color: %1; "
+                                "  border: none;"
+                                "}").arg(m_currentRightFrameColor.name());
     ui->frameRight->setStyleSheet(ss);
 }
 
@@ -498,9 +499,9 @@ void MainWindow::setupRightFrame()
 void MainWindow::setupTitleBarButtons()
 {
     QString ss = QStringLiteral("QPushButton { "
-                 "  border: none; "
-                 "  padding: 0px; "
-                 "}");
+                                "  border: none; "
+                                "  padding: 0px; "
+                                "}");
 
     m_redCloseButton->setStyleSheet(ss);
     m_yellowMinimizeButton->setStyleSheet(ss);
@@ -562,7 +563,7 @@ void MainWindow::setupSignalsSlots()
     // textEdit scrollbar triggered
     connect(m_textEdit->verticalScrollBar(), &QAbstractSlider::actionTriggered, this, [=](){if(m_isFrameRightTopWidgetsVisible) setVisibilityOfFrameRightNonEditor(false);});
     // line edit text changed
-    connect(m_searchEdit, &QLineEdit::textChanged, this, &MainWindow::onSearchEditTextChanged);
+    connect(m_searchEdit, &QLineEdit::textChanged, m_listViewLogic, &ListViewLogic::onSearchEditTextChanged);
     // line edit enter key pressed
     connect(m_searchEdit, &QLineEdit::returnPressed, this, &MainWindow::onSearchEditReturnPressed);
     // noteView viewport pressed
@@ -621,6 +622,8 @@ void MainWindow::setupSignalsSlots()
             m_noteEditorLogic, &NoteEditorLogic::onNoteTagListChanged);
     connect(m_noteEditorLogic, &NoteEditorLogic::noteEditClosed,
             m_listViewLogic, &ListViewLogic::onNoteEditClosed);
+    connect(m_listViewLogic, &ListViewLogic::requestClearSearchUI,
+            this, &MainWindow::clearSearch);
 #ifdef __APPLE__
     // Replace setUseNativeWindowFrame with just the part that handles pushing things up
     connect(this, &MainWindow::toggleFullScreen, this, [=](bool isFullScreen){adjustUpperWidgets(isFullScreen);});
@@ -644,22 +647,22 @@ void MainWindow::setSearchEditStyleSheet(bool isFocused = false)
     QColor textColor = m_currentTheme == Theme::Dark ? m_currentEditorTextColor : QColor(26, 26, 26);
 
     m_searchEdit->setStyleSheet(QStringLiteral("QLineEdit{ "
-                                             "  padding-left: 21px;"
-                                             "  padding-right: 19px;"
-                                             "  border: %2;"
-                                             "  border-radius: 3px;"
-                                             "  background: %1;"
-                                             "  selection-background-color: rgb(61, 155, 218);"
-                                             "  color: %3;"
-                                             "} "
-                                             "QLineEdit:focus { "
-                                             "  border: 2px solid rgb(61, 155, 218);"
-                                             "}"
-                                             "QToolButton { "
-                                             "  border: none; "
-                                             "  padding: 0px;"
-                                             "}").arg(m_currentThemeBackgroundColor.name(),
-                                                      isFocused ? "2px solid rgb(61, 155, 218)" : "1px solid rgb(205, 205, 205)",                                                      textColor.name()));
+                                               "  padding-left: 21px;"
+                                               "  padding-right: 19px;"
+                                               "  border: %2;"
+                                               "  border-radius: 3px;"
+                                               "  background: %1;"
+                                               "  selection-background-color: rgb(61, 155, 218);"
+                                               "  color: %3;"
+                                               "} "
+                                               "QLineEdit:focus { "
+                                               "  border: 2px solid rgb(61, 155, 218);"
+                                               "}"
+                                               "QToolButton { "
+                                               "  border: none; "
+                                               "  padding: 0px;"
+                                               "}").arg(m_currentThemeBackgroundColor.name(),
+                                                        isFocused ? "2px solid rgb(61, 155, 218)" : "1px solid rgb(205, 205, 205)",                                                      textColor.name()));
 }
 
 /*!
@@ -958,6 +961,8 @@ void MainWindow::setupModelView()
     m_listView->setModel(m_listModel);
     m_listViewLogic = new ListViewLogic(m_listView,
                                         m_listModel,
+                                        m_searchEdit,
+                                        m_clearButton,
                                         m_tagPool,
                                         m_dbManager,
                                         this);
@@ -1092,39 +1097,6 @@ void MainWindow::restoreStates()
     m_styleEditorWindow.restoreSelectedOptions(isTextFullWidth, m_currentFontTypeface, m_currentTheme);
 }
 
-
-/*!
- * \brief MainWindow::showNoteInEditor
- * show the specified note content text in the text editor
- * Set editorDateLabel text to the the selected note date
- * And restore the scrollBar position if it changed before.
- * \param noteIndex
- */
-void MainWindow::showNoteInEditor(const QModelIndex &noteIndex)
-{
-    m_textEdit->blockSignals(true);
-
-    /// fixing bug #202
-    m_textEdit->setTextBackgroundColor(QColor(255,255,255, 0));
-
-
-    QString content = noteIndex.data(NoteListModel::NoteContent).toString();
-    QDateTime dateTime = noteIndex.data(NoteListModel::NoteLastModificationDateTime).toDateTime();
-    int scrollbarPos = noteIndex.data(NoteListModel::NoteScrollbarPos).toInt();
-
-    // set text and date
-    m_textEdit->setText(content);
-    QString noteDate = dateTime.toString(Qt::ISODate);
-    QString noteDateEditor = NoteEditorLogic::getNoteDateEditor(noteDate);
-    m_editorDateLabel->setText(noteDateEditor);
-    // set scrollbar position
-    m_textEdit->verticalScrollBar()->setValue(scrollbarPos);
-    m_textEdit->blockSignals(false);
-
-    m_noteEditorLogic->highlightSearch();
-}
-
-
 /*!
  * \brief MainWindow::setButtonsAndFieldsEnabled
  * \param doEnable
@@ -1159,15 +1131,19 @@ void MainWindow::onNewNoteButtonClicked()
 {
     m_newNoteButton->setIcon(QIcon(QStringLiteral(":/images/newNote_Regular.png")));
 
-    if(!m_searchEdit->text().isEmpty()){
-        clearSearch();
-        m_selectedNoteBeforeSearchingInSource = QModelIndex();
-    }
-
     // save the data of the previous selected
     m_noteEditorLogic->saveNoteToDB();
 
-    this->createNewNote();
+    if(!m_searchEdit->text().isEmpty()){
+        m_listViewLogic->clearSearch();
+    }
+    delete m_newNoteTimer;
+    m_newNoteTimer = new QTimer(this);
+    m_newNoteTimer->setSingleShot(true);
+    connect(m_newNoteTimer, &QTimer::timeout, this, [this] {
+        this->createNewNote();
+    });
+    m_newNoteTimer->start(200);
 }
 
 /*!
@@ -1337,10 +1313,10 @@ void MainWindow::onDotsButtonClicked()
 void MainWindow::onStyleEditorButtonPressed()
 {
     QString ss = QStringLiteral("QPushButton { "
-                 "  border: none; "
-                 "  padding: 0px; "
-                 "  color: rgb(39, 85, 125);"
-                 "}");
+                                "  border: none; "
+                                "  padding: 0px; "
+                                "  color: rgb(39, 85, 125);"
+                                "}");
     m_styleEditorButton->setStyleSheet(ss);
 }
 
@@ -1351,10 +1327,10 @@ void MainWindow::onStyleEditorButtonPressed()
 void MainWindow::onStyleEditorButtonClicked()
 {
     QString ss = QStringLiteral("QPushButton { "
-                 "  border: none; "
-                 "  padding: 0px; "
-                 "  color: rgb(68, 138, 201);"
-                 "}");
+                                "  border: none; "
+                                "  padding: 0px; "
+                                "  color: rgb(68, 138, 201);"
+                                "}");
     m_styleEditorButton->setStyleSheet(ss);
 
 
@@ -1533,70 +1509,6 @@ void MainWindow::deleteSelectedNote()
     m_noteEditorLogic->deleteCurrentNote();
 }
 
-/*!
- * \brief MainWindow::onSearchEditTextChanged
- * When text on searchEdit change:
- * If there is a temp note "New Note" while searching, we delete it
- * Saving the last selected note for recovery after searching
- * Clear all the notes from scrollArea and
- * If text is empty, reload all the notes from database
- * Else, load all the notes contain the string in searchEdit from database
- * \param keyword
- */
-void MainWindow::onSearchEditTextChanged(const QString& keyword)
-{
-    m_textEdit->clearFocus();
-    m_searchQueue.enqueue(keyword);
-
-    if(!m_isOperationRunning){
-        m_isOperationRunning = true;
-        if(m_isTemp){
-            m_isTemp = false;
-            // prevent the line edit from emitting signal
-            // while animation for deleting the new note is running
-            m_searchEdit->blockSignals(true);
-            m_currentSelectedNote = QModelIndex();
-            QModelIndex index = m_listModel->index(0);
-            m_listModel->removeNote(index);
-            m_searchEdit->blockSignals(false);
-
-            if(m_listModel->rowCount() > 0){
-                m_selectedNoteBeforeSearchingInSource = m_listModel->index(0);
-            }else{
-                m_selectedNoteBeforeSearchingInSource = QModelIndex();
-            }
-
-        }else if(!m_selectedNoteBeforeSearchingInSource.isValid()
-                 && m_currentSelectedNote.isValid()){
-
-            m_selectedNoteBeforeSearchingInSource = m_currentSelectedNote;
-        }
-
-        m_noteEditorLogic->saveNoteToDB();
-
-        // disable animation while searching
-        m_listView->setAnimationEnabled(false);
-
-        while(!m_searchQueue.isEmpty()){
-            qApp->processEvents();
-            QString str = m_searchQueue.dequeue();
-            if(str.isEmpty()){
-                m_listView->setFocusPolicy(Qt::StrongFocus);
-                clearSearch();
-                selectNote(m_selectedNoteBeforeSearchingInSource);
-                m_selectedNoteBeforeSearchingInSource = QModelIndex();
-            }else{
-                m_listView->setFocusPolicy(Qt::NoFocus);
-                findNotesContain(str);
-            }
-        }
-
-        m_listView->setAnimationEnabled(true);
-        m_isOperationRunning = false;
-    }
-
-    m_noteEditorLogic->highlightSearch();
-}
 
 /*!
  * \brief MainWindow::onClearButtonClicked
@@ -1605,23 +1517,7 @@ void MainWindow::onSearchEditTextChanged(const QString& keyword)
  */
 void MainWindow::onClearButtonClicked()
 {
-    if(!m_isOperationRunning){
-
-        clearSearch();
-
-        if(m_listModel->rowCount() > 0){
-            QModelIndex indexInProxy = m_selectedNoteBeforeSearchingInSource;
-            int row = m_selectedNoteBeforeSearchingInSource.row();
-            if(row == m_listModel->rowCount()) {
-                indexInProxy = m_listModel->index(m_listModel->rowCount()-1,0);
-            }
-            selectNote(indexInProxy);
-        }else{
-            m_currentSelectedNote = QModelIndex();
-        }
-
-        m_selectedNoteBeforeSearchingInSource = QModelIndex();
-    }
+    m_listViewLogic->clearSearch();
 }
 
 /*!
@@ -1632,106 +1528,66 @@ void MainWindow::onClearButtonClicked()
  */
 void MainWindow::createNewNote()
 {
-//    if(!m_isOperationRunning){
-//        m_isOperationRunning = true;
-        m_listView->scrollToTop();
-        QModelIndex newNoteIndex;
-        if (!m_noteEditorLogic->isTempNote()){
-            // clear the textEdit
-            m_noteEditorLogic->closeEditor();
+    //    if(!m_isOperationRunning){
+    //        m_isOperationRunning = true;
+    m_listView->scrollToTop();
+    QModelIndex newNoteIndex;
+    if (!m_noteEditorLogic->isTempNote()){
+        // clear the textEdit
+        m_noteEditorLogic->closeEditor();
 
-            NodeData tmpNote;
-            tmpNote.setNodeType(NodeData::Note);
-            QDateTime noteDate = QDateTime::currentDateTime();
-            tmpNote.setCreationDateTime(noteDate);
-            tmpNote.setLastModificationDateTime(noteDate);
-            tmpNote.setFullTitle(QStringLiteral("New Note"));
-            auto parentIndex = m_treeView->currentIndex();
-            if (parentIndex.isValid()) {
-                auto parentType = static_cast<NodeItem::Type>(parentIndex.data(NodeItem::Roles::ItemType).toInt());
-                if (parentType == NodeItem::Type::FolderItem) {
-                    tmpNote.setParentId(parentIndex.data(NodeItem::Roles::NodeId).toInt());
-                    tmpNote.setParentName(parentIndex.data(NodeItem::Roles::DisplayText).toString());
-                } else {
-                    tmpNote.setParentId(SpecialNodeID::DefaultNotesFolder);
-                    tmpNote.setParentName("Notes");
-                }
+        NodeData tmpNote;
+        tmpNote.setNodeType(NodeData::Note);
+        QDateTime noteDate = QDateTime::currentDateTime();
+        tmpNote.setCreationDateTime(noteDate);
+        tmpNote.setLastModificationDateTime(noteDate);
+        tmpNote.setFullTitle(QStringLiteral("New Note"));
+        auto parentIndex = m_treeView->currentIndex();
+        if (parentIndex.isValid()) {
+            auto parentType = static_cast<NodeItem::Type>(parentIndex.data(NodeItem::Roles::ItemType).toInt());
+            if (parentType == NodeItem::Type::FolderItem) {
+                tmpNote.setParentId(parentIndex.data(NodeItem::Roles::NodeId).toInt());
+                tmpNote.setParentName(parentIndex.data(NodeItem::Roles::DisplayText).toString());
             } else {
                 tmpNote.setParentId(SpecialNodeID::DefaultNotesFolder);
                 tmpNote.setParentName("Notes");
             }
-            int noteId = SpecialNodeID::InvalidNoteId;
-            QMetaObject::invokeMethod(m_dbManager, "nextAvailableNodeId", Qt::BlockingQueuedConnection,
-                                      Q_RETURN_ARG(int, noteId)
-                                      );
-            tmpNote.setId(noteId);
-            tmpNote.setIsTempNote(true);
-            auto inf = m_listViewLogic->listViewInfo();
-            if (inf.isInTag) {
-                tmpNote.setTagIds(QSet<int>(inf.currentTagList.begin(),
-                                            inf.currentTagList.end()));
-            }
-            // insert the new note to NoteListModel
-            newNoteIndex = m_listModel->insertNote(tmpNote, 0);
-
-            // update the editor
-            m_noteEditorLogic->showNoteInEditor(tmpNote);
         } else {
-            newNoteIndex = m_listModel->getNoteIndex(
-                        m_noteEditorLogic->currentEditingNote().id());
-            int row = newNoteIndex.row();
-            m_listView->animateAddedRow(QModelIndex(),row, row);
+            tmpNote.setParentId(SpecialNodeID::DefaultNotesFolder);
+            tmpNote.setParentName("Notes");
         }
+        int noteId = SpecialNodeID::InvalidNoteId;
+        QMetaObject::invokeMethod(m_dbManager, "nextAvailableNodeId", Qt::BlockingQueuedConnection,
+                                  Q_RETURN_ARG(int, noteId)
+                                  );
+        tmpNote.setId(noteId);
+        tmpNote.setIsTempNote(true);
+        auto inf = m_listViewLogic->listViewInfo();
+        if (inf.isInTag) {
+            tmpNote.setTagIds(QSet<int>(inf.currentTagList.begin(),
+                                        inf.currentTagList.end()));
+        }
+        // insert the new note to NoteListModel
+        newNoteIndex = m_listModel->insertNote(tmpNote, 0);
 
-        // update the current selected index
-        m_listView->setCurrentIndex(newNoteIndex);
-//        m_isOperationRunning = false;
-//    }
+        // update the editor
+        m_noteEditorLogic->showNoteInEditor(tmpNote);
+    } else {
+        newNoteIndex = m_listModel->getNoteIndex(
+                    m_noteEditorLogic->currentEditingNote().id());
+        int row = newNoteIndex.row();
+        m_listView->animateAddedRow(QModelIndex(),row, row);
+    }
+
+    // update the current selected index
+    m_listView->setCurrentIndex(newNoteIndex);
+    //        m_isOperationRunning = false;
+    //    }
 }
 
-/*!
- * \brief MainWindow::deleteNote
- * deletes the specified note
- * \param noteIndex
- * note to delete
- * \param isFromUser
- * true if the user clicked on trash button
- */
-void MainWindow::deleteNote(const QModelIndex &noteIndex, bool isFromUser)
+void MainWindow::selectNoteDown()
 {
-    //    if(noteIndex.isValid()){
-    //        // delete from model
-    //        QModelIndex indexToBeRemoved = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
-    //        NodeData* noteTobeRemoved = m_noteModel->removeNote(indexToBeRemoved);
-
-    //        if(m_isTemp){
-    //            m_isTemp = false;
-    //            --m_noteCounter;
-    //        }else{
-    //            noteTobeRemoved->setDeletionDateTime(QDateTime::currentDateTime());
-    //            emit requestDeleteNote(noteTobeRemoved);
-    //        }
-
-    //        if(isFromUser){
-    //            // clear text edit and time date label
-    //            m_editorDateLabel->clear();
-    //            m_textEdit->blockSignals(true);
-    //            m_textEdit->clear();
-    //            m_textEdit->clearFocus();
-    //            m_textEdit->blockSignals(false);
-
-    //            if(m_noteModel->rowCount() > 0){
-    //                QModelIndex index = m_noteView->currentIndex();
-    //                m_currentSelectedNoteProxy = index;
-    //            }else{
-    //                m_currentSelectedNoteProxy = QModelIndex();
-    //            }
-    //        }
-    //    }else{
-    //        qDebug() << "MainWindow::deleteNote noteIndex is not valid";
-    //    }
-
-    m_listView->setFocus();
+    m_listViewLogic->selectNoteDown();
 }
 
 /*!
@@ -1740,63 +1596,15 @@ void MainWindow::deleteNote(const QModelIndex &noteIndex, bool isFromUser)
  */
 void MainWindow::setFocusOnText()
 {
-    if(m_currentSelectedNote.isValid() && !m_textEdit->hasFocus()) {
+    if(m_noteEditorLogic->currentEditingNote().id() != SpecialNodeID::InvalidNoteId && !m_textEdit->hasFocus()) {
         m_listView->setCurrentRowActive(true);
         m_textEdit->setFocus();
     }
 }
 
-/*!
- * \brief MainWindow::selectNoteUp
- * Select the note above the currentSelectedNote
- */
 void MainWindow::selectNoteUp()
 {
-    if(m_currentSelectedNote.isValid()){
-        int currentRow = m_listView->currentIndex().row();
-        QModelIndex aboveIndex = m_listView->model()->index(currentRow - 1, 0);
-        if(aboveIndex.isValid()){
-            m_listView->setCurrentIndex(aboveIndex);
-            m_listView->setCurrentRowActive(false);
-            m_currentSelectedNote = aboveIndex;
-            showNoteInEditor(m_currentSelectedNote);
-        }
-        if (!m_searchEdit->text().isEmpty()) {
-            m_searchEdit->setFocus();
-        } else {
-            m_listView->setFocus();
-        }
-    }
-}
-
-/*!
- * \brief MainWindow::selectNoteDown
- * Select the note below the currentSelectedNote
- */
-void MainWindow::selectNoteDown()
-{
-    if(m_currentSelectedNote.isValid()){
-        if(m_isTemp){
-            deleteNote(m_currentSelectedNote, false);
-            m_listView->setCurrentIndex(m_currentSelectedNote);
-            showNoteInEditor(m_currentSelectedNote);
-        }else{
-            int currentRow = m_listView->currentIndex().row();
-            QModelIndex belowIndex = m_listView->model()->index(currentRow + 1, 0);
-            if(belowIndex.isValid()){
-                m_listView->setCurrentIndex(belowIndex);
-                m_listView->setCurrentRowActive(false);
-                m_currentSelectedNote = belowIndex;
-                showNoteInEditor(m_currentSelectedNote);
-            }
-        }
-        //if the searchEdit is not empty, set the focus to it
-        if (!m_searchEdit->text().isEmpty()) {
-            m_searchEdit->setFocus();
-        } else {
-            m_listView->setFocus();
-        }
-    }
+    m_listViewLogic->selectNoteUp();
 }
 
 /*!
@@ -2564,64 +2372,6 @@ void MainWindow::clearSearch()
 }
 
 /*!
- * \brief MainWindow::findNotesContain
- * \param keyword
- */
-void MainWindow::findNotesContain(const QString& keyword)
-{
-    //    m_proxyModel->setFilterFixedString(keyword);
-    //    m_clearButton->show();
-
-    //    m_textEdit->blockSignals(true);
-    //    m_textEdit->clear();
-    //    m_editorDateLabel->clear();
-    //    m_textEdit->blockSignals(false);
-
-    //    if(m_proxyModel->rowCount() > 0){
-    //        selectFirstNote();
-    //    }else{
-    //        m_currentSelectedNoteProxy = QModelIndex();
-    //    }
-}
-
-/*!
- * \brief MainWindow::selectNote
- * \param noteIndex
- */
-void MainWindow::selectNote(const QModelIndex &noteIndex)
-{
-    if(noteIndex.isValid()){
-        // save the position of text edit scrollbar
-        //        if(!m_isTemp && m_currentSelectedNote.isValid()){
-        //            int pos = m_textEdit->verticalScrollBar()->value();
-        //            QModelIndex indexSrc = m_currentSelectedNote;
-        //            m_noteModel->setData(indexSrc, QVariant::fromValue(pos), NoteListModel::NoteScrollbarPos);
-        //        }
-
-        // show the content of the pressed note in the text editor
-        showNoteInEditor(noteIndex);
-
-        if(m_isTemp && noteIndex.row() != 0){
-            // delete the unmodified new note
-            deleteNote(m_currentSelectedNote, false);
-            m_currentSelectedNote = m_listModel->index(noteIndex.row()-1, 0);
-        }else if(noteIndex != m_currentSelectedNote){
-            // save if the previous selected note was modified
-            m_noteEditorLogic->saveNoteToDB();
-            m_currentSelectedNote = noteIndex;
-        }else{
-            m_currentSelectedNote = noteIndex;
-        }
-
-        m_listView->selectionModel()->select(m_currentSelectedNote, QItemSelectionModel::ClearAndSelect);
-        m_listView->setCurrentIndex(m_currentSelectedNote);
-        m_listView->scrollTo(m_currentSelectedNote);
-    }else{
-        qDebug() << "MainWindow::selectNote() : noteIndex is not valid";
-    }
-}
-
-/*!
  * \brief MainWindow::checkMigration
  */
 void MainWindow::checkMigration()
@@ -2977,10 +2727,10 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
             if(object == m_styleEditorButton){
                 this->setCursor(Qt::PointingHandCursor);
                 QString ss = QStringLiteral("QPushButton { "
-                                 "  border: none; "
-                                 "  padding: 0px; "
-                                 "  color: rgb(51, 110, 162);"
-                                 "}");
+                                            "  border: none; "
+                                            "  padding: 0px; "
+                                            "  color: rgb(51, 110, 162);"
+                                            "}");
                 m_styleEditorButton->setStyleSheet(ss);
             }
 
@@ -3036,10 +2786,10 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
             if(object == m_styleEditorButton){
                 this->unsetCursor();
                 QString ss = QStringLiteral("QPushButton { "
-                                 "  border: none; "
-                                 "  padding: 0px; "
-                                 "  color: rgb(68, 138, 201);"
-                                 "}");
+                                            "  border: none; "
+                                            "  padding: 0px; "
+                                            "  color: rgb(68, 138, 201);"
+                                            "}");
                 m_styleEditorButton->setStyleSheet(ss);
             }
         }
@@ -3114,9 +2864,15 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
             if(!m_isOperationRunning){
                 if (m_listModel->rowCount() == 0) {
                     if(!m_searchEdit->text().isEmpty()) {
-                            clearSearch();
+                        m_listViewLogic->clearSearch();
                     }
-                    createNewNote();
+                    delete m_newNoteTimer;
+                    m_newNoteTimer = new QTimer(this);
+                    m_newNoteTimer->setSingleShot(true);
+                    connect(m_newNoteTimer, &QTimer::timeout, this, [this] {
+                        this->createNewNote();
+                    });
+                    m_newNoteTimer->start(200);
                 }
             }
             m_listView->setCurrentRowActive(true);

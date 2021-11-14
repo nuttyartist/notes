@@ -668,6 +668,163 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
     }
 }
 
+void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
+{
+    QVector<NodeData> nodeList;
+    QSqlQuery query;
+    if (!inf.isInTag && inf.parentFolderId == SpecialNodeID::RootFolder) {
+        query.prepare(R"(SELECT )"
+                      R"("id",)"
+                      R"("title",)"
+                      R"("creation_date",)"
+                      R"("modification_date",)"
+                      R"("deletion_date",)"
+                      R"("content",)"
+                      R"("node_type",)"
+                      R"("parent_id",)"
+                      R"("relative_position" )"
+                      R"(FROM node_table )"
+                      R"(WHERE node_type = (:node_type) AND parent_id != (:parent_id) )"
+                      R"(AND content like  '%' || (:search_expr) || '%';)"
+                    );
+        query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
+        query.bindValue(QStringLiteral(":parent_id"), static_cast<int>(SpecialNodeID::TrashFolder));
+        query.bindValue(QStringLiteral(":search_expr"), keyword);
+
+        bool status = query.exec();
+        if(status) {
+            while(query.next()) {
+                NodeData node;
+                node.setId(query.value(0).toInt());
+                node.setFullTitle(query.value(1).toString());
+                node.setCreationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(2).toLongLong()));
+                node.setLastModificationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(3).toLongLong()));
+                node.setDeletionDateTime(QDateTime::fromMSecsSinceEpoch(query.value(4).toLongLong()));
+                node.setContent(query.value(5).toString());
+                node.setNodeType(static_cast<NodeData::Type>(query.value(6).toInt()));
+                node.setParentId(query.value(7).toInt());
+                node.setRelativePosition(query.value(8).toInt());
+                node.setTagIds(getAllTagForNote(node.id()));
+                auto p = getNode(node.parentId());
+                node.setParentName(p.fullTitle());
+                nodeList.append(node);
+            }
+        } else {
+            qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+        }
+    } else if (!inf.isInTag) {
+        query.prepare(R"(SELECT )"
+                      R"("id",)"
+                      R"("title",)"
+                      R"("creation_date",)"
+                      R"("modification_date",)"
+                      R"("deletion_date",)"
+                      R"("content",)"
+                      R"("node_type",)"
+                      R"("parent_id",)"
+                      R"("relative_position" )"
+                      R"(FROM node_table )"
+                      R"(WHERE node_type = (:node_type) AND parent_id == (:parent_id) )"
+                      R"(AND content like  '%' || (:search_expr) || '%';)"
+                    );
+        query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
+        query.bindValue(QStringLiteral(":parent_id"), static_cast<int>(inf.parentFolderId));
+        query.bindValue(QStringLiteral(":search_expr"), keyword);
+
+        bool status = query.exec();
+        if(status) {
+            while(query.next()) {
+                NodeData node;
+                node.setId(query.value(0).toInt());
+                node.setFullTitle(query.value(1).toString());
+                node.setCreationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(2).toLongLong()));
+                node.setLastModificationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(3).toLongLong()));
+                node.setDeletionDateTime(QDateTime::fromMSecsSinceEpoch(query.value(4).toLongLong()));
+                node.setContent(query.value(5).toString());
+                node.setNodeType(static_cast<NodeData::Type>(query.value(6).toInt()));
+                node.setParentId(query.value(7).toInt());
+                node.setRelativePosition(query.value(8).toInt());
+                node.setTagIds(getAllTagForNote(node.id()));
+                auto p = getNode(node.parentId());
+                node.setParentName(p.fullTitle());
+                nodeList.append(node);
+            }
+        } else {
+            qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+        }
+    } else if (inf.isInTag) {
+        QVector<QSet<int>> nds;
+        for (const auto& tagId : inf.currentTagList) {
+            QSet<int> nd;
+            QSqlQuery query;
+            query.prepare(R"(SELECT "node_id" FROM tag_relationship WHERE tag_id = :tag_id;)");
+            query.bindValue(QStringLiteral(":tag_id"), tagId);
+            bool status = query.exec();
+            if(status) {
+                while(query.next()) {
+                    nd.insert(query.value(0).toInt());
+                }
+            } else {
+                qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+            }
+            nds.append(nd);
+        }
+        if (nds.size() == 0) {
+            emit notesListReceived(nodeList, inf);
+            return;
+        }
+        QSet<int> noteIds;
+        int nds_id = 0;
+        for (int i = 1; i < nds.size(); ++i) {
+            if (nds[i].size() < nds[nds_id].size()) {
+                nds_id = i;
+            }
+        }
+        for (const int id : nds[nds_id]) {
+            bool ok = true;
+            for (int i = 0; i < nds.size(); ++i) {
+                if (i == nds_id) {
+                    continue;
+                }
+                if (!nds[i].contains(id)) {
+                    ok = false;
+                }
+            }
+            if (ok) {
+                noteIds.insert(id);
+            }
+        }
+        for (const auto& id : noteIds) {
+            NodeData node = getNode(id);
+            if (node.id() != SpecialNodeID::InvalidNoteId &&
+                    node.nodeType() == NodeData::Note &&
+                    node.content().contains(keyword)) {
+                nodeList.append(node);
+            } else {
+                qDebug() << __FUNCTION__ << "Note with id" << id << "is not valid";
+            }
+        }
+    } else {
+        qDebug() << __FUNCTION__ << __LINE__ << "not supported";
+    }
+    ListViewInfo _inf = inf;
+    _inf.isInSearch = true;
+    emit notesListReceived(nodeList, _inf);
+}
+
+void DBManager::clearSearch(const ListViewInfo &inf)
+{
+    if (inf.isInTag) {
+        onNotesListInTagsRequested(inf.currentTagList);
+    } else {
+        if (inf.parentFolderId == SpecialNodeID::RootFolder) {
+            onNotesListInFolderRequested(inf.parentFolderId, true);
+        } else {
+            onNotesListInFolderRequested(inf.parentFolderId, false);
+        }
+    }
+}
+
 void DBManager::onNodeTagTreeRequested()
 {
     NodeTagTreeData d;
@@ -795,8 +952,10 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive)
         }
     }
     ListViewInfo inf;
+    inf.isInSearch = false;
     inf.isInTag = false;
     inf.parentFolderId = parentID;
+    inf.currentNoteId = SpecialNodeID::InvalidNoteId;
     emit notesListReceived(nodeList, inf);
 }
 
@@ -805,8 +964,10 @@ void DBManager::onNotesListInTagsRequested(const QVector<int> &tagIds)
     QVector<NodeData> nodeList;
     QVector<QSet<int>> nds;
     ListViewInfo inf;
+    inf.isInSearch = false;
     inf.isInTag = true;
     inf.currentTagList = tagIds;
+    inf.currentNoteId = SpecialNodeID::InvalidNoteId;
     for (const auto& tagId : tagIds) {
         QSet<int> nd;
         QSqlQuery query;

@@ -10,6 +10,8 @@ class NoteListView;
 class NoteListModel;
 class TagPool;
 class NoteListDelegate;
+class QLineEdit;
+class QToolButton;
 
 class ListViewLogic : public QObject
 {
@@ -17,6 +19,8 @@ class ListViewLogic : public QObject
 public:
     explicit ListViewLogic(NoteListView* noteView,
                            NoteListModel* noteModel,
+                           QLineEdit* searchEdit,
+                           QToolButton* clearButton,
                            TagPool* tagPool,
                            DBManager* dbManager,
                            QObject *parent = nullptr);
@@ -30,15 +34,23 @@ public slots:
     void setNoteData(const NodeData& note);
     void onNoteEditClosed(const NodeData& note);
     void deleteNoteRequested(const NodeData& note);
+    void selectNoteUp();
+    void selectNoteDown();
+    void onSearchEditTextChanged(const QString &keyword);
+    void clearSearch();
+
 signals:
     void showNoteInEditor(const NodeData& noteData);
     void requestAddTagDb(int noteId, int tagId);
     void requestRemoveTagDb(int noteId, int tagId);
     void requestRemoveNoteDb(const NodeData& noteData);
     void requestMoveNoteDb(int noteId, const NodeData& targetFolder);
-
+    void requestHightlightSearch();
     void closeNoteEditor();
     void noteTagListChanged(int noteId, const QSet<int>& tagIds);
+    void requestSearchInDb(const QString& keyword, const ListViewInfo& inf);
+    void requestClearSearchDb(const ListViewInfo& inf);
+    void requestClearSearchUI();
 
 private slots:
     void loadNoteListModel(const QVector<NodeData>& noteList, const ListViewInfo& inf);
@@ -51,6 +63,8 @@ private slots:
 private:
     NoteListView* m_listView;
     NoteListModel* m_listModel;
+    QLineEdit* m_searchEdit;
+    QToolButton* m_clearButton;
     DBManager* m_dbManager;
     NoteListDelegate* m_listDelegate;
 
