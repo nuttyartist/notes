@@ -1564,8 +1564,7 @@ void MainWindow::createNewNote()
         tmpNote.setIsTempNote(true);
         auto inf = m_listViewLogic->listViewInfo();
         if (inf.isInTag) {
-            tmpNote.setTagIds(QSet<int>(inf.currentTagList.begin(),
-                                        inf.currentTagList.end()));
+            tmpNote.setTagIds(inf.currentTagList);
         }
         // insert the new note to NoteListModel
         newNoteIndex = m_listModel->insertNote(tmpNote, 0);

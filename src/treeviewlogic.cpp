@@ -3,10 +3,10 @@
 #include "nodetreemodel.h"
 #include "nodetreedelegate.h"
 #include <QDebug>
-#include <QRandomGenerator>
 #include <QMetaObject>
 #include <QMessageBox>
 #include <QColorDialog>
+#include <random>
 
 TreeViewLogic::TreeViewLogic(NodeTreeView* treeView,
                              NodeTreeModel* treeModel,
@@ -125,7 +125,12 @@ void TreeViewLogic::onAddTagRequested()
     TagData newTag;
     newTag.setName(m_treeModel->getNewTagPlaceholderName());
     // random color generator
-    double rand = QRandomGenerator::global()->generateDouble();
+    const double lower_bound = 0;
+    const double upper_bound = 1;
+    static std::uniform_real_distribution<double> unif(lower_bound, upper_bound);
+    static std::random_device rand_dev;
+    static std::mt19937 rand_engine(rand_dev());
+    double rand = unif(rand_engine);
     int h = rand * 359;
     int s = 255;
     int v = 128 + rand * 127;

@@ -34,7 +34,7 @@ signals:
     void renameTagInDatabase(const QModelIndex& index, const QString& newName);
     void deleteNodeRequested(const QModelIndex& index);
     void loadNotesInFolderRequested(int folderID, bool isRecursive);
-    void loadNotesInTagsRequested(const QVector<int>& tagIds);
+    void loadNotesInTagsRequested(const QSet<int>& tagIds);
 
     void renameTagRequested();
     void changeTagColorRequested(const QModelIndex& index);

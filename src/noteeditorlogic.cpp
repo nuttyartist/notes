@@ -212,7 +212,11 @@ QString NoteEditorLogic::getFirstLine(const QString& str)
 
 QString NoteEditorLogic::getSecondLine(const QString &str)
 {
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
     auto sl = str.split("\n", QString::SkipEmptyParts);
+#else
+    auto sl = str.split("\n", Qt::SkipEmptyParts);
+#endif
     if (sl.size() < 2) {
         return getFirstLine(str);
     }

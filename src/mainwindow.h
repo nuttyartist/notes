@@ -12,7 +12,6 @@
 #include <QtCore>
 #include <QGroupBox>
 #include <QPushButton>
-#include <vector>
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QLabel>
@@ -23,8 +22,8 @@
 #include <QMenu>
 #include <QProgressDialog>
 #include <QAction>
-
 #include <QAutostart>
+#include <QtGlobal>
 
 #include "nodedata.h"
 #include "notelistmodel.h"
@@ -46,15 +45,13 @@ class ListViewLogic;
 class NoteEditorLogic;
 class TagPool;
 
-#if defined(Q_OS_LINUX)
-class MainWindow : public QMainWindow
-#else
+#if defined(Q_OS_WINDOWS) || defined(Q_OS_MACOS)
 class MainWindow : public CFramelessWindow
+#else
+class MainWindow : public QMainWindow
 #endif
 {
     Q_OBJECT
-
-    friend class tst_MainWindow;
 
 public:
 

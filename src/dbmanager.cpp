@@ -634,10 +634,10 @@ void DBManager::moveFolderToTrash(const NodeData &node)
     query.bindValue(QStringLiteral(":path_expr"), parentPath);
     query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
     status = query.exec();
-    QVector<int> childIds;
+    QSet<int> childIds;
     if (status) {
         while(query.next()) {
-            childIds.append(query.value(0).toInt());
+            childIds.insert(query.value(0).toInt());
         }
     } else {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
@@ -959,7 +959,7 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive)
     emit notesListReceived(nodeList, inf);
 }
 
-void DBManager::onNotesListInTagsRequested(const QVector<int> &tagIds)
+void DBManager::onNotesListInTagsRequested(const QSet<int> &tagIds)
 {
     QVector<NodeData> nodeList;
     QVector<QSet<int>> nds;

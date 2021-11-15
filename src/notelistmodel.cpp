@@ -67,6 +67,29 @@ void NoteListModel::removeNote(const QModelIndex &noteIndex)
     }
 }
 
+#if QT_VERSION < QT_VERSION_CHECK(5, 6, 0)
+template<typename T>
+void move(QVector<T>& vec, int from, int to)
+{
+    Q_ASSERT_X(from >= 0 && from < vec.size(), "QVector::move(int,int)", "'from' is out-of-range");
+    Q_ASSERT_X(to >= 0 && to < vec.size(), "QVector::move(int,int)", "'to' is out-of-range");
+    if (from == to) // don't detach when no-op
+        return;
+    vec.detach();
+    T * const b = vec.begin();
+    if (from < to)
+        std::rotate(b + from, b + from + 1, b + to + 1);
+    else
+        std::rotate(b + to, b + from, b + from + 1);
+}
+#else
+template<typename T>
+void move(QVector<T>& vec, int from, int to)
+{
+    vec.move(from, to);
+}
+#endif
+
 bool NoteListModel::moveRow(const QModelIndex &sourceParent, int sourceRow, const QModelIndex &destinationParent, int destinationChild)
 {
     if(sourceRow<0
@@ -78,7 +101,7 @@ bool NoteListModel::moveRow(const QModelIndex &sourceParent, int sourceRow, cons
     }
 
     if (beginMoveRows(sourceParent,sourceRow,sourceRow,destinationParent,destinationChild)) {
-        m_noteList.move(sourceRow,destinationChild);
+        move(m_noteList, sourceRow, destinationChild);
         endMoveRows();
         return true;
     }

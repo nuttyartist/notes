@@ -8,6 +8,7 @@
 #include <QtSql/QSqlDatabase>
 #include <QPair>
 #include <QSet>
+#include <QVector>
 
 struct NodeTagTreeData {
     QVector<NodeData> nodeTreeData;
@@ -17,7 +18,7 @@ struct NodeTagTreeData {
 struct ListViewInfo {
     bool isInSearch;
     bool isInTag;
-    QVector<int> currentTagList;
+    QSet<int> currentTagList;
     int parentFolderId;
     int currentNoteId;
 };
@@ -56,7 +57,7 @@ signals:
 public slots:
     void onNodeTagTreeRequested();
     void onNotesListInFolderRequested(int parentID, bool isRecursive);
-    void onNotesListInTagsRequested(const QVector<int>& tagIds);
+    void onNotesListInTagsRequested(const QSet<int>& tagIds);
     void onOpenDBManagerRequested(QString path, bool doCreate);
     void onCreateUpdateRequestedNoteContent(const NodeData& note);
     void onImportNotesRequested(QList<NodeData *> noteList);

@@ -148,7 +148,7 @@ void NodeTreeView::selectionChanged(const QItemSelection &selected, const QItemS
 {
     QTreeView::selectionChanged(selected, deselected);
     auto indexes = selectedIndexes();
-    QVector<int> tagIds;
+    QSet<int> tagIds;
     for (const auto index : indexes) {
         auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
         switch (itemType) {
@@ -173,7 +173,7 @@ void NodeTreeView::selectionChanged(const QItemSelection &selected, const QItemS
         }
         case NodeItem::Type::TagItem: {
             auto tagId = index.data(NodeItem::Roles::NodeId).toInt();
-            tagIds.append(tagId);
+            tagIds.insert(tagId);
             break;
         }
         }
