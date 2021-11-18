@@ -61,6 +61,7 @@ void DBManager::createTables()
                         R"(    "node_type"	INTEGER NOT NULL,)"
                         R"(    "parent_id"	INTEGER NOT NULL,)"
                         R"(    "relative_position"	INTEGER NOT NULL,)"
+                        R"(    "scrollbar_position"	INTEGER NOT NULL,)"
                         R"(    "absolute_path"	TEXT NOT NULL)"
                         R"();)";
     query.exec(nodeTable);
@@ -259,8 +260,8 @@ int DBManager::addNode(const NodeData &node)
     }
     absolutePath += PATH_SEPERATOR + QString::number(nodeId);
     QString queryStr = R"(INSERT INTO "node_table")"
-                       R"(("id", "title", "creation_date", "modification_date", "deletion_date", "content", "node_type", "parent_id", "relative_position", "absolute_path"))"
-                       R"(VALUES (:id, :title, :creation_date, :modification_date, :deletion_date, :content, :node_type, :parent_id, :relative_position, :absolute_path);)";
+                       R"(("id", "title", "creation_date", "modification_date", "deletion_date", "content", "node_type", "parent_id", "relative_position", "scrollbar_position", "absolute_path"))"
+                       R"(VALUES (:id, :title, :creation_date, :modification_date, :deletion_date, :content, :node_type, :parent_id, :relative_position, :scrollbar_position, :absolute_path);)";
 
     query.prepare(queryStr);
     query.bindValue(":id", nodeId);
@@ -272,6 +273,7 @@ int DBManager::addNode(const NodeData &node)
     query.bindValue(":node_type", static_cast<int>(node.nodeType()));
     query.bindValue(":parent_id", node.parentId());
     query.bindValue(":relative_position", relationalPosition);
+    query.bindValue(":scrollbar_position", node.scrollBarPosition());
     query.bindValue(":absolute_path", absolutePath);
     query.exec();
     query.finish();
@@ -481,11 +483,12 @@ bool DBManager::updateNoteContent(const NodeData& note)
     QString fullTitle = note.fullTitle().replace(QChar('\x0'), emptyStr);
     
     query.prepare(QStringLiteral("UPDATE node_table SET modification_date = :modification_date, content = :content, "
-                                 "title = :title WHERE id = :id AND node_type = :node_type;"));
+                                 "title = :title, scrollbar_position = :scrollbar_position WHERE id = :id AND node_type = :node_type;"));
     query.bindValue(QStringLiteral(":modification_date"), epochTimeDateModified);
     query.bindValue(QStringLiteral(":content"), content);
     query.bindValue(QStringLiteral(":title"), fullTitle);
     query.bindValue(QStringLiteral(":id"), id);
+    query.bindValue(QStringLiteral(":scrollbar_position"), note.scrollBarPosition());
     query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
     if (!query.exec()) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
@@ -584,6 +587,7 @@ NodeData DBManager::getNode(int nodeId)
                   R"("node_type",)"
                   R"("parent_id",)"
                   R"("relative_position",)"
+                  R"("scrollbar_position",)"
                   R"("absolute_path" )"
                   R"(FROM node_table WHERE id=:id LIMIT 1;)"
                 );
@@ -601,7 +605,8 @@ NodeData DBManager::getNode(int nodeId)
         node.setNodeType(static_cast<NodeData::Type>(query.value(6).toInt()));
         node.setParentId(query.value(7).toInt());
         node.setRelativePosition(query.value(8).toInt());
-        node.setAbsolutePath(query.value(9).toString());
+        node.setScrollBarPosition(query.value(9).toInt());
+        node.setAbsolutePath(query.value(10).toString());
         if (node.nodeType() == NodeData::Note) {
             node.setTagIds(getAllTagForNote(node.id()));
         }
@@ -682,7 +687,9 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
                       R"("content",)"
                       R"("node_type",)"
                       R"("parent_id",)"
-                      R"("relative_position" )"
+                      R"("relative_position", )"
+                      R"("scrollbar_position",)"
+                      R"("absolute_path" )"
                       R"(FROM node_table )"
                       R"(WHERE node_type = (:node_type) AND parent_id != (:parent_id) )"
                       R"(AND content like  '%' || (:search_expr) || '%';)"
@@ -704,7 +711,9 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
                 node.setNodeType(static_cast<NodeData::Type>(query.value(6).toInt()));
                 node.setParentId(query.value(7).toInt());
                 node.setRelativePosition(query.value(8).toInt());
-                node.setTagIds(getAllTagForNote(node.id()));
+                node.setScrollBarPosition(query.value(9).toInt());
+                node.setAbsolutePath(query.value(10).toString());
+                node.setTagIds(getAllTagForNote(node.id()));                
                 auto p = getNode(node.parentId());
                 node.setParentName(p.fullTitle());
                 nodeList.append(node);
@@ -722,7 +731,9 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
                       R"("content",)"
                       R"("node_type",)"
                       R"("parent_id",)"
-                      R"("relative_position" )"
+                      R"("relative_position", )"
+                      R"("scrollbar_position",)"
+                      R"("absolute_path" )"
                       R"(FROM node_table )"
                       R"(WHERE node_type = (:node_type) AND parent_id == (:parent_id) )"
                       R"(AND content like  '%' || (:search_expr) || '%';)"
@@ -744,6 +755,8 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
                 node.setNodeType(static_cast<NodeData::Type>(query.value(6).toInt()));
                 node.setParentId(query.value(7).toInt());
                 node.setRelativePosition(query.value(8).toInt());
+                node.setScrollBarPosition(query.value(9).toInt());
+                node.setAbsolutePath(query.value(10).toString());
                 node.setTagIds(getAllTagForNote(node.id()));
                 auto p = getNode(node.parentId());
                 node.setParentName(p.fullTitle());
@@ -850,7 +863,9 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive)
                       R"("content",)"
                       R"("node_type",)"
                       R"("parent_id",)"
-                      R"("relative_position" )"
+                      R"("relative_position",)"
+                      R"("scrollbar_position",)"
+                      R"("absolute_path" )"
                       R"(FROM node_table )"
                       R"(WHERE node_type = (:node_type) AND parent_id != (:parent_id);)"
                     );
@@ -870,6 +885,8 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive)
                 node.setNodeType(static_cast<NodeData::Type>(query.value(6).toInt()));
                 node.setParentId(query.value(7).toInt());
                 node.setRelativePosition(query.value(8).toInt());
+                node.setScrollBarPosition(query.value(9).toInt());
+                node.setAbsolutePath(query.value(10).toString());
                 node.setTagIds(getAllTagForNote(node.id()));
                 auto p = getNode(node.parentId());
                 node.setParentName(p.fullTitle());
@@ -888,7 +905,9 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive)
                       R"("content",)"
                       R"("node_type",)"
                       R"("parent_id",)"
-                      R"("relative_position" )"
+                      R"("relative_position", )"
+                      R"("scrollbar_position",)"
+                      R"("absolute_path" )"
                       R"(FROM node_table )"
                       R"(WHERE parent_id = (:parent_id) AND node_type = (:node_type);)"
                     );
@@ -907,6 +926,8 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive)
                 node.setNodeType(static_cast<NodeData::Type>(query.value(6).toInt()));
                 node.setParentId(query.value(7).toInt());
                 node.setRelativePosition(query.value(8).toInt());
+                node.setScrollBarPosition(query.value(9).toInt());
+                node.setAbsolutePath(query.value(10).toString());
                 node.setTagIds(getAllTagForNote(node.id()));
                 nodeList.append(node);
             }
@@ -924,7 +945,9 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive)
                       R"("content",)"
                       R"("node_type",)"
                       R"("parent_id",)"
-                      R"("relative_position" )"
+                      R"("relative_position", )"
+                      R"("scrollbar_position",)"
+                      R"("absolute_path" )"
                       R"(FROM node_table )"
                       R"(WHERE absolute_path like (:path_expr) || '%' AND node_type = (:node_type);)"
                     );
@@ -944,6 +967,8 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive)
                 node.setNodeType(static_cast<NodeData::Type>(query.value(6).toInt()));
                 node.setParentId(query.value(7).toInt());
                 node.setRelativePosition(query.value(8).toInt());
+                node.setScrollBarPosition(query.value(9).toInt());
+                node.setAbsolutePath(query.value(10).toString());
                 node.setTagIds(getAllTagForNote(node.id()));
                 nodeList.append(node);
             }

@@ -94,6 +94,8 @@ void ListViewLogic::setNoteData(const NodeData &note)
                 QVariant::fromValue(note.lastModificationdateTime());
         dataValue[NoteListModel::NoteIsTemp] =
                 QVariant::fromValue(note.isTempNote());
+        dataValue[NoteListModel::NoteScrollbarPos] =
+                QVariant::fromValue(note.scrollBarPosition());
         m_listModel->setItemData(noteIndex, dataValue);
         if (wasTemp) {
             auto tagIds = noteIndex.data(NoteListModel::NoteTagsList).value<QSet<int>>();

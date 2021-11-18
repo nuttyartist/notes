@@ -108,6 +108,7 @@ void NoteEditorLogic::onTextEditTextChanged()
             m_currentNote.setFullTitle(firstline);
             m_currentNote.setLastModificationDateTime(dateTime);
             m_currentNote.setIsTempNote(false);
+            m_currentNote.setScrollBarPosition(m_textEdit->verticalScrollBar()->value());
             // update note data in list view
             emit updateNoteDataInList(m_currentNote);
             m_isContentModified = true;
