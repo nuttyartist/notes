@@ -218,6 +218,11 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
     double dateRectWidth = rowWidth - 2.0 * leftOffsetX;
     double dateRectHeight = fmRectDate.height() + spaceY;
 
+    double contentRectPosX = rowPosX + leftOffsetX;
+    double contentRectPosY = rowPosY + fmRectTitle.height() + fmRectDate.height() + topOffsetY + 3;
+    double contentRectWidth = rowWidth - 2.0 * leftOffsetX;
+    double contentRectHeight = fmRectContent.height() + spaceY;
+
     double folderNameRectPosX = 0;
     double folderNameRectPosY = 0;
     double folderNameRectWidth = 0;
@@ -225,15 +230,10 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
 
     if (m_isInAllNotes) {
         folderNameRectPosX = rowPosX + leftOffsetX + 20;
-        folderNameRectPosY = rowPosY + fmRectTitle.height() + fmRectDate.height() + topOffsetY + 3;
+        folderNameRectPosY = rowPosY + fmRectContent.height() + fmRectTitle.height() + fmRectDate.height() + topOffsetY + 3 + 5;
         folderNameRectWidth = rowWidth - 2.0 * leftOffsetX;
         folderNameRectHeight = fmRectParentName.height() + spaceY;
     }
-
-    double contentRectPosX = rowPosX + leftOffsetX;
-    double contentRectPosY = rowPosY + fmRectTitle.height() + folderNameRectHeight + fmRectDate.height() + topOffsetY + 3;
-    double contentRectWidth = rowWidth - 2.0 * leftOffsetX;
-    double contentRectHeight = fmRectContent.height() + spaceY;
 
     double rowRate = m_timeLine->currentFrame()/(m_maxFrame * 1.0);
     double currRowHeight = m_rowHeight * rowRate;
@@ -253,8 +253,8 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
             dateRectPosY = titleRectHeight;
             dateRectHeight = fmRectDate.height() + spaceY;
             if (m_isInAllNotes) {
-                folderNameRectPosY = dateRectPosY + dateRectHeight;
-                contentRectPosY = folderNameRectPosY + fmParentName.height() + spaceY;
+                contentRectPosY = fmParentName.height() + spaceY;
+                folderNameRectPosY = contentRectPosY + dateRectPosY + dateRectHeight + 5;
             } else {
                 contentRectPosY = dateRectPosY + dateRectHeight;
             }
@@ -276,15 +276,15 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
 
             dateRectPosY = titleRectHeight + rowPosY;
             if (m_isInAllNotes) {
-                folderNameRectPosY = dateRectPosY + dateRectHeight + rowPosY;
-                contentRectPosY = folderNameRectPosY + fmParentName.height() + spaceY;
+                contentRectPosY = fmParentName.height() + spaceY;
+                folderNameRectPosY = contentRectPosY + dateRectPosY + dateRectHeight + rowPosY + 5;
             } else {
                 contentRectPosY = dateRectPosY + dateRectHeight + rowPosY;
             }
         }
     }
 
-    double tagsPosY = contentRectPosY + fmRectContent.height() + topOffsetY + 5;
+    double tagsPosY = contentRectPosY + fmRectParentName.height() + fmRectContent.height() + topOffsetY + 10;
 
     // draw title & date
     title = fmTitle.elidedText(title, Qt::ElideRight, int(titleRectWidth));
