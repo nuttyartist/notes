@@ -17,7 +17,7 @@ public:
     void setIsEditing(bool newIsEditing);
     void onRenameFolderFinished(const QString& newName);
     void onRenameTagFinished(const QString& newName);
-
+    void setCurrentIndexC(const QModelIndex& index);
 public slots:
     void onCustomContextMenu(const QPoint& point);
     void onChangeTagColorAction();
@@ -35,10 +35,12 @@ signals:
     void deleteNodeRequested(const QModelIndex& index);
     void loadNotesInFolderRequested(int folderID, bool isRecursive);
     void loadNotesInTagsRequested(const QSet<int>& tagIds);
-
+    void moveNodeRequested(int node, int target);
     void renameTagRequested();
     void changeTagColorRequested(const QModelIndex& index);
     void deleteTagRequested(const QModelIndex& index);
+    void addNoteToTag(int noteId, int tagId);
+
 private slots:
     void onClicked(const QModelIndex& index);
     void onDeleteNodeAction();
@@ -66,6 +68,12 @@ private:
 protected slots:
     virtual void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected) override;
     virtual void currentChanged(const QModelIndex &current, const QModelIndex &previous) override;
+
+    // QWidget interface
+protected:
+    virtual void dragEnterEvent(QDragEnterEvent *event) override;
+    virtual void dropEvent(QDropEvent *event) override;
+    virtual void dragMoveEvent(QDragMoveEvent *event) override;
 };
 
 #endif // NODETREEVIEW_H

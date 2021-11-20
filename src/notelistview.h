@@ -34,7 +34,7 @@ public slots:
 
 protected:
     void paintEvent(QPaintEvent *e) Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
+    void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
     void mouseReleaseEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
     bool viewportEvent(QEvent* e) Q_DECL_OVERRIDE;
@@ -74,7 +74,8 @@ private:
     TagPool* m_tagPool;
     QVector<QAction*> m_noteTagActions;
     bool m_isInTrash;
-
+    QPoint m_dragStartPosition;
+    QPixmap m_dragPixmap;
     void setupSignalsSlots();
     void setupStyleSheet();
 

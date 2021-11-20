@@ -53,6 +53,12 @@ TreeViewLogic::TreeViewLogic(NodeTreeView* treeView,
             m_dbManager, &DBManager::onNotesListInFolderRequested, Qt::QueuedConnection);
     connect(m_treeView, &NodeTreeView::loadNotesInTagsRequested,
             m_dbManager, &DBManager::onNotesListInTagsRequested, Qt::QueuedConnection);
+    connect(this, &TreeViewLogic::requestMoveNodeInDB,
+            m_dbManager, &DBManager::moveNode, Qt::QueuedConnection);
+    connect(m_treeView, &NodeTreeView::moveNodeRequested,
+            this, &TreeViewLogic::onMoveNodeRequested);
+    connect(m_treeView, &NodeTreeView::addNoteToTag,
+            this, &TreeViewLogic::addNoteToTag);
 }
 
 void TreeViewLogic::updateTreeViewSeparator()
@@ -64,6 +70,7 @@ void TreeViewLogic::loadTreeModel(const NodeTagTreeData &treeData)
 {
     m_treeModel->setTreeData(treeData);
     updateTreeViewSeparator();
+    m_treeView->setCurrentIndexC(m_treeModel->getAllNotesButtonIndex());
 }
 
 void TreeViewLogic::onAddFolderRequested(bool fromPlusButton)
@@ -178,7 +185,7 @@ void TreeViewLogic::onDeleteFolderRequested(const QModelIndex &index)
             m_treeModel->deleteRow(index, parentIndex);
             QMetaObject::invokeMethod(m_dbManager, "moveFolderToTrash", Qt::QueuedConnection,
                                       Q_ARG(NodeData, node));
-            m_treeView->setCurrentIndex(m_treeModel->getAllNotesButtonIndex());
+            m_treeView->setCurrentIndexC(m_treeModel->getAllNotesButtonIndex());
         } else {
             qDebug() << __FUNCTION__ << "Parent index with path" << parentPath.path()
                      << "is not valid";
@@ -212,6 +219,20 @@ void TreeViewLogic::onDeleteTagRequested(const QModelIndex &index)
     m_treeModel->deleteRow(index, m_treeModel->rootIndex());
     QMetaObject::invokeMethod(m_dbManager, "removeTag", Qt::QueuedConnection,
                               Q_ARG(int, id));
-    m_treeView->setCurrentIndex(m_treeModel->getAllNotesButtonIndex());
+    m_treeView->setCurrentIndexC(m_treeModel->getAllNotesButtonIndex());
+}
+
+void TreeViewLogic::onMoveNodeRequested(int nodeId, int targetId)
+{
+    NodeData target;
+    QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection,
+                              Q_RETURN_ARG(NodeData, target),
+                              Q_ARG(int, targetId)
+                              );
+    if (target.nodeType() != NodeData::Folder) {
+        qDebug() << __FUNCTION__ << "Target is not folder!";
+        return;
+    }
+    emit requestMoveNodeInDB(nodeId, target);
 }
 

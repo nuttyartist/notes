@@ -624,6 +624,8 @@ void MainWindow::setupSignalsSlots()
             m_listViewLogic, &ListViewLogic::onNoteEditClosed);
     connect(m_listViewLogic, &ListViewLogic::requestClearSearchUI,
             this, &MainWindow::clearSearch);
+    connect(m_treeViewLogic, &TreeViewLogic::addNoteToTag,
+            m_listViewLogic, &ListViewLogic::onAddTagRequestD);
 #ifdef __APPLE__
     // Replace setUseNativeWindowFrame with just the part that handles pushing things up
     connect(this, &MainWindow::toggleFullScreen, this, [=](bool isFullScreen){adjustUpperWidgets(isFullScreen);});

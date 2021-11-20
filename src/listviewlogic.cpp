@@ -248,6 +248,12 @@ void ListViewLogic::onAddTagRequest(const QModelIndex &index, int tagId)
     }
 }
 
+void ListViewLogic::onAddTagRequestD(int noteId, int tagId)
+{
+    auto index = m_listModel->getNoteIndex(noteId);
+    onAddTagRequest(index, tagId);
+}
+
 void ListViewLogic::onRemoveTagRequest(const QModelIndex &index, int tagId)
 {
     if (index.isValid()) {

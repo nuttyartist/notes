@@ -10,6 +10,8 @@
 #include <QScrollBar>
 #include <QMenu>
 #include <QAction>
+#include <QDrag>
+#include <QMimeData>
 #include "tagpool.h"
 #include "notelistmodel.h"
 
@@ -50,7 +52,7 @@ NoteListView::NoteListView(QWidget *parent)
             emit restoreNoteRequested(index);
         }
     });
-
+    m_dragPixmap.load("qrc:/images/notes_icon.icns");
 }
 
 NoteListView::~NoteListView()
@@ -202,15 +204,33 @@ void NoteListView::init()
     setupSignalsSlots();
 }
 
-void NoteListView::mouseMoveEvent(QMouseEvent*e)
+void NoteListView::mouseMoveEvent(QMouseEvent* event)
 {
-    if(!m_isMousePressed)
-        QListView::mouseMoveEvent(e);
+    if(!m_isMousePressed) {
+        QListView::mouseMoveEvent(event);
+    }
+    if (!(event->buttons() & Qt::LeftButton))
+        return;
+    if ((event->pos() - m_dragStartPosition).manhattanLength()
+         < QApplication::startDragDistance())
+        return;
+
+    QDrag *drag = new QDrag(this);
+    QMimeData *mimeData = new QMimeData;
+    auto current = currentIndex();
+    mimeData->setData("text/noteId", QString::number(
+                          current.data(NoteListModel::NoteID).toInt()).toUtf8());
+    drag->setMimeData(mimeData);
+    drag->setPixmap(m_dragPixmap);
+    drag->exec(Qt::CopyAction | Qt::MoveAction);
 }
 
-void NoteListView::mousePressEvent(QMouseEvent*e)
+void NoteListView::mousePressEvent(QMouseEvent* e)
 {
     m_isMousePressed = true;
+    if (e->button() == Qt::LeftButton) {
+        m_dragStartPosition = e->pos();
+    }
     QListView::mousePressEvent(e);
 }
 

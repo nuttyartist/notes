@@ -4,6 +4,7 @@
 #include <QAction>
 #include <QMouseEvent>
 #include <QDebug>
+#include <QMimeData>
 
 NodeTreeView::NodeTreeView(QWidget *parent) :
     QTreeView(parent),
@@ -33,6 +34,7 @@ NodeTreeView::NodeTreeView(QWidget *parent) :
                 );
     setRootIsDecorated(false);
     setMouseTracking(true);
+    setAcceptDrops(true);
     connect(this, &QAbstractItemView::clicked, this, &NodeTreeView::onClicked);
     setSelectionMode(QAbstractItemView::MultiSelection);
     setContextMenuPolicy(Qt::CustomContextMenu);
@@ -194,6 +196,53 @@ void NodeTreeView::currentChanged(const QModelIndex &current, const QModelIndex 
     }
 }
 
+void NodeTreeView::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (event->mimeData()->hasFormat("text/noteId")) {
+        event->acceptProposedAction();
+    }
+}
+
+void NodeTreeView::dragMoveEvent(QDragMoveEvent *event)
+{
+    if (event->mimeData()->hasFormat("text/noteId")) {
+        event->acceptProposedAction();
+    }
+}
+
+void NodeTreeView::dropEvent(QDropEvent *event)
+{
+    if (event->mimeData()->hasFormat("text/noteId")) {
+        auto dropIndex = indexAt(event->pos());
+        if (dropIndex.isValid()) {
+            auto itemType = static_cast<NodeItem::Type>(dropIndex.data(NodeItem::Roles::ItemType).toInt());
+            bool ok = false;
+            auto nodeId = QString::fromUtf8(
+                        event->mimeData()->data("text/noteId")).toInt(&ok);
+            if (ok) {
+                if (itemType == NodeItem::Type::FolderItem) {
+                    emit moveNodeRequested(nodeId, dropIndex.data(NodeItem::NodeId).toInt());
+                    setCurrentIndex(dropIndex);
+                    clearSelection();
+                    setSelectionMode(QAbstractItemView::SingleSelection);
+                    selectionModel()->setCurrentIndex(dropIndex, QItemSelectionModel::SelectCurrent);
+                    event->acceptProposedAction();
+                } else if (itemType == NodeItem::Type::TagItem) {
+                    emit addNoteToTag(nodeId, dropIndex.data(NodeItem::NodeId).toInt());
+                } else if (itemType == NodeItem::Type::TrashButton) {
+                    emit moveNodeRequested(nodeId, SpecialNodeID::TrashFolder);
+                    setCurrentIndex(dropIndex);
+                    clearSelection();
+                    setSelectionMode(QAbstractItemView::SingleSelection);
+                    selectionModel()->setCurrentIndex(dropIndex, QItemSelectionModel::SelectCurrent);
+                    event->acceptProposedAction();
+                }
+            }
+        }
+    }
+}
+
+
 void NodeTreeView::setIsEditing(bool newIsEditing)
 {
     m_isEditing = newIsEditing;
@@ -229,6 +278,14 @@ void NodeTreeView::onRenameTagFinished(const QString &newName)
     } /*else {
         qDebug() << __FUNCTION__ << "m_currentEditingIndex is not valid";
     }*/
+}
+
+void NodeTreeView::setCurrentIndexC(const QModelIndex &index)
+{
+    setCurrentIndex(index);
+    clearSelection();
+    setSelectionMode(QAbstractItemView::SingleSelection);
+    selectionModel()->setCurrentIndex(index, QItemSelectionModel::SelectCurrent);
 }
 
 void NodeTreeView::onCustomContextMenu(const QPoint &point)

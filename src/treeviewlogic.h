@@ -29,10 +29,14 @@ private slots:
     void onRenameTagRequestedFromTreeView(const QModelIndex& index, const QString& newName);
     void onChangeTagColorRequested(const QModelIndex& index);
     void onDeleteTagRequested(const QModelIndex& index);
+    void onMoveNodeRequested(int nodeId, int targetId);
+
 signals:
     void requestRenameNodeInDB(int id, const QString& newName);
     void requestRenameTagInDB(int id, const QString& newName);
     void requestChangeTagColorInDB(int id, const QString& newColor);
+    void requestMoveNodeInDB(int id, const NodeData& target);
+    void addNoteToTag(int noteId, int tagId);
 
 private:
     void onAddFolderRequested(bool fromPlusButton);
