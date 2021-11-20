@@ -88,7 +88,11 @@ void NodeTreeView::onClicked(const QModelIndex &index)
     auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
     switch (itemType) {
     case NodeItem::Type::FolderItem: {
-        expand(index);
+        if (isExpanded(index)) {
+            collapse(index);
+        } else {
+            expand(index);
+        }
         break;
     }
     default: {
