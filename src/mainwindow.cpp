@@ -1138,14 +1138,16 @@ void MainWindow::onNewNoteButtonClicked()
 
     if(!m_searchEdit->text().isEmpty()){
         m_listViewLogic->clearSearch();
-    }
-    delete m_newNoteTimer;
-    m_newNoteTimer = new QTimer(this);
-    m_newNoteTimer->setSingleShot(true);
-    connect(m_newNoteTimer, &QTimer::timeout, this, [this] {
+        delete m_newNoteTimer;
+        m_newNoteTimer = new QTimer(this);
+        m_newNoteTimer->setSingleShot(true);
+        connect(m_newNoteTimer, &QTimer::timeout, this, [this] {
+            this->createNewNote();
+        });
+        m_newNoteTimer->start(200);
+    } else {
         this->createNewNote();
-    });
-    m_newNoteTimer->start(200);
+    }
 }
 
 /*!
@@ -2866,14 +2868,16 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                 if (m_listModel->rowCount() == 0) {
                     if(!m_searchEdit->text().isEmpty()) {
                         m_listViewLogic->clearSearch();
-                    }
-                    delete m_newNoteTimer;
-                    m_newNoteTimer = new QTimer(this);
-                    m_newNoteTimer->setSingleShot(true);
-                    connect(m_newNoteTimer, &QTimer::timeout, this, [this] {
+                        delete m_newNoteTimer;
+                        m_newNoteTimer = new QTimer(this);
+                        m_newNoteTimer->setSingleShot(true);
+                        connect(m_newNoteTimer, &QTimer::timeout, this, [this] {
+                            this->createNewNote();
+                        });
+                        m_newNoteTimer->start(200);
+                    } else {
                         this->createNewNote();
-                    });
-                    m_newNoteTimer->start(200);
+                    }
                 }
             }
             m_listView->setCurrentRowActive(true);
