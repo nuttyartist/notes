@@ -1532,8 +1532,6 @@ void MainWindow::onClearButtonClicked()
  */
 void MainWindow::createNewNote()
 {
-    //    if(!m_isOperationRunning){
-    //        m_isOperationRunning = true;
     m_listView->scrollToTop();
     QModelIndex newNoteIndex;
     if (!m_noteEditorLogic->isTempNote()){
@@ -1584,8 +1582,7 @@ void MainWindow::createNewNote()
 
     // update the current selected index
     m_listView->setCurrentIndex(newNoteIndex);
-    //        m_isOperationRunning = false;
-    //    }
+    m_textEdit->setFocus();
 }
 
 void MainWindow::selectNoteDown()
