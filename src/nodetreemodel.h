@@ -18,6 +18,7 @@ namespace NodeItem {
         Icon = Qt::DecorationRole,
         TagColor = Qt::UserRole + 1,
         IsExpandable,
+        AbsPath,
         NodeId
     };
     enum Type {

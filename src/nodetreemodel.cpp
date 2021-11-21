@@ -416,6 +416,7 @@ void NodeTreeModel::loadNodeTree(const QVector<NodeData> &nodeData, NodeTreeItem
             auto hs = QHash<NodeItem::Roles, QVariant>{};
             if (node.nodeType() == NodeData::Folder) {
                 hs[NodeItem::Roles::ItemType] = NodeItem::Type::FolderItem;
+                hs[NodeItem::Roles::AbsPath] = node.absolutePath();
             } else if (node.nodeType() == NodeData::Note) {
                 hs[NodeItem::Roles::ItemType] = NodeItem::Type::NoteItem;
             } else {

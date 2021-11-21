@@ -81,6 +81,8 @@ NodeTreeView::NodeTreeView(QWidget *parent) :
         // this signal is emmited before QAction::triggered
         contextMenuTimer.start();
     });
+    connect(this, &NodeTreeView::expanded, this, &NodeTreeView::onExpanded);
+    connect(this, &NodeTreeView::collapsed, this, &NodeTreeView::onCollapsed);
 }
 
 void NodeTreeView::onClicked(const QModelIndex &index)
@@ -116,6 +118,16 @@ void NodeTreeView::onDeleteNodeAction()
     }
 }
 
+void NodeTreeView::onExpanded(const QModelIndex &index)
+{
+    m_expanded.push_back(index.data(NodeItem::Roles::AbsPath).toString());
+}
+
+void NodeTreeView::onCollapsed(const QModelIndex &index)
+{
+    m_expanded.removeAll(index.data(NodeItem::Roles::AbsPath).toString());
+}
+
 void NodeTreeView::onChangeTagColorAction()
 {
     auto itemType = static_cast<NodeItem::Type>(m_currentEditingIndex.data(NodeItem::Roles::ItemType).toInt());
@@ -142,7 +154,6 @@ void NodeTreeView::updateEditingIndex(QMouseEvent *event)
         }
     }
 }
-
 
 void NodeTreeView::closeCurrentEditor()
 {
@@ -211,6 +222,18 @@ void NodeTreeView::dragMoveEvent(QDragMoveEvent *event)
 {
     if (event->mimeData()->hasFormat("text/noteId")) {
         event->acceptProposedAction();
+    }
+}
+
+void NodeTreeView::reset()
+{
+    closeCurrentEditor();
+    auto needExpand = std::move(m_expanded);
+    m_expanded.clear();
+    QTreeView::reset();
+    for (const auto& path: needExpand) {
+        auto m_model = dynamic_cast<NodeTreeModel*>(model());
+        expand(m_model->indexFromIdPath(path));
     }
 }
 

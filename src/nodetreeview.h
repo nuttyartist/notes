@@ -44,6 +44,8 @@ signals:
 private slots:
     void onClicked(const QModelIndex& index);
     void onDeleteNodeAction();
+    void onExpanded(const QModelIndex& index);
+    void onCollapsed(const QModelIndex& index);
 private:
     QMenu* contextMenu;
     QAction* renameFolderAction;
@@ -53,14 +55,12 @@ private:
     QAction* changeTagColorAction;
     QAction* deleteTagAction;
     QAction* clearSelectionAction;
-
     QTimer contextMenuTimer;
-
     QVector<QModelIndex> m_treeSeparator;
     QModelIndex m_currentEditingIndex;
     bool m_isContextMenuOpened;
     bool m_isEditing;
-
+    QVector<QString> m_expanded;
     void updateEditingIndex(QMouseEvent* event);
     void closeCurrentEditor();
 
@@ -74,6 +74,10 @@ protected:
     virtual void dragEnterEvent(QDragEnterEvent *event) override;
     virtual void dropEvent(QDropEvent *event) override;
     virtual void dragMoveEvent(QDragMoveEvent *event) override;
+
+    // QAbstractItemView interface
+public slots:
+    virtual void reset() override;
 };
 
 #endif // NODETREEVIEW_H
