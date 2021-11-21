@@ -822,6 +822,9 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
     }
     ListViewInfo _inf = inf;
     _inf.isInSearch = true;
+    std::sort(nodeList.begin(), nodeList.end(), [] (const NodeData& a, const NodeData& b) ->bool{
+        return a.lastModificationdateTime() > b.lastModificationdateTime();
+    });
     emit notesListReceived(nodeList, _inf);
 }
 
@@ -981,6 +984,9 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive)
     inf.isInTag = false;
     inf.parentFolderId = parentID;
     inf.currentNoteId = SpecialNodeID::InvalidNoteId;
+    std::sort(nodeList.begin(), nodeList.end(), [] (const NodeData& a, const NodeData& b) ->bool{
+        return a.lastModificationdateTime() > b.lastModificationdateTime();
+    });
     emit notesListReceived(nodeList, inf);
 }
 
@@ -1042,6 +1048,9 @@ void DBManager::onNotesListInTagsRequested(const QSet<int> &tagIds)
             qDebug() << __FUNCTION__ << "Note with id" << id << "is not valid";
         }
     }
+    std::sort(nodeList.begin(), nodeList.end(), [] (const NodeData& a, const NodeData& b) ->bool{
+        return a.lastModificationdateTime() > b.lastModificationdateTime();
+    });
     emit notesListReceived(nodeList, inf);
 }
 
