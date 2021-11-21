@@ -7,6 +7,8 @@
 #include "pushbuttontype.h"
 #include "foldertreedelegateeditor.h"
 #include "tagtreedelegateeditor.h"
+#include "trashbuttondelegateeditor.h"
+#include "defaultnotefolderdelegateeditor.h"
 
 NodeTreeDelegate::NodeTreeDelegate(QTreeView *view, QObject *parent):
     QStyledItemDelegate{parent},
@@ -94,7 +96,7 @@ void NodeTreeDelegate::paint(QPainter *painter,
             painter->drawImage(iconRect, QImage(iconPath));
         }
         QRect nameRect(option.rect);
-//        nameRect.setLeft(nameRect.x() + 10 + 5);
+        //        nameRect.setLeft(nameRect.x() + 10 + 5);
         nameRect.setLeft(iconRect.x() + iconRect.width() + 5);
         auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
         if((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
@@ -206,11 +208,29 @@ QWidget *NodeTreeDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
         layout->addWidget(addButton, 1, Qt::AlignRight);
         return widget;
     } else if (itemType == NodeItem::Type::FolderItem) {
-        auto widget = new FolderTreeDelegateEditor(m_view, option, index, parent);
-        return widget;
+        auto id = index.data(NodeItem::Roles::NodeId).toInt();
+        if (id == SpecialNodeID::DefaultNotesFolder) {
+            auto widget = new DefaultNoteFolderDelegateEditor(m_view, option, index, parent);
+            return widget;
+        } else {
+            auto widget = new FolderTreeDelegateEditor(m_view, option, index, parent);
+            return widget;
+        }
     } else if (itemType == NodeItem::Type::TagItem) {
         auto widget = new TagTreeDelegateEditor(m_view, option, index, parent);
         return widget;
+    } else if (itemType == NodeItem::Type::TrashButton) {
+        auto widget = new TrashButtonDelegateEditor(m_view, option, index, parent);
+        return widget;
     }
     return nullptr;
+}
+
+void NodeTreeDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    QStyledItemDelegate::updateEditorGeometry(editor, option, index);
+    auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
+    if (itemType == NodeItem::Type::TrashButton) {
+        editor->setGeometry(0, editor->y(), option.rect.width(), option.rect.height());
+    }
 }

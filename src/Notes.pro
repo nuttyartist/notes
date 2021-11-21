@@ -25,6 +25,7 @@ include ($$PWD/../3rdParty/qmarkdowntextedit/qmarkdowntextedit.pri)
 include ($$PWD/../3rdParty/qautostart/src/qautostart.pri)
 
 SOURCES += \
+    defaultnotefolderdelegateeditor.cpp \
     main.cpp\
     mainwindow.cpp \
     noteeditorlogic.cpp \
@@ -37,6 +38,7 @@ SOURCES += \
     taglistview.cpp \
     tagpool.cpp \
     tagtreedelegateeditor.cpp \
+    trashbuttondelegateeditor.cpp \
     updaterwindow.cpp \
     dbmanager.cpp \
     aboutwindow.cpp \
@@ -56,6 +58,7 @@ SOURCES += \
     treeviewlogic.cpp
 
 HEADERS  += \
+    defaultnotefolderdelegateeditor.h \
     mainwindow.h \
     noteeditorlogic.h \
     notelistdelegate.h \
@@ -67,6 +70,7 @@ HEADERS  += \
     taglistview.h \
     tagpool.h \
     tagtreedelegateeditor.h \
+    trashbuttondelegateeditor.h \
     updaterwindow.h \
     dbmanager.h \
     aboutwindow.h \

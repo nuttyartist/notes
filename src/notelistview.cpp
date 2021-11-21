@@ -222,7 +222,7 @@ void NoteListView::mouseMoveEvent(QMouseEvent* event)
                           current.data(NoteListModel::NoteID).toInt()).toUtf8());
     drag->setMimeData(mimeData);
     drag->setPixmap(m_dragPixmap);
-    drag->exec(Qt::CopyAction | Qt::MoveAction);
+    drag->exec(Qt::MoveAction);
 }
 
 void NoteListView::mousePressEvent(QMouseEvent* e)

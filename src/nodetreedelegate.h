@@ -20,6 +20,7 @@ public:
     virtual void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
     virtual QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
     virtual QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+    virtual void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
 
 private:
     void paintBackgroundSelectable(QPainter *painter, const QStyleOptionViewItem &option) const;
@@ -40,6 +41,7 @@ private:
     QColor m_defaultColor;
     QColor m_separatorTextColor;
     QTreeView* m_view;
+
 };
 
 #endif // NODETREEDELEGATE_H

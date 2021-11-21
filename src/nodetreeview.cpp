@@ -137,15 +137,14 @@ void NodeTreeView::onChangeTagColorAction()
     }
 }
 
-void NodeTreeView::updateEditingIndex(QMouseEvent *event)
+void NodeTreeView::updateEditingIndex(const QPoint& pos)
 {
-    auto index = indexAt(event->pos());
-    if(indexAt(event->pos()) != m_currentEditingIndex && !m_isContextMenuOpened && !m_isEditing) {
+    auto index = indexAt(pos);
+    if(indexAt(pos) != m_currentEditingIndex && !m_isContextMenuOpened && !m_isEditing) {
         auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
-        auto id = index.data(NodeItem::Roles::NodeId).toInt();
-        if ((itemType == NodeItem::Type::FolderItem
-             && id != SpecialNodeID::DefaultNotesFolder)
-                || itemType == NodeItem::Type::TagItem) {
+        if (itemType == NodeItem::Type::FolderItem
+                || itemType == NodeItem::Type::TagItem
+                || itemType == NodeItem::Type::TrashButton) {
             closePersistentEditor(m_currentEditingIndex);
             openPersistentEditor(index);
             m_currentEditingIndex = index;
@@ -221,6 +220,7 @@ void NodeTreeView::dragEnterEvent(QDragEnterEvent *event)
 void NodeTreeView::dragMoveEvent(QDragMoveEvent *event)
 {
     if (event->mimeData()->hasFormat("text/noteId")) {
+        updateEditingIndex(event->pos());
         event->acceptProposedAction();
     }
 }
@@ -356,13 +356,13 @@ void NodeTreeView::setTreeSeparator(const QVector<QModelIndex> &newTreeSeparator
 
 void NodeTreeView::mouseMoveEvent(QMouseEvent *event)
 {
-    updateEditingIndex(event);
+    updateEditingIndex(event->pos());
     QTreeView::mouseMoveEvent(event);
 }
 
 void NodeTreeView::mousePressEvent(QMouseEvent *event)
 {
-    updateEditingIndex(event);
+    updateEditingIndex(event->pos());
     QTreeView::mousePressEvent(event);
 }
 

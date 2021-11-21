@@ -341,6 +341,22 @@ void MainWindow::setupMainWindow()
                                 "}");
     m_styleEditorButton->setStyleSheet(ss);
     m_styleEditorButton->installEventFilter(this);
+
+    ui->toggleTreeViewButton->setMaximumSize({33, 25});
+    ui->toggleTreeViewButton->setMinimumSize({33, 25});
+    ui->toggleTreeViewButton->setCursor(QCursor(Qt::PointingHandCursor));
+    ui->toggleTreeViewButton->setFocusPolicy(Qt::TabFocus);
+    ui->toggleTreeViewButton->setIconSize(QSize(16, 16));
+    ui->toggleTreeViewButton->setStyleSheet(QStringLiteral(R"(QPushButton { )"
+                                                           R"(    border: none; )"
+                                                           R"(    padding: 0px; )"
+                                                           R"(})"));
+    ui->toggleTreeViewButton->setHoveredIcon(
+                QIcon(QString::fromUtf8(":/images/notes_icon.ico")));
+    ui->toggleTreeViewButton->setNormalIcon(
+                QIcon(QString::fromUtf8(":/images/notes_icon.ico")));
+    ui->toggleTreeViewButton->setPressedIcon(
+                QIcon(QString::fromUtf8(":/images/notes_icon.ico")));
 }
 
 /*!

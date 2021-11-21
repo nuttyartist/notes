@@ -61,7 +61,7 @@ private:
     bool m_isContextMenuOpened;
     bool m_isEditing;
     QVector<QString> m_expanded;
-    void updateEditingIndex(QMouseEvent* event);
+    void updateEditingIndex(const QPoint &pos);
     void closeCurrentEditor();
 
     // QAbstractItemView interface
