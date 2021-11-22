@@ -260,9 +260,9 @@ bool NoteListView::viewportEvent(QEvent*e)
         case QEvent::MouseButtonPress:{
             QPoint pt = mapFromGlobal(QCursor::pos());
             QModelIndex index = indexAt(QPoint(10, pt.y()));
-            if(!index.isValid())
+            if(!index.isValid()) {
                 emit viewportPressed();
-
+            }
             break;
         }
         default:

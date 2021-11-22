@@ -66,7 +66,9 @@ void NoteEditorLogic::setMarkdownEnabled(bool newMarkdownEnabled)
 
 void NoteEditorLogic::showNoteInEditor(const NodeData &note)
 {
-    emit noteEditClosed(m_currentNote);
+    if (note.id() != m_currentNote.id()) {
+        emit noteEditClosed(m_currentNote);
+    }
     m_textEdit->blockSignals(true);
     m_currentNote = note;
     showTagListForCurrentNote();

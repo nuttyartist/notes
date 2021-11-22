@@ -50,8 +50,6 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
                                           m_listModel->index(m_listModel->rowCount() - 1,0));
         }
     });
-    connect(m_listModel, &QAbstractItemModel::modelReset,
-            this, &ListViewLogic::updateListViewLabel);
     connect(m_listModel, &QAbstractItemModel::rowsInserted,
             this, &ListViewLogic::updateListViewLabel);
     connect(m_listModel, &QAbstractItemModel::rowsRemoved,
@@ -308,11 +306,19 @@ void ListViewLogic::deleteNoteRequestedI(const QModelIndex &index)
             auto btn = QMessageBox::question(nullptr, "Are you sure you want to delete this note permanently",
                                              "Are you sure you want to delete this note permanently? It will not be recoverable.");
             if (btn == QMessageBox::Yes) {
+                selectNoteDown();
                 m_listModel->removeNote(index);
+                if (m_listModel->rowCount() == 0) {
+                    emit closeNoteEditor();
+                }
                 emit requestRemoveNoteDb(note);
             }
         } else {
+            selectNoteDown();
             m_listModel->removeNote(index);
+            if (m_listModel->rowCount() == 0) {
+                emit closeNoteEditor();
+            }
             emit requestRemoveNoteDb(note);
         }
     }
