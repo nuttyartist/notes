@@ -12,6 +12,7 @@ class TagPool;
 class NoteListDelegate;
 class QLineEdit;
 class QToolButton;
+class TagPool;
 
 class ListViewLogic : public QObject
 {
@@ -53,6 +54,7 @@ signals:
     void requestClearSearchDb(const ListViewInfo& inf);
     void requestClearSearchUI();
 
+    void listViewLabelChanged(const QString& label1, const QString& label2);
 private slots:
     void loadNoteListModel(const QVector<NodeData>& noteList, const ListViewInfo& inf);
     void onAddTagRequest(const QModelIndex& index, int tagId);
@@ -60,7 +62,7 @@ private slots:
     void onNotePressed(const QModelIndex& index);
     void deleteNoteRequestedI(const QModelIndex& index);
     void restoreNoteRequestedI(const QModelIndex& index);
-
+    void updateListViewLabel();
 private:
     NoteListView* m_listView;
     NoteListModel* m_listModel;
@@ -68,7 +70,7 @@ private:
     QToolButton* m_clearButton;
     DBManager* m_dbManager;
     NoteListDelegate* m_listDelegate;
-
+    TagPool* m_tagPool;
     ListViewInfo m_listViewInfo;
 };
 

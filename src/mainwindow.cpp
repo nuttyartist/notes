@@ -352,11 +352,28 @@ void MainWindow::setupMainWindow()
                                                            R"(    padding: 0px; )"
                                                            R"(})"));
     ui->toggleTreeViewButton->setHoveredIcon(
-                QIcon(QString::fromUtf8(":/images/notes_icon.ico")));
+                QIcon(QString::fromUtf8(":/images/drawer_icon.png")));
     ui->toggleTreeViewButton->setNormalIcon(
-                QIcon(QString::fromUtf8(":/images/notes_icon.ico")));
+                QIcon(QString::fromUtf8(":/images/drawer_icon.png")));
     ui->toggleTreeViewButton->setPressedIcon(
-                QIcon(QString::fromUtf8(":/images/notes_icon.ico")));
+                QIcon(QString::fromUtf8(":/images/drawer_icon.png")));
+    ui->listviewLabel2->setMinimumSize({33, 25});
+    ui->listviewLabel2->setMaximumSize({33, 25});
+
+#ifdef __APPLE__
+    QString m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto"));
+#elif _WIN32
+    QString m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI") : QStringLiteral("Roboto"));
+#else
+    QString m_displayFont(QStringLiteral("Roboto"));
+#endif
+#ifdef __APPLE__
+    QFont m_titleFont(m_displayFont, 13, 65);
+#else
+    QFont m_titleFont(m_displayFont, 10, 60);
+#endif
+    ui->listviewLabel1->setFont(m_titleFont);
+    ui->listviewLabel2->setFont(m_titleFont);
 }
 
 /*!
@@ -544,7 +561,7 @@ void MainWindow::setupTitleBarButtons()
  */
 void MainWindow::setupSignalsSlots()
 {
-    connect(&m_updater, &UpdaterWindow::dontShowUpdateWindowChanged, [=](bool state){m_dontShowUpdateWindow = state;});
+    connect(&m_updater, &UpdaterWindow::dontShowUpdateWindowChanged, this, [=](bool state){m_dontShowUpdateWindow = state;});
     // Style Editor Window
     connect(&m_styleEditorWindow, &StyleEditorWindow::changeFontType, this, [=](FontTypeface fontType){changeEditorFontTypeFromStyleButtons(fontType);});
     connect(&m_styleEditorWindow, &StyleEditorWindow::changeFontSize, this, [=](FontSizeAction fontSizeAction){changeEditorFontSizeFromStyleButtons(fontSizeAction);});
@@ -642,6 +659,15 @@ void MainWindow::setupSignalsSlots()
             this, &MainWindow::clearSearch);
     connect(m_treeViewLogic, &TreeViewLogic::addNoteToTag,
             m_listViewLogic, &ListViewLogic::onAddTagRequestD);
+    connect(m_listViewLogic, &ListViewLogic::listViewLabelChanged,
+            this, [this] (const QString& l1, const QString& l2) {
+        QFontMetrics fm(ui->listviewLabel1->font());
+        auto l1e = fm.elidedText(l1, Qt::ElideRight, ui->listviewLabel1->width());
+        ui->listviewLabel1->setText(l1e);
+        ui->listviewLabel2->setText(l2);
+    });
+    connect(ui->toggleTreeViewButton, &QPushButton::pressed,
+            this, &MainWindow::toggleNodeTree);
 #ifdef __APPLE__
     // Replace setUseNativeWindowFrame with just the part that handles pushing things up
     connect(this, &MainWindow::toggleFullScreen, this, [=](bool isFullScreen){adjustUpperWidgets(isFullScreen);});
@@ -1861,11 +1887,63 @@ void MainWindow::exportNotesFile(const bool clicked)
  */
 void MainWindow::toggleNoteList()
 {
-    bool isCollapsed = (m_splitter->sizes().at(0) == 0);
+    bool isCollapsed = (m_splitter->sizes().at(1) == 0);
     if(isCollapsed) {
         expandNoteList();
     } else {
         collapseNoteList();
+    }
+}
+
+void MainWindow::collapseNodeTree()
+{
+    m_splitter->setCollapsible(0, true);
+    QList<int> sizes = m_splitter->sizes();
+    m_noteListWidth = sizes.at(1);
+    m_nodeTreeWidth = sizes.at(0);
+    sizes[0] = 0;
+    sizes[2] = m_splitter->width() - sizes[0] - m_noteListWidth;
+    m_splitter->setSizes(sizes);
+    m_splitter->setCollapsible(0, false);
+    if(!m_isFrameRightTopWidgetsVisible) {
+#ifdef __APPLE__
+        this->setStandardWindowButtonsMacVisibility(false);
+#else
+        m_redCloseButton->setVisible(false);
+        m_yellowMinimizeButton->setVisible(false);
+        m_greenMaximizeButton->setVisible(false);
+#endif
+    }
+}
+
+void MainWindow::expandNodeTree()
+{
+    int minWidth = ui->frameMiddle->minimumWidth();
+    int noteListWidth = m_noteListWidth < minWidth ? minWidth : m_noteListWidth;
+    int nodeTreeWidth = m_nodeTreeWidth < ui->frameLeft->minimumWidth() ?
+            ui->frameLeft->minimumWidth() : m_nodeTreeWidth;
+    QList<int> sizes = m_splitter->sizes();
+    sizes[0] = nodeTreeWidth;
+    sizes[1] = noteListWidth;
+    sizes[2] = m_splitter->width() - noteListWidth - nodeTreeWidth;
+    m_splitter->setSizes(sizes);
+
+#ifdef __APPLE__
+    this->setStandardWindowButtonsMacVisibility(true);
+#else
+    m_redCloseButton->setVisible(true);
+    m_yellowMinimizeButton->setVisible(true);
+    m_greenMaximizeButton->setVisible(true);
+#endif
+}
+
+void MainWindow::toggleNodeTree()
+{
+    bool isCollapsed = (m_splitter->sizes().at(0) == 0);
+    if(isCollapsed) {
+        expandNodeTree();
+    } else {
+        collapseNodeTree();
     }
 }
 
@@ -1874,13 +1952,16 @@ void MainWindow::toggleNoteList()
  */
 void MainWindow::collapseNoteList()
 {
+    m_splitter->setCollapsible(1, true);
     m_splitter->setCollapsible(0, true);
     QList<int> sizes = m_splitter->sizes();
-    m_noteListWidth = sizes.at(0);
-    sizes[0] = 0;
+    m_noteListWidth = sizes.at(1);
+    m_nodeTreeWidth = sizes.at(0);
+    sizes[1] = 0;
+    sizes[2] = m_splitter->width() - sizes[1] - m_nodeTreeWidth;
     m_splitter->setSizes(sizes);
+    m_splitter->setCollapsible(1, false);
     m_splitter->setCollapsible(0, false);
-
     if(!m_isFrameRightTopWidgetsVisible) {
 #ifdef __APPLE__
         this->setStandardWindowButtonsMacVisibility(false);
@@ -1898,13 +1979,18 @@ void MainWindow::collapseNoteList()
 void MainWindow::expandNoteList()
 {
     int minWidth = ui->frameMiddle->minimumWidth();
-    int leftWidth = m_noteListWidth < minWidth ? minWidth : m_noteListWidth;
-
+    int noteListWidth = m_noteListWidth < minWidth ? minWidth : m_noteListWidth;
+    int nodeTreeWidth = m_nodeTreeWidth == 0 ? 0 : m_nodeTreeWidth < ui->frameLeft->minimumWidth() ?
+            ui->frameLeft->minimumWidth() : m_nodeTreeWidth;
     QList<int> sizes = m_splitter->sizes();
-    sizes[0] = leftWidth;
-    sizes[1] = m_splitter->width() - leftWidth;
+    sizes[0] = nodeTreeWidth;
+    sizes[1] = noteListWidth;
+    sizes[2] = m_splitter->width() - noteListWidth - nodeTreeWidth;
+    m_splitter->setCollapsible(1, true);
+    m_splitter->setCollapsible(0, true);
     m_splitter->setSizes(sizes);
-
+    m_splitter->setCollapsible(1, false);
+    m_splitter->setCollapsible(0, false);
 #ifdef __APPLE__
     this->setStandardWindowButtonsMacVisibility(true);
 #else

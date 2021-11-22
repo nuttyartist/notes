@@ -56,5 +56,6 @@
         <file>images/tree-node-normal.png</file>
         <file>images/3dots_Highlighted.png</file>
         <file>images/folder.png</file>
+        <file>images/drawer_icon.png</file>
     </qresource>
 </RCC>

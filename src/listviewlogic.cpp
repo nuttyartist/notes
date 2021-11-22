@@ -18,7 +18,8 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
     m_listModel{noteModel},
     m_searchEdit{searchEdit},
     m_clearButton{clearButton},
-    m_dbManager{dbManager}
+    m_dbManager{dbManager},
+    m_tagPool{tagPool}
 {
     m_listDelegate = new NoteListDelegate(tagPool, m_listView);
     m_listView->setItemDelegate(m_listDelegate);
@@ -49,6 +50,12 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
                                           m_listModel->index(m_listModel->rowCount() - 1,0));
         }
     });
+    connect(m_listModel, &QAbstractItemModel::modelReset,
+            this, &ListViewLogic::updateListViewLabel);
+    connect(m_listModel, &QAbstractItemModel::rowsInserted,
+            this, &ListViewLogic::updateListViewLabel);
+    connect(m_listModel, &QAbstractItemModel::rowsRemoved,
+            this, &ListViewLogic::updateListViewLabel);
 }
 
 void ListViewLogic::selectNote(const QModelIndex &noteIndex)
@@ -206,6 +213,7 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData>& noteList, const L
     m_listModel->setListNote(noteList);
     auto currentNoteId = m_listViewInfo.currentNoteId;
     m_listViewInfo = inf;
+    updateListViewLabel();
     if ((!m_listViewInfo.isInTag) && m_listViewInfo.parentFolderId == SpecialNodeID::RootFolder) {
         m_listDelegate->setIsInAllNotes(true);
     } else {
@@ -331,6 +339,39 @@ void ListViewLogic::restoreNoteRequestedI(const QModelIndex &index)
             qDebug() << "Note id" << id << "is currently not in Trash";
         }
     }
+}
+
+void ListViewLogic::updateListViewLabel()
+{
+    QString l1, l2;
+    if ((!m_listViewInfo.isInTag) && m_listViewInfo.parentFolderId == SpecialNodeID::RootFolder) {
+        l1 = "All Notes";
+    } else if ((!m_listViewInfo.isInTag) && m_listViewInfo.parentFolderId == SpecialNodeID::TrashFolder) {
+        l1 = "Trash";
+    } else if (!m_listViewInfo.isInTag) {
+        NodeData parentFolder;
+        QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection,
+                                  Q_RETURN_ARG(NodeData, parentFolder),
+                                  Q_ARG(int, m_listViewInfo.parentFolderId)
+                                  );
+        l1 = parentFolder.fullTitle();
+    } else {
+        if (m_listViewInfo.currentTagList.size() == 0) {
+            l1 = "Tags ...";
+        } else if (m_listViewInfo.currentTagList.size() > 1) {
+            l1 = "Multiple tags ...";
+        } else {
+            int tagId = *m_listViewInfo.currentTagList.begin();
+            if (!m_tagPool->contains(tagId)) {
+                l1 = "Tags ...";
+            } else {
+                TagData tag = m_tagPool->getTag(tagId);
+                l1 = tag.name();
+            }
+        }
+    }
+    l2 = QString::number(m_listModel->rowCount());
+    emit listViewLabelChanged(l1, l2);
 }
 
 void ListViewLogic::selectFirstNote()

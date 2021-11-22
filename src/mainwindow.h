@@ -151,6 +151,7 @@ private:
     int m_layoutMargin;
     int m_shadowWidth;
     int m_noteListWidth;
+    int m_nodeTreeWidth;
     int m_smallEditorWidth;
     int m_largeEditorWidth;
     int m_currentMinimumEditorPadding;
@@ -256,6 +257,9 @@ private slots:
     void collapseNoteList();
     void expandNoteList();
     void toggleNoteList();
+    void collapseNodeTree();
+    void expandNodeTree();
+    void toggleNodeTree();
     void importNotesFile(const bool clicked);
     void exportNotesFile(const bool clicked);
     void restoreNotesFile (const bool clicked);
