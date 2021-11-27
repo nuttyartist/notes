@@ -188,8 +188,6 @@ void NodeTreeModel::appendChildNodeToParent(const QModelIndex &parentIndex,
             auto parentItem = static_cast<NodeTreeItem*>(parentIndex.internalPointer());
             if (!parentItem || parentItem == rootItem) {
                 parentItem = rootItem;
-                // need to add folder to folder section
-                // we will insert it before tag seperator
                 int row = 0;
                 for (int i = 0; i < parentItem->childCount(); ++i) {
                     auto childItem = parentItem->child(i);
@@ -209,10 +207,11 @@ void NodeTreeModel::appendChildNodeToParent(const QModelIndex &parentIndex,
                 emit topLevelItemLayoutChanged();
                 updateChildRelativePosition(parentItem, NodeItem::Type::FolderItem);
             } else {
-                beginInsertRows(parentIndex, rowCount(parentIndex), rowCount(parentIndex));
+                beginInsertRows(parentIndex, 0, 0);
                 auto nodeItem = new NodeTreeItem(data, parentItem);
-                parentItem->appendChild(nodeItem);
+                parentItem->insertChild(0, nodeItem);
                 endInsertRows();
+                updateChildRelativePosition(parentItem, NodeItem::Type::FolderItem);
             }
         } else if (type == NodeItem::Type::TagItem) {
             //tag always in root level
@@ -221,13 +220,23 @@ void NodeTreeModel::appendChildNodeToParent(const QModelIndex &parentIndex,
                 qDebug() << "tag only go into root level";
                 return;
             }
+            int row = 0;
+            for (int i = 0; i < parentItem->childCount(); ++i) {
+                auto childItem = parentItem->child(i);
+                auto childType = static_cast<NodeItem::Type>(childItem->data(NodeItem::Roles::ItemType).toInt());
+                if (childType == NodeItem::Type::TagSeparator) {
+                    row = i + 1;
+                    break;
+                }
+            }
             emit layoutAboutToBeChanged();
-            beginInsertRows(parentIndex, parentIndex.row(), parentIndex.row() + 1);
+            beginInsertRows(parentIndex, row, row);
             auto nodeItem = new NodeTreeItem(data, parentItem);
-            parentItem->appendChild(nodeItem);
+            parentItem->insertChild(row, nodeItem);
             endInsertRows();
             emit layoutChanged();
             emit topLevelItemLayoutChanged();
+            updateChildRelativePosition(parentItem, NodeItem::Type::TagItem);
         } else {
             qDebug() << "child type not supported with this function";
             return;
