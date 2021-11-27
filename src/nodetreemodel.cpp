@@ -194,8 +194,9 @@ void NodeTreeModel::appendChildNodeToParent(const QModelIndex &parentIndex,
                 for (int i = 0; i < parentItem->childCount(); ++i) {
                     auto childItem = parentItem->child(i);
                     auto childType = static_cast<NodeItem::Type>(childItem->data(NodeItem::Roles::ItemType).toInt());
-                    if (childType == NodeItem::Type::TagSeparator) {
-                        row = i;
+                    if (childType == NodeItem::Type::FolderItem &&
+                            childItem->data(NodeItem::Roles::NodeId).toInt() == SpecialNodeID::DefaultNotesFolder) {
+                        row = i + 1;
                         break;
                     }
                 }
@@ -206,6 +207,7 @@ void NodeTreeModel::appendChildNodeToParent(const QModelIndex &parentIndex,
                 endInsertRows();
                 emit layoutChanged();
                 emit topLevelItemLayoutChanged();
+                updateChildRelativePosition(parentItem, NodeItem::Type::FolderItem);
             } else {
                 beginInsertRows(parentIndex, rowCount(parentIndex), rowCount(parentIndex));
                 auto nodeItem = new NodeTreeItem(data, parentItem);
