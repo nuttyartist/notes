@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
     w.show();
 
     // Bring the Notes window to the front
-    QObject::connect(&instance, &SingleInstance::newInstance, [&](){
+    QObject::connect(&instance, &SingleInstance::newInstance, &w, [&](){
         (&w)->setMainWindowVisibility(true);
     });
 

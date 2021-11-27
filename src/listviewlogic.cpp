@@ -104,7 +104,7 @@ void ListViewLogic::setNoteData(const NodeData &note)
         m_listModel->setItemData(noteIndex, dataValue);
         if (wasTemp) {
             auto tagIds = noteIndex.data(NoteListModel::NoteTagsList).value<QSet<int>>();
-            for (auto tagId : tagIds) {
+            for (const auto tagId : QT_AS_CONST(tagIds)) {
                 emit requestAddTagDb(note.id(), tagId);
             }
         }

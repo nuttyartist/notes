@@ -59,6 +59,16 @@ TreeViewLogic::TreeViewLogic(NodeTreeView* treeView,
             this, &TreeViewLogic::onMoveNodeRequested);
     connect(m_treeView, &NodeTreeView::addNoteToTag,
             this, &TreeViewLogic::addNoteToTag);
+    connect(m_treeModel, &NodeTreeModel::requestExpand,
+            m_treeView, &NodeTreeView::onRequestExpand);
+    connect(m_treeModel, &NodeTreeModel::requestUpdateAbsPath,
+            m_treeView, &NodeTreeView::onUpdateAbsPath);
+    connect(m_treeModel, &NodeTreeModel::requestMoveNode,
+            this, &TreeViewLogic::onMoveNodeRequested);
+    connect(m_treeModel, &NodeTreeModel::requestUpdateNodeRelativePosition,
+            m_dbManager, &DBManager::updateRelPosNode);
+    connect(m_treeModel, &NodeTreeModel::requestUpdateTagRelativePosition,
+            m_dbManager, &DBManager::updateRelPosTag);
 }
 
 void TreeViewLogic::updateTreeViewSeparator()
@@ -116,12 +126,19 @@ void TreeViewLogic::onAddFolderRequested(bool fromPlusButton)
     hs[NodeItem::Roles::ItemType] = NodeItem::Type::FolderItem;
     hs[NodeItem::Roles::DisplayText] = newFolder.fullTitle();
     hs[NodeItem::Roles::NodeId] = newlyCreatedNodeId;
+
     if (parentId != SpecialNodeID::RootFolder) {
+        hs[NodeItem::Roles::AbsPath] =
+                currentIndex.data(NodeItem::Roles::AbsPath).toString()
+                + PATH_SEPERATOR + QString::number(newlyCreatedNodeId);
         m_treeModel->appendChildNodeToParent(currentIndex, hs);
         if (!m_treeView->isExpanded(currentIndex)) {
             m_treeView->expand(currentIndex);
         }
     } else {
+        hs[NodeItem::Roles::AbsPath] =
+                PATH_SEPERATOR + QString::number(SpecialNodeID::RootFolder)
+                + PATH_SEPERATOR + QString::number(newlyCreatedNodeId);
         m_treeModel->appendChildNodeToParent(m_treeModel->rootIndex(), hs);
     }
 }
@@ -180,7 +197,7 @@ void TreeViewLogic::onDeleteFolderRequested(const QModelIndex &index)
                                   Q_ARG(int, id)
                                   );
         auto parentPath = NodePath{node.absolutePath()}.parentPath();
-        auto parentIndex = m_treeModel->indexFromIdPath(parentPath);
+        auto parentIndex = m_treeModel->folderIndexFromIdPath(parentPath);
         if (parentIndex.isValid()) {
             m_treeModel->deleteRow(index, parentIndex);
             QMetaObject::invokeMethod(m_dbManager, "moveFolderToTrash", Qt::QueuedConnection,

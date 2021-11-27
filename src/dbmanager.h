@@ -80,6 +80,8 @@ public slots:
     void moveNode(int nodeId, const NodeData& target);
     void searchForNotes(const QString& keyword, const ListViewInfo& inf);
     void clearSearch(const ListViewInfo& inf);
+    void updateRelPosNode(int nodeId, int relPos);
+    void updateRelPosTag(int tagId, int relPos);
 };
 
 #endif // DBMANAGER_H

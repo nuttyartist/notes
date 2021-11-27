@@ -9,6 +9,7 @@
 #include "notelistmodel.h"
 #include "noteeditorlogic.h"
 #include "tagpool.h"
+#include "nodepath.h"
 
 NoteListDelegate::NoteListDelegate(TagPool *tagPool, QObject *parent)
     : QStyledItemDelegate(parent),
@@ -320,7 +321,7 @@ void NoteListDelegate::paintTagList(int top, QPainter *painter, const QStyleOpti
     auto tagIds = index.data(NoteListModel::NoteTagsList).value<QSet<int>>();
     int left = option.rect.x() + 10;
 
-    for (const auto& id : tagIds) {
+    for (const auto& id : QT_AS_CONST(tagIds)) {
         if (left >= option.rect.width()) {
             break;
         }

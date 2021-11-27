@@ -21,6 +21,8 @@ public:
 public slots:
     void onCustomContextMenu(const QPoint& point);
     void onChangeTagColorAction();
+    void onRequestExpand(const QString& folderPath);
+    void onUpdateAbsPath(const QString& oldPath, const QString& newPath);
 
 protected:
     void mouseMoveEvent(QMouseEvent *event) override;

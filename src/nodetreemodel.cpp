@@ -1,6 +1,8 @@
 #include "nodetreemodel.h"
 #include <QDebug>
 #include <QRegularExpression>
+#include <QMimeData>
+
 
 NodeTreeItem::NodeTreeItem(const QHash<NodeItem::Roles, QVariant> &data, NodeTreeItem *parent)
     : m_itemData(data), m_parentItem(parent)
@@ -37,6 +39,14 @@ void NodeTreeItem::removeChild(int row)
     delete m_childItems.takeAt(row);
 }
 
+NodeTreeItem *NodeTreeItem::takeChildAt(int row)
+{
+    if (row < 0 || row >= m_childItems.size()) {
+        return nullptr;
+    }
+    return m_childItems.takeAt(row);
+}
+
 int NodeTreeItem::childCount() const
 {
     return m_childItems.count();
@@ -54,6 +64,23 @@ int NodeTreeItem::recursiveNodeCount() const
         res += child->recursiveNodeCount();
     }
     return res;
+}
+
+void NodeTreeItem::recursiveUpdateFolderPath(const QString &oldP, const QString newP)
+{
+    {
+        auto type = static_cast<NodeItem::Type>(
+                    data(NodeItem::Roles::ItemType).toInt());
+        if (type != NodeItem::Type::FolderItem) {
+            return;
+        }
+        auto currP = data(NodeItem::Roles::AbsPath).toString();
+        currP.replace(currP.indexOf(oldP), oldP.size(), newP);
+        setData(NodeItem::Roles::AbsPath, currP);
+    }
+    for (auto& child: m_childItems) {
+        child->recursiveUpdateFolderPath(oldP, newP);
+    }
 }
 
 QVariant NodeTreeItem::data(NodeItem::Roles role) const
@@ -74,6 +101,59 @@ NodeTreeItem *NodeTreeItem::parentItem()
 void NodeTreeItem::setParentItem(NodeTreeItem *parentItem)
 {
     m_parentItem = parentItem;
+}
+
+void NodeTreeItem::moveChild(int from, int to)
+{
+    vector_move(m_childItems, from, to);
+}
+
+void NodeTreeItem::recursiveSort()
+{
+    auto type = static_cast<NodeItem::Type>(
+                data(NodeItem::Roles::ItemType).toInt());
+    auto relPosComparator = [] (const NodeTreeItem* a, const NodeTreeItem* b) {
+        return a->data(NodeItem::Roles::RelPos).toInt() < b->data(NodeItem::Roles::RelPos).toInt();
+    };
+    if (type == NodeItem::Type::FolderItem) {
+        std::sort(m_childItems.begin(), m_childItems.end(), relPosComparator);
+        for (auto& child: m_childItems) {
+            child->recursiveSort();
+        }
+    } else if (type == NodeItem::Type::RootItem) {
+        QVector<NodeTreeItem*> allNoteButton, trashFolder, folderSep, folderItems, tagSep, tagItems;
+        for (const auto child : QT_AS_CONST(m_childItems)) {
+            auto childType = static_cast<NodeItem::Type>(
+                        child->data(NodeItem::Roles::ItemType).toInt());
+            if (childType == NodeItem::Type::AllNoteButton) {
+                allNoteButton.append(child);
+            } else if (childType == NodeItem::Type::TrashButton) {
+                trashFolder.append(child);
+            } else if (childType == NodeItem::Type::FolderSeparator) {
+                folderSep.append(child);
+            } else if (childType == NodeItem::Type::FolderItem) {
+                folderItems.append(child);
+            } else if (childType == NodeItem::Type::TagSeparator) {
+                tagSep.append(child);
+            } else if (childType == NodeItem::Type::TagItem) {
+                tagItems.append(child);
+            } else {
+                qDebug() << __FUNCTION__ << "wrong child type " << static_cast<int>(childType);
+            }
+        }
+        m_childItems.clear();
+        std::sort(folderItems.begin(), folderItems.end(), relPosComparator);
+        for (auto& child: folderItems) {
+            child->recursiveSort();
+        }
+        std::sort(tagItems.begin(), tagItems.end(), relPosComparator);
+        m_childItems.append(allNoteButton);
+        m_childItems.append(trashFolder);
+        m_childItems.append(folderSep);
+        m_childItems.append(folderItems);
+        m_childItems.append(tagSep);
+        m_childItems.append(tagItems);
+    }
 }
 
 int NodeTreeItem::row() const
@@ -235,14 +315,14 @@ QModelIndex NodeTreeModel::rootIndex() const
     return createIndex(0, 0, rootItem);
 }
 
-QModelIndex NodeTreeModel::indexFromIdPath(const NodePath &idPath)
+QModelIndex NodeTreeModel::folderIndexFromIdPath(const NodePath &idPath)
 {
     if (!rootItem) {
         return QModelIndex();
     }
     auto ps = idPath.seperate();
     auto item = rootItem;
-    for (const auto& ite : ps) {
+    for (const auto& ite : QT_AS_CONST(ps)) {
         bool ok = false;
         auto id = ite.toInt(&ok);
         if (!ok) {
@@ -255,6 +335,11 @@ QModelIndex NodeTreeModel::indexFromIdPath(const NodePath &idPath)
         bool foundChild = false;
         for (int i = 0 ; i < item->childCount(); ++i) {
             auto child = item->child(i);
+            if (static_cast<NodeItem::Type>(
+                        child->data(NodeItem::Roles::ItemType).toInt())
+                    != NodeItem::FolderItem) {
+                continue;
+            }
             if (id == static_cast<int>(child->data(NodeItem::Roles::NodeId).toInt())) {
                 item = child;
                 foundChild = true;
@@ -362,7 +447,7 @@ void NodeTreeModel::deleteRow(const QModelIndex &rowIndex, const QModelIndex& pa
     auto type = static_cast<NodeItem::Type>(rowIndex.data(NodeItem::Roles::ItemType).toInt());
     auto id = rowIndex.data(NodeItem::Roles::NodeId).toInt();
     if (!((type == NodeItem::Type::FolderItem &&
-          id > SpecialNodeID::DefaultNotesFolder) ||
+           id > SpecialNodeID::DefaultNotesFolder) ||
           type == NodeItem::Type::TagItem)) {
         qDebug() << "Can not delete this row with id" << id;
         return;
@@ -373,14 +458,9 @@ void NodeTreeModel::deleteRow(const QModelIndex &rowIndex, const QModelIndex& pa
 
     setData(rowIndex, "deleted", NodeItem::DisplayText);
     if (parentItem == rootItem) {
-//        emit layoutAboutToBeChanged();
-//        int count = item->recursiveNodeCount();
-//        beginRemoveRows(parentIndex, row, row + count -1);
         beginResetModel();
         parentItem->removeChild(row);
         endResetModel();
-//        endRemoveRows();
-//        emit layoutChanged();
         emit topLevelItemLayoutChanged();
     } else {
         int count = item->recursiveNodeCount();
@@ -402,6 +482,7 @@ void NodeTreeModel::setTreeData(const NodeTagTreeData &treeData)
     loadNodeTree(treeData.nodeTreeData, rootItem);
     appendTagsSeparator(rootItem);
     loadTagList(treeData.tagTreeData, rootItem);
+    rootItem->recursiveSort();
     endResetModel();
 }
 
@@ -417,6 +498,7 @@ void NodeTreeModel::loadNodeTree(const QVector<NodeData> &nodeData, NodeTreeItem
             if (node.nodeType() == NodeData::Folder) {
                 hs[NodeItem::Roles::ItemType] = NodeItem::Type::FolderItem;
                 hs[NodeItem::Roles::AbsPath] = node.absolutePath();
+                hs[NodeItem::Roles::RelPos] = node.relativePosition();
             } else if (node.nodeType() == NodeData::Note) {
                 hs[NodeItem::Roles::ItemType] = NodeItem::Type::NoteItem;
             } else {
@@ -495,19 +577,46 @@ void NodeTreeModel::loadTagList(const QVector<TagData> &tagData, NodeTreeItem *r
         hs[NodeItem::Roles::DisplayText] = tag.name();
         hs[NodeItem::Roles::TagColor] = tag.color();
         hs[NodeItem::Roles::NodeId] = tag.id();
+        hs[NodeItem::Roles::RelPos] = tag.relativePosition();
 
         auto tagItem = new NodeTreeItem(hs, rootNode);
         rootNode->appendChild(tagItem);
     }
 }
 
+void NodeTreeModel::updateChildRelativePosition(NodeTreeItem *parent, const NodeItem::Type type)
+{
+    int relId = 0;
+    for (int i = 0; i < parent->childCount(); ++i) {
+        auto child = parent->child(i);
+        auto childType = static_cast<NodeItem::Type>(
+                    child->data(NodeItem::Roles::ItemType).toInt());
+        if (childType == type) {
+            if (type == NodeItem::Type::FolderItem) {
+                emit requestUpdateNodeRelativePosition(
+                            child->data(NodeItem::Roles::NodeId).toInt(),
+                            relId);
+                ++relId;
+            } else if (type == NodeItem::Type::TagItem) {
+                emit requestUpdateTagRelativePosition(
+                            child->data(NodeItem::Roles::NodeId).toInt(),
+                            relId);
+                ++relId;
+            } else {
+                qDebug() << __FUNCTION__ << "Wrong type";
+                return;
+            }
+        }
+    }
+}
+
 Qt::ItemFlags NodeTreeModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid()) {
-        return Qt::NoItemFlags;
+        return Qt::ItemIsDropEnabled;
     }
 
-    return QAbstractItemModel::flags(index);
+    return QAbstractItemModel::flags(index) | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
 }
 
 bool NodeTreeModel::setData(const QModelIndex &index, const QVariant &value, int role)
@@ -525,6 +634,180 @@ bool NodeTreeModel::setData(const QModelIndex &index, const QVariant &value, int
             emit dataChanged(index, index, {role});
             return true;
         }
+    }
+    return false;
+}
+
+Qt::DropActions NodeTreeModel::supportedDropActions() const
+{
+    return Qt::MoveAction;
+}
+
+Qt::DropActions NodeTreeModel::supportedDragActions() const
+{
+    return Qt::MoveAction;
+}
+
+QStringList NodeTreeModel::mimeTypes() const
+{
+    return QStringList() << FOLDER_MIME << TAG_MIME;
+}
+
+QMimeData *NodeTreeModel::mimeData(const QModelIndexList &indexes) const
+{
+    if (indexes.isEmpty()) {
+        return nullptr;
+    }
+    auto itemType = static_cast<NodeItem::Type>(
+                indexes[0].data(NodeItem::Roles::ItemType).toInt());
+    if (itemType == NodeItem::Type::TagItem) {
+        QStringList d;
+        for (const auto& index : indexes) {
+            auto type = static_cast<NodeItem::Type>(
+                        index.data(NodeItem::Roles::ItemType).toInt());
+            if (type != itemType) {
+                continue;
+            }
+            auto id = index.data(NodeItem::Roles::NodeId).toInt();
+            d.append(QString::number(id));
+        }
+        if (d.isEmpty()) {
+            return nullptr;
+        }
+        QMimeData *mimeData = new QMimeData;
+        mimeData->setData(TAG_MIME, d.join(QStringLiteral(",")).toUtf8());
+        return mimeData;
+    } else if (itemType == NodeItem::Type::FolderItem) {
+        const auto& index = indexes[0];
+        auto absPath = index.data(NodeItem::Roles::AbsPath).toString();
+        QMimeData *mimeData = new QMimeData;
+        mimeData->setData(FOLDER_MIME, absPath.toUtf8());
+        return mimeData;
+    } else {
+        return nullptr;
+    }
+}
+
+bool NodeTreeModel::dropMimeData(const QMimeData *mime,
+                                 Qt::DropAction action,
+                                 int row, int column,
+                                 const QModelIndex &parent)
+{
+    Q_UNUSED(column);
+    if (!(mime->hasFormat(TAG_MIME) ||
+          mime->hasFormat(FOLDER_MIME)) &&
+            action == Qt::MoveAction) {
+        return false;
+    }
+    if (mime->hasFormat(TAG_MIME)) {
+        if (row == -1) {
+            // valid index: drop onto item
+            if (parent.isValid()) {
+                row = parent.row();
+            } else {
+                // invalid index: append at bottom, after last toplevel
+                row = rowCount(parent);
+            }
+        }
+
+        auto idl = QString::fromUtf8(mime->data(TAG_MIME))
+                .split(QStringLiteral(PATH_SEPERATOR));
+        beginResetModel();
+        for (const auto& id_s : QT_AS_CONST(idl)) {
+            auto id = id_s.toInt();
+            for (int i = 0; i < rootItem->childCount(); ++i) {
+                auto child = rootItem->child(i);
+                auto childType = static_cast<NodeItem::Type>(
+                            child->data(NodeItem::Roles::ItemType).toInt());
+                if (childType == NodeItem::Type::TagItem &&
+                        child->data(NodeItem::Roles::NodeId).toInt() == id) {
+                    rootItem->moveChild(i, row);
+                    break;
+                }
+            }
+        }
+        endResetModel();
+        emit topLevelItemLayoutChanged();
+        updateChildRelativePosition(rootItem, NodeItem::Type::TagItem);
+        return true;
+    }
+    if (mime->hasFormat(FOLDER_MIME)) {
+        if (row == -1) {
+            // valid index: drop onto item
+            if (parent.isValid()) {
+                row = 0;
+            } else {
+                // invalid index: append at bottom, after last toplevel
+                row = rowCount(parent);
+            }
+        }
+        auto absPath = QString::fromUtf8(mime->data(FOLDER_MIME));
+        auto index = folderIndexFromIdPath(absPath);
+        if (!index.isValid()) {
+            return false;
+        }
+        NodeTreeItem *parentItem, *movingItem;
+        if (!parent.isValid()) {
+            parentItem = rootItem;
+        } else {
+            parentItem = static_cast<NodeTreeItem*>(parent.internalPointer());
+        }
+        auto parentType = static_cast<NodeItem::Type>(
+                    parentItem->data(NodeItem::Roles::ItemType).toInt());
+        if (!(parentType == NodeItem::Type::FolderItem ||
+              parentType == NodeItem::Type::RootItem)) {
+            return false;
+        }
+        movingItem = static_cast<NodeTreeItem*>(index.internalPointer());
+        if (movingItem->parentItem() == parentItem) {
+            beginResetModel();
+            for (int i = 0; i < parentItem->childCount(); ++i) {
+                auto child = rootItem->child(i);
+                auto childType = static_cast<NodeItem::Type>(
+                            child->data(NodeItem::Roles::ItemType).toInt());
+                if (childType == NodeItem::Type::FolderItem &&
+                        child->data(NodeItem::Roles::NodeId) == movingItem->data(NodeItem::Roles::NodeId)) {
+                    parentItem->moveChild(i, row);
+                    break;
+                }
+            }
+            endResetModel();
+            emit topLevelItemLayoutChanged();
+            updateChildRelativePosition(parentItem, NodeItem::Type::FolderItem);
+        } else {
+            auto movingParent = movingItem->parentItem();
+            int r = -1;
+            for (int i = 0; i < movingParent->childCount(); ++i) {
+                auto child = movingParent->child(i);
+                auto childType = static_cast<NodeItem::Type>(
+                            child->data(NodeItem::Roles::ItemType).toInt());
+                if ((childType == NodeItem::Type::FolderItem) &&
+                        (child->data(NodeItem::Roles::NodeId).toInt() == movingItem->data(NodeItem::Roles::NodeId).toInt())) {
+                    r = i;
+                    break;
+                }
+            }
+            if (r == -1) {
+                return false;
+            }
+            movingItem = movingParent->child(r);
+            auto oldAbsolutePath = movingItem->data(NodeItem::Roles::AbsPath).toString();
+            QString newAbsolutePath = parentItem->data(NodeItem::Roles::AbsPath).toString()
+                    + PATH_SEPERATOR + QString::number(movingItem->data(NodeItem::Roles::NodeId).toInt());
+            emit requestUpdateAbsPath(oldAbsolutePath, newAbsolutePath);
+            beginResetModel();
+            movingParent->takeChildAt(r);
+            movingItem->setParentItem(parentItem);
+            movingItem->recursiveUpdateFolderPath(oldAbsolutePath, newAbsolutePath);
+            parentItem->insertChild(row, movingItem);
+            endResetModel();
+            emit topLevelItemLayoutChanged();
+            emit requestExpand(parentItem->data(NodeItem::Roles::AbsPath).toString());
+            emit requestMoveNode(movingItem->data(NodeItem::Roles::NodeId).toInt(),
+                                 parentItem->data(NodeItem::Roles::NodeId).toInt());
+            updateChildRelativePosition(parentItem, NodeItem::Type::FolderItem);
+        }
+        return true;
     }
     return false;
 }

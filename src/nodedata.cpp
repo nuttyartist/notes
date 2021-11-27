@@ -6,7 +6,8 @@ NodeData::NodeData():
     m_isModified(false),
     m_isSelected(false),
     m_scrollBarPosition(0),
-    m_isTempNote{false}
+    m_isTempNote{false},
+    m_isPinnedNote{false}
 {
 
 }
@@ -159,6 +160,16 @@ const QString &NodeData::parentName() const
 void NodeData::setParentName(const QString &newParentName)
 {
     m_parentName = newParentName;
+}
+
+bool NodeData::isPinnedNote() const
+{
+    return m_isPinnedNote;
+}
+
+void NodeData::setIsPinnedNote(bool newIsPinnedNote)
+{
+    m_isPinnedNote = newIsPinnedNote;
 }
 
 QDateTime NodeData::creationDateTime() const

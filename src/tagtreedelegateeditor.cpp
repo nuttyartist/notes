@@ -86,7 +86,7 @@ TagTreeDelegateEditor::TagTreeDelegateEditor(QTreeView *view,
 void TagTreeDelegateEditor::updateDelegate()
 {
     auto displayName = m_index.data(NodeItem::Roles::DisplayText).toString();
-    if(m_view->currentIndex() == m_index) {
+    if (m_view->selectionModel()->selectedIndexes().contains(m_index)) {
         m_label->setStyleSheet(QStringLiteral("QLabel{color: rgb(%1, %2, %3);}")
                                .arg(QString::number(m_titleSelectedColor.red()),
                                     QString::number(m_titleSelectedColor.green()),
@@ -110,7 +110,7 @@ void TagTreeDelegateEditor::paintEvent(QPaintEvent *event)
 {
     updateDelegate();
     QPainter painter(this);
-    if(m_view->currentIndex() == m_index) {
+    if (m_view->selectionModel()->selectedIndexes().contains(m_index)) {
         painter.fillRect(rect(), QBrush(m_activeColor));
     } else {
         painter.fillRect(rect(), QBrush(m_hoverColor));

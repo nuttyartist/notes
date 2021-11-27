@@ -437,7 +437,7 @@ void MainWindow::setupKeyboardShortcuts()
 #else
     shortcut->setShortcut(QKeySequence(QStringLiteral("META+N")));
 #endif
-    connect(shortcut, &QxtGlobalShortcut::activated,[=]() {
+    connect(shortcut, &QxtGlobalShortcut::activated, this, [=]() {
         // workaround prevent textEdit and searchEdit
         // from taking 'N' from shortcut
         m_textEdit->setDisabled(true);

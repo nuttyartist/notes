@@ -14,6 +14,7 @@
 #include <QMimeData>
 #include "tagpool.h"
 #include "notelistmodel.h"
+#include "nodepath.h"
 
 NoteListView::NoteListView(QWidget *parent)
     : QListView( parent ),
@@ -218,7 +219,7 @@ void NoteListView::mouseMoveEvent(QMouseEvent* event)
     QDrag *drag = new QDrag(this);
     QMimeData *mimeData = new QMimeData;
     auto current = currentIndex();
-    mimeData->setData("text/noteId", QString::number(
+    mimeData->setData(NOTE_MIME, QString::number(
                           current.data(NoteListModel::NoteID).toInt()).toUtf8());
     drag->setMimeData(mimeData);
     drag->setPixmap(m_dragPixmap);
@@ -292,7 +293,7 @@ void NoteListView::setupSignalsSlots()
 {
     // remove/add separator
     // current selectected row changed
-    connect(selectionModel(), &QItemSelectionModel::currentRowChanged, [this]
+    connect(selectionModel(), &QItemSelectionModel::currentRowChanged, this, [this]
             (const QModelIndex & current, const QModelIndex & previous){
 
         if(model() != Q_NULLPTR){
@@ -311,7 +312,7 @@ void NoteListView::setupSignalsSlots()
     });
 
     // row was entered
-    connect(this, &NoteListView::entered,[this](QModelIndex index){
+    connect(this, &NoteListView::entered, this, [this](QModelIndex index){
         if(model() != Q_NULLPTR){
             if(index.row() > 1){
                 QModelIndex prevPrevIndex = model()->index(index.row()-2, 0);
@@ -332,7 +333,7 @@ void NoteListView::setupSignalsSlots()
     });
 
     // viewport was entered
-    connect(this, &NoteListView::viewportEntered,[this](){
+    connect(this, &NoteListView::viewportEntered, this, [this](){
         if(model() != Q_NULLPTR && model()->rowCount() > 1){
             NoteListDelegate* delegate = static_cast<NoteListDelegate *>(itemDelegate());
             if(delegate != Q_NULLPTR)
@@ -344,7 +345,7 @@ void NoteListView::setupSignalsSlots()
     });
 
     // remove/add offset right side
-    connect(this->verticalScrollBar(), &QScrollBar::rangeChanged,[this](int min, int max){
+    connect(this->verticalScrollBar(), &QScrollBar::rangeChanged, this, [this](int min, int max){
         Q_UNUSED(min)
 
         NoteListDelegate* delegate = static_cast<NoteListDelegate*>(itemDelegate());
@@ -443,7 +444,7 @@ void NoteListView::onCustomContextMenu(const QPoint &point)
 void NoteListView::onTagsMenu(const QPoint &point)
 {
     tagsMenu->clear();
-    for (auto action : m_noteTagActions) {
+    for (auto action : QT_AS_CONST(m_noteTagActions)) {
         delete action;
     }
     m_noteTagActions.clear();
@@ -463,7 +464,7 @@ void NoteListView::onTagsMenu(const QPoint &point)
     if (current.isValid()) {
         if (m_tagPool) {
             auto tagInNote = current.data(NoteListModel::NoteTagsList).value<QSet<int>>();
-            for (auto id : tagInNote) {
+            for (auto id : QT_AS_CONST(tagInNote)) {
                 auto tag = m_tagPool->getTag(id);
                 auto tagAction = new QAction(QString("Remove tag ") + tag.name(), this);
                 connect(tagAction, &QAction::triggered, this, [this, id] {
@@ -474,7 +475,8 @@ void NoteListView::onTagsMenu(const QPoint &point)
                 m_noteTagActions.append(tagAction);
             }
             tagsMenu->addSeparator();
-            for (auto id : m_tagPool->tagIds()) {
+            const auto tagIds = m_tagPool->tagIds();
+            for (auto id : tagIds) {
                 if (tagInNote.contains(id)) {
                     continue;
                 }

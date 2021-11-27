@@ -72,6 +72,9 @@ public:
     const QString &parentName() const;
     void setParentName(const QString &newParentName);
 
+    bool isPinnedNote() const;
+    void setIsPinnedNote(bool newIsPinnedNote);
+
 private:
     int m_id;
     QString m_fullTitle;
@@ -89,6 +92,7 @@ private:
     QSet<int> m_tagIds;
     bool m_isTempNote;
     QString m_parentName;
+    bool m_isPinnedNote;
 };
 
 Q_DECLARE_METATYPE(NodeData)
