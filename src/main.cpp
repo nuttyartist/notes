@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 
     // Set application information
     app.setApplicationName ("Notes");
-    app.setApplicationVersion ("1.5.0");
+    app.setApplicationVersion ("2.0.0");
 
     // Load fonts from resources
     // Roboto

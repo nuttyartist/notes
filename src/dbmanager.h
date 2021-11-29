@@ -36,15 +36,13 @@ private:
     void createTables();
 
     bool isNodeExist(const NodeData& node);
-
+    QString m_dbpath;
+    QSqlDatabase m_db;
     QVector<NodeData> getAllFolders();
     QVector<TagData> getAllTagInfo();
     QSet<int> getAllTagForNote(int noteId);
-    bool permanantlyRemoveAllNotes();
     bool updateNoteContent(const NodeData &note);
-    bool migrateNote(NodeData* note);
-    bool migrateTrash(NodeData* note);
-
+    QList<NodeData> readOldNBK(const QString fileName);
 signals:
     void notesListReceived(const QVector<NodeData>& noteList, const ListViewInfo& inf);
     void nodesTagTreeReceived(const NodeTagTreeData& treeData);
@@ -53,6 +51,7 @@ signals:
     void tagRemoved(int tagId);
     void tagRenamed(int tagId, const QString& newName);
     void tagColorChanged(int tagId, const QString& tagColor);
+    void showErrorMessage(const QString& title, const QString& content);
 
 public slots:
     void onNodeTagTreeRequested();
@@ -60,11 +59,12 @@ public slots:
     void onNotesListInTagsRequested(const QSet<int>& tagIds);
     void onOpenDBManagerRequested(QString path, bool doCreate);
     void onCreateUpdateRequestedNoteContent(const NodeData& note);
-    void onImportNotesRequested(QList<NodeData *> noteList);
-    void onRestoreNotesRequested(QList<NodeData *> noteList);
-    void onExportNotesRequested(QString fileName);
-    void onMigrateNotesRequested(QList<NodeData *> noteList);
-    void onMigrateTrashRequested(QList<NodeData *> noteList);
+    void onImportNotesRequested(const QString& fileName);
+    void onRestoreNotesRequested(const QString& fileName);
+    void onExportNotesRequested(const QString& fileName);
+    void onMigrateNotesFromV0_9_0Requested(QVector<NodeData> &noteList);
+    void onMigrateTrashFrom0_9_0Requested(QVector<NodeData>& noteList);
+    void onMigrateNotesFrom1_5_0Requested(const QString& fileName);
 
     int addNode(const NodeData& node);
     int addTag(const TagData& tag);

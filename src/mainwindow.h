@@ -212,10 +212,10 @@ private:
     void setLayoutForScrollArea();
     void setButtonsAndFieldsEnabled(bool doEnable);
     void restoreStates();
-    void checkMigration();
+    void migrateFromV0_9_0();
     void executeImport(const bool replace);
-    void migrateNote(QString notePath);
-    void migrateTrash(QString trashPath);
+    void migrateNoteFromV0_9_0(QString notePath);
+    void migrateTrashFromV0_9_0(QString trashPath);
     void setCurrentFontBasedOnTypeface(FontTypeface selectedFontTypeFace);
     void setVisibilityOfFrameRightNonEditor(bool isVisible);
     void adjustUpperWidgets(bool shouldPushUp);
@@ -275,16 +275,17 @@ private slots:
     void setTheme(Theme theme);
     void deleteSelectedNote();
     void clearSearch();
-
+    void showErrorMessage(const QString& title, const QString& content);
 signals:
     void requestNodesTree();
     void requestNotesList(int parentID, bool isRecursive);
-    void requestOpenDBManager(QString path, bool doCreate);
-    void requestRestoreNotes(QList<NodeData *> noteList);
-    void requestImportNotes(QList<NodeData *> noteList);
+    void requestOpenDBManager(const QString& path, bool doCreate);
+    void requestRestoreNotes(const QString& filePath);
+    void requestImportNotes(const QString& filePath);
     void requestExportNotes(QString fileName);
-    void requestMigrateNotes(QList<NodeData *> noteList);
-    void requestMigrateTrash(QList<NodeData *> noteList);
+    void requestMigrateNotesFromV0_9_0(QVector<NodeData>& noteList);
+    void requestMigrateTrashFromV0_9_0(QVector<NodeData>& noteList);
+    void requestMigrateNotesFromV1_5_0(const QString& path);
 };
 
 #endif // MAINWINDOW_H

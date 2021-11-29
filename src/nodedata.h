@@ -97,7 +97,6 @@ private:
 
 Q_DECLARE_METATYPE(NodeData)
 
-QDataStream &operator<<(QDataStream &stream, const NodeData* nodeData);
-QDataStream &operator>>(QDataStream &stream, NodeData *&nodeData);
+QDataStream &operator>>(QDataStream &stream, NodeData& nodeData);
 
 #endif // NODEDATA_H

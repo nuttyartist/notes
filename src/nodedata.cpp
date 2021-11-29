@@ -182,23 +182,18 @@ void NodeData::setCreationDateTime(const QDateTime&creationDateTime)
     m_creationDateTime = creationDateTime;
 }
 
-QDataStream &operator<<(QDataStream &stream, const NodeData* nodeData) {
-    return stream << nodeData->id() << nodeData->fullTitle() << nodeData->creationDateTime() << nodeData->lastModificationdateTime() << nodeData->content();
-}
-
-QDataStream &operator>>(QDataStream &stream, NodeData* &nodeData){
-    nodeData = new NodeData();
+QDataStream &operator>>(QDataStream &stream, NodeData &nodeData){
     int id;
     QString fullTitle;
     QDateTime lastModificationDateTime;
     QDateTime creationDateTime;
     QString content;
     stream >> id >> fullTitle >> creationDateTime >> lastModificationDateTime >> content;
-    nodeData->setId(id);
-    nodeData->setFullTitle(fullTitle);
-    nodeData->setLastModificationDateTime(lastModificationDateTime);
-    nodeData->setCreationDateTime(creationDateTime);
-    nodeData->setContent(content);
+    nodeData.setId(id);
+    nodeData.setFullTitle(fullTitle);
+    nodeData.setLastModificationDateTime(lastModificationDateTime);
+    nodeData.setCreationDateTime(creationDateTime);
+    nodeData.setContent(content);
     return stream;
 }
 

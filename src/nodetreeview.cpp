@@ -271,7 +271,10 @@ void NodeTreeView::reset()
     QTreeView::reset();
     for (const auto& path: needExpand) {
         auto m_model = dynamic_cast<NodeTreeModel*>(model());
-        expand(m_model->folderIndexFromIdPath(path));
+        auto index = m_model->folderIndexFromIdPath(path);
+        if (index.isValid()) {
+            expand(index);
+        }
     }
 }
 

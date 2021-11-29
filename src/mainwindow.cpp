@@ -140,9 +140,8 @@ void MainWindow::InitData()
     QString oldNoteDBPath(dir.path() + QStringLiteral("/Notes.ini"));
     QString oldTrashDBPath(dir.path() + QStringLiteral("/Trash.ini"));
 
-    bool exist = (QFile::exists(oldNoteDBPath) || QFile::exists(oldTrashDBPath));
-
-    if(exist){
+    bool isV0_9_0 = (QFile::exists(oldNoteDBPath) || QFile::exists(oldTrashDBPath));
+    if (isV0_9_0){
         QProgressDialog* pd = new QProgressDialog(tr("Migrating database, please wait."), QString(), 0, 0, this);
         pd->setCancelButton(Q_NULLPTR);
         pd->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
@@ -158,7 +157,7 @@ void MainWindow::InitData()
             emit requestNotesList(SpecialNodeID::RootFolder, true);
         });
 
-        QFuture<void> migration = QtConcurrent::run(this, &MainWindow::checkMigration);
+        QFuture<void> migration = QtConcurrent::run(this, &MainWindow::migrateFromV0_9_0);
         watcher->setFuture(migration);
 
     } else {
@@ -632,10 +631,10 @@ void MainWindow::setupSignalsSlots()
             m_dbManager, &DBManager::onImportNotesRequested, Qt::BlockingQueuedConnection);
     connect(this, &MainWindow::requestExportNotes,
             m_dbManager, &DBManager::onExportNotesRequested, Qt::BlockingQueuedConnection);
-    connect(this, &MainWindow::requestMigrateNotes,
-            m_dbManager, &DBManager::onMigrateNotesRequested, Qt::BlockingQueuedConnection);
-    connect(this, &MainWindow::requestMigrateTrash,
-            m_dbManager, &DBManager::onMigrateTrashRequested, Qt::BlockingQueuedConnection);
+    connect(this, &MainWindow::requestMigrateNotesFromV0_9_0,
+            m_dbManager, &DBManager::onMigrateNotesFromV0_9_0Requested, Qt::BlockingQueuedConnection);
+    connect(this, &MainWindow::requestMigrateTrashFromV0_9_0,
+            m_dbManager, &DBManager::onMigrateTrashFrom0_9_0Requested, Qt::BlockingQueuedConnection);
 
     connect(m_listViewLogic, &ListViewLogic::showNoteInEditor,
             m_noteEditorLogic, &NoteEditorLogic::showNoteInEditor);
@@ -668,6 +667,8 @@ void MainWindow::setupSignalsSlots()
     });
     connect(ui->toggleTreeViewButton, &QPushButton::pressed,
             this, &MainWindow::toggleNodeTree);
+    connect(m_dbManager, &DBManager::showErrorMessage,
+            this, &MainWindow::showErrorMessage, Qt::QueuedConnection);
 #ifdef __APPLE__
     // Replace setUseNativeWindowFrame with just the part that handles pushing things up
     connect(this, &MainWindow::toggleFullScreen, this, [=](bool isFullScreen){adjustUpperWidgets(isFullScreen);});
@@ -964,6 +965,15 @@ void MainWindow::setupDatabases()
     m_settingsDatabase = new QSettings(QSettings::IniFormat, QSettings::UserScope,
                                        QStringLiteral("Awesomeness"), QStringLiteral("Settings"), this);
     m_settingsDatabase->setFallbacksEnabled(false);
+    bool needMigrateFromV1_5_0 = false;
+    if (m_settingsDatabase->value(QStringLiteral("version"), "NULL") == "NULL") {
+        needMigrateFromV1_5_0 = true;
+    }
+    auto versionString = m_settingsDatabase->value(QStringLiteral("version")).toString();
+    auto major = versionString.split(".").first().toInt();
+    if (major < 2) {
+        needMigrateFromV1_5_0 = true;
+    }
     initializeSettingsDatabase();
 
     bool doCreate = false;
@@ -982,14 +992,39 @@ void MainWindow::setupDatabases()
 
         noteDBFile.close();
         doCreate = true;
+        needMigrateFromV1_5_0 = false;
+    } else if(needMigrateFromV1_5_0) {
+        QFile noteDBFile(noteDBFilePath);
+        noteDBFile.rename(dir.path() + QDir::separator() + QStringLiteral("oldNotes.db"));
+        {
+            QFile noteDBFile(noteDBFilePath);
+            if(!noteDBFile.open(QIODevice::WriteOnly))
+                qFatal("ERROR : Can't create database file");
+
+            noteDBFile.close();
+            doCreate = true;
+        }
     }
 
+    if (needMigrateFromV1_5_0) {
+        m_settingsDatabase->setValue(QStringLiteral("version"), qApp->applicationVersion());
+    }
     m_dbManager = new DBManager;
     m_dbThread = new QThread;
     m_dbThread->setObjectName(QStringLiteral("dbThread"));
     m_dbManager->moveToThread(m_dbThread);
-    connect(m_dbThread, &QThread::started, this, [=](){emit requestOpenDBManager(noteDBFilePath, doCreate);});
-    connect(this, &MainWindow::requestOpenDBManager, m_dbManager, &DBManager::onOpenDBManagerRequested);
+    connect(m_dbThread, &QThread::started, this, [=](){
+        emit requestOpenDBManager(noteDBFilePath, doCreate);
+        if (needMigrateFromV1_5_0) {
+            emit requestMigrateNotesFromV1_5_0(dir.path() + QDir::separator() + QStringLiteral("oldNotes.db"));
+        }
+    });
+    connect(this, &MainWindow::requestOpenDBManager,
+            m_dbManager, &DBManager::onOpenDBManagerRequested,
+            Qt::QueuedConnection);
+    connect(this, &MainWindow::requestMigrateNotesFromV1_5_0,
+            m_dbManager, &DBManager::onMigrateNotesFrom1_5_0Requested,
+            Qt::QueuedConnection);
     connect(m_dbThread, &QThread::finished, m_dbManager, &QObject::deleteLater);
     m_dbThread->start();
 }
@@ -1325,11 +1360,6 @@ void MainWindow::onDotsButtonClicked()
     restoreNotesFileAction->setToolTip(tr("Replace all notes with notes from a file"));
     connect (restoreNotesFileAction, &QAction::triggered,
              this, &MainWindow::restoreNotesFile);
-
-    // Export disabled if no notes exist
-    if(m_listModel->rowCount() < 1){
-        exportNotesFileAction->setDisabled(true);
-    }
 
 #ifndef Q_OS_LINUX
     // Stay on top action
@@ -1801,7 +1831,6 @@ void MainWindow::executeImport(const bool replace)
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("Open Notes Backup File"), "",
                                                     tr("Notes Backup File (*.nbk)"));
-
     if (fileName.isEmpty()) {
         return;
     } else {
@@ -1810,48 +1839,16 @@ void MainWindow::executeImport(const bool replace)
             QMessageBox::information(this, tr("Unable to open file"), file.errorString());
             return;
         }
-        QList<NodeData*> noteList;
-        QDataStream in(&file);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-        in.setVersion(QDataStream::Qt_5_6);
-#elif QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
-        in.setVersion(QDataStream::Qt_5_4);
-#elif QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
-        in.setVersion(QDataStream::Qt_5_2);
-#endif
-
-        try {
-            in >> noteList;
-        } catch (...) {
-            // Any exception deserializing will result in an empty note list and  the user will be notified
-        }
         file.close();
 
-        if (noteList.isEmpty()) {
-            QMessageBox::information(this, tr("Invalid file"), "Please select a valid notes export file");
-            return;
-        }
-
-        QProgressDialog* pd = new QProgressDialog(replace ? "Restoring Notes..."
-                                                          : "Importing Notes...", "", 0, 0, this);
-        pd->deleteLater();
-        pd->setCancelButton(Q_NULLPTR);
-        pd->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
-        pd->setMinimumDuration(0);
-        pd->show();
-        pd->setValue(1);
-
         setButtonsAndFieldsEnabled(false);
-
-        if(replace)
-            emit requestRestoreNotes(noteList);
-        else
-            emit requestImportNotes(noteList);
-
+        if(replace) {
+            emit requestRestoreNotes(fileName);
+        } else {
+            emit requestImportNotes(fileName);
+        }
         setButtonsAndFieldsEnabled(true);
-
-        m_listModel->clearNotes();
-        emit requestNotesList(SpecialNodeID::RootFolder, true);
+        //        emit requestNotesList(SpecialNodeID::RootFolder, true);
     }
 }
 
@@ -1921,7 +1918,7 @@ void MainWindow::expandNodeTree()
     int minWidth = ui->frameMiddle->minimumWidth();
     int noteListWidth = m_noteListWidth < minWidth ? minWidth : m_noteListWidth;
     int nodeTreeWidth = m_nodeTreeWidth < ui->frameLeft->minimumWidth() ?
-            ui->frameLeft->minimumWidth() : m_nodeTreeWidth;
+                ui->frameLeft->minimumWidth() : m_nodeTreeWidth;
     QList<int> sizes = m_splitter->sizes();
     sizes[0] = nodeTreeWidth;
     sizes[1] = noteListWidth;
@@ -1981,7 +1978,7 @@ void MainWindow::expandNoteList()
     int minWidth = ui->frameMiddle->minimumWidth();
     int noteListWidth = m_noteListWidth < minWidth ? minWidth : m_noteListWidth;
     int nodeTreeWidth = m_nodeTreeWidth == 0 ? 0 : m_nodeTreeWidth < ui->frameLeft->minimumWidth() ?
-            ui->frameLeft->minimumWidth() : m_nodeTreeWidth;
+                                                   ui->frameLeft->minimumWidth() : m_nodeTreeWidth;
     QList<int> sizes = m_splitter->sizes();
     sizes[0] = nodeTreeWidth;
     sizes[1] = noteListWidth;
@@ -2473,106 +2470,98 @@ void MainWindow::clearSearch()
     m_searchEdit->setFocus();
 }
 
+void MainWindow::showErrorMessage(const QString &title, const QString &content)
+{
+    QMessageBox::information(this, title, content);
+}
+
 /*!
  * \brief MainWindow::checkMigration
  */
-void MainWindow::checkMigration()
+void MainWindow::migrateFromV0_9_0()
 {
-    //    QFileInfo fi(m_settingsDatabase->fileName());
-    //    QDir dir(fi.absolutePath());
+    QFileInfo fi(m_settingsDatabase->fileName());
+    QDir dir(fi.absolutePath());
 
-    //    QString oldNoteDBPath(dir.path() + QDir::separator() + "Notes.ini");
-    //    if(QFile::exists(oldNoteDBPath))
-    //        migrateNote(oldNoteDBPath);
+    QString oldNoteDBPath(dir.path() + QDir::separator() + "Notes.ini");
+    if(QFile::exists(oldNoteDBPath)) {
+        migrateNoteFromV0_9_0(oldNoteDBPath);
+    }
 
-    //    QString oldTrashDBPath(dir.path() + QDir::separator() + "Trash.ini");
-    //    if(QFile::exists(oldTrashDBPath))
-    //        migrateTrash(oldTrashDBPath);
-
-    //    emit requestForceLastRowIndexValue(m_noteCounter);
+    QString oldTrashDBPath(dir.path() + QDir::separator() + "Trash.ini");
+    if(QFile::exists(oldTrashDBPath)) {
+        migrateTrashFromV0_9_0(oldTrashDBPath);
+    }
 }
 
 /*!
  * \brief MainWindow::migrateNote
  * \param notePath
  */
-void MainWindow::migrateNote(QString notePath)
+void MainWindow::migrateNoteFromV0_9_0(QString notePath)
 {
-    //    QSettings notesIni(notePath, QSettings::IniFormat);
-    //    QStringList dbKeys = notesIni.allKeys();
+    QSettings notesIni(notePath, QSettings::IniFormat);
+    QStringList dbKeys = notesIni.allKeys();
+    QVector<NodeData> noteList;
 
-    //    m_noteCounter = notesIni.value(QStringLiteral("notesCounter"), "0").toInt();
-    //    QList<NodeData *> noteList;
+    auto it = dbKeys.begin();
+    for(; it < dbKeys.end()-1; it += 3){
+        QString noteName = it->split(QStringLiteral("/"))[0];
+        int id = noteName.split(QStringLiteral("_"))[1].toInt();
+        NodeData newNote;
+        newNote.setId(id);
+        QString createdDateDB = notesIni.value(noteName + QStringLiteral("/dateCreated"), "Error").toString();
+        newNote.setCreationDateTime(QDateTime::fromString(createdDateDB, Qt::ISODate));
+        QString lastEditedDateDB = notesIni.value(noteName + QStringLiteral("/dateEdited"), "Error").toString();
+        newNote.setLastModificationDateTime(QDateTime::fromString(lastEditedDateDB, Qt::ISODate));
+        QString contentText = notesIni.value(noteName + QStringLiteral("/content"), "Error").toString();
+        newNote.setContent(contentText);
+        QString firstLine = NoteEditorLogic::getFirstLine(contentText);
+        newNote.setFullTitle(firstLine);
+        noteList.append(newNote);
+    }
 
-    //    auto it = dbKeys.begin();
-    //    for(; it < dbKeys.end()-1; it += 3){
-    //        QString noteName = it->split(QStringLiteral("/"))[0];
-    //        int id = noteName.split(QStringLiteral("_"))[1].toInt();
+    if(!noteList.isEmpty()) {
+        emit requestMigrateNotesFromV0_9_0(noteList);
+    }
 
-    //        // sync db index with biggest notes id
-    //        m_noteCounter = m_noteCounter < id ? id : m_noteCounter;
-
-    //        NodeData* newNote = new NodeData();
-    //        newNote->setId(id);
-
-    //        QString createdDateDB = notesIni.value(noteName + QStringLiteral("/dateCreated"), "Error").toString();
-    //        newNote->setCreationDateTime(QDateTime::fromString(createdDateDB, Qt::ISODate));
-    //        QString lastEditedDateDB = notesIni.value(noteName + QStringLiteral("/dateEdited"), "Error").toString();
-    //        newNote->setLastModificationDateTime(QDateTime::fromString(lastEditedDateDB, Qt::ISODate));
-    //        QString contentText = notesIni.value(noteName + QStringLiteral("/content"), "Error").toString();
-    //        newNote->setContent(contentText);
-    //        QString firstLine = getFirstLine(contentText);
-    //        newNote->setFullTitle(firstLine);
-
-    //        noteList.append(newNote);
-    //    }
-
-    //    if(!noteList.isEmpty())
-    //        emit requestMigrateNotes(noteList);
-
-    //    QFile oldNoteDBFile(notePath);
-    //    oldNoteDBFile.rename(QFileInfo(notePath).dir().path() + QDir::separator() + QStringLiteral("oldNotes.ini"));
+    QFile oldNoteDBFile(notePath);
+    oldNoteDBFile.rename(QFileInfo(notePath).dir().path() + QDir::separator() + QStringLiteral("oldNotes.ini"));
 }
 
 /*!
  * \brief MainWindow::migrateTrash
  * \param trashPath
  */
-void MainWindow::migrateTrash(QString trashPath)
+void MainWindow::migrateTrashFromV0_9_0(QString trashPath)
 {
-    //    QSettings trashIni(trashPath, QSettings::IniFormat);
-    //    QStringList dbKeys = trashIni.allKeys();
+    QSettings trashIni(trashPath, QSettings::IniFormat);
+    QStringList dbKeys = trashIni.allKeys();
 
-    //    QList<NodeData *> noteList;
+    QVector<NodeData> noteList;
 
-    //    auto it = dbKeys.begin();
-    //    for(; it < dbKeys.end()-1; it += 3){
-    //        QString noteName = it->split(QStringLiteral("/"))[0];
-    //        int id = noteName.split(QStringLiteral("_"))[1].toInt();
+    auto it = dbKeys.begin();
+    for(; it < dbKeys.end()-1; it += 3){
+        QString noteName = it->split(QStringLiteral("/"))[0];
+        int id = noteName.split(QStringLiteral("_"))[1].toInt();
+        NodeData newNote;
+        newNote.setId(id);
+        QString createdDateDB = trashIni.value(noteName + QStringLiteral("/dateCreated"), "Error").toString();
+        newNote.setCreationDateTime(QDateTime::fromString(createdDateDB, Qt::ISODate));
+        QString lastEditedDateDB = trashIni.value(noteName + QStringLiteral("/dateEdited"), "Error").toString();
+        newNote.setLastModificationDateTime(QDateTime::fromString(lastEditedDateDB, Qt::ISODate));
+        QString contentText = trashIni.value(noteName + QStringLiteral("/content"), "Error").toString();
+        newNote.setContent(contentText);
+        QString firstLine = NoteEditorLogic::getFirstLine(contentText);
+        newNote.setFullTitle(firstLine);
+        noteList.append(newNote);
+    }
 
-    //        // sync db index with biggest notes id
-    //        m_noteCounter = m_noteCounter < id ? id : m_noteCounter;
-
-    //        NodeData* newNote = new NodeData();
-    //        newNote->setId(id);
-
-    //        QString createdDateDB = trashIni.value(noteName + QStringLiteral("/dateCreated"), "Error").toString();
-    //        newNote->setCreationDateTime(QDateTime::fromString(createdDateDB, Qt::ISODate));
-    //        QString lastEditedDateDB = trashIni.value(noteName + QStringLiteral("/dateEdited"), "Error").toString();
-    //        newNote->setLastModificationDateTime(QDateTime::fromString(lastEditedDateDB, Qt::ISODate));
-    //        QString contentText = trashIni.value(noteName + QStringLiteral("/content"), "Error").toString();
-    //        newNote->setContent(contentText);
-    //        QString firstLine = getFirstLine(contentText);
-    //        newNote->setFullTitle(firstLine);
-
-    //        noteList.append(newNote);
-    //    }
-
-    //    if(!noteList.isEmpty())
-    //        emit requestMigrateTrash(noteList);
-
-    //    QFile oldTrashDBFile(trashPath);
-    //    oldTrashDBFile.rename(QFileInfo(trashPath).dir().path() + QDir::separator() + QStringLiteral("oldTrash.ini"));
+    if(!noteList.isEmpty()) {
+        emit requestMigrateTrashFromV0_9_0(noteList);
+    }
+    QFile oldTrashDBFile(trashPath);
+    oldTrashDBFile.rename(QFileInfo(trashPath).dir().path() + QDir::separator() + QStringLiteral("oldTrash.ini"));
 }
 
 /*!

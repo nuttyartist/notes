@@ -8,6 +8,9 @@
 #include <QSqlRecord>
 #include <QSet>
 
+#define DEFAULT_DATABASE_NAME "default_database"
+#define OUTSIDE_DATABASE_NAME "outside_database"
+
 /*!
  * \brief DBManager::DBManager
  * \param parent
@@ -29,9 +32,8 @@ DBManager::DBManager(QObject *parent)
  */
 void DBManager::open(const QString &path, bool doCreate)
 {
-    QSqlDatabase m_db;
-    m_db = QSqlDatabase::addDatabase("QSQLITE");
-    
+    m_db = QSqlDatabase::addDatabase("QSQLITE", DEFAULT_DATABASE_NAME);
+    m_dbpath = path;
     m_db.setDatabaseName(path);
     if(!m_db.open()){
         qDebug() << "Error: connection with database fail";
@@ -39,8 +41,9 @@ void DBManager::open(const QString &path, bool doCreate)
         qDebug() << "Database: connection ok";
     }
     
-    if(doCreate)
+    if(doCreate) {
         createTables();
+    }
 }
 
 /*!
@@ -48,8 +51,8 @@ void DBManager::open(const QString &path, bool doCreate)
  */
 void DBManager::createTables()
 {
-    QSqlDatabase::database().transaction();
-    QSqlQuery query;
+    m_db.transaction();
+    QSqlQuery query(m_db);
 
     QString nodeTable = R"(CREATE TABLE "node_table" ()"
                         R"(    "id"	INTEGER NOT NULL,)"
@@ -142,7 +145,7 @@ void DBManager::createTables()
     notesFolder.setParentId(0);
     addNode(notesFolder);
 
-    QSqlDatabase::database().commit();
+    m_db.commit();
 }
 
 /*!
@@ -152,7 +155,7 @@ void DBManager::createTables()
  */
 bool DBManager::isNodeExist(const NodeData& node)
 {
-    QSqlQuery query;
+    QSqlQuery query(m_db);
 
     int id = node.id();
     QString queryStr = QStringLiteral("SELECT EXISTS(SELECT 1 FROM node_table WHERE id = :id LIMIT 1 )");
@@ -168,7 +171,7 @@ QVector<NodeData> DBManager::getAllFolders()
 {
     QVector<NodeData> nodeList;
 
-    QSqlQuery query;
+    QSqlQuery query(m_db);
     query.prepare(R"(SELECT)"
                   R"("id",)"
                   R"("title",)"
@@ -213,7 +216,7 @@ QVector<TagData> DBManager::getAllTagInfo()
 {
     QVector<TagData> tagList;
 
-    QSqlQuery query;
+    QSqlQuery query(m_db);
     query.prepare(R"(SELECT "id","name","color","relative_position" FROM tag_table;)");
     bool status = query.exec();
     if(status) {
@@ -235,7 +238,7 @@ QVector<TagData> DBManager::getAllTagInfo()
 QSet<int> DBManager::getAllTagForNote(int noteId)
 {
     QSet<int> tagIds;
-    QSqlQuery query;
+    QSqlQuery query(m_db);
     query.prepare(R"(SELECT "tag_id" FROM tag_relationship WHERE node_id = :node_id;)");
     query.bindValue(":node_id", noteId);
     bool status = query.exec();
@@ -251,7 +254,7 @@ QSet<int> DBManager::getAllTagForNote(int noteId)
 
 int DBManager::addNode(const NodeData &node)
 {
-    QSqlQuery query;
+    QSqlQuery query(m_db);
     QString emptyStr;
 
     qint64 epochTimeDateCreated = node.creationDateTime()
@@ -321,7 +324,7 @@ int DBManager::addNode(const NodeData &node)
 
 int DBManager::addTag(const TagData &tag)
 {
-    QSqlQuery query;
+    QSqlQuery query(m_db);
 
     int relationalPosition = 0;
     query.prepare(R"(SELECT relative_position FROM "tag_table" )");
@@ -364,7 +367,7 @@ int DBManager::addTag(const TagData &tag)
 
 void DBManager::addNoteToTag(int noteId, int tagId)
 {
-    QSqlQuery query;
+    QSqlQuery query(m_db);
     query.prepare(R"(INSERT INTO "tag_relationship" ("node_id","tag_id") VALUES (:note_id, :tag_id);)");
     query.bindValue(":note_id", noteId);
     query.bindValue(":tag_id", tagId);
@@ -375,7 +378,7 @@ void DBManager::addNoteToTag(int noteId, int tagId)
 
 void DBManager::removeNoteFromTag(int noteId, int tagId)
 {
-    QSqlQuery query;
+    QSqlQuery query(m_db);
     query.prepare(R"(DELETE FROM "tag_relationship" )"
                   R"(WHERE node_id = (:note_id) AND tag_id = (:tag_id);)");
     query.bindValue(":note_id", noteId);
@@ -387,7 +390,7 @@ void DBManager::removeNoteFromTag(int noteId, int tagId)
 
 int DBManager::nextAvailableNodeId()
 {
-    QSqlQuery query;
+    QSqlQuery query(m_db);
     query.prepare("SELECT value FROM metadata WHERE key = :key");
     query.bindValue(":key", "next_node_id");
     if (!query.exec()) {
@@ -400,7 +403,7 @@ int DBManager::nextAvailableNodeId()
 
 int DBManager::nextAvailableTagId()
 {
-    QSqlQuery query;
+    QSqlQuery query(m_db);
     query.prepare("SELECT value FROM metadata WHERE key = :key");
     query.bindValue(":key", "next_tag_id");
     if (!query.exec()) {
@@ -413,7 +416,7 @@ int DBManager::nextAvailableTagId()
 
 void DBManager::renameNode(int id, const QString &newName)
 {
-    QSqlQuery query;
+    QSqlQuery query(m_db);
     query.prepare(R"(UPDATE "node_table" SET "title"=:title WHERE "id"=:id;)");
     query.bindValue(":title", newName);
     query.bindValue(":id", id);
@@ -424,7 +427,7 @@ void DBManager::renameNode(int id, const QString &newName)
 
 void DBManager::renameTag(int id, const QString &newName)
 {
-    QSqlQuery query;
+    QSqlQuery query(m_db);
     query.prepare(R"(UPDATE "tag_table" SET "name"=:name WHERE "id"=:id;)");
     query.bindValue(":name", newName);
     query.bindValue(":id", id);
@@ -436,7 +439,7 @@ void DBManager::renameTag(int id, const QString &newName)
 
 void DBManager::changeTagColor(int id, const QString &newColor)
 {
-    QSqlQuery query;
+    QSqlQuery query(m_db);
     query.prepare(R"(UPDATE "tag_table" SET "color"=:color WHERE "id"=:id;)");
     query.bindValue(":color", newColor);
     query.bindValue(":id", id);
@@ -454,7 +457,7 @@ void DBManager::changeTagColor(int id, const QString &newColor)
 void DBManager::removeNote(const NodeData &note)
 {
     if (note.parentId() == SpecialNodeID::TrashFolder) {
-        QSqlQuery query;
+        QSqlQuery query(m_db);
         query.prepare(R"(DELETE FROM "node_table" )"
                       R"(WHERE id = (:id) AND node_type = (:node_type);)"
                         );
@@ -479,7 +482,7 @@ void DBManager::removeNote(const NodeData &note)
 
 void DBManager::removeTag(int tagId)
 {
-    QSqlQuery query;
+    QSqlQuery query(m_db);
     query.prepare(R"(DELETE FROM "tag_table" )"
                   R"(WHERE id = (:id);)"
                     );
@@ -499,23 +502,13 @@ void DBManager::removeTag(int tagId)
 }
 
 /*!
- * \brief DBManager::permanantlyRemoveAllNotes
- * \return
- */
-bool DBManager::permanantlyRemoveAllNotes()
-{
-    QSqlQuery query;
-    return query.exec(QString("DELETE FROM active_notes"));
-}
-
-/*!
  * \brief DBManager::updateNote
  * \param note
  * \return
  */
 bool DBManager::updateNoteContent(const NodeData& note)
 {
-    QSqlQuery query;
+    QSqlQuery query(m_db);
     QString emptyStr;
 
     int id = note.id();
@@ -541,76 +534,32 @@ bool DBManager::updateNoteContent(const NodeData& note)
     return (query.numRowsAffected() == 1);
 }
 
-/*!
- * \brief DBManager::migrateNote
- * \param note
- * \return
- */
-bool DBManager::migrateNote(NodeData* note)
+QList<NodeData> DBManager::readOldNBK(const QString fileName)
 {
-    QSqlQuery query;
-    
-    QString emptyStr;
-    
-    int id = note->id();
-    qint64 epochTimeDateCreated = note->creationDateTime().toMSecsSinceEpoch();
-    qint64 epochTimeDateModified = note->lastModificationdateTime().toMSecsSinceEpoch();
-    QString content = note->content()
-            .replace("'","''")
-            .replace(QChar('\x0'), emptyStr);
-    QString fullTitle = note->fullTitle()
-            .replace("'","''")
-            .replace(QChar('\x0'), emptyStr);
-    
-    QString queryStr = QString("INSERT INTO active_notes "
-                               "VALUES (%1, %2, %3, -1, '%4', '%5');")
-            .arg(id)
-            .arg(epochTimeDateCreated)
-            .arg(epochTimeDateModified)
-            .arg(content)
-            .arg(fullTitle);
-    
-    query.exec(queryStr);
-    return (query.numRowsAffected() == 1);
-}
+    QFile file(fileName);
+    file.open(QIODevice::ReadOnly);
+    QList<NodeData> noteList;
+    QDataStream in(&file);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
+    in.setVersion(QDataStream::Qt_5_6);
+#elif QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+    in.setVersion(QDataStream::Qt_5_4);
+#elif QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
+    in.setVersion(QDataStream::Qt_5_2);
+#endif
 
-/*!
- * \brief DBManager::migrateTrash
- * \param note
- * \return
- */
-bool DBManager::migrateTrash(NodeData* note)
-{
-    QSqlQuery query;
-    QString emptyStr;
-    
-    int id = note->id();
-    qint64 epochTimeDateCreated = note->creationDateTime().toMSecsSinceEpoch();
-    qint64 epochTimeDateModified = note->lastModificationdateTime().toMSecsSinceEpoch();
-    qint64 epochTimeDateDeleted = note->deletionDateTime().toMSecsSinceEpoch();
-    QString content = note->content()
-            .replace("'","''")
-            .replace(QChar('\x0'), emptyStr);
-    QString fullTitle = note->fullTitle()
-            .replace("'","''")
-            .replace(QChar('\x0'), emptyStr);
-    
-    QString queryStr = QString("INSERT INTO deleted_notes "
-                               "VALUES (%1, %2, %3, %4, '%5', '%6');")
-            .arg(id)
-            .arg(epochTimeDateCreated)
-            .arg(epochTimeDateModified)
-            .arg(epochTimeDateDeleted)
-            .arg(content)
-            .arg(fullTitle);
-    
-    query.exec(queryStr);
-    return (query.numRowsAffected() == 1);
+    try {
+        in >> noteList;
+    } catch (...) {
+        // Any exception deserializing will result in an empty note list and  the user will be notified
+    }
+    file.close();
+    return noteList;
 }
 
 NodePath DBManager::getNodeAbsolutePath(int nodeId)
 {
-    QSqlQuery query;
+    QSqlQuery query(m_db);
     query.prepare("SELECT absolute_path FROM node_table WHERE id = :id");
     query.bindValue(":id", nodeId);
     query.exec();
@@ -621,7 +570,7 @@ NodePath DBManager::getNodeAbsolutePath(int nodeId)
 
 NodeData DBManager::getNode(int nodeId)
 {
-    QSqlQuery query;
+    QSqlQuery query(m_db);
     query.prepare(R"(SELECT)"
                   R"("id",)"
                   R"("title",)"
@@ -668,7 +617,7 @@ NodeData DBManager::getNode(int nodeId)
 
 void DBManager::moveFolderToTrash(const NodeData &node)
 {
-    QSqlQuery query;
+    QSqlQuery query(m_db);
     query.prepare(R"(DELETE FROM "node_table" )"
                   R"(WHERE absolute_path like (:path_expr) || '%' AND node_type = (:node_type);)"
                     );
@@ -706,7 +655,7 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
         qDebug() << "moveNode target is not folder" << target.id();
         return;
     }
-    QSqlQuery query;
+    QSqlQuery query(m_db);
     auto node = getNode(nodeId);
 
     QString newAbsolutePath = target.absolutePath() + PATH_SEPERATOR + QString::number(nodeId);
@@ -757,7 +706,7 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
 void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
 {
     QVector<NodeData> nodeList;
-    QSqlQuery query;
+    QSqlQuery query(m_db);
     if (!inf.isInTag && inf.parentFolderId == SpecialNodeID::RootFolder) {
         query.prepare(R"(SELECT )"
                       R"("id",)"
@@ -854,7 +803,7 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
         QVector<QSet<int>> nds;
         for (const auto& tagId : inf.currentTagList) {
             QSet<int> nd;
-            QSqlQuery query;
+            QSqlQuery query(m_db);
             query.prepare(R"(SELECT "node_id" FROM tag_relationship WHERE tag_id = :tag_id;)");
             query.bindValue(QStringLiteral(":tag_id"), tagId);
             bool status = query.exec();
@@ -928,7 +877,7 @@ void DBManager::clearSearch(const ListViewInfo &inf)
 
 void DBManager::updateRelPosNode(int nodeId, int relPos)
 {
-    QSqlQuery query;
+    QSqlQuery query(m_db);
     query.prepare(QStringLiteral("UPDATE node_table SET relative_position = :relative_position "
                                  "WHERE id = :id;"));
     query.bindValue(QStringLiteral(":relative_position"), relPos);
@@ -941,7 +890,7 @@ void DBManager::updateRelPosNode(int nodeId, int relPos)
 
 void DBManager::updateRelPosTag(int tagId, int relPos)
 {
-    QSqlQuery query;
+    QSqlQuery query(m_db);
     query.prepare(QStringLiteral("UPDATE tag_table SET relative_position = :relative_position "
                                  "WHERE id = :id;"));
     query.bindValue(QStringLiteral(":relative_position"), relPos);
@@ -966,7 +915,7 @@ void DBManager::onNodeTagTreeRequested()
 void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive)
 {
     QVector<NodeData> nodeList;
-    QSqlQuery query;
+    QSqlQuery query(m_db);
     if (parentID == SpecialNodeID::RootFolder) {
         query.prepare(R"(SELECT )"
                       R"("id",)"
@@ -1118,7 +1067,7 @@ void DBManager::onNotesListInTagsRequested(const QSet<int> &tagIds)
     inf.currentNoteId = SpecialNodeID::InvalidNoteId;
     for (const auto& tagId : tagIds) {
         QSet<int> nd;
-        QSqlQuery query;
+        QSqlQuery query(m_db);
         query.prepare(R"(SELECT "node_id" FROM tag_relationship WHERE tag_id = :tag_id;)");
         query.bindValue(QStringLiteral(":tag_id"), tagId);
         bool status = query.exec();
@@ -1205,74 +1154,224 @@ void DBManager::onCreateUpdateRequestedNoteContent(const NodeData &note)
  * \brief DBManager::onImportNotesRequested
  * \param noteList
  */
-void DBManager::onImportNotesRequested(QList<NodeData *> noteList) {
-    //    QSqlDatabase::database().transaction();
-    //    for(NodeData* note : noteList)
-    //        addNote(note);
-    //    QSqlDatabase::database().commit();
+void DBManager::onImportNotesRequested(const QString &fileName)
+{
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qDebug() << __FUNCTION__ << __LINE__ << "fail to open file";
+        return;
+    }
+    auto magic_header = file.read(16);
+    file.close();
+    if (QString::fromUtf8(magic_header).startsWith(QStringLiteral("SQLite format 3"))) {
+        qDebug() << __FUNCTION__ ;
+    } else {
+        auto noteList = readOldNBK(fileName);
+        if (noteList.isEmpty()) {
+            emit showErrorMessage(tr("Invalid file"),
+                                  "Please select a valid notes export file");
+        } else {
+            for (auto& note : noteList) {
+                note.setNodeType(NodeData::Note);
+                note.setParentId(SpecialNodeID::DefaultNotesFolder);
+                note.setParentName("Notes");
+                note.setIsTempNote(false);
+                addNode(note);
+            }
+        }
+    }
+    onNodeTagTreeRequested();
 }
 
 /*!
  * \brief DBManager::onRestoreNotesRequested
  * \param noteList
  */
-void DBManager::onRestoreNotesRequested(QList<NodeData*> noteList) {
-    this->permanantlyRemoveAllNotes();
-    this->onImportNotesRequested(noteList);
+void DBManager::onRestoreNotesRequested(const QString &fileName)
+{
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qDebug() << __FUNCTION__ << __LINE__ << "fail to open file";
+        return;
+    }
+    auto magic_header = file.read(16);
+    file.close();
+    if (QString::fromUtf8(magic_header).startsWith(QStringLiteral("SQLite format 3"))) {
+        {
+            m_db.close();
+            m_db = QSqlDatabase::database();
+        }
+        QSqlDatabase::removeDatabase(DEFAULT_DATABASE_NAME);
+        QFile::remove(m_dbpath);
+        if (!QFile::copy(fileName, m_dbpath)) {
+            qDebug() << __FUNCTION__ << "Can't import notes";
+        };
+        open(m_dbpath, false);
+    } else {
+        auto noteList = readOldNBK(fileName);
+        if (noteList.isEmpty()) {
+            emit showErrorMessage(tr("Invalid file"),
+                                  "Please select a valid notes export file");
+        } else {
+            {
+                m_db.close();
+                m_db = QSqlDatabase::database();
+            }
+            QSqlDatabase::removeDatabase(DEFAULT_DATABASE_NAME);
+            QFile::remove(m_dbpath);
+            open(m_dbpath, true);
+            for (auto& note : noteList) {
+                note.setNodeType(NodeData::Note);
+                note.setParentId(SpecialNodeID::DefaultNotesFolder);
+                note.setParentName("Notes");
+                note.setIsTempNote(false);
+                addNode(note);
+            }
+        }
+    }
+    onNodeTagTreeRequested();
 }
 
 /*!
  * \brief DBManager::onExportNotesRequested
  * \param fileName
  */
-void DBManager::onExportNotesRequested(QString fileName)
+void DBManager::onExportNotesRequested(const QString &fileName)
 {
-    //    QList<NodeData *> noteList;
-    //    QFile file(fileName);
-    //    file.open(QIODevice::WriteOnly);
-    //    QDataStream out(&file);
-    //#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-    //    out.setVersion(QDataStream::Qt_5_6);
-    //#elif QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
-    //    out.setVersion(QDataStream::Qt_5_4);
-    //#elif QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
-    //    out.setVersion(QDataStream::Qt_5_2);
-    //#endif
-    //    noteList = getAllNotes();
-    //    out << noteList;
-    //    file.close();
-    
-    //    qDeleteAll(noteList);
-    //    noteList.clear();
+    QSqlQuery query(m_db);
+    query.prepare( "BEGIN IMMEDIATE;");
+    bool status = query.exec();
+    if (!status) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+    }
+    QFile::remove(fileName);
+    if (!QFile::copy(m_dbpath, fileName)) {
+        qDebug() << __FUNCTION__ << "Can't export notes";
+    };
+
+    query.prepare( "ROLLBACK;");
+    status = query.exec();
+    if (!status) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+    }
 }
 
 /*!
  * \brief DBManager::onMigrateNotesRequested
  * \param noteList
  */
-void DBManager::onMigrateNotesRequested(QList<NodeData *> noteList)
+void DBManager::onMigrateNotesFromV0_9_0Requested(QVector<NodeData>& noteList)
 {
-    //    QSqlDatabase::database().transaction();
-    //    for(NodeData* note : noteList)
-    //        migrateNote(note);
-    //    QSqlDatabase::database().commit();
-    
-    //    qDeleteAll(noteList);
-    //    noteList.clear();
+    m_db.transaction();
+    for (auto& note: noteList) {
+        note.setNodeType(NodeData::Note);
+        note.setParentId(SpecialNodeID::DefaultNotesFolder);
+        note.setParentName("Notes");
+        note.setIsTempNote(false);
+        addNode(note);
+    }
+    m_db.commit();
 }
 
 /*!
  * \brief DBManager::onMigrateTrashRequested
  * \param noteList
  */
-void DBManager::onMigrateTrashRequested(QList<NodeData *> noteList)
+void DBManager::onMigrateTrashFrom0_9_0Requested(QVector<NodeData> &noteList)
 {
-    //    QSqlDatabase::database().transaction();
-    //    for(NodeData* note : noteList)
-    //        migrateTrash(note);
-    //    QSqlDatabase::database().commit();
-    
-    //    qDeleteAll(noteList);
-    //    noteList.clear();
+    m_db.transaction();
+    for (auto& note: noteList) {
+        note.setNodeType(NodeData::Note);
+        note.setParentId(SpecialNodeID::TrashFolder);
+        note.setParentName("Trash");
+        note.setIsTempNote(false);
+        addNode(note);
+    }
+    m_db.commit();
+}
+
+void DBManager::onMigrateNotesFrom1_5_0Requested(const QString &fileName)
+{
+    auto old_db = QSqlDatabase::addDatabase("QSQLITE", OUTSIDE_DATABASE_NAME);
+    old_db.setDatabaseName(fileName);
+    if(!old_db.open()){
+        qDebug() << __FUNCTION__ << "Error: connection with database fail";
+        return;
+    } else {
+        qDebug() << __FUNCTION__ << "Database: connection ok";
+    }
+    QVector<NodeData> notes, trash;
+    {
+        QSqlQuery query(old_db);
+        query.prepare(R"(SELECT "id", "creation_date", "modification_date", "content", "full_title" FROM "active_notes")");
+        bool status = query.exec();
+        if(status) {
+            while(query.next()) {
+                NodeData node;
+                int id =  query.value(0).toInt();
+                qint64 epochDateTimeCreation = query.value(1).toLongLong();
+                QDateTime dateTimeCreation = QDateTime::fromMSecsSinceEpoch(epochDateTimeCreation);
+                qint64 epochDateTimeModification= query.value(2).toLongLong();
+                QDateTime dateTimeModification = QDateTime::fromMSecsSinceEpoch(epochDateTimeModification);
+                QString content = query.value(3).toString();
+                QString fullTitle = query.value(4).toString();
+
+                node.setId(id);
+                node.setCreationDateTime(dateTimeCreation);
+                node.setLastModificationDateTime(dateTimeModification);
+                node.setContent(content);
+                node.setFullTitle(fullTitle);
+                notes.append(node);
+            }
+        } else {
+            qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+        }
+        query.clear();
+        query.prepare(R"(SELECT "id", "creation_date", "modification_date", "deletion_date", "content", "full_title" FROM "deleted_notes")");
+        status = query.exec();
+        if(status) {
+            while(query.next()) {
+                NodeData node;
+                int id =  query.value(0).toInt();
+                qint64 epochDateTimeCreation = query.value(1).toLongLong();
+                QDateTime dateTimeCreation = QDateTime::fromMSecsSinceEpoch(epochDateTimeCreation);
+                qint64 epochDateTimeModification= query.value(2).toLongLong();
+                QDateTime dateTimeModification = QDateTime::fromMSecsSinceEpoch(epochDateTimeModification);
+                qint64 epochDateTimeDeletion= query.value(3).toLongLong();
+                QDateTime dateTimeDeletion = QDateTime::fromMSecsSinceEpoch(epochDateTimeDeletion);
+                QString content = query.value(4).toString();
+                QString fullTitle = query.value(5).toString();
+
+                node.setId(id);
+                node.setCreationDateTime(dateTimeCreation);
+                node.setLastModificationDateTime(dateTimeModification);
+                node.setDeletionDateTime(dateTimeDeletion);
+                node.setContent(content);
+                node.setFullTitle(fullTitle);
+                trash.append(node);
+            }
+        } else {
+            qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+        }
+    }
+    for (auto& note: notes) {
+        note.setNodeType(NodeData::Note);
+        note.setParentId(SpecialNodeID::DefaultNotesFolder);
+        note.setParentName("Notes");
+        note.setIsTempNote(false);
+        addNode(note);
+    }
+    for (auto& note: trash) {
+        note.setNodeType(NodeData::Note);
+        note.setParentId(SpecialNodeID::TrashFolder);
+        note.setParentName("Trash");
+        note.setIsTempNote(false);
+        addNode(note);
+    }
+    {
+        old_db.close();
+        old_db = QSqlDatabase::database();
+    }
+    QSqlDatabase::removeDatabase(OUTSIDE_DATABASE_NAME);
 }
 
