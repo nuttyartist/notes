@@ -17,8 +17,8 @@ public:
                                         NodeTreeModel* treeModel,
                                         DBManager* dbManager,
                                         QObject *parent = nullptr);
-
-public slots:
+    void openFolder(int id);
+    void onMoveNodeRequested(int nodeId, int targetId);
 
 private slots:
     void updateTreeViewSeparator();
@@ -29,8 +29,6 @@ private slots:
     void onRenameTagRequestedFromTreeView(const QModelIndex& index, const QString& newName);
     void onChangeTagColorRequested(const QModelIndex& index);
     void onDeleteTagRequested(const QModelIndex& index);
-    void onMoveNodeRequested(int nodeId, int targetId);
-
 signals:
     void requestRenameNodeInDB(int id, const QString& newName);
     void requestRenameTagInDB(int id, const QString& newName);

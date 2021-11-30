@@ -23,6 +23,7 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
 {
     m_listDelegate = new NoteListDelegate(tagPool, m_listView);
     m_listView->setItemDelegate(m_listDelegate);
+    m_listView->setDbManager(m_dbManager);
     connect(m_dbManager, &DBManager::notesListReceived, this, &ListViewLogic::loadNoteListModel);
     // note model rows moved
     connect(m_listModel, &NoteListModel::rowsAboutToBeMoved, m_listView, &NoteListView::rowsAboutToBeMoved);
@@ -54,6 +55,10 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
             this, &ListViewLogic::updateListViewLabel);
     connect(m_listModel, &QAbstractItemModel::rowsRemoved,
             this, &ListViewLogic::updateListViewLabel);
+    connect(m_listView, &NoteListView::newNoteRequested,
+            this, &ListViewLogic::requestNewNote);
+    connect(m_listView, &NoteListView::moveNoteRequested,
+            this, &ListViewLogic::moveNoteRequested);
 }
 
 void ListViewLogic::selectNote(const QModelIndex &noteIndex)
@@ -192,7 +197,7 @@ void ListViewLogic::onSearchEditTextChanged(const QString &keyword)
             if (index.isValid()) {
                 m_listViewInfo.currentNoteId = index.data(NoteListModel::NoteID).toInt();
             } else {
-                m_listViewInfo.currentNoteId = SpecialNodeID::InvalidNoteId;
+                m_listViewInfo.currentNoteId = SpecialNodeID::InvalidNodeId;
             }
         }
         m_clearButton->show();
@@ -222,9 +227,13 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData>& noteList, const L
     } else {
         m_listView->setIsInTrash(false);
     }
-
+    if (m_listViewInfo.isInTag) {
+        m_listView->setCurrentFolderId(SpecialNodeID::InvalidNodeId);
+    } else {
+        m_listView->setCurrentFolderId(m_listViewInfo.parentFolderId);
+    }
     //    setTheme(m_currentTheme);
-    if (!m_listViewInfo.isInSearch && currentNoteId != SpecialNodeID::InvalidNoteId) {
+    if (!m_listViewInfo.isInSearch && currentNoteId != SpecialNodeID::InvalidNodeId) {
         auto index = m_listModel->getNoteIndex(currentNoteId);
         if (index.isValid()) {
             m_listView->selectionModel()->select(index, QItemSelectionModel::ClearAndSelect);

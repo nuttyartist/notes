@@ -5,6 +5,7 @@
 #include <QScrollArea>
 
 class TagPool;
+class DBManager;
 
 class NoteListView : public QListView
 {
@@ -25,8 +26,10 @@ public:
     void setCurrentRowActive(bool isActive);
     void setTheme(Theme theme);    
     void setTagPool(TagPool *newTagPool);
-
     void setIsInTrash(bool newIsInTrash);
+    void setDbManager(DBManager *newDbManager);
+
+    void setCurrentFolderId(int newCurrentFolderId);
 
 public slots:
     void onCustomContextMenu(const QPoint& point);
@@ -59,7 +62,8 @@ signals:
     void removeTagRequested(const QModelIndex& index, int tadId);
     void deleteNoteRequested(const QModelIndex& index);
     void restoreNoteRequested(const QModelIndex& index);
-
+    void newNoteRequested();
+    void moveNoteRequested(int noteId, int folderId);
 private:
     bool m_isScrollBarHidden;
     bool m_animationEnabled;
@@ -70,9 +74,14 @@ private:
     QAction* addToTagAction;
     QAction* deleteNoteAction;
     QAction* restoreNoteAction;
+    QAction* pinNoteAction;
+    QAction* newNoteAction;
     QMenu* tagsMenu;
     TagPool* m_tagPool;
+    DBManager* m_dbManager;
+    int m_currentFolderId;
     QVector<QAction*> m_noteTagActions;
+    QVector<QAction*> m_folderActions;
     bool m_isInTrash;
     QPoint m_dragStartPosition;
     QPixmap m_dragPixmap;
@@ -81,7 +90,6 @@ private:
 
     void addCurrentNoteToTag(int tagId);
     void removeCurrentNoteFromTag(int tagId);
-
 };
 
 #endif // NOTELISTVIEW_H

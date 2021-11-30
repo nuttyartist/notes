@@ -53,7 +53,8 @@ signals:
     void requestSearchInDb(const QString& keyword, const ListViewInfo& inf);
     void requestClearSearchDb(const ListViewInfo& inf);
     void requestClearSearchUI();
-
+    void requestNewNote();
+    void moveNoteRequested(int id, int target);
     void listViewLabelChanged(const QString& label1, const QString& label2);
 private slots:
     void loadNoteListModel(const QVector<NodeData>& noteList, const ListViewInfo& inf);

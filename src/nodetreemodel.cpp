@@ -453,6 +453,20 @@ QModelIndex NodeTreeModel::getAllNotesButtonIndex()
     return QModelIndex{};
 }
 
+QModelIndex NodeTreeModel::getTrashButtonIndex()
+{
+    if (rootItem) {
+        for (int i = 0; i < rootItem->childCount(); ++i) {
+            auto child = rootItem->child(i);
+            auto type = static_cast<NodeItem::Type>(child->data(NodeItem::Roles::ItemType).toInt());
+            if (type == NodeItem::Type::TrashButton) {
+                return createIndex(i, 0, child);
+            }
+        }
+    }
+    return QModelIndex{};
+}
+
 void NodeTreeModel::deleteRow(const QModelIndex &rowIndex, const QModelIndex& parentIndex)
 {
     auto type = static_cast<NodeItem::Type>(rowIndex.data(NodeItem::Roles::ItemType).toInt());

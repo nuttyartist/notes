@@ -78,6 +78,7 @@ public:
     QString getNewTagPlaceholderName();
     QVector<QModelIndex> getSeparatorIndex();
     QModelIndex getAllNotesButtonIndex();
+    QModelIndex getTrashButtonIndex();
     void deleteRow(const QModelIndex& rowIndex, const QModelIndex& parentIndex);
 
 public slots:

@@ -14,7 +14,7 @@ public:
     void setPressedIcon(const QIcon &newPressedIcon);
 
 protected:
-    bool event(QEvent *event);
+    bool event(QEvent *event) override;
 
 private:
     QIcon normalIcon;

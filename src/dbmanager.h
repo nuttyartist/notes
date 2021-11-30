@@ -23,6 +23,8 @@ struct ListViewInfo {
     int currentNoteId;
 };
 
+using FolderListType = QMap<int, QString>;
+
 class DBManager : public QObject
 {
     Q_OBJECT
@@ -31,6 +33,8 @@ public:
     Q_INVOKABLE NodePath getNodeAbsolutePath(int nodeId);
     Q_INVOKABLE NodeData getNode(int nodeId);
     Q_INVOKABLE void moveFolderToTrash(const NodeData& node);
+    Q_INVOKABLE FolderListType getFolderList();
+
 private:
     void open(const QString& path, bool doCreate = false);
     void createTables();

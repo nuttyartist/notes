@@ -23,6 +23,7 @@ DBManager::DBManager(QObject *parent)
     qRegisterMetaType<NodeTagTreeData>("NodeTagTreeData");
     qRegisterMetaType<QSet<int>>("QSet<int>");
     qRegisterMetaType<ListViewInfo>("ListViewInfo");
+    qRegisterMetaType<FolderListType>("DBManager::FolderListType");
 }
 
 /*!
@@ -512,7 +513,7 @@ bool DBManager::updateNoteContent(const NodeData& note)
     QString emptyStr;
 
     int id = note.id();
-    if (id == SpecialNodeID::InvalidNoteId) {
+    if (id == SpecialNodeID::InvalidNodeId) {
         qDebug() << "Invalid Note ID";
         return false;
     }
@@ -647,6 +648,23 @@ void DBManager::moveFolderToTrash(const NodeData &node)
     for (const auto& id : childIds) {
         moveNode(id, trashFolder);
     }
+}
+
+FolderListType DBManager::getFolderList()
+{
+    QMap<int, QString> result;
+    QSqlQuery query(m_db);
+    query.prepare(R"(SELECT "id", "title" FROM node_table WHERE id > 0 AND node_type = :node_type;)");
+    query.bindValue(":node_type", NodeData::Folder);
+    bool status = query.exec();
+    if(status) {
+        while(query.next()) {
+            result[query.value(0).toInt()] = query.value(1).toString();
+        }
+    } else {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+    }
+    return result;
 }
 
 void DBManager::moveNode(int nodeId, const NodeData &target)
@@ -843,7 +861,7 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
         }
         for (const auto& id : noteIds) {
             NodeData node = getNode(id);
-            if (node.id() != SpecialNodeID::InvalidNoteId &&
+            if (node.id() != SpecialNodeID::InvalidNodeId &&
                     node.nodeType() == NodeData::Note &&
                     node.content().contains(keyword)) {
                 nodeList.append(node);
@@ -1049,7 +1067,7 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive)
     inf.isInSearch = false;
     inf.isInTag = false;
     inf.parentFolderId = parentID;
-    inf.currentNoteId = SpecialNodeID::InvalidNoteId;
+    inf.currentNoteId = SpecialNodeID::InvalidNodeId;
     std::sort(nodeList.begin(), nodeList.end(), [] (const NodeData& a, const NodeData& b) ->bool{
         return a.lastModificationdateTime() > b.lastModificationdateTime();
     });
@@ -1064,7 +1082,7 @@ void DBManager::onNotesListInTagsRequested(const QSet<int> &tagIds)
     inf.isInSearch = false;
     inf.isInTag = true;
     inf.currentTagList = tagIds;
-    inf.currentNoteId = SpecialNodeID::InvalidNoteId;
+    inf.currentNoteId = SpecialNodeID::InvalidNodeId;
     for (const auto& tagId : tagIds) {
         QSet<int> nd;
         QSqlQuery query(m_db);
@@ -1107,7 +1125,7 @@ void DBManager::onNotesListInTagsRequested(const QSet<int> &tagIds)
     }
     for (const auto& id : noteIds) {
         NodeData node = getNode(id);
-        if (node.id() != SpecialNodeID::InvalidNoteId &&
+        if (node.id() != SpecialNodeID::InvalidNodeId &&
                 node.nodeType() == NodeData::Note) {
             nodeList.append(node);
         } else {

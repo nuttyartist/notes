@@ -373,6 +373,10 @@ void MainWindow::setupMainWindow()
 #endif
     ui->listviewLabel1->setFont(m_titleFont);
     ui->listviewLabel2->setFont(m_titleFont);
+    ui->listviewLabel1->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
+    ui->listviewLabel2->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
+    ui->listviewLabel1->setStyleSheet("QLabel { color :  rgb(0, 0, 0); }");
+    ui->listviewLabel2->setStyleSheet("QLabel { color :  rgb(132, 132, 132); }");
 }
 
 /*!
@@ -669,6 +673,13 @@ void MainWindow::setupSignalsSlots()
             this, &MainWindow::toggleNodeTree);
     connect(m_dbManager, &DBManager::showErrorMessage,
             this, &MainWindow::showErrorMessage, Qt::QueuedConnection);
+    connect(m_listViewLogic, &ListViewLogic::requestNewNote,
+            this, &MainWindow::onNewNoteButtonClicked);
+    connect(m_listViewLogic, &ListViewLogic::moveNoteRequested,
+            this, [this] (int id, int target) {
+        m_treeViewLogic->onMoveNodeRequested(id, target);
+        m_treeViewLogic->openFolder(target);
+    });
 #ifdef __APPLE__
     // Replace setUseNativeWindowFrame with just the part that handles pushing things up
     connect(this, &MainWindow::toggleFullScreen, this, [=](bool isFullScreen){adjustUpperWidgets(isFullScreen);});
@@ -1630,7 +1641,7 @@ void MainWindow::createNewNote()
             tmpNote.setParentId(SpecialNodeID::DefaultNotesFolder);
             tmpNote.setParentName("Notes");
         }
-        int noteId = SpecialNodeID::InvalidNoteId;
+        int noteId = SpecialNodeID::InvalidNodeId;
         QMetaObject::invokeMethod(m_dbManager, "nextAvailableNodeId", Qt::BlockingQueuedConnection,
                                   Q_RETURN_ARG(int, noteId)
                                   );
@@ -1668,7 +1679,7 @@ void MainWindow::selectNoteDown()
  */
 void MainWindow::setFocusOnText()
 {
-    if(m_noteEditorLogic->currentEditingNote().id() != SpecialNodeID::InvalidNoteId && !m_textEdit->hasFocus()) {
+    if(m_noteEditorLogic->currentEditingNote().id() != SpecialNodeID::InvalidNodeId && !m_textEdit->hasFocus()) {
         m_listView->setCurrentRowActive(true);
         m_textEdit->setFocus();
     }

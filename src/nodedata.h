@@ -7,7 +7,7 @@
 
 namespace SpecialNodeID {
     enum Value {
-        InvalidNoteId = -1,
+        InvalidNodeId = -1,
         RootFolder = 0,
         TrashFolder = 1,
         DefaultNotesFolder = 2,

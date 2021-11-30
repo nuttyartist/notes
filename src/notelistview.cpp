@@ -12,9 +12,11 @@
 #include <QAction>
 #include <QDrag>
 #include <QMimeData>
+#include <QMetaObject>
 #include "tagpool.h"
 #include "notelistmodel.h"
 #include "nodepath.h"
+#include "dbmanager.h"
 
 NoteListView::NoteListView(QWidget *parent)
     : QListView( parent ),
@@ -24,6 +26,8 @@ NoteListView::NoteListView(QWidget *parent)
       m_rowHeight(38),
       m_currentBackgroundColor(255, 255, 255),
       m_tagPool(nullptr),
+      m_dbManager(nullptr),
+      m_currentFolderId{SpecialNodeID::InvalidNodeId},
       m_isInTrash{false}
 {
     this->setAttribute(Qt::WA_MacShowFocusRect, 0);
@@ -53,6 +57,12 @@ NoteListView::NoteListView(QWidget *parent)
             emit restoreNoteRequested(index);
         }
     });
+    pinNoteAction = new QAction(tr("Pin Note"), this);
+    newNoteAction = new QAction(tr("New Note"), this);
+    connect(newNoteAction, &QAction::triggered, this, [this] {
+        emit newNoteRequested();
+    });
+
     m_dragPixmap.load("qrc:/images/notes_icon.icns");
 }
 
@@ -129,6 +139,16 @@ void NoteListView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, in
     }
 
     QListView::rowsAboutToBeRemoved(parent, start, end);
+}
+
+void NoteListView::setCurrentFolderId(int newCurrentFolderId)
+{
+    m_currentFolderId = newCurrentFolderId;
+}
+
+void NoteListView::setDbManager(DBManager *newDbManager)
+{
+    m_dbManager = newDbManager;
 }
 
 void NoteListView::setIsInTrash(bool newIsInTrash)
@@ -213,7 +233,7 @@ void NoteListView::mouseMoveEvent(QMouseEvent* event)
     if (!(event->buttons() & Qt::LeftButton))
         return;
     if ((event->pos() - m_dragStartPosition).manhattanLength()
-         < QApplication::startDragDistance())
+            < QApplication::startDragDistance())
         return;
 
     QDrag *drag = new QDrag(this);
@@ -431,12 +451,44 @@ void NoteListView::onCustomContextMenu(const QPoint &point)
     QModelIndex index = indexAt(point);
     if (index.isValid()) {
         contextMenu->clear();
-        contextMenu->addAction(addToTagAction);
-        contextMenu->addSeparator();
+        if (m_tagPool) {
+            contextMenu->addAction(addToTagAction);
+            contextMenu->addSeparator();
+        }
         if (m_isInTrash) {
             contextMenu->addAction(restoreNoteAction);
         }
         contextMenu->addAction(deleteNoteAction);
+        contextMenu->addSeparator();
+        contextMenu->addAction(pinNoteAction);
+        contextMenu->addSeparator();
+        if (m_dbManager) {
+            for (auto action : QT_AS_CONST(m_folderActions)) {
+                delete action;
+            }
+            m_folderActions.clear();
+            auto m = contextMenu->addMenu("Move to");
+            FolderListType folders;
+            QMetaObject::invokeMethod(m_dbManager, "getFolderList", Qt::BlockingQueuedConnection,
+                                      Q_RETURN_ARG(FolderListType, folders)
+                                      );
+            for (const auto& id: folders.keys()) {
+                if (id == m_currentFolderId) {
+                    continue;
+                }
+                auto action = new QAction(folders[id], this);
+                connect(action, &QAction::triggered, this, [this, id] {
+                    auto index = currentIndex();
+                    if (index.isValid()) {
+                        emit moveNoteRequested(index.data(NoteListModel::NoteID).toInt(), id);
+                    }
+                });
+                m->addAction(action);
+                m_folderActions.append(action);
+            }
+            contextMenu->addSeparator();
+        }
+        contextMenu->addAction(newNoteAction);
         contextMenu->exec(viewport()->mapToGlobal(point));
     }
 }

@@ -93,7 +93,7 @@ void NoteEditorLogic::showNoteInEditor(const NodeData &note)
 
 void NoteEditorLogic::onTextEditTextChanged()
 {
-    if (m_currentNote.id() != SpecialNodeID::InvalidNoteId) {
+    if (m_currentNote.id() != SpecialNodeID::InvalidNodeId) {
         m_textEdit->blockSignals(true);
         QString content = m_currentNote.content();
         if(m_textEdit->toPlainText() != content){
@@ -131,7 +131,7 @@ QDateTime NoteEditorLogic::getQDateTime(QString date)
 
 void NoteEditorLogic::showTagListForCurrentNote()
 {
-    if (m_currentNote.id() != SpecialNodeID::InvalidNoteId) {
+    if (m_currentNote.id() != SpecialNodeID::InvalidNodeId) {
         auto tagIds = m_currentNote.tagIds();
         if (tagIds.count() > 0) {
             m_tagListView->setVisible(true);
@@ -145,7 +145,7 @@ void NoteEditorLogic::showTagListForCurrentNote()
 
 void NoteEditorLogic::saveNoteToDB()
 {
-    if(m_currentNote.id() != SpecialNodeID::InvalidNoteId
+    if(m_currentNote.id() != SpecialNodeID::InvalidNodeId
             && m_isContentModified && !m_currentNote.isTempNote()) {
         emit requestCreateUpdateNote(m_currentNote);
         m_isContentModified = false;
@@ -154,10 +154,10 @@ void NoteEditorLogic::saveNoteToDB()
 
 void NoteEditorLogic::closeEditor()
 {
-    if (m_currentNote.id() != SpecialNodeID::InvalidNoteId) {
+    if (m_currentNote.id() != SpecialNodeID::InvalidNodeId) {
         saveNoteToDB();
         emit noteEditClosed(m_currentNote);
-        m_currentNote.setId(SpecialNodeID::InvalidNoteId);
+        m_currentNote.setId(SpecialNodeID::InvalidNodeId);
     } /*else {
         qDebug() << "NoteEditorLogic::closeEditor() : m_currentNote is not valid";
     }*/
@@ -182,12 +182,12 @@ NodeData NoteEditorLogic::currentEditingNote() const
 
 void NoteEditorLogic::deleteCurrentNote()
 {
-    if (m_currentNote.id() != SpecialNodeID::InvalidNoteId) {
+    if (m_currentNote.id() != SpecialNodeID::InvalidNodeId) {
         auto noteNeedDeleted = m_currentNote;
         saveNoteToDB();
         emit noteEditClosed(m_currentNote);
         emit deleteNoteRequested(noteNeedDeleted);
-        m_currentNote.setId(SpecialNodeID::InvalidNoteId);
+        m_currentNote.setId(SpecialNodeID::InvalidNodeId);
         m_textEdit->blockSignals(true);
         m_textEdit->clear();
         m_textEdit->clearFocus();
@@ -260,7 +260,7 @@ void NoteEditorLogic::highlightSearch() const
 
 bool NoteEditorLogic::isTempNote() const
 {
-    if (m_currentNote.id() != SpecialNodeID::InvalidNoteId && m_currentNote.isTempNote()) {
+    if (m_currentNote.id() != SpecialNodeID::InvalidNodeId && m_currentNote.isTempNote()) {
         return true;
     }
     return false;

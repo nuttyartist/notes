@@ -239,6 +239,31 @@ void TreeViewLogic::onDeleteTagRequested(const QModelIndex &index)
     m_treeView->setCurrentIndexC(m_treeModel->getAllNotesButtonIndex());
 }
 
+void TreeViewLogic::openFolder(int id)
+{
+    NodeData target;
+    QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection,
+                              Q_RETURN_ARG(NodeData, target),
+                              Q_ARG(int, id)
+                              );
+    if (target.nodeType() != NodeData::Folder) {
+        qDebug() << __FUNCTION__ << "Target is not folder!";
+        return;
+    }
+    if (target.id() == SpecialNodeID::TrashFolder) {
+        m_treeView->setCurrentIndexC(m_treeModel->getTrashButtonIndex());
+    } else if (target.id() == SpecialNodeID::RootFolder) {
+        m_treeView->setCurrentIndexC(m_treeModel->getAllNotesButtonIndex());
+    } else {
+        auto index = m_treeModel->folderIndexFromIdPath(target.absolutePath());
+        if (index.isValid()) {
+            m_treeView->setCurrentIndexC(index);
+        } else {
+            m_treeView->setCurrentIndexC(m_treeModel->getAllNotesButtonIndex());
+        }
+    }
+}
+
 void TreeViewLogic::onMoveNodeRequested(int nodeId, int targetId)
 {
     NodeData target;

@@ -2,7 +2,7 @@
 #include <QDataStream>
 
 NodeData::NodeData():
-    m_id{SpecialNodeID::InvalidNoteId},
+    m_id{SpecialNodeID::InvalidNodeId},
     m_isModified(false),
     m_isSelected(false),
     m_scrollBarPosition(0),
