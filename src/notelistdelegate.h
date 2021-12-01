@@ -37,7 +37,7 @@ public:
     void setHoveredIndex(const QModelIndex &hoveredIndex);
     void setRowRightOffset(int rowRightOffset);
     void setActive(bool isActive);
-    void setTheme(NoteListView::Theme theme);    
+    void setTheme(Theme theme);
     void setIsInAllNotes(bool newIsInAllNotes);
 
 private:
@@ -68,7 +68,7 @@ private:
     bool m_isActive;
     bool m_isInAllNotes;
     QImage m_folderIcon;
-
+    Theme m_theme;
     QTimeLine *m_timeLine;
     QModelIndex m_animatedIndex;
     QModelIndex m_currentSelectedIndex;

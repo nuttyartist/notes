@@ -79,7 +79,7 @@ FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
                                             R"(})"));
     connect(m_contextButton, &QPushButton::clicked, m_view, [this] (bool) {
         auto tree_view = dynamic_cast<NodeTreeView*>(m_view);
-        tree_view->setCurrentIndex(m_index);
+        tree_view->setCurrentIndexC(m_index);
         tree_view->onCustomContextMenu(
                     tree_view->visualRect(m_index).topLeft() + m_contextButton->geometry().bottomLeft());
     });
@@ -92,7 +92,7 @@ FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
 void FolderTreeDelegateEditor::updateDelegate()
 {
     auto displayName = m_index.data(NodeItem::Roles::DisplayText).toString();
-    if(m_view->currentIndex() == m_index) {
+    if (m_view->selectionModel()->isSelected(m_index)) {
         m_label->setStyleSheet(QStringLiteral("QLabel{color: rgb(%1, %2, %3);}")
                                .arg(QString::number(m_titleSelectedColor.red()),
                                     QString::number(m_titleSelectedColor.green()),
@@ -123,7 +123,7 @@ void FolderTreeDelegateEditor::paintEvent(QPaintEvent *event)
 {
     updateDelegate();
     QPainter painter(this);
-    if(m_view->currentIndex() == m_index) {
+    if (m_view->selectionModel()->isSelected(m_index)) {
         painter.fillRect(rect(), QBrush(m_activeColor));
     } else {
         painter.fillRect(rect(), QBrush(m_hoverColor));

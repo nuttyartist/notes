@@ -402,6 +402,13 @@ void ListViewLogic::selectFirstNote()
     }
 }
 
+void ListViewLogic::setTheme(Theme theme)
+{
+    m_listView->setTheme(theme);
+    m_listDelegate->setTheme(theme);
+    m_listView->update();
+}
+
 const ListViewInfo &ListViewLogic::listViewInfo() const
 {
     return m_listViewInfo;

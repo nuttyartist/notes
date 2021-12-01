@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include "dbmanager.h"
+#include "styleeditorwindow.h"
 
 class NodeTreeView;
 class NodeTreeModel;
@@ -19,6 +20,7 @@ public:
                                         QObject *parent = nullptr);
     void openFolder(int id);
     void onMoveNodeRequested(int nodeId, int targetId);
+    void setTheme(Theme theme);
 
 private slots:
     void updateTreeViewSeparator();

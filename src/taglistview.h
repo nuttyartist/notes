@@ -11,6 +11,14 @@ public:
 
 signals:
 
+
+    // QWidget interface
+public:
+    virtual QSize sizeHint() const override;
+
+    // QAbstractItemView interface
+public slots:
+    virtual void reset() override;
 };
 
 #endif // TAGLISTVIEW_H

@@ -5,6 +5,7 @@
 #include <QVector>
 #include "nodedata.h"
 #include "dbmanager.h"
+#include "styleeditorwindow.h"
 
 class NoteListView;
 class NoteListModel;
@@ -29,6 +30,7 @@ public:
 
     const ListViewInfo &listViewInfo() const;
     void selectFirstNote();
+    void setTheme(Theme theme);
 
 public slots:
     void moveNoteToTop(const NodeData& note);

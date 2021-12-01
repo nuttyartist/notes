@@ -39,7 +39,7 @@ void DefaultNoteFolderDelegateEditor::paintEvent(QPaintEvent *event)
     QRect nameRect(rect());
     nameRect.setLeft(iconRect.x() + iconRect.width() + 5);
     auto displayName = m_index.data(NodeItem::Roles::DisplayText).toString();
-    if (m_view->currentIndex() == m_index) {
+    if (m_view->selectionModel()->isSelected(m_index)) {
         painter.fillRect(rect(), QBrush(m_activeColor));
         painter.setPen(m_titleSelectedColor);
     } else {

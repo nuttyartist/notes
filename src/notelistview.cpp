@@ -400,7 +400,6 @@ void NoteListView::setupStyleSheet()
     QString ss = QString("QListView {background-color: %1;} "
                          ).arg(m_currentBackgroundColor.name());
 #endif
-
     setStyleSheet(ss);
 }
 

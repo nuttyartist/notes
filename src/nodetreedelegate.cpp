@@ -38,9 +38,51 @@ NodeTreeDelegate::NodeTreeDelegate(QTreeView *view, QObject *parent):
     m_separatorColor(221, 221, 221),
     m_defaultColor(255, 255, 255),
     m_separatorTextColor(143, 143, 143),
-    m_view(view)
+    m_currentBackgroundColor(255, 255, 255),
+    m_view(view),
+    m_theme(Theme::Light)
 {
 
+}
+
+void NodeTreeDelegate::setTheme(Theme theme)
+{
+    m_theme = theme;
+    switch (theme) {
+    case Theme::Light:
+    {
+        m_titleColor = QColor(26, 26, 26);
+        m_dateColor = QColor(26, 26, 26);
+        m_defaultColor = QColor(255, 255, 255);
+        m_ActiveColor = QColor(218, 233, 239);
+        m_notActiveColor = QColor(175, 212, 228);
+        m_hoverColor = QColor(207, 207, 207);
+        m_currentBackgroundColor = QColor(255, 255, 255);
+        break;
+    }
+    case Theme::Dark:
+    {
+        m_titleColor = QColor(204, 204, 204);
+        m_dateColor = QColor(204, 204, 204);
+        m_defaultColor = QColor(16, 16, 16);
+        m_ActiveColor = QColor(0, 59, 148);
+        m_notActiveColor = QColor(0, 59, 148);
+        m_hoverColor = QColor(15, 45, 90);
+        m_currentBackgroundColor = QColor(16, 16, 16);
+        break;
+    }
+    case Theme::Sepia:
+    {
+        m_titleColor = QColor(26, 26, 26);
+        m_dateColor = QColor(26, 26, 26);
+        m_defaultColor = QColor(251, 240, 217);
+        m_ActiveColor = QColor(218, 233, 239);
+        m_notActiveColor = QColor(175, 212, 228);
+        m_hoverColor = QColor(207, 207, 207);
+        m_currentBackgroundColor = QColor(251, 240, 217);
+        break;
+    }
+    }
 }
 
 void NodeTreeDelegate::paint(QPainter *painter,
@@ -50,7 +92,7 @@ void NodeTreeDelegate::paint(QPainter *painter,
     painter->setRenderHint(QPainter::Antialiasing);
     auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
 
-    painter->fillRect(option.rect, Qt::white);
+    painter->fillRect(option.rect, m_currentBackgroundColor);
     switch (itemType) {
     case NodeItem::Type::RootItem: {
         break;
@@ -59,8 +101,16 @@ void NodeTreeDelegate::paint(QPainter *painter,
     case NodeItem::Type::TrashButton: {
         paintBackgroundSelectable(painter, option);
         auto iconRect = QRect(option.rect.x() + 5, option.rect.y() + (option.rect.height() - 20) / 2, 18, 20);
-        auto iconPath = index.data(NodeItem::Roles::Icon).toString();
-        painter->drawImage(iconRect, QImage(iconPath));
+        if (m_theme == Theme::Dark) {
+            if (itemType == NodeItem::Type::AllNoteButton) {
+                painter->drawImage(iconRect, QImage(":/images/all-notes-icon-dark.png"));
+            } else if (itemType == NodeItem::Type::TrashButton) {
+                painter->drawImage(iconRect, QImage(":/images/trash-icon-dark.png"));
+            }
+        } else {
+            auto iconPath = index.data(NodeItem::Roles::Icon).toString();
+            painter->drawImage(iconRect, QImage(iconPath));
+        }
         auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
         QRect nameRect(option.rect);
         nameRect.setLeft(iconRect.x() + iconRect.width() + 5);

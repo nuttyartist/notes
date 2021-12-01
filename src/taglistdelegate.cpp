@@ -17,7 +17,8 @@ TagListDelegate::TagListDelegate(QObject *parent) :
     #else
     m_titleFont(m_displayFont, 10, 60),
     #endif
-    m_titleColor(26, 26, 26)
+    m_titleColor(26, 26, 26),
+    m_theme(Theme::Light)
 {
 
 }
@@ -32,7 +33,11 @@ void TagListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
     rect.setHeight(20);
     QPainterPath path;
     path.addRoundedRect(rect, 10, 10);
-    painter->fillPath(path, QColor(218, 235, 248));
+    if (m_theme == Theme::Dark) {
+        painter->fillPath(path, QColor(76, 85, 97));
+    } else {
+        painter->fillPath(path, QColor(218, 235, 248));
+    }
     auto iconRect = QRect(rect.x() + 5, rect.y() + (rect.height() - 12) / 2, 12, 12);
     painter->setBrush(QColor(color));
     painter->setPen(QColor(color));
@@ -56,4 +61,26 @@ QSize TagListDelegate::sizeHint(const QStyleOptionViewItem &option, const QModel
     QRect fmRectName = fmName.boundingRect(name);
     size.setWidth(5 + 12 + 5 + fmRectName.width() + 7);
     return size;
+}
+
+void TagListDelegate::setTheme(Theme newTheme)
+{
+    m_theme = newTheme;
+    switch(m_theme){
+    case Theme::Light:
+    {
+        m_titleColor = QColor(26, 26, 26);
+        break;
+    }
+    case Theme::Dark:
+    {
+        m_titleColor = QColor(204, 204, 204);
+        break;
+    }
+    case Theme::Sepia:
+    {
+        m_titleColor = QColor(26, 26, 26);
+        break;
+    }
+    }
 }

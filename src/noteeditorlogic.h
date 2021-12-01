@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QTimer>
 #include "nodedata.h"
+#include "styleeditorwindow.h"
 
 class CustomDocument;
 class MarkdownHighlighter;
@@ -13,6 +14,7 @@ class DBManager;
 class TagListView;
 class TagListModel;
 class TagPool;
+class TagListDelegate;
 
 class NoteEditorLogic : public QObject
 {
@@ -37,6 +39,7 @@ public:
 
     static QString getFirstLine(const QString &str);
     static QString getSecondLine(const QString &str);
+    void setTheme(Theme newTheme);
 
 public slots:
     void showNoteInEditor(const NodeData& note);
@@ -65,6 +68,7 @@ private:
     NodeData m_currentNote;
     bool m_isContentModified;
     QTimer m_autoSaveTimer;
+    TagListDelegate* m_tagListDelegate;
     TagListModel* m_tagListModel;
 };
 

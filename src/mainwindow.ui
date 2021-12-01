@@ -856,7 +856,7 @@ p, li { white-space: pre-wrap; }
            <item>
             <widget class="TagListView" name="tagListView">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -870,7 +870,7 @@ p, li { white-space: pre-wrap; }
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>33</height>
+               <height>80</height>
               </size>
              </property>
             </widget>

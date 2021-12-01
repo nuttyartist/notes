@@ -3,6 +3,7 @@
 
 #include <QListView>
 #include <QScrollArea>
+#include "styleeditorwindow.h"
 
 class TagPool;
 class DBManager;
@@ -12,12 +13,6 @@ class NoteListView : public QListView
     Q_OBJECT
 
 public:
-    enum class Theme {
-        Light,
-        Dark,
-        Sepia
-    };
-
     explicit NoteListView(QWidget* parent = Q_NULLPTR);
     ~NoteListView();
 

@@ -45,7 +45,8 @@ NoteListDelegate::NoteListDelegate(TagPool *tagPool, QObject *parent)
       m_rowRightOffset(0),
       m_state(Normal),
       m_isActive(false),
-      m_isInAllNotes(false)
+      m_isInAllNotes(false),
+      m_theme(Theme::Light)
 {
     m_timeLine = new QTimeLine(300, this);
     m_timeLine->setFrameRange(0,m_maxFrame);
@@ -60,6 +61,7 @@ NoteListDelegate::NoteListDelegate(TagPool *tagPool, QObject *parent)
         m_animatedIndex = QModelIndex();
         m_state = Normal;
     });
+
 }
 
 void NoteListDelegate::setState(States NewState, QModelIndex index)
@@ -337,7 +339,9 @@ void NoteListDelegate::paintTagList(int top, QPainter *painter, const QStyleOpti
         left += rect.width() + 5;
         QPainterPath path;
         path.addRoundedRect(rect, 10, 10);
-        if((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
+        if (m_theme == Theme::Dark) {
+            painter->fillPath(path, QColor(76, 85, 97));
+        } else if((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
             painter->fillPath(path, QColor(218, 235, 248));
         } else {
             painter->fillPath(path, QColor(227, 234, 243));
@@ -399,22 +403,38 @@ void NoteListDelegate::setCurrentSelectedIndex(const QModelIndex &currentSelecte
     m_currentSelectedIndex = currentSelectedIndex;
 }
 
-void NoteListDelegate::setTheme(NoteListView::Theme theme)
+void NoteListDelegate::setTheme(Theme theme)
 {
-    switch(theme){
-    case NoteListView::Theme::Light:
+    m_theme = theme;
+    switch(m_theme){
+    case Theme::Light:
     {
+        m_titleColor = QColor(26, 26, 26);
+        m_dateColor = QColor(26, 26, 26);
         m_defaultColor = QColor(255, 255, 255);
+        m_ActiveColor = QColor(218, 233, 239);
+        m_notActiveColor = QColor(175, 212, 228);
+        m_hoverColor = QColor(207, 207, 207);
         break;
     }
-    case NoteListView::Theme::Dark:
+    case Theme::Dark:
     {
+        m_titleColor = QColor(204, 204, 204);
+        m_dateColor = QColor(204, 204, 204);
         m_defaultColor = QColor(16, 16, 16);
+        m_ActiveColor = QColor(0, 59, 148);
+        m_notActiveColor = QColor(0, 59, 148);
+        m_hoverColor = QColor(15, 45, 90);
         break;
     }
-    case NoteListView::Theme::Sepia:
+    case Theme::Sepia:
     {
+        m_titleColor = QColor(26, 26, 26);
+        m_dateColor = QColor(26, 26, 26);
         m_defaultColor = QColor(251, 240, 217);
+        m_ActiveColor = QColor(218, 233, 239);
+        m_notActiveColor = QColor(175, 212, 228);
+        m_hoverColor = QColor(207, 207, 207);
         break;
     }
     }

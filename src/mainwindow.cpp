@@ -1025,6 +1025,7 @@ void MainWindow::setupDatabases()
     m_dbThread->setObjectName(QStringLiteral("dbThread"));
     m_dbManager->moveToThread(m_dbThread);
     connect(m_dbThread, &QThread::started, this, [=](){
+        setTheme(m_currentTheme);
         emit requestOpenDBManager(noteDBFilePath, doCreate);
         if (needMigrateFromV1_5_0) {
             emit requestMigrateNotesFromV1_5_0(dir.path() + QDir::separator() + QStringLiteral("oldNotes.db"));
@@ -1549,9 +1550,13 @@ void MainWindow::setTheme(Theme theme)
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
         this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(247, 247, 247); }"));
         m_textEdit->setTextColor(m_currentEditorTextColor);
-        m_listView->setTheme(NoteListView::Theme::Light);
+        m_listViewLogic->setTheme(Theme::Light);
         m_styleEditorWindow.setTheme(Theme::Light, m_currentThemeBackgroundColor, m_currentEditorTextColor);
         m_aboutWindow.setTheme(m_currentThemeBackgroundColor, m_currentEditorTextColor);
+        m_noteEditorLogic->setTheme(theme);
+        ui->listviewLabel1->setStyleSheet(QStringLiteral("QLabel { color : %1; }")
+                                          .arg(QColor(26, 26, 26).name()));
+        m_treeViewLogic->setTheme(theme);
         break;
     }
     case Theme::Dark:
@@ -1562,9 +1567,13 @@ void MainWindow::setTheme(Theme theme)
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
         this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(26, 26, 26); }"));
         m_textEdit->setTextColor(m_currentEditorTextColor);
-        m_listView->setTheme(NoteListView::Theme::Dark);
+        m_listViewLogic->setTheme(Theme::Dark);
         m_styleEditorWindow.setTheme(Theme::Dark, m_currentThemeBackgroundColor, m_currentEditorTextColor);
         m_aboutWindow.setTheme(m_currentThemeBackgroundColor, m_currentEditorTextColor);
+        m_noteEditorLogic->setTheme(theme);
+        ui->listviewLabel1->setStyleSheet(QStringLiteral("QLabel { color : %1; }")
+                                          .arg(QColor(204, 204, 204).name()));
+        m_treeViewLogic->setTheme(theme);
         break;
     }
     case Theme::Sepia:
@@ -1575,9 +1584,13 @@ void MainWindow::setTheme(Theme theme)
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
         this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(251, 240, 217); }"));
         m_textEdit->setTextColor(m_currentEditorTextColor);
-        m_listView->setTheme(NoteListView::Theme::Sepia);
+        m_listViewLogic->setTheme(Theme::Sepia);
         m_styleEditorWindow.setTheme(Theme::Sepia, m_currentThemeBackgroundColor, QColor(26, 26, 26));
         m_aboutWindow.setTheme(m_currentThemeBackgroundColor, QColor(26, 26, 26));
+        m_noteEditorLogic->setTheme(theme);
+        ui->listviewLabel1->setStyleSheet(QStringLiteral("QLabel { color : %1; }")
+                                          .arg(QColor(26, 26, 26).name()));
+        m_treeViewLogic->setTheme(theme);
         break;
     }
     }
@@ -1627,12 +1640,16 @@ void MainWindow::createNewNote()
         tmpNote.setCreationDateTime(noteDate);
         tmpNote.setLastModificationDateTime(noteDate);
         tmpNote.setFullTitle(QStringLiteral("New Note"));
-        auto parentIndex = m_treeView->currentIndex();
-        if (parentIndex.isValid()) {
-            auto parentType = static_cast<NodeItem::Type>(parentIndex.data(NodeItem::Roles::ItemType).toInt());
-            if (parentType == NodeItem::Type::FolderItem) {
-                tmpNote.setParentId(parentIndex.data(NodeItem::Roles::NodeId).toInt());
-                tmpNote.setParentName(parentIndex.data(NodeItem::Roles::DisplayText).toString());
+        auto inf = m_listViewLogic->listViewInfo();
+        if ((!inf.isInTag) && (inf.parentFolderId > SpecialNodeID::RootFolder)) {
+            NodeData parent;
+            QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection,
+                                      Q_RETURN_ARG(NodeData, parent),
+                                      Q_ARG(int, inf.parentFolderId)
+                                      );
+            if (parent.nodeType() == NodeData::Folder) {
+                tmpNote.setParentId(parent.id());
+                tmpNote.setParentName(parent.fullTitle());
             } else {
                 tmpNote.setParentId(SpecialNodeID::DefaultNotesFolder);
                 tmpNote.setParentName("Notes");
@@ -1647,7 +1664,6 @@ void MainWindow::createNewNote()
                                   );
         tmpNote.setId(noteId);
         tmpNote.setIsTempNote(true);
-        auto inf = m_listViewLogic->listViewInfo();
         if (inf.isInTag) {
             tmpNote.setTagIds(inf.currentTagList);
         }

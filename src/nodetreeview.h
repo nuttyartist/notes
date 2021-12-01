@@ -3,6 +3,7 @@
 
 #include <QTreeView>
 #include <QTimer>
+#include "styleeditorwindow.h"
 
 class QMenu;
 class QAction;
@@ -18,16 +19,14 @@ public:
     void onRenameFolderFinished(const QString& newName);
     void onRenameTagFinished(const QString& newName);
     void setCurrentIndexC(const QModelIndex& index);
+    void setTheme(Theme theme);
+    Theme theme() const;
+
 public slots:
     void onCustomContextMenu(const QPoint& point);
     void onChangeTagColorAction();
     void onRequestExpand(const QString& folderPath);
     void onUpdateAbsPath(const QString& oldPath, const QString& newPath);
-
-protected:
-    void mouseMoveEvent(QMouseEvent *event) override;
-    void mousePressEvent(QMouseEvent *event) override;
-    void leaveEvent(QEvent *event) override;
 
 signals:
     void addFolderRequested();
@@ -44,7 +43,6 @@ signals:
     void addNoteToTag(int noteId, int tagId);
 
 private slots:
-    void onClicked(const QModelIndex& index);
     void onDeleteNodeAction();
     void onExpanded(const QModelIndex& index);
     void onCollapsed(const QModelIndex& index);
@@ -62,6 +60,7 @@ private:
     QModelIndex m_currentEditingIndex;
     bool m_isContextMenuOpened;
     bool m_isEditing;
+    Theme m_theme;
     QVector<QString> m_expanded;
     void updateEditingIndex(const QPoint &pos);
     void closeCurrentEditor();
@@ -76,6 +75,10 @@ protected:
     virtual void dragEnterEvent(QDragEnterEvent *event) override;
     virtual void dropEvent(QDropEvent *event) override;
     virtual void dragMoveEvent(QDragMoveEvent *event) override;
+    virtual void mouseMoveEvent(QMouseEvent *event) override;
+    virtual void mousePressEvent(QMouseEvent *event) override;
+    virtual void leaveEvent(QEvent *event) override;
+    virtual void mouseReleaseEvent(QMouseEvent *event) override;
 
     // QAbstractItemView interface
 public slots:

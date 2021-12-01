@@ -278,3 +278,10 @@ void TreeViewLogic::onMoveNodeRequested(int nodeId, int targetId)
     emit requestMoveNodeInDB(nodeId, target);
 }
 
+void TreeViewLogic::setTheme(Theme theme)
+{
+    m_treeView->setTheme(theme);
+    m_treeDelegate->setTheme(theme);
+    m_treeView->update();
+}
+

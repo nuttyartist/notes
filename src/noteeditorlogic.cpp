@@ -39,7 +39,8 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit,
     m_tagListModel = new TagListModel{this};
     m_tagListModel->setTagPool(tagPool);
     m_tagListView->setModel(m_tagListModel);
-    m_tagListView->setItemDelegate(new TagListDelegate{this});
+    m_tagListDelegate = new TagListDelegate{this};
+    m_tagListView->setItemDelegate(m_tagListDelegate);
     connect(tagPool, &TagPool::dataUpdated, this, [this] (int) {
         showTagListForCurrentNote();
     });
@@ -226,6 +227,11 @@ QString NoteEditorLogic::getSecondLine(const QString &str)
     QString text = sl[1].trimmed();
     QTextStream ts(&text);
     return ts.readLine(FIRST_LINE_MAX);
+}
+
+void NoteEditorLogic::setTheme(Theme newTheme)
+{
+    m_tagListDelegate->setTheme(newTheme);
 }
 
 QString NoteEditorLogic::getNoteDateEditor(QString dateEdited)
