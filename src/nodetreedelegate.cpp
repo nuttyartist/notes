@@ -54,7 +54,7 @@ void NodeTreeDelegate::setTheme(Theme theme)
         m_titleColor = QColor(26, 26, 26);
         m_dateColor = QColor(26, 26, 26);
         m_defaultColor = QColor(255, 255, 255);
-        m_ActiveColor = QColor(218, 233, 239);
+//        m_ActiveColor = QColor(218, 233, 239);
         m_notActiveColor = QColor(175, 212, 228);
         m_hoverColor = QColor(207, 207, 207);
         m_currentBackgroundColor = QColor(255, 255, 255);
@@ -65,7 +65,7 @@ void NodeTreeDelegate::setTheme(Theme theme)
         m_titleColor = QColor(204, 204, 204);
         m_dateColor = QColor(204, 204, 204);
         m_defaultColor = QColor(16, 16, 16);
-        m_ActiveColor = QColor(0, 59, 148);
+//        m_ActiveColor = QColor(0, 59, 148);
         m_notActiveColor = QColor(0, 59, 148);
         m_hoverColor = QColor(15, 45, 90);
         m_currentBackgroundColor = QColor(16, 16, 16);
@@ -76,7 +76,7 @@ void NodeTreeDelegate::setTheme(Theme theme)
         m_titleColor = QColor(26, 26, 26);
         m_dateColor = QColor(26, 26, 26);
         m_defaultColor = QColor(251, 240, 217);
-        m_ActiveColor = QColor(218, 233, 239);
+//        m_ActiveColor = QColor(218, 233, 239);
         m_notActiveColor = QColor(175, 212, 228);
         m_hoverColor = QColor(207, 207, 207);
         m_currentBackgroundColor = QColor(251, 240, 217);

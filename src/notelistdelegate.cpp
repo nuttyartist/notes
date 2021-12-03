@@ -438,6 +438,7 @@ QWidget *NoteListDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
         return nullptr;
     }
     auto w = new NoteListDelegateEditor(this, m_view, option, index, m_tagPool, parent);
+    w->setTheme(m_theme);
     connect(this, &NoteListDelegate::themeChanged,
             w, &NoteListDelegateEditor::setTheme);
     connect(w, &NoteListDelegateEditor::updateSizeHint,
