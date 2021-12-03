@@ -19,7 +19,7 @@ QModelIndex NoteListModel::addNote(const NodeData& note)
     beginInsertRows(QModelIndex(), rowCnt, rowCnt);
     m_noteList << note;
     endInsertRows();
-
+    emit rowCountChanged();
     return createIndex(rowCnt, 0);
 }
 
@@ -31,6 +31,7 @@ QModelIndex NoteListModel::insertNote(const NodeData &note, int row)
         beginInsertRows(QModelIndex(), row, row);
         m_noteList.insert(row, note);
         endInsertRows();
+        emit rowCountChanged();
     }
 
     return createIndex(row, 0);
@@ -56,6 +57,7 @@ void NoteListModel::setListNote(const QVector<NodeData> notes)
     beginResetModel();
     m_noteList = notes;
     endResetModel();
+    emit rowCountChanged();
 }
 
 void NoteListModel::removeNote(const QModelIndex &noteIndex)
@@ -65,6 +67,7 @@ void NoteListModel::removeNote(const QModelIndex &noteIndex)
         beginRemoveRows(QModelIndex(), row, row);
         m_noteList.takeAt(row);
         endRemoveRows();
+        emit rowCountChanged();
     }
 }
 
@@ -82,6 +85,7 @@ bool NoteListModel::moveRow(const QModelIndex &sourceParent, int sourceRow, cons
     if (beginMoveRows(sourceParent,sourceRow,sourceRow,destinationParent,destinationChild)) {
         vector_move(m_noteList, sourceRow, destinationChild);
         endMoveRows();
+        emit rowCountChanged();
         return true;
     }
     return false;
@@ -92,6 +96,7 @@ void NoteListModel::clearNotes()
     beginResetModel();
     m_noteList.clear();
     endResetModel();
+    emit rowCountChanged();
 }
 
 QVariant NoteListModel::data(const QModelIndex &index, int role) const
@@ -118,8 +123,10 @@ QVariant NoteListModel::data(const QModelIndex &index, int role) const
         return QVariant::fromValue(note.tagIds());
     }else if(role == NoteIsTemp){
         return note.isTempNote();
-    }else if(role == NodeParentName){
+    }else if(role == NoteParentName){
         return note.parentName();
+    } else if (role == NoteTagListScrollbarPos) {
+        return note.tagListScrollBarPos();
     }
 
     return QVariant();
@@ -150,8 +157,10 @@ bool NoteListModel::setData(const QModelIndex &index, const QVariant &value, int
         note.setTagIds(value.value<QSet<int>>());
     }else if(role == NoteIsTemp) {
         note.setIsTempNote(value.toBool());
-    }else if(role == NodeParentName) {
+    }else if(role == NoteParentName) {
         note.setParentName(value.toString());
+    } else if (role == NoteTagListScrollbarPos) {
+        note.setTagListScrollBarPos(value.toInt());
     } else {
         return false;
     }
@@ -159,7 +168,6 @@ bool NoteListModel::setData(const QModelIndex &index, const QVariant &value, int
     emit dataChanged(this->index(index.row()),
                      this->index(index.row()),
                      QVector<int>(1,role));
-
     return true;
 }
 

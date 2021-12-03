@@ -6,6 +6,7 @@
 #include "nodedata.h"
 #include "dbmanager.h"
 #include "styleeditorwindow.h"
+#include <QModelIndex>
 
 class NoteListView;
 class NoteListModel;
@@ -66,6 +67,7 @@ private slots:
     void deleteNoteRequestedI(const QModelIndex& index);
     void restoreNoteRequestedI(const QModelIndex& index);
     void updateListViewLabel();
+    void onRowCountChanged();
 private:
     NoteListView* m_listView;
     NoteListModel* m_listModel;
@@ -75,6 +77,7 @@ private:
     NoteListDelegate* m_listDelegate;
     TagPool* m_tagPool;
     ListViewInfo m_listViewInfo;
+    QVector<QModelIndex> m_editorIndexes;
 };
 
 #endif // LISTVIEWLOGIC_H

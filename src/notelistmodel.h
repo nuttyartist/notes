@@ -6,9 +6,8 @@
 
 class NoteListModel : public QAbstractListModel
 {
-
+    Q_OBJECT
 public:
-
     enum NoteRoles{
         NoteID = Qt::UserRole + 1,
         NoteFullTitle,
@@ -19,7 +18,8 @@ public:
         NoteScrollbarPos,
         NoteTagsList,
         NoteIsTemp,
-        NodeParentName,
+        NoteParentName,
+        NoteTagListScrollbarPos
     };
 
     explicit NoteListModel(QObject *parent = Q_NULLPTR);
@@ -48,6 +48,7 @@ private:
 
 signals:
     void noteRemoved();
+    void rowCountChanged();
 };
 
 #endif // NOTELISTMODEL_H

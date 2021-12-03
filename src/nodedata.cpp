@@ -7,7 +7,8 @@ NodeData::NodeData():
     m_isSelected(false),
     m_scrollBarPosition(0),
     m_isTempNote{false},
-    m_isPinnedNote{false}
+    m_isPinnedNote{false},
+    m_tagListScrollBarPos{0}
 {
 
 }
@@ -170,6 +171,16 @@ bool NodeData::isPinnedNote() const
 void NodeData::setIsPinnedNote(bool newIsPinnedNote)
 {
     m_isPinnedNote = newIsPinnedNote;
+}
+
+int NodeData::tagListScrollBarPos() const
+{
+    return m_tagListScrollBarPos;
+}
+
+void NodeData::setTagListScrollBarPos(int newTagListScrollBarPos)
+{
+    m_tagListScrollBarPos = newTagListScrollBarPos;
 }
 
 QDateTime NodeData::creationDateTime() const

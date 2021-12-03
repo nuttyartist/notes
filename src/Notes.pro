@@ -30,6 +30,7 @@ SOURCES += \
     mainwindow.cpp \
     noteeditorlogic.cpp \
     notelistdelegate.cpp \
+    notelistdelegateeditor.cpp \
     notelistmodel.cpp \
     notelistview.cpp \
     singleinstance.cpp \
@@ -62,6 +63,7 @@ HEADERS  += \
     mainwindow.h \
     noteeditorlogic.h \
     notelistdelegate.h \
+    notelistdelegateeditor.h \
     notelistmodel.h \
     notelistview.h \
     singleinstance.h \

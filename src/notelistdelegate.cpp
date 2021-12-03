@@ -10,9 +10,11 @@
 #include "noteeditorlogic.h"
 #include "tagpool.h"
 #include "nodepath.h"
+#include "notelistdelegateeditor.h"
 
-NoteListDelegate::NoteListDelegate(TagPool *tagPool, QObject *parent)
+NoteListDelegate::NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject *parent)
     : QStyledItemDelegate(parent),
+      m_view{view},
       m_tagPool{tagPool},
       #ifdef __APPLE__
       m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")),
@@ -58,6 +60,7 @@ NoteListDelegate::NoteListDelegate(TagPool *tagPool, QObject *parent)
     });
 
     connect(m_timeLine, &QTimeLine::finished, this, [this](){
+        m_view->openPersistentEditor(m_animatedIndex);
         m_animatedIndex = QModelIndex();
         m_state = Normal;
     });
@@ -69,6 +72,7 @@ void NoteListDelegate::setState(States NewState, QModelIndex index)
     m_animatedIndex = index;
 
     auto startAnimation = [this](QTimeLine::Direction diretion, int duration){
+        m_view->closePersistentEditor(m_animatedIndex);
         m_timeLine->setDirection(diretion);
         m_timeLine->setDuration(duration);
         m_timeLine->start();
@@ -102,6 +106,7 @@ void NoteListDelegate::setAnimationDuration(const int duration)
 
 void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+//    return;
     painter->setRenderHint(QPainter::Antialiasing);
     QStyleOptionViewItem opt = option;
     opt.rect.setWidth(option.rect.width() - m_rowRightOffset);
@@ -135,6 +140,13 @@ void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
 QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     QSize result = QStyledItemDelegate::sizeHint(option, index);
+    auto id = index.data(NoteListModel::NoteID).toInt();
+    if (m_view->isPersistentEditorOpen(index) && index != m_animatedIndex) {
+        if (szMap.contains(id)) {
+            result.setHeight(szMap[id].height());
+            return result;
+        }
+    }
     int rowHeight = 70;
     if (index.data(NoteListModel::NoteTagsList).value<QSet<int>>().size() > 0) {
         rowHeight = m_rowHeight;
@@ -198,7 +210,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
     QFontMetrics fmDate(m_dateFont);
     QRect fmRectDate = fmDate.boundingRect(date);
 
-    QString parentName{index.data(NoteListModel::NodeParentName).toString()};
+    QString parentName{index.data(NoteListModel::NoteParentName).toString()};
     QFontMetrics fmParentName(titleFont);
     QRect fmRectParentName = fmParentName.boundingRect(parentName);
 
@@ -287,7 +299,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
         }
     }
 
-    double tagsPosY = contentRectPosY + fmRectParentName.height() + fmRectContent.height() + topOffsetY + 10;
+//    double tagsPosY = contentRectPosY + fmRectParentName.height() + fmRectContent.height() + topOffsetY + 10;
 
     // draw title & date
     title = fmTitle.elidedText(title, Qt::ElideRight, int(titleRectWidth));
@@ -301,7 +313,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
         drawStr(folderNameRectPosX, folderNameRectPosY, folderNameRectWidth, folderNameRectHeight, m_contentColor, titleFont, parentName);
     }
     drawStr(contentRectPosX, contentRectPosY, contentRectWidth, contentRectHeight, m_contentColor, titleFont, content);
-    paintTagList(tagsPosY, painter, option, index);
+//    paintTagList(tagsPosY, painter, option, index);
 }
 
 void NoteListDelegate::paintSeparator(QPainter*painter, const QStyleOptionViewItem&option, const QModelIndex&index) const
@@ -378,9 +390,62 @@ QString NoteListDelegate::parseDateTime(const QDateTime &dateTime) const
     return dateTime.date().toString("M/d/yy");
 }
 
+const QModelIndex &NoteListDelegate::hoveredIndex() const
+{
+    return m_hoveredIndex;
+}
+
+const QModelIndex &NoteListDelegate::currentSelectedIndex() const
+{
+    return m_currentSelectedIndex;
+}
+
+bool NoteListDelegate::isInAllNotes() const
+{
+    return m_isInAllNotes;
+}
+
+Theme NoteListDelegate::theme() const
+{
+    return m_theme;
+}
+
 void NoteListDelegate::setIsInAllNotes(bool newIsInAllNotes)
 {
     m_isInAllNotes = newIsInAllNotes;
+}
+
+void NoteListDelegate::clearSizeMap()
+{
+    szMap.clear();
+}
+
+void NoteListDelegate::updateSizeMap(int id, const QSize &sz, const QModelIndex &index)
+{
+    szMap[id] = sz;
+    emit sizeHintChanged(index);
+}
+
+void NoteListDelegate::editorDestroyed(int id, const QModelIndex &index)
+{
+    szMap.remove(id);
+    emit sizeHintChanged(index);
+}
+
+QWidget *NoteListDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    if (!index.isValid()) {
+        return nullptr;
+    }
+    auto w = new NoteListDelegateEditor(this, m_view, option, index, m_tagPool, parent);
+    connect(this, &NoteListDelegate::themeChanged,
+            w, &NoteListDelegateEditor::setTheme);
+    connect(w, &NoteListDelegateEditor::updateSizeHint,
+            this, &NoteListDelegate::updateSizeMap);
+    connect(w, &NoteListDelegateEditor::nearDestroyed,
+            this, &NoteListDelegate::editorDestroyed);
+    w->recalculateSize();
+    return w;
 }
 
 void NoteListDelegate::setActive(bool isActive)
@@ -438,4 +503,5 @@ void NoteListDelegate::setTheme(Theme theme)
         break;
     }
     }
+    emit themeChanged(m_theme);
 }

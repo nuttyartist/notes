@@ -21,7 +21,7 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
     m_dbManager{dbManager},
     m_tagPool{tagPool}
 {
-    m_listDelegate = new NoteListDelegate(tagPool, m_listView);
+    m_listDelegate = new NoteListDelegate(m_listView, tagPool, m_listView);
     m_listView->setItemDelegate(m_listDelegate);
     m_listView->setDbManager(m_dbManager);
     connect(m_dbManager, &DBManager::notesListReceived, this, &ListViewLogic::loadNoteListModel);
@@ -49,6 +49,7 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
         if (m_listModel->rowCount() > 0) {
             emit m_listModel->dataChanged(m_listModel->index(0,0),
                                           m_listModel->index(m_listModel->rowCount() - 1,0));
+            emit m_listModel->rowCountChanged();
         }
     });
     connect(m_listModel, &QAbstractItemModel::rowsInserted,
@@ -59,6 +60,8 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
             this, &ListViewLogic::requestNewNote);
     connect(m_listView, &NoteListView::moveNoteRequested,
             this, &ListViewLogic::moveNoteRequested);
+    connect(m_listModel, &NoteListModel::rowCountChanged,
+            this, &ListViewLogic::onRowCountChanged);
 }
 
 void ListViewLogic::selectNote(const QModelIndex &noteIndex)
@@ -213,15 +216,17 @@ void ListViewLogic::clearSearch()
 
 void ListViewLogic::loadNoteListModel(const QVector<NodeData>& noteList, const ListViewInfo& inf)
 {
-    m_listModel->setListNote(noteList);
     auto currentNoteId = m_listViewInfo.currentNoteId;
     m_listViewInfo = inf;
-    updateListViewLabel();
     if ((!m_listViewInfo.isInTag) && m_listViewInfo.parentFolderId == SpecialNodeID::RootFolder) {
         m_listDelegate->setIsInAllNotes(true);
     } else {
         m_listDelegate->setIsInAllNotes(false);
     }
+
+    m_listModel->setListNote(noteList);
+    updateListViewLabel();
+
     if ((!m_listViewInfo.isInTag) && m_listViewInfo.parentFolderId == SpecialNodeID::TrashFolder) {
         m_listView->setIsInTrash(true);
     } else {
@@ -232,7 +237,7 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData>& noteList, const L
     } else {
         m_listView->setCurrentFolderId(m_listViewInfo.parentFolderId);
     }
-    //    setTheme(m_currentTheme);
+
     if (!m_listViewInfo.isInSearch && currentNoteId != SpecialNodeID::InvalidNodeId) {
         auto index = m_listModel->getNoteIndex(currentNoteId);
         if (index.isValid()) {
@@ -257,6 +262,8 @@ void ListViewLogic::onAddTagRequest(const QModelIndex &index, int tagId)
         auto tagIds = index.data(NoteListModel::NoteTagsList).value<QSet<int>>();
         tagIds.insert(tagId);
         m_listModel->setData(index, QVariant::fromValue(tagIds), NoteListModel::NoteTagsList);
+        m_listView->closePersistentEditor(index);
+        m_listView->openPersistentEditor(index);
         emit noteTagListChanged(noteId, tagIds);
     } else {
         qDebug() << __FUNCTION__ << "index is not valid";
@@ -280,6 +287,8 @@ void ListViewLogic::onRemoveTagRequest(const QModelIndex &index, int tagId)
         auto tagIds = index.data(NoteListModel::NoteTagsList).value<QSet<int>>();
         tagIds.remove(tagId);
         m_listModel->setData(index, QVariant::fromValue(tagIds), NoteListModel::NoteTagsList);
+        m_listView->closePersistentEditor(index);
+        m_listView->openPersistentEditor(index);
         emit noteTagListChanged(noteId, tagIds);
     } else {
         qDebug() << __FUNCTION__ << "index is not valid";
@@ -387,6 +396,20 @@ void ListViewLogic::updateListViewLabel()
     }
     l2 = QString::number(m_listModel->rowCount());
     emit listViewLabelChanged(l1, l2);
+}
+
+void ListViewLogic::onRowCountChanged()
+{
+    for (int i = 0; i < m_editorIndexes.size(); ++i) {
+        m_listView->closePersistentEditor(m_editorIndexes[i]);
+    }
+    m_listDelegate->clearSizeMap();
+    m_editorIndexes.clear();
+    for (int i = 0; i < m_listModel->rowCount(); ++i) {
+        auto index = m_listModel->index(i, 0);
+        m_listView->openPersistentEditor(index);
+        m_editorIndexes.append(index);
+    }
 }
 
 void ListViewLogic::selectFirstNote()

@@ -12,7 +12,7 @@ class NoteListDelegate : public QStyledItemDelegate
     Q_OBJECT
 
 public:
-    NoteListDelegate(TagPool *tagPool, QObject *parent = Q_NULLPTR);
+    NoteListDelegate(NoteListView* view, TagPool *tagPool, QObject *parent = Q_NULLPTR);
 
     enum States{
         Normal,
@@ -38,8 +38,24 @@ public:
     void setRowRightOffset(int rowRightOffset);
     void setActive(bool isActive);
     void setTheme(Theme theme);
+    Theme theme() const;
     void setIsInAllNotes(bool newIsInAllNotes);
+    bool isInAllNotes() const;
+    void clearSizeMap();
+public slots:
+    void updateSizeMap(int id, const QSize& sz, const QModelIndex& index);
+    void editorDestroyed(int id, const QModelIndex& index);
 
+    // QAbstractItemDelegate interface
+public:
+    virtual QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+
+    const QModelIndex &currentSelectedIndex() const;
+
+    const QModelIndex &hoveredIndex() const;
+
+signals:
+    void themeChanged(Theme theme);
 private:
     void paintBackground(QPainter* painter, const QStyleOptionViewItem &option, const QModelIndex &index)const;
     void paintLabels(QPainter* painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
@@ -47,6 +63,7 @@ private:
     void paintTagList(int top, QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     QString parseDateTime(const QDateTime& dateTime) const;
 
+    NoteListView* m_view;
     TagPool* m_tagPool;
     QString m_displayFont;
     QFont m_titleFont;
@@ -72,10 +89,9 @@ private:
     QTimeLine *m_timeLine;
     QModelIndex m_animatedIndex;
     QModelIndex m_currentSelectedIndex;
-    QModelIndex m_hoveredIndex;
+    QModelIndex m_hoveredIndex;    
+    QMap<int, QSize> szMap;
 
-signals:
-    void update(const QModelIndex &index);
 };
 
 #endif // NOTELISTDELEGATE_H

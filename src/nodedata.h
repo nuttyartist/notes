@@ -75,6 +75,9 @@ public:
     bool isPinnedNote() const;
     void setIsPinnedNote(bool newIsPinnedNote);
 
+    int tagListScrollBarPos() const;
+    void setTagListScrollBarPos(int newTagListScrollBarPos);
+
 private:
     int m_id;
     QString m_fullTitle;
@@ -93,6 +96,7 @@ private:
     bool m_isTempNote;
     QString m_parentName;
     bool m_isPinnedNote;
+    int m_tagListScrollBarPos;
 };
 
 Q_DECLARE_METATYPE(NodeData)

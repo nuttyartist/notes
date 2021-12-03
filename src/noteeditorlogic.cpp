@@ -166,6 +166,7 @@ void NoteEditorLogic::closeEditor()
     m_textEdit->clear();
     m_textEdit->clearFocus();
     m_textEdit->blockSignals(false);
+    m_tagListModel->setModelData({});
 }
 
 void NoteEditorLogic::onNoteTagListChanged(int noteId, const QSet<int> tagIds)
