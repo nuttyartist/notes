@@ -32,6 +32,7 @@ public:
     const ListViewInfo &listViewInfo() const;
     void selectFirstNote();
     void setTheme(Theme theme);
+    bool isAnimationRunning();
 
 public slots:
     void moveNoteToTop(const NodeData& note);

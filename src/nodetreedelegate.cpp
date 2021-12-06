@@ -4,11 +4,13 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QDebug>
+#include "nodetreeview.h"
 #include "pushbuttontype.h"
 #include "foldertreedelegateeditor.h"
 #include "tagtreedelegateeditor.h"
 #include "trashbuttondelegateeditor.h"
 #include "defaultnotefolderdelegateeditor.h"
+#include "allnotebuttontreedelegateeditor.h"
 
 NodeTreeDelegate::NodeTreeDelegate(QTreeView *view, QObject *parent):
     QStyledItemDelegate{parent},
@@ -54,7 +56,7 @@ void NodeTreeDelegate::setTheme(Theme theme)
         m_titleColor = QColor(26, 26, 26);
         m_dateColor = QColor(26, 26, 26);
         m_defaultColor = QColor(255, 255, 255);
-//        m_ActiveColor = QColor(218, 233, 239);
+        //        m_ActiveColor = QColor(218, 233, 239);
         m_notActiveColor = QColor(175, 212, 228);
         m_hoverColor = QColor(207, 207, 207);
         m_currentBackgroundColor = QColor(255, 255, 255);
@@ -65,7 +67,7 @@ void NodeTreeDelegate::setTheme(Theme theme)
         m_titleColor = QColor(204, 204, 204);
         m_dateColor = QColor(204, 204, 204);
         m_defaultColor = QColor(16, 16, 16);
-//        m_ActiveColor = QColor(0, 59, 148);
+        //        m_ActiveColor = QColor(0, 59, 148);
         m_notActiveColor = QColor(0, 59, 148);
         m_hoverColor = QColor(15, 45, 90);
         m_currentBackgroundColor = QColor(16, 16, 16);
@@ -76,7 +78,7 @@ void NodeTreeDelegate::setTheme(Theme theme)
         m_titleColor = QColor(26, 26, 26);
         m_dateColor = QColor(26, 26, 26);
         m_defaultColor = QColor(251, 240, 217);
-//        m_ActiveColor = QColor(218, 233, 239);
+        //        m_ActiveColor = QColor(218, 233, 239);
         m_notActiveColor = QColor(175, 212, 228);
         m_hoverColor = QColor(207, 207, 207);
         m_currentBackgroundColor = QColor(251, 240, 217);
@@ -137,10 +139,18 @@ void NodeTreeDelegate::paint(QPainter *painter,
         paintBackgroundSelectable(painter, option);
         auto iconRect = QRect(option.rect.x() + 5, option.rect.y() + (option.rect.height() - 20) / 2, 20, 20);
         QString iconPath;
-        if((option.state & QStyle::State_Open) == QStyle::State_Open) {
-            iconPath = ":/images/tree-node-expanded.png";
+        if (m_theme == Theme::Dark) {
+            if((option.state & QStyle::State_Open) == QStyle::State_Open) {
+                iconPath = ":/images/tree-node-expanded-dark.png";
+            } else {
+                iconPath = ":/images/tree-node-normal-dark.png";
+            }
         } else {
-            iconPath = ":/images/tree-node-normal.png";
+            if((option.state & QStyle::State_Open) == QStyle::State_Open) {
+                iconPath = ":/images/tree-node-expanded.png";
+            } else {
+                iconPath = ":/images/tree-node-normal.png";
+            }
         }
         if (index.data(NodeItem::Roles::IsExpandable).toBool()) {
             painter->drawImage(iconRect, QImage(iconPath));
@@ -198,10 +208,13 @@ void NodeTreeDelegate::paint(QPainter *painter,
 
 void NodeTreeDelegate::paintBackgroundSelectable(QPainter *painter, const QStyleOptionViewItem &option) const
 {
-    if((option.state & QStyle::State_Selected) == QStyle::State_Selected){
+    if((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
         painter->fillRect(option.rect, QBrush(m_ActiveColor));
-    } else if((option.state & QStyle::State_MouseOver) == QStyle::State_MouseOver){
-        painter->fillRect(option.rect, QBrush(m_hoverColor));
+    } else if((option.state & QStyle::State_MouseOver) == QStyle::State_MouseOver) {
+        auto treeView = dynamic_cast<NodeTreeView*>(m_view);
+        if (!treeView->isDragging()) {
+            painter->fillRect(option.rect, QBrush(m_hoverColor));
+        }
     }
 }
 
@@ -272,6 +285,9 @@ QWidget *NodeTreeDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
     } else if (itemType == NodeItem::Type::TrashButton) {
         auto widget = new TrashButtonDelegateEditor(m_view, option, index, parent);
         return widget;
+    } else if (itemType == NodeItem::Type::AllNoteButton) {
+        auto widget = new AllNoteButtonTreeDelegateEditor(m_view, option, index, parent);
+        return widget;
     }
     return nullptr;
 }
@@ -280,7 +296,7 @@ void NodeTreeDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionV
 {
     QStyledItemDelegate::updateEditorGeometry(editor, option, index);
     auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
-    if (itemType == NodeItem::Type::TrashButton) {
+    if (itemType == NodeItem::Type::TrashButton || itemType == NodeItem::Type::AllNoteButton) {
         editor->setGeometry(0, editor->y(), option.rect.width(), option.rect.height());
     }
 }

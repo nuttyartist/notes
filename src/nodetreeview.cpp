@@ -5,6 +5,8 @@
 #include <QMouseEvent>
 #include <QDebug>
 #include <QMimeData>
+#include <QApplication>
+#include "nodetreeview_p.h"
 
 NodeTreeView::NodeTreeView(QWidget *parent) :
     QTreeView(parent),
@@ -112,9 +114,45 @@ void NodeTreeView::onCollapsed(const QModelIndex &index)
     m_expanded.removeAll(index.data(NodeItem::Roles::AbsPath).toString());
 }
 
+void NodeTreeView::onFolderDropSuccessfull(const QString &path)
+{
+    auto m_model = dynamic_cast<NodeTreeModel*>(model());
+    auto index = m_model->folderIndexFromIdPath(path);
+    if (index.isValid()) {
+        setCurrentIndexC(index);
+    } else {
+        setCurrentIndexC(m_model->getAllNotesButtonIndex());
+    }
+}
+
+void NodeTreeView::onTagsDropSuccessfull(const QSet<int> &ids)
+{
+    auto m_model = dynamic_cast<NodeTreeModel*>(model());
+    setCurrentIndex(QModelIndex());
+    clearSelection();
+    setSelectionMode(QAbstractItemView::MultiSelection);
+    for (const auto& id: QT_AS_CONST(ids)) {
+        auto index = m_model->tagIndexFromId(id);
+        if (index.isValid()) {
+            setCurrentIndex(index);
+            setSelectionMode(QAbstractItemView::MultiSelection);
+            selectionModel()->setCurrentIndex(index, QItemSelectionModel::SelectCurrent);
+        }
+    }
+
+    if (selectionModel()->selectedIndexes().isEmpty()) {
+        setCurrentIndexC(m_model->getAllNotesButtonIndex());
+    }
+}
+
 Theme NodeTreeView::theme() const
 {
     return m_theme;
+}
+
+bool NodeTreeView::isDragging() const
+{
+    return state() == DraggingState;
 }
 
 void NodeTreeView::onChangeTagColorAction()
@@ -148,7 +186,8 @@ void NodeTreeView::updateEditingIndex(const QPoint& pos)
         auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
         if (itemType == NodeItem::Type::FolderItem
                 || itemType == NodeItem::Type::TagItem
-                || itemType == NodeItem::Type::TrashButton) {
+                || itemType == NodeItem::Type::TrashButton
+                || itemType == NodeItem::Type::AllNoteButton) {
             closePersistentEditor(m_currentEditingIndex);
             openPersistentEditor(index);
             m_currentEditingIndex = index;
@@ -239,7 +278,7 @@ void NodeTreeView::dragMoveEvent(QDragMoveEvent *event)
                 event->ignore();
                 return;
             }
-            if (event->pos().y() < visualRect(m_treeSeparator[0]).y() + 25) {
+            if (event->pos().y() < visualRect(m_defaultNotesIndex).y() + 25) {
                 event->ignore();
                 return;
             }
@@ -414,7 +453,8 @@ void NodeTreeView::onCustomContextMenu(const QPoint &point)
     }
 }
 
-void NodeTreeView::setTreeSeparator(const QVector<QModelIndex> &newTreeSeparator)
+void NodeTreeView::setTreeSeparator(const QVector<QModelIndex> &newTreeSeparator,
+                                    const QModelIndex& defaultNotesIndex)
 {
     for (const auto& sep : QT_AS_CONST(m_treeSeparator)) {
         closePersistentEditor(sep);
@@ -423,18 +463,96 @@ void NodeTreeView::setTreeSeparator(const QVector<QModelIndex> &newTreeSeparator
     for (const auto& sep : QT_AS_CONST(m_treeSeparator)) {
         openPersistentEditor(sep);
     }
+    m_defaultNotesIndex = defaultNotesIndex;
 }
 
 void NodeTreeView::mouseMoveEvent(QMouseEvent *event)
 {
+    Q_D(NodeTreeView);
+    QPoint topLeft;
+    QPoint bottomRight = event->pos();
+    if (state() == ExpandingState || state() == CollapsingState) {
+        return;
+    }
+
     updateEditingIndex(event->pos());
-    QTreeView::mouseMoveEvent(event);
+    if (state() == DraggingState) {
+        topLeft = d->pressedPosition - d->offset();
+        if ((topLeft - bottomRight).manhattanLength() > QApplication::startDragDistance()) {
+            d->pressedIndex = QModelIndex();
+            startDrag(d->model->supportedDragActions());
+            setState(NoState); // the startDrag will return when the dnd operation is done
+            stopAutoScroll();
+        }
+        return;
+    }
+    if (d->pressedIndex.isValid()
+            && (state() != DragSelectingState)
+            && (event->buttons() != Qt::NoButton)) {
+        setState(DraggingState);
+        return;
+    }
 }
 
 void NodeTreeView::mousePressEvent(QMouseEvent *event)
 {
+    Q_D(NodeTreeView);
+    d->delayedAutoScroll.stop();
+
+    QPoint pos = event->pos();
+    QPersistentModelIndex index = indexAt(pos);
+
+    d->pressedAlreadySelected = d->selectionModel->isSelected(index);
+    d->pressedIndex = index;
+    d->pressedModifiers = event->modifiers();
+    QPoint offset = d->offset();
+    d->pressedPosition = pos + offset;
     updateEditingIndex(event->pos());
-    //    QTreeView::mousePressEvent(event);
+    {
+        auto index = indexAt(event->pos());
+        if (index.isValid()) {
+            auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
+            switch (itemType) {
+            case NodeItem::Type::FolderItem: {
+                setCurrentIndexC(index);
+                if (isExpanded(index)) {
+                    collapse(index);
+                } else {
+                    expand(index);
+                }
+                break;
+            }
+            case NodeItem::Type::TagItem: {
+                auto oldIndexes = selectionModel()->selectedIndexes();
+                for (const auto& ix : QT_AS_CONST(oldIndexes)) {
+                    auto itemType = static_cast<NodeItem::Type>(ix.data(NodeItem::Roles::ItemType).toInt());
+                    if (itemType != NodeItem::Type::TagItem) {
+                        setCurrentIndex(QModelIndex());
+                        clearSelection();
+                        break;
+                    }
+                }
+
+                if (selectionModel()->isSelected(index)) {
+                    m_needReleaseIndex = index;
+                } else {
+                    setCurrentIndex(index);
+                    setSelectionMode(QAbstractItemView::MultiSelection);
+                    selectionModel()->setCurrentIndex(index, QItemSelectionModel::SelectCurrent);
+                }
+                break;
+            }
+            case NodeItem::Type::AllNoteButton:
+            case NodeItem::Type::TrashButton: {
+                setCurrentIndexC(index);
+                break;
+            }
+            default: {
+                break;
+            }
+            }
+        }
+    }
 }
 
 void NodeTreeView::leaveEvent(QEvent *event)
@@ -447,50 +565,24 @@ void NodeTreeView::leaveEvent(QEvent *event)
 
 void NodeTreeView::mouseReleaseEvent(QMouseEvent *event)
 {
-    auto index = indexAt(event->pos());
-    if (index.isValid()) {
-        auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
-        switch (itemType) {
-        case NodeItem::Type::FolderItem: {
-            setCurrentIndexC(index);
-            if (isExpanded(index)) {
-                collapse(index);
-            } else {
-                expand(index);
-            }
-            break;
-        }
-        case NodeItem::Type::TagItem: {
-            auto oldIndexes = selectionModel()->selectedIndexes();
-            for (const auto& ix : QT_AS_CONST(oldIndexes)) {
-                auto itemType = static_cast<NodeItem::Type>(ix.data(NodeItem::Roles::ItemType).toInt());
-                if (itemType != NodeItem::Type::TagItem) {
-                    setCurrentIndex(QModelIndex());
-                    clearSelection();
-                    break;
-                }
-            }
-
-            if (selectionModel()->isSelected(index)) {
-                selectionModel()->select(index, QItemSelectionModel::Deselect);
-                if (selectionModel()->selectedIndexes().isEmpty()) {
-                    setCurrentIndexC(dynamic_cast<NodeTreeModel*>(model())->getAllNotesButtonIndex());
-                }
-            } else {
-                setCurrentIndex(index);
-                setSelectionMode(QAbstractItemView::MultiSelection);
-                selectionModel()->setCurrentIndex(index, QItemSelectionModel::SelectCurrent);
-            }
-            break;
-        }
-        case NodeItem::Type::AllNoteButton:
-        case NodeItem::Type::TrashButton: {
-            setCurrentIndexC(index);
-            break;
-        }
-        default: {
-            break;
-        }
+    Q_UNUSED(event);
+    Q_D(NodeTreeView);
+    if (m_needReleaseIndex.isValid()) {
+        selectionModel()->select(m_needReleaseIndex, QItemSelectionModel::Deselect);
+        if (selectionModel()->selectedIndexes().isEmpty()) {
+            setCurrentIndexC(dynamic_cast<NodeTreeModel*>(model())->getAllNotesButtonIndex());
         }
     }
+    m_needReleaseIndex = QModelIndex();
+    setState(NoState);
+    d->pressedIndex = QPersistentModelIndex();
+}
+
+void NodeTreeView::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    Q_UNUSED(event);
+    Q_D(NodeTreeView);
+    d->pressedIndex = QModelIndex();
+    m_needReleaseIndex = QModelIndex();
+    //    QTreeView::mouseDoubleClickEvent(event);
 }

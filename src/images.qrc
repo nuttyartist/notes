@@ -59,5 +59,7 @@
         <file>images/drawer_icon.png</file>
         <file>images/all-notes-icon-dark.png</file>
         <file>images/trash-icon-dark.png</file>
+        <file>images/tree-node-expanded-dark.png</file>
+        <file>images/tree-node-normal-dark.png</file>
     </qresource>
 </RCC>

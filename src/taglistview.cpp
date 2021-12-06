@@ -1,5 +1,6 @@
 #include "taglistview.h"
 #include <QDebug>
+#include <QMouseEvent>
 
 TagListView::TagListView(QWidget *parent) : QListView(parent)
 {
@@ -15,7 +16,7 @@ TagListView::TagListView(QWidget *parent) : QListView(parent)
                 R"(QScrollBar:hover { background-color: rgb(217, 217, 217);})"
                 R"(QScrollBar::add-line:vertical { width:0px; height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  )"
                 R"(QScrollBar::sub-line:vertical { width:0px; height: 0px; subcontrol-position: top; subcontrol-origin: margin; })");
-    setStyleSheet(ss);
+    setStyleSheet(ss);    
 }
 
 void TagListView::setBackground(const QColor &color)
@@ -57,5 +58,25 @@ void TagListView::resizeEvent(QResizeEvent *event)
 {
     QListView::resizeEvent(event);
     setWrapping(true);
+}
+
+void TagListView::mousePressEvent(QMouseEvent *event)
+{
+    event->ignore();
+}
+
+void TagListView::mouseReleaseEvent(QMouseEvent *event)
+{
+    event->ignore();
+}
+
+void TagListView::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    event->ignore();
+}
+
+void TagListView::mouseMoveEvent(QMouseEvent *event)
+{
+    event->ignore();
 }
 

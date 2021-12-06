@@ -7,6 +7,7 @@
 
 class QMenu;
 class QAction;
+class NodeTreeViewPrivate;
 
 class NodeTreeView : public QTreeView
 {
@@ -14,19 +15,22 @@ class NodeTreeView : public QTreeView
 public:
     explicit NodeTreeView(QWidget* parent = Q_NULLPTR);
 
-    void setTreeSeparator(const QVector<QModelIndex> &newTreeSeparator);
+    void setTreeSeparator(const QVector<QModelIndex> &newTreeSeparator, const QModelIndex &defaultNotesIndex);
     void setIsEditing(bool newIsEditing);
     void onRenameFolderFinished(const QString& newName);
     void onRenameTagFinished(const QString& newName);
     void setCurrentIndexC(const QModelIndex& index);
     void setTheme(Theme theme);
     Theme theme() const;
+    bool isDragging() const;
 
 public slots:
     void onCustomContextMenu(const QPoint& point);
     void onChangeTagColorAction();
     void onRequestExpand(const QString& folderPath);
     void onUpdateAbsPath(const QString& oldPath, const QString& newPath);
+    void onFolderDropSuccessfull(const QString& path);
+    void onTagsDropSuccessfull(const QSet<int>& ids);
 
 signals:
     void addFolderRequested();
@@ -46,6 +50,7 @@ private slots:
     void onDeleteNodeAction();
     void onExpanded(const QModelIndex& index);
     void onCollapsed(const QModelIndex& index);
+
 private:
     QMenu* contextMenu;
     QAction* renameFolderAction;
@@ -57,11 +62,13 @@ private:
     QAction* clearSelectionAction;
     QTimer contextMenuTimer;
     QVector<QModelIndex> m_treeSeparator;
+    QModelIndex m_defaultNotesIndex;
     QModelIndex m_currentEditingIndex;
     bool m_isContextMenuOpened;
     bool m_isEditing;
     Theme m_theme;
     QVector<QString> m_expanded;
+    QModelIndex m_needReleaseIndex;
     void updateEditingIndex(const QPoint &pos);
     void closeCurrentEditor();
 
@@ -77,12 +84,16 @@ protected:
     virtual void dragMoveEvent(QDragMoveEvent *event) override;
     virtual void mouseMoveEvent(QMouseEvent *event) override;
     virtual void mousePressEvent(QMouseEvent *event) override;
-    virtual void leaveEvent(QEvent *event) override;
     virtual void mouseReleaseEvent(QMouseEvent *event) override;
+    virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
+    virtual void leaveEvent(QEvent *event) override;
 
     // QAbstractItemView interface
 public slots:
     virtual void reset() override;
+
+private:
+    Q_DECLARE_PRIVATE(NodeTreeView)
 };
 
 #endif // NODETREEVIEW_H

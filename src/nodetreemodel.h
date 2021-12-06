@@ -74,9 +74,11 @@ public:
                                  const QHash<NodeItem::Roles, QVariant>& data);
     QModelIndex rootIndex() const;
     QModelIndex folderIndexFromIdPath(const NodePath& idPath);
+    QModelIndex tagIndexFromId(int id);
     QString getNewFolderPlaceholderName(const QModelIndex& parentIndex);
     QString getNewTagPlaceholderName();
     QVector<QModelIndex> getSeparatorIndex();
+    QModelIndex getDefaultNotesIndex();
     QModelIndex getAllNotesButtonIndex();
     QModelIndex getTrashButtonIndex();
     void deleteRow(const QModelIndex& rowIndex, const QModelIndex& parentIndex);
@@ -106,6 +108,8 @@ signals:
     void requestUpdateNodeRelativePosition(int nodeId, int relativePosition);
     void requestUpdateTagRelativePosition(int nodeId, int relativePosition);
     void requestUpdateAbsPath(const QString& oldPath, const QString& newPath);
+    void dropFolderSuccessfull(const QString& paths);
+    void dropTagsSuccessfull(const QSet<int>& ids);
 private:
     NodeTreeItem *rootItem;
     void loadNodeTree(const QVector<NodeData>& nodeData, NodeTreeItem* rootNode);

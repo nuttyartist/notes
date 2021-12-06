@@ -7,6 +7,8 @@
 #include <QMessageBox>
 #include <QColorDialog>
 #include <random>
+#include <QApplication>
+#include "customapplicationstyle.h"
 
 TreeViewLogic::TreeViewLogic(NodeTreeView* treeView,
                              NodeTreeModel* treeModel,
@@ -69,11 +71,18 @@ TreeViewLogic::TreeViewLogic(NodeTreeView* treeView,
             m_dbManager, &DBManager::updateRelPosNode);
     connect(m_treeModel, &NodeTreeModel::requestUpdateTagRelativePosition,
             m_dbManager, &DBManager::updateRelPosTag);
+    connect(m_treeModel, &NodeTreeModel::dropFolderSuccessfull,
+            m_treeView, &NodeTreeView::onFolderDropSuccessfull);
+    connect(m_treeModel, &NodeTreeModel::dropTagsSuccessfull,
+            m_treeView, &NodeTreeView::onTagsDropSuccessfull);
+    m_style = new CustomApplicationStyle();
+    qApp->setStyle(m_style);
 }
 
 void TreeViewLogic::updateTreeViewSeparator()
 {
-    m_treeView->setTreeSeparator(m_treeModel->getSeparatorIndex());
+    m_treeView->setTreeSeparator(m_treeModel->getSeparatorIndex(),
+                                 m_treeModel->getDefaultNotesIndex());
 }
 
 void TreeViewLogic::loadTreeModel(const NodeTagTreeData &treeData)
@@ -283,5 +292,6 @@ void TreeViewLogic::setTheme(Theme theme)
     m_treeView->setTheme(theme);
     m_treeDelegate->setTheme(theme);
     m_treeView->update();
+    m_style->setTheme(theme);
 }
 

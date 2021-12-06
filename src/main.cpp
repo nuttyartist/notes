@@ -6,7 +6,6 @@
 
 #include "mainwindow.h"
 #include "singleinstance.h"
-
 #include <QApplication>
 #include <QFontDatabase>
 
@@ -14,7 +13,6 @@ int main(int argc, char *argv[])
 {
     QApplication::setDesktopSettingsAware(false);
     QApplication app (argc, argv);
-
     // Set application information
     app.setApplicationName ("Notes");
     app.setApplicationVersion ("2.0.0");

@@ -432,6 +432,11 @@ void ListViewLogic::setTheme(Theme theme)
     m_listView->update();
 }
 
+bool ListViewLogic::isAnimationRunning()
+{
+    return m_listDelegate->animationState() == QTimeLine::Running;
+}
+
 const ListViewInfo &ListViewLogic::listViewInfo() const
 {
     return m_listViewInfo;

@@ -110,6 +110,14 @@ void FolderTreeDelegateEditor::updateDelegate()
         m_contextButton->setPressedIcon(QIcon(QString::fromUtf8(":/images/3dots_Pressed.png")));
     }
     m_label->setText(displayName);
+    auto theme = dynamic_cast<NodeTreeView*>(m_view)->theme();
+    if (theme == Theme::Dark) {
+        m_expanded.load(QStringLiteral(":/images/tree-node-expanded-dark.png"));
+        m_notExpanded.load(QStringLiteral(":/images/tree-node-normal.png"));
+    } else {
+        m_expanded.load(QStringLiteral(":/images/tree-node-normal-dark.png"));
+        m_notExpanded.load(QStringLiteral(":/images/tree-node-normal.png"));
+    }
     if (m_index.data(NodeItem::Roles::IsExpandable).toBool()) {
         if(m_view->isExpanded(m_index)) {
             m_expandIcon->setPixmap(m_expanded);

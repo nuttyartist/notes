@@ -366,6 +366,19 @@ QModelIndex NodeTreeModel::folderIndexFromIdPath(const NodePath &idPath)
     return createIndex(item->row(), 0, item);
 }
 
+QModelIndex NodeTreeModel::tagIndexFromId(int id)
+{
+    for (int i = 0; i < rootItem->childCount(); ++i) {
+        auto child = rootItem->child(i);
+        if (static_cast<NodeItem::Type>(
+                    child->data(NodeItem::Roles::ItemType).toInt()) == NodeItem::Type::TagItem &&
+                static_cast<int>(child->data(NodeItem::Roles::NodeId).toInt() == id)) {
+            return createIndex(i, 0, child);
+        }
+    }
+    return QModelIndex();
+}
+
 QString NodeTreeModel::getNewFolderPlaceholderName(const QModelIndex &parentIndex)
 {
     QString result = "New Folder";
@@ -437,6 +450,21 @@ QVector<QModelIndex> NodeTreeModel::getSeparatorIndex()
         }
     }
     return result;
+}
+
+QModelIndex NodeTreeModel::getDefaultNotesIndex()
+{
+    if (rootItem) {
+        for (int i = 0; i < rootItem->childCount(); ++i) {
+            auto child = rootItem->child(i);
+            auto type = static_cast<NodeItem::Type>(child->data(NodeItem::Roles::ItemType).toInt());
+            if (type == NodeItem::Type::FolderItem &&
+                    child->data(NodeItem::Roles::NodeId).toInt() == SpecialNodeID::DefaultNotesFolder) {
+                return createIndex(i, 0, child);
+            }
+        }
+    }
+    return QModelIndex{};
 }
 
 QModelIndex NodeTreeModel::getAllNotesButtonIndex()
@@ -700,10 +728,14 @@ QMimeData *NodeTreeModel::mimeData(const QModelIndexList &indexes) const
             return nullptr;
         }
         QMimeData *mimeData = new QMimeData;
-        mimeData->setData(TAG_MIME, d.join(QStringLiteral(",")).toUtf8());
+        mimeData->setData(TAG_MIME, d.join(QStringLiteral(PATH_SEPERATOR)).toUtf8());
         return mimeData;
     } else if (itemType == NodeItem::Type::FolderItem) {
         const auto& index = indexes[0];
+        auto id = index.data(NodeItem::Roles::NodeId).toInt();
+        if (id == SpecialNodeID::DefaultNotesFolder) {
+            return nullptr;
+        }
         auto absPath = index.data(NodeItem::Roles::AbsPath).toString();
         QMimeData *mimeData = new QMimeData;
         mimeData->setData(FOLDER_MIME, absPath.toUtf8());
@@ -738,6 +770,7 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime,
         auto idl = QString::fromUtf8(mime->data(TAG_MIME))
                 .split(QStringLiteral(PATH_SEPERATOR));
         beginResetModel();
+        QSet<int> movedIds;
         for (const auto& id_s : QT_AS_CONST(idl)) {
             auto id = id_s.toInt();
             for (int i = 0; i < rootItem->childCount(); ++i) {
@@ -747,12 +780,14 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime,
                 if (childType == NodeItem::Type::TagItem &&
                         child->data(NodeItem::Roles::NodeId).toInt() == id) {
                     rootItem->moveChild(i, row);
+                    movedIds.insert(id);
                     break;
                 }
             }
         }
         endResetModel();
         emit topLevelItemLayoutChanged();
+        emit dropTagsSuccessfull(movedIds);
         updateChildRelativePosition(rootItem, NodeItem::Type::TagItem);
         return true;
     }
@@ -799,6 +834,7 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime,
             endResetModel();
             emit topLevelItemLayoutChanged();
             updateChildRelativePosition(parentItem, NodeItem::Type::FolderItem);
+            emit dropFolderSuccessfull(movingItem->data(NodeItem::Roles::AbsPath).toString());
         } else {
             auto movingParent = movingItem->parentItem();
             int r = -1;
@@ -831,6 +867,7 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime,
             emit requestMoveNode(movingItem->data(NodeItem::Roles::NodeId).toInt(),
                                  parentItem->data(NodeItem::Roles::NodeId).toInt());
             updateChildRelativePosition(parentItem, NodeItem::Type::FolderItem);
+            emit dropFolderSuccessfull(movingItem->data(NodeItem::Roles::AbsPath).toString());
         }
         return true;
     }

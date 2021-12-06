@@ -9,6 +9,7 @@ class NodeTreeView;
 class NodeTreeModel;
 class NodeTreeDelegate;
 class DBManager;
+class CustomApplicationStyle;
 
 class TreeViewLogic : public QObject
 {
@@ -46,6 +47,7 @@ private:
     NodeTreeModel* m_treeModel;
     NodeTreeDelegate* m_treeDelegate;
     DBManager* m_dbManager;
+    CustomApplicationStyle* m_style;
 };
 
 #endif // TREEVIEWLOGIC_H

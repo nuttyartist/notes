@@ -7,7 +7,7 @@
 VERSION = 2.0.0
 
 QT += core gui widgets network sql
-QT += gui-private
+QT += gui-private widgets-private
 QT += concurrent
 
 TARGET    = Notes
@@ -25,6 +25,8 @@ include ($$PWD/../3rdParty/qmarkdowntextedit/qmarkdowntextedit.pri)
 include ($$PWD/../3rdParty/qautostart/src/qautostart.pri)
 
 SOURCES += \
+    allnotebuttontreedelegateeditor.cpp \
+    customapplicationstyle.cpp \
     defaultnotefolderdelegateeditor.cpp \
     main.cpp\
     mainwindow.cpp \
@@ -59,8 +61,11 @@ SOURCES += \
     treeviewlogic.cpp
 
 HEADERS  += \
+    allnotebuttontreedelegateeditor.h \
+    customapplicationstyle.h \
     defaultnotefolderdelegateeditor.h \
     mainwindow.h \
+    nodetreeview_p.h \
     noteeditorlogic.h \
     notelistdelegate.h \
     notelistdelegateeditor.h \

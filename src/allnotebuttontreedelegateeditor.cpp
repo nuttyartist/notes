@@ -1,13 +1,13 @@
-#include "trashbuttondelegateeditor.h"
+#include "allnotebuttontreedelegateeditor.h"
 #include <QPainter>
 #include <QDebug>
 #include <QTreeView>
 #include "nodetreemodel.h"
 #include "nodetreeview.h"
 
-TrashButtonDelegateEditor::TrashButtonDelegateEditor(QTreeView *view, const QStyleOptionViewItem &option,
-                                                     const QModelIndex &m_index,
-                                                     QWidget *parent) :
+AllNoteButtonTreeDelegateEditor::AllNoteButtonTreeDelegateEditor(QTreeView *view, const QStyleOptionViewItem &option,
+                                                                 const QModelIndex &m_index,
+                                                                 QWidget *parent) :
     QWidget(parent),
     m_option(option),
     m_index(m_index),
@@ -33,7 +33,7 @@ TrashButtonDelegateEditor::TrashButtonDelegateEditor(QTreeView *view, const QSty
 }
 
 
-void TrashButtonDelegateEditor::paintEvent(QPaintEvent *event)
+void AllNoteButtonTreeDelegateEditor::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
     auto iconRect = QRect(rect().x() + 5, rect().y() + (rect().height() - 20) / 2, 18, 20);

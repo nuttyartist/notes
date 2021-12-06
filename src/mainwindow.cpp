@@ -1220,6 +1220,9 @@ void MainWindow::onNewNoteButtonPressed()
  */
 void MainWindow::onNewNoteButtonClicked()
 {
+    if (m_listViewLogic->isAnimationRunning()) {
+        return;
+    }
     m_newNoteButton->setIcon(QIcon(QStringLiteral(":/images/newNote_Regular.png")));
 
     // save the data of the previous selected
