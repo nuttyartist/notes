@@ -76,7 +76,8 @@ void DBManager::createTables()
     query.clear();
     QString tagRelationship = R"(CREATE TABLE "tag_relationship" ()"
                               R"(    "node_id"	INTEGER NOT NULL,)"
-                              R"(    "tag_id"	INTEGER NOT NULL)"
+                              R"(    "tag_id"	INTEGER NOT NULL,)"
+                              R"(    UNIQUE(node_id, tag_id))"
                               R"();)";
     status = query.exec(tagRelationship);
     if (!status) {
@@ -369,7 +370,7 @@ int DBManager::addTag(const TagData &tag)
 void DBManager::addNoteToTag(int noteId, int tagId)
 {
     QSqlQuery query(m_db);
-    query.prepare(R"(INSERT INTO "tag_relationship" ("node_id","tag_id") VALUES (:note_id, :tag_id);)");
+    query.prepare(R"(INSERT OR IGNORE INTO "tag_relationship" ("node_id","tag_id") VALUES (:note_id, :tag_id);)");
     query.bindValue(":note_id", noteId);
     query.bindValue(":tag_id", tagId);
     if (!query.exec()) {
@@ -1183,6 +1184,210 @@ void DBManager::onImportNotesRequested(const QString &fileName)
     file.close();
     if (QString::fromUtf8(magic_header).startsWith(QStringLiteral("SQLite format 3"))) {
         qDebug() << __FUNCTION__ ;
+        auto outside_db = QSqlDatabase::addDatabase("QSQLITE", OUTSIDE_DATABASE_NAME);
+        outside_db.setDatabaseName(fileName);
+        if(!outside_db.open()){
+            qDebug() << __FUNCTION__ << "Error: connection with database fail";
+            return;
+        } else {
+            qDebug() << __FUNCTION__ << "Database: connection ok";
+        }
+
+        QMap<int, int> folderIdMap, noteIdMap, tagIdMap;
+        {
+            QVector<TagData> tagList;
+            QSqlQuery out_qr(outside_db);
+            out_qr.prepare(R"(SELECT "id","name","color","relative_position" FROM tag_table;)");
+            bool status = out_qr.exec();
+            if(status) {
+                while(out_qr.next()) {
+                    TagData tag;
+                    tag.setId(out_qr.value(0).toInt());
+                    tag.setName(out_qr.value(1).toString());
+                    tag.setColor(out_qr.value(2).toString());
+                    tag.setRelativePosition(out_qr.value(3).toInt());
+                    tagList.append(tag);
+                }
+            } else {
+                qDebug() << __FUNCTION__ << __LINE__ << out_qr.lastError();
+            }
+            out_qr.finish();
+            for (const auto& tag : QT_AS_CONST(tagList)) {
+                QSqlQuery qr(m_db);
+                qr.prepare(R"(SELECT "id" FROM tag_table WHERE name = :name AND color = :color;)");
+                qr.bindValue(QStringLiteral(":name"), tag.name());
+                qr.bindValue(QStringLiteral(":color"), tag.color());
+                QVector<int> ids;
+                bool status = qr.exec();
+                if(status) {
+                    while(qr.next()) {
+                        ids.append(qr.value(0).toInt());
+                    }
+                } else {
+                    qDebug() << __FUNCTION__ << __LINE__ << qr.lastError();
+                }
+                qr.finish();
+                if (ids.isEmpty()) {
+                    ids.append(addTag(tag));
+                }
+                tagIdMap[tag.id()] = ids[0];
+            }
+        }
+        {
+            folderIdMap[SpecialNodeID::RootFolder] = SpecialNodeID::RootFolder;
+            folderIdMap[SpecialNodeID::TrashFolder] = SpecialNodeID::TrashFolder;
+            folderIdMap[SpecialNodeID::DefaultNotesFolder] = SpecialNodeID::DefaultNotesFolder;
+            QSqlQuery out_qr(outside_db);
+            out_qr.prepare(R"(SELECT)"
+                          R"("id",)"
+                          R"("title",)"
+                          R"("creation_date",)"
+                          R"("modification_date",)"
+                          R"("deletion_date",)"
+                          R"("content",)"
+                          R"("node_type",)"
+                          R"("parent_id",)"
+                          R"("relative_position",)"
+                          R"("absolute_path" )"
+                          R"(FROM node_table WHERE node_type=:node_type;)"
+                        );
+            out_qr.bindValue(":node_type", static_cast<int>(NodeData::Type::Folder));
+            bool status = out_qr.exec();
+            QMap<int, NodeData> nodeList;
+            if(status) {
+                while(out_qr.next()) {
+                    NodeData node;
+                    node.setId(out_qr.value(0).toInt());
+                    node.setFullTitle(out_qr.value(1).toString());
+                    node.setCreationDateTime(QDateTime::fromMSecsSinceEpoch(out_qr.value(2).toLongLong()));
+                    node.setLastModificationDateTime(QDateTime::fromMSecsSinceEpoch(out_qr.value(3).toLongLong()));
+                    node.setDeletionDateTime(QDateTime::fromMSecsSinceEpoch(out_qr.value(4).toLongLong()));
+                    node.setContent(out_qr.value(5).toString());
+                    node.setNodeType(static_cast<NodeData::Type>(out_qr.value(6).toInt()));
+                    node.setParentId(out_qr.value(7).toInt());
+                    node.setRelativePosition(out_qr.value(8).toInt());
+                    node.setAbsolutePath(out_qr.value(9).toString());
+                    nodeList[node.id()] = node;
+                }
+                auto matchFolderFunc = [&] (int id, const auto& matchFolderFunctor) {
+                    if (!nodeList.contains(id)) {
+                        qDebug() << __FUNCTION__ << __LINE__ << "node not found";
+                        return;
+                    }
+                    if (folderIdMap.contains(id)) {
+                        return;
+                    }
+                    auto node = nodeList[id];
+                    if (folderIdMap.contains(node.parentId())) {
+                        QSqlQuery qr(m_db);
+                        qr.prepare(R"(SELECT "id" FROM node_table WHERE title = :title AND node_type = :node_type AND parent_id = :parent_id;)");
+                        qr.bindValue(QStringLiteral(":title"), node.fullTitle());
+                        qr.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Folder));
+                        qr.bindValue(QStringLiteral(":parent_id"), folderIdMap[node.parentId()]);
+                        QVector<int> ids;
+                        bool status = qr.exec();
+                        if(status) {
+                            while(qr.next()) {
+                                ids.append(qr.value(0).toInt());
+                            }
+                        } else {
+                            qDebug() << __FUNCTION__ << __LINE__ << qr.lastError();
+                        }
+                        qr.finish();
+                        if (!ids.isEmpty()) {
+                            folderIdMap[id] = ids[0];
+                        } else {
+                            node.setParentId(folderIdMap[node.parentId()]);
+                            int newId = addNode(node);
+                            folderIdMap[id] = newId;
+                        }
+                    } else {
+                        auto prL = NodePath(node.absolutePath()).seperate();
+                        for (const auto& pr : QT_AS_CONST(prL)) {
+                            matchFolderFunctor(pr.toInt(), matchFolderFunctor);
+                        }
+                    }
+                };
+
+                for (const auto& node: QT_AS_CONST(nodeList)) {
+                    matchFolderFunc(node.id(), matchFolderFunc);
+                }
+            } else {
+                qDebug() << __FUNCTION__ << __LINE__ << out_qr.lastError();
+            }
+        }
+        {
+            QSqlQuery out_qr(outside_db);
+            out_qr.prepare(R"(SELECT)"
+                          R"("id",)"
+                          R"("title",)"
+                          R"("creation_date",)"
+                          R"("modification_date",)"
+                          R"("deletion_date",)"
+                          R"("content",)"
+                          R"("node_type",)"
+                          R"("parent_id",)"
+                          R"("relative_position",)"
+                          R"("absolute_path" )"
+                          R"(FROM node_table WHERE node_type=:node_type;)"
+                        );
+            out_qr.bindValue(":node_type", static_cast<int>(NodeData::Type::Note));
+            bool status = out_qr.exec();
+            QVector<NodeData> nodeList;
+            if(status) {
+                while(out_qr.next()) {
+                    NodeData node;
+                    node.setId(out_qr.value(0).toInt());
+                    node.setFullTitle(out_qr.value(1).toString());
+                    node.setCreationDateTime(QDateTime::fromMSecsSinceEpoch(out_qr.value(2).toLongLong()));
+                    node.setLastModificationDateTime(QDateTime::fromMSecsSinceEpoch(out_qr.value(3).toLongLong()));
+                    node.setDeletionDateTime(QDateTime::fromMSecsSinceEpoch(out_qr.value(4).toLongLong()));
+                    node.setContent(out_qr.value(5).toString());
+                    node.setNodeType(static_cast<NodeData::Type>(out_qr.value(6).toInt()));
+                    node.setParentId(out_qr.value(7).toInt());
+                    node.setRelativePosition(out_qr.value(8).toInt());
+                    node.setAbsolutePath(out_qr.value(9).toString());
+                    nodeList.append(node);
+                }
+                for (auto node : QT_AS_CONST(nodeList)) {
+                    if (folderIdMap.contains(node.parentId())) {
+                        node.setParentId(folderIdMap[node.parentId()]);
+                        auto oldId = node.id();
+                        auto newId = addNode(node);
+                        noteIdMap[oldId] = newId;
+                    } else {
+                        qDebug() << __FUNCTION__ << __LINE__ << "can't find parent for note";
+                    }
+                }
+            } else {
+                qDebug() << __FUNCTION__ << __LINE__ << out_qr.lastError();
+            }
+        }
+        {
+            QSqlQuery out_qr(outside_db);
+            out_qr.prepare(R"(SELECT "tag_id", "node_id" FROM tag_relationship)");
+            bool status = out_qr.exec();
+            QVector<std::pair<int, int>> tagRela;
+            if(status) {
+                while(out_qr.next()) {
+                    tagRela.append(std::make_pair(out_qr.value(0).toInt(),
+                                                  out_qr.value(1).toInt()));
+                }
+                for (const auto& rel : QT_AS_CONST(tagRela)) {
+                    if (tagIdMap.contains(rel.first) && noteIdMap.contains(rel.second)) {
+                        addNoteToTag(noteIdMap[rel.second], tagIdMap[rel.first]);
+                    } else {
+                        qDebug() << __FUNCTION__ << __LINE__ << "tag relationship is not valid";
+                    }
+                }
+            } else {
+                qDebug() << __FUNCTION__ << __LINE__ << out_qr.lastError();
+            }
+        }
+        {
+            outside_db.close();
+            outside_db = QSqlDatabase::database();
+        }
     } else {
         auto noteList = readOldNBK(fileName);
         if (noteList.isEmpty()) {

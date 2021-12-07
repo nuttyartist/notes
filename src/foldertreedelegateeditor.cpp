@@ -113,9 +113,9 @@ void FolderTreeDelegateEditor::updateDelegate()
     auto theme = dynamic_cast<NodeTreeView*>(m_view)->theme();
     if (theme == Theme::Dark) {
         m_expanded.load(QStringLiteral(":/images/tree-node-expanded-dark.png"));
-        m_notExpanded.load(QStringLiteral(":/images/tree-node-normal.png"));
+        m_notExpanded.load(QStringLiteral(":/images/tree-node-normal-dark.png"));
     } else {
-        m_expanded.load(QStringLiteral(":/images/tree-node-normal-dark.png"));
+        m_expanded.load(QStringLiteral(":/images/tree-node-expanded.png"));
         m_notExpanded.load(QStringLiteral(":/images/tree-node-normal.png"));
     }
     if (m_index.data(NodeItem::Roles::IsExpandable).toBool()) {
