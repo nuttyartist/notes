@@ -101,7 +101,7 @@ void NodeTreeDelegate::paint(QPainter *painter,
     }
     case NodeItem::Type::AllNoteButton:
     case NodeItem::Type::TrashButton: {
-        paintBackgroundSelectable(painter, option);
+        paintBackgroundSelectable(painter, option, index);
         auto iconRect = QRect(option.rect.x() + 5, option.rect.y() + (option.rect.height() - 20) / 2, 18, 20);
         if (m_theme == Theme::Dark) {
             if (itemType == NodeItem::Type::AllNoteButton) {
@@ -136,7 +136,7 @@ void NodeTreeDelegate::paint(QPainter *painter,
         break;
     }
     case NodeItem::Type::FolderItem: {
-        paintBackgroundSelectable(painter, option);
+        paintBackgroundSelectable(painter, option, index);
         auto iconRect = QRect(option.rect.x() + 5, option.rect.y() + (option.rect.height() - 20) / 2, 20, 20);
         QString iconPath;
         if (m_theme == Theme::Dark) {
@@ -169,7 +169,7 @@ void NodeTreeDelegate::paint(QPainter *painter,
         break;
     }
     case NodeItem::Type::NoteItem: {
-        paintBackgroundSelectable(painter, option);
+        paintBackgroundSelectable(painter, option, index);
         QRect nameRect(option.rect);
         nameRect.setLeft(nameRect.x() + 10 + 5);
         auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
@@ -183,7 +183,7 @@ void NodeTreeDelegate::paint(QPainter *painter,
         break;
     }
     case NodeItem::Type::TagItem: {
-        paintBackgroundSelectable(painter, option);
+        paintBackgroundSelectable(painter, option, index);
         auto iconRect = QRect(option.rect.x() + 10, option.rect.y() + (option.rect.height() - 14) / 2, 14, 14);
         auto tagColor = index.data(NodeItem::Roles::TagColor).toString();
         painter->setBrush(QColor(tagColor));
@@ -206,12 +206,16 @@ void NodeTreeDelegate::paint(QPainter *painter,
     }
 }
 
-void NodeTreeDelegate::paintBackgroundSelectable(QPainter *painter, const QStyleOptionViewItem &option) const
+void NodeTreeDelegate::paintBackgroundSelectable(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex& index) const
 {
     if((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
         painter->fillRect(option.rect, QBrush(m_ActiveColor));
     } else if((option.state & QStyle::State_MouseOver) == QStyle::State_MouseOver) {
         auto treeView = dynamic_cast<NodeTreeView*>(m_view);
+        auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
+        if (itemType == NodeItem::Type::TrashButton) {
+            return;
+        }
         if (!treeView->isDragging()) {
             painter->fillRect(option.rect, QBrush(m_hoverColor));
         }

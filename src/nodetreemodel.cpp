@@ -815,10 +815,17 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime,
         auto parentType = static_cast<NodeItem::Type>(
                     parentItem->data(NodeItem::Roles::ItemType).toInt());
         if (!(parentType == NodeItem::Type::FolderItem ||
-              parentType == NodeItem::Type::RootItem)) {
+              parentType == NodeItem::Type::RootItem ||
+                parentType == NodeItem::Type::TrashButton)) {
             return false;
         }
         movingItem = static_cast<NodeTreeItem*>(index.internalPointer());
+        if (parentType == NodeItem::Type::TrashButton) {
+            auto abs = movingItem->data(NodeItem::Roles::AbsPath).toString();
+            auto movingIndex = folderIndexFromIdPath(abs);
+            emit requestMoveFolderToTrash(movingIndex);
+            return false;
+        }
         if (movingItem->parentItem() == parentItem) {
             beginResetModel();
             for (int i = 0; i < parentItem->childCount(); ++i) {

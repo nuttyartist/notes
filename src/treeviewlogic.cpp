@@ -75,6 +75,9 @@ TreeViewLogic::TreeViewLogic(NodeTreeView* treeView,
             m_treeView, &NodeTreeView::onFolderDropSuccessfull);
     connect(m_treeModel, &NodeTreeModel::dropTagsSuccessfull,
             m_treeView, &NodeTreeView::onTagsDropSuccessfull);
+    connect(m_treeModel, &NodeTreeModel::requestMoveFolderToTrash,
+            this, &TreeViewLogic::onDeleteFolderRequested);
+
     m_style = new CustomApplicationStyle();
     qApp->setStyle(m_style);
 }
@@ -216,6 +219,9 @@ void TreeViewLogic::onDeleteFolderRequested(const QModelIndex &index)
             qDebug() << __FUNCTION__ << "Parent index with path" << parentPath.path()
                      << "is not valid";
         }
+    } else {
+        m_treeView->closePersistentEditor(m_treeModel->getTrashButtonIndex());
+        m_treeView->update(m_treeModel->getTrashButtonIndex());
     }
 }
 

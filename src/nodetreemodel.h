@@ -110,6 +110,8 @@ signals:
     void requestUpdateAbsPath(const QString& oldPath, const QString& newPath);
     void dropFolderSuccessfull(const QString& paths);
     void dropTagsSuccessfull(const QSet<int>& ids);
+    void requestMoveFolderToTrash(const QModelIndex& index);
+
 private:
     NodeTreeItem *rootItem;
     void loadNodeTree(const QVector<NodeData>& nodeData, NodeTreeItem* rootNode);

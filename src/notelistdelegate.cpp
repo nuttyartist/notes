@@ -141,7 +141,11 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
 {
     QSize result = QStyledItemDelegate::sizeHint(option, index);
     auto id = index.data(NoteListModel::NoteID).toInt();
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
+    if (index != m_animatedIndex) {
+#else
     if (m_view->isPersistentEditorOpen(index) && index != m_animatedIndex) {
+#endif
         if (szMap.contains(id)) {
             result.setHeight(szMap[id].height());
             return result;

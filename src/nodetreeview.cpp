@@ -274,6 +274,14 @@ void NodeTreeView::dragMoveEvent(QDragMoveEvent *event)
                 return;
             }
         } else if (event->mimeData()->hasFormat(FOLDER_MIME)) {
+            auto trashRect = visualRect(dynamic_cast<NodeTreeModel*>(model())
+                                        ->getTrashButtonIndex());
+            if (event->pos().y() > (trashRect.y() + 5) &&
+                    event->pos().y() < (trashRect.bottom() - 5)) {
+                setDropIndicatorShown(true);
+                QTreeView::dragMoveEvent(event);
+                return;
+            }
             if (event->pos().y() > visualRect(m_treeSeparator[1]).y()) {
                 event->ignore();
                 return;
@@ -390,7 +398,7 @@ void NodeTreeView::setTheme(Theme theme)
                 R"(QTreeView {)"
                 R"(    border-style: none;)"
                 R"(    background-color: %1;)"
-                R"(    selection-background-color: white;)"
+                R"(    selection-background-color: %1;)"
                 R"(    selection-color: white;)"
                 R"(})"
                 R"()"

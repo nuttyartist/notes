@@ -24,7 +24,7 @@ public:
     virtual void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
 
 private:
-    void paintBackgroundSelectable(QPainter *painter, const QStyleOptionViewItem &option) const;
+    void paintBackgroundSelectable(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
 
 private:
     QString m_displayFont;

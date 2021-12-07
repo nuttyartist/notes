@@ -45,7 +45,7 @@ class ListViewLogic;
 class NoteEditorLogic;
 class TagPool;
 
-#if defined(Q_OS_WINDOWS) || defined(Q_OS_MACOS)
+#if defined(Q_OS_WINDOWS) || defined(Q_OS_MACOS) || defined(Q_OS_WIN)
 class MainWindow : public CFramelessWindow
 #else
 class MainWindow : public QMainWindow

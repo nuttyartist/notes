@@ -7,7 +7,7 @@
 VERSION = 2.0.0
 
 QT += core gui widgets network sql
-QT += gui-private widgets-private
+QT += core-private gui-private widgets-private
 QT += concurrent
 
 TARGET    = Notes
