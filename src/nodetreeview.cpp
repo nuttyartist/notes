@@ -523,11 +523,16 @@ void NodeTreeView::mousePressEvent(QMouseEvent *event)
             switch (itemType) {
             case NodeItem::Type::FolderItem: {
                 setCurrentIndexC(index);
-                if (isExpanded(index)) {
-                    collapse(index);
-                } else {
-                    expand(index);
+                auto rect = visualRect(index);
+                auto iconRect = QRect(rect.x() + 5, rect.y() + (rect.height() - 20) / 2, 20, 20);
+                if (iconRect.contains(event->pos())) {
+                    if (isExpanded(index)) {
+                        collapse(index);
+                    } else {
+                        expand(index);
+                    }
                 }
+
                 break;
             }
             case NodeItem::Type::TagItem: {
