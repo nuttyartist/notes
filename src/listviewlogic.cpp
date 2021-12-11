@@ -228,8 +228,10 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData>& noteList, const L
     updateListViewLabel();
 
     if ((!m_listViewInfo.isInTag) && m_listViewInfo.parentFolderId == SpecialNodeID::TrashFolder) {
+        emit setNewNoteButtonVisible(false);
         m_listView->setIsInTrash(true);
     } else {
+        emit setNewNoteButtonVisible(true);
         m_listView->setIsInTrash(false);
     }
     if (m_listViewInfo.isInTag) {

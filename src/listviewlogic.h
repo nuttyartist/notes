@@ -60,6 +60,7 @@ signals:
     void requestNewNote();
     void moveNoteRequested(int id, int target);
     void listViewLabelChanged(const QString& label1, const QString& label2);
+    void setNewNoteButtonVisible(bool visible);
 private slots:
     void loadNoteListModel(const QVector<NodeData>& noteList, const ListViewInfo& inf);
     void onAddTagRequest(const QModelIndex& index, int tagId);

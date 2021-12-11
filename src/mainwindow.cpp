@@ -680,6 +680,11 @@ void MainWindow::setupSignalsSlots()
         m_treeViewLogic->onMoveNodeRequested(id, target);
         m_treeViewLogic->openFolder(target);
     });
+    connect(m_listViewLogic, &ListViewLogic::setNewNoteButtonVisible,
+            this, [this] (bool visible) {
+        ui->newNoteButton->setVisible(visible);
+    });
+
 #ifdef __APPLE__
     // Replace setUseNativeWindowFrame with just the part that handles pushing things up
     connect(this, &MainWindow::toggleFullScreen, this, [=](bool isFullScreen){adjustUpperWidgets(isFullScreen);});
@@ -1220,6 +1225,9 @@ void MainWindow::onNewNoteButtonPressed()
  */
 void MainWindow::onNewNoteButtonClicked()
 {
+    if (!m_newNoteButton->isVisible()) {
+        return;
+    }
     if (m_listViewLogic->isAnimationRunning()) {
         return;
     }
