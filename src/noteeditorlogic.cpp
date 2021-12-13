@@ -187,13 +187,13 @@ void NoteEditorLogic::deleteCurrentNote()
     if (m_currentNote.id() != SpecialNodeID::InvalidNodeId) {
         auto noteNeedDeleted = m_currentNote;
         saveNoteToDB();
-        emit noteEditClosed(m_currentNote);
-        emit deleteNoteRequested(noteNeedDeleted);
         m_currentNote.setId(SpecialNodeID::InvalidNodeId);
         m_textEdit->blockSignals(true);
         m_textEdit->clear();
         m_textEdit->clearFocus();
         m_textEdit->blockSignals(false);
+        emit noteEditClosed(noteNeedDeleted);
+        emit deleteNoteRequested(noteNeedDeleted);
     }
 }
 
