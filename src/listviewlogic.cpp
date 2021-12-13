@@ -396,21 +396,24 @@ void ListViewLogic::updateListViewLabel()
             }
         }
     }
-    l2 = QString::number(m_listModel->rowCount());
+    l2 = QString::number(m_listModel->realRowCount());
     emit listViewLabelChanged(l1, l2);
 }
 
 void ListViewLogic::onRowCountChanged()
 {
-    for (int i = 0; i < m_editorIndexes.size(); ++i) {
-        m_listView->closePersistentEditor(m_editorIndexes[i]);
-    }
+    m_listView->closeAllEditor();
     m_listDelegate->clearSizeMap();
-    m_editorIndexes.clear();
     for (int i = 0; i < m_listModel->rowCount(); ++i) {
         auto index = m_listModel->index(i, 0);
-        m_listView->openPersistentEditor(index);
-        m_editorIndexes.append(index);
+        auto y = m_listView->visualRect(index).y();
+        auto range = abs(m_listView->viewport()->height());
+        if (y < -range) {
+            continue;
+        } else if (y > 2 * range) {
+            break;
+        }
+        m_listView->openPersistentEditorC(index);
     }
 }
 

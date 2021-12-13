@@ -47,6 +47,9 @@ private:
     QSet<int> getAllTagForNote(int noteId);
     bool updateNoteContent(const NodeData &note);
     QList<NodeData> readOldNBK(const QString fileName);
+    int nextAvailablePosition(int parentId, NodeData::Type nodeType);
+    int addNodePreComputed(const NodeData& node);
+
 signals:
     void notesListReceived(const QVector<NodeData>& noteList, const ListViewInfo& inf);
     void nodesTagTreeReceived(const NodeTagTreeData& treeData);
@@ -71,6 +74,7 @@ public slots:
     void onMigrateNotesFrom1_5_0Requested(const QString& fileName);
 
     int addNode(const NodeData& node);
+
     int addTag(const TagData& tag);
     void addNoteToTag(int noteId, int tagId);
     void removeNoteFromTag(int noteId, int tagId);

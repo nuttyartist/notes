@@ -146,6 +146,20 @@ void NoteListView::setCurrentFolderId(int newCurrentFolderId)
     m_currentFolderId = newCurrentFolderId;
 }
 
+void NoteListView::openPersistentEditorC(const QModelIndex &index)
+{
+    openPersistentEditor(index);
+    m_openedEditor.insert(index);
+}
+
+void NoteListView::closeAllEditor()
+{
+    for (const auto& index : QT_AS_CONST(m_openedEditor)) {
+        closePersistentEditor(index);
+    }
+    m_openedEditor.clear();
+}
+
 void NoteListView::setDbManager(DBManager *newDbManager)
 {
     m_dbManager = newDbManager;
@@ -292,6 +306,35 @@ bool NoteListView::viewportEvent(QEvent*e)
     }
 
     return QListView::viewportEvent(e);
+}
+
+void NoteListView::scrollContentsBy(int dx, int dy)
+{
+    QListView::scrollContentsBy(dx, dy);
+    auto m_listModel = dynamic_cast<NoteListModel*>(model());
+    if (!m_listModel) {
+        return;
+    }
+    for (int i = 0; i < m_listModel->rowCount(); ++i) {
+        auto index = m_listModel->index(i, 0);
+        if (m_openedEditor.contains(index)) {
+            auto y = visualRect(index).y();
+            auto range = abs(viewport()->height());
+            if ((y < -range) || (y > 2 * range)) {
+                m_openedEditor.remove(index);
+                closePersistentEditor(index);
+            }
+        } else {
+            auto y = visualRect(index).y();
+            auto range = abs(viewport()->height());
+            if (y < -range) {
+                continue;
+            } else if (y > 2 * range) {
+                break;
+            }
+            openPersistentEditorC(index);
+        }
+    }
 }
 
 void NoteListView::setCurrentRowActive(bool isActive)

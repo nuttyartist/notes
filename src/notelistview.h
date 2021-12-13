@@ -25,6 +25,8 @@ public:
     void setDbManager(DBManager *newDbManager);
 
     void setCurrentFolderId(int newCurrentFolderId);
+    void openPersistentEditorC(const QModelIndex& index);
+    void closeAllEditor();
 
 public slots:
     void onCustomContextMenu(const QPoint& point);
@@ -36,6 +38,9 @@ protected:
     void mousePressEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
     void mouseReleaseEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
     bool viewportEvent(QEvent* e) Q_DECL_OVERRIDE;
+    // QAbstractScrollArea interface
+protected:
+    virtual void scrollContentsBy(int dx, int dy) override;
 
 public slots:
     void rowsAboutToBeMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd,
@@ -80,11 +85,14 @@ private:
     bool m_isInTrash;
     QPoint m_dragStartPosition;
     QPixmap m_dragPixmap;
+    QSet<QModelIndex> m_openedEditor;
+
     void setupSignalsSlots();
     void setupStyleSheet();
 
     void addCurrentNoteToTag(int tagId);
     void removeCurrentNoteFromTag(int tagId);
+
 };
 
 #endif // NOTELISTVIEW_H

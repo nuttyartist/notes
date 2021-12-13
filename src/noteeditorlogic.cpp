@@ -225,7 +225,15 @@ QString NoteEditorLogic::getSecondLine(const QString &str)
     if (sl.size() < 2) {
         return getFirstLine(str);
     }
-    QString text = sl[1].trimmed();
+    int i = 1;
+    QString text;
+    do {
+        if (i >= sl.size()) {
+            return getFirstLine(str);
+        }
+        text = sl[i].trimmed();
+        ++i;
+    } while (text.isEmpty());
     QTextStream ts(&text);
     return ts.readLine(FIRST_LINE_MAX);
 }

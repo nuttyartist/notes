@@ -64,7 +64,6 @@ NoteListDelegate::NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject
         m_animatedIndex = QModelIndex();
         m_state = Normal;
     });
-
 }
 
 void NoteListDelegate::setState(States NewState, QModelIndex index)
@@ -106,7 +105,9 @@ void NoteListDelegate::setAnimationDuration(const int duration)
 
 void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-//    return;
+    if(index != m_animatedIndex){
+        return;
+    }
     painter->setRenderHint(QPainter::Antialiasing);
     QStyleOptionViewItem opt = option;
     opt.rect.setWidth(option.rect.width() - m_rowRightOffset);

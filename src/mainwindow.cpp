@@ -154,14 +154,14 @@ void MainWindow::InitData()
         connect(watcher, &QFutureWatcher<void>::finished, this, [&, pd](){
             pd->deleteLater();
             setButtonsAndFieldsEnabled(true);
-            emit requestNotesList(SpecialNodeID::RootFolder, true);
+//            emit requestNotesList(SpecialNodeID::RootFolder, true);
         });
 
         QFuture<void> migration = QtConcurrent::run(this, &MainWindow::migrateFromV0_9_0);
         watcher->setFuture(migration);
 
     } else {
-        emit requestNotesList(SpecialNodeID::RootFolder, true);
+//        emit requestNotesList(SpecialNodeID::RootFolder, true);
     }
 
     /// Check if it is running with an argument (ex. hide)

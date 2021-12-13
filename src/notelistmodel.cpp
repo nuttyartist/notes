@@ -3,7 +3,8 @@
 #include "nodepath.h"
 
 NoteListModel::NoteListModel(QObject *parent)
-    : QAbstractListModel(parent)
+    : QAbstractListModel(parent),
+      m_ncl{0}
 {
 
 }
@@ -56,6 +57,7 @@ void NoteListModel::setListNote(const QVector<NodeData> notes)
 {
     beginResetModel();
     m_noteList = notes;
+    m_ncl = 0;
     endResetModel();
     emit rowCountChanged();
 }
@@ -182,8 +184,7 @@ Qt::ItemFlags NoteListModel::flags(const QModelIndex &index) const
 int NoteListModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent)
-
-    return m_noteList.count();
+    return parent.isValid() ? 0 : m_ncl;
 }
 
 void NoteListModel::sort(int column, Qt::SortOrder order)
@@ -196,4 +197,33 @@ void NoteListModel::sort(int column, Qt::SortOrder order)
     });
 
     emit dataChanged(index(0), index(rowCount()-1));
+}
+
+void NoteListModel::fetchMore(const QModelIndex &parent)
+{
+    if (parent.isValid()) {
+        return;
+    }
+    int remainder = m_noteList.size() - m_ncl;
+    int itemsToFetch = qMin(100, remainder);
+
+    if (itemsToFetch <= 0) {
+        return;
+    }
+    beginInsertRows(QModelIndex(), m_ncl, m_ncl + itemsToFetch - 1);
+    m_ncl += itemsToFetch;
+    endInsertRows();
+    emit rowCountChanged();
+}
+
+bool NoteListModel::canFetchMore(const QModelIndex &parent) const
+{
+    if (parent.isValid())
+        return false;
+    return (m_ncl < m_noteList.size());
+}
+
+int NoteListModel::realRowCount() const
+{
+    return m_noteList.size();
 }

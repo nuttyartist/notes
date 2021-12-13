@@ -42,9 +42,12 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const Q_DECL_OVERRIDE;
     int rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
     void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
-
+    virtual void fetchMore(const QModelIndex &parent) override;
+    virtual bool canFetchMore(const QModelIndex &parent) const override;
+    int realRowCount() const;
 private:
     QVector<NodeData> m_noteList;
+    int m_ncl;
 
 signals:
     void noteRemoved();
