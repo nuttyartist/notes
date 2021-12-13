@@ -416,12 +416,12 @@ void NodeTreeView::setTheme(Theme theme)
     switch(theme){
     case Theme::Light:
     {
-        setStyleSheet(ss.arg(QColor(255, 255, 255).name()));
+        setStyleSheet(ss.arg(QColor(247, 247, 247).name()));
         break;
     }
     case Theme::Dark:
     {
-        setStyleSheet(ss.arg(QColor(16, 16, 16).name()));
+        setStyleSheet(ss.arg(QColor(26, 26, 26).name()));
         break;
     }
     case Theme::Sepia:

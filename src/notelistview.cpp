@@ -24,7 +24,7 @@ NoteListView::NoteListView(QWidget *parent)
       m_animationEnabled(true),
       m_isMousePressed(false),
       m_rowHeight(38),
-      m_currentBackgroundColor(255, 255, 255),
+      m_currentBackgroundColor(247, 247, 247),
       m_tagPool(nullptr),
       m_dbManager(nullptr),
       m_currentFolderId{SpecialNodeID::InvalidNodeId},
@@ -476,12 +476,12 @@ void NoteListView::setTheme(Theme theme)
     switch(theme){
     case Theme::Light:
     {
-        m_currentBackgroundColor = QColor(255, 255, 255);
+        m_currentBackgroundColor = QColor(247, 247, 247);
         break;
     }
     case Theme::Dark:
     {
-        m_currentBackgroundColor = QColor(16, 16, 16);
+        m_currentBackgroundColor = QColor(26, 26, 26);
         break;
     }
     case Theme::Sepia:

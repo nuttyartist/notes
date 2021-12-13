@@ -74,7 +74,7 @@ void NoteEditorLogic::showNoteInEditor(const NodeData &note)
     m_currentNote = note;
     showTagListForCurrentNote();
     /// fixing bug #202
-    m_textEdit->setTextBackgroundColor(QColor(255,255,255, 0));
+    m_textEdit->setTextBackgroundColor(QColor(247,247,247, 0));
 
     QString content = note.content();
     QDateTime dateTime = note.lastModificationdateTime();

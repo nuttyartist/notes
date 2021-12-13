@@ -41,7 +41,7 @@ NoteListDelegate::NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject
       m_hoverColor(207, 207, 207),
       m_applicationInactiveColor(207, 207, 207),
       m_separatorColor(221, 221, 221),
-      m_defaultColor(255, 255, 255),
+      m_defaultColor(247, 247, 247),
       m_rowHeight(106),
       m_maxFrame(200),
       m_rowRightOffset(0),
@@ -482,7 +482,7 @@ void NoteListDelegate::setTheme(Theme theme)
     {
         m_titleColor = QColor(26, 26, 26);
         m_dateColor = QColor(26, 26, 26);
-        m_defaultColor = QColor(255, 255, 255);
+        m_defaultColor = QColor(247, 247, 247);
         m_ActiveColor = QColor(218, 233, 239);
         m_notActiveColor = QColor(175, 212, 228);
         m_hoverColor = QColor(207, 207, 207);
@@ -492,7 +492,7 @@ void NoteListDelegate::setTheme(Theme theme)
     {
         m_titleColor = QColor(204, 204, 204);
         m_dateColor = QColor(204, 204, 204);
-        m_defaultColor = QColor(16, 16, 16);
+        m_defaultColor = QColor(26, 26, 26);
         m_ActiveColor = QColor(0, 59, 148);
         m_notActiveColor = QColor(0, 59, 148);
         m_hoverColor = QColor(15, 45, 90);
