@@ -38,6 +38,7 @@ signals:
     void requestChangeTagColorInDB(int id, const QString& newColor);
     void requestMoveNodeInDB(int id, const NodeData& target);
     void addNoteToTag(int noteId, int tagId);
+    void noteMoved(int nodeId, int targetId);
 
 private:
     void onAddFolderRequested(bool fromPlusButton);

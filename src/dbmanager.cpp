@@ -676,6 +676,8 @@ NodeData DBManager::getNode(int nodeId)
         node.setIsPinnedNote(static_cast<bool>(query.value(11).toInt()));
         if (node.nodeType() == NodeData::Note) {
             node.setTagIds(getAllTagForNote(node.id()));
+            auto p = getNode(node.parentId());
+            node.setParentName(p.fullTitle());
         }
         return node;
     } else {

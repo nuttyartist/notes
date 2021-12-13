@@ -152,6 +152,12 @@ void NoteListView::openPersistentEditorC(const QModelIndex &index)
     m_openedEditor.insert(index);
 }
 
+void NoteListView::closePersistentEditorC(const QModelIndex &index)
+{
+    closePersistentEditor(index);
+    m_openedEditor.remove(index);
+}
+
 void NoteListView::closeAllEditor()
 {
     for (const auto& index : QT_AS_CONST(m_openedEditor)) {

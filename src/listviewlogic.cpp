@@ -264,8 +264,8 @@ void ListViewLogic::onAddTagRequest(const QModelIndex &index, int tagId)
         auto tagIds = index.data(NoteListModel::NoteTagsList).value<QSet<int>>();
         tagIds.insert(tagId);
         m_listModel->setData(index, QVariant::fromValue(tagIds), NoteListModel::NoteTagsList);
-        m_listView->closePersistentEditor(index);
-        m_listView->openPersistentEditor(index);
+        m_listView->closePersistentEditorC(index);
+        m_listView->openPersistentEditorC(index);
         emit noteTagListChanged(noteId, tagIds);
     } else {
         qDebug() << __FUNCTION__ << "index is not valid";
@@ -276,6 +276,37 @@ void ListViewLogic::onAddTagRequestD(int noteId, int tagId)
 {
     auto index = m_listModel->getNoteIndex(noteId);
     onAddTagRequest(index, tagId);
+}
+
+void ListViewLogic::onNoteMovedOut(int nodeId, int targetId)
+{
+    auto index = m_listModel->getNoteIndex(nodeId);
+    if (index.isValid()) {
+        if ((!m_listViewInfo.isInTag
+                && m_listViewInfo.parentFolderId != SpecialNodeID::RootFolder
+                && m_listViewInfo.parentFolderId != targetId)
+                || targetId == SpecialNodeID::TrashFolder) {
+            selectNoteDown();
+            m_listModel->removeNote(index);
+            if (m_listModel->rowCount() == 0) {
+                emit closeNoteEditor();
+            }
+        } else {
+            NodeData note;
+            QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection,
+                                      Q_RETURN_ARG(NodeData, note),
+                                      Q_ARG(int, nodeId)
+                                      );
+            if (note.id() != SpecialNodeID::InvalidNodeId) {
+                m_listView->closePersistentEditorC(index);
+                m_listModel->setNoteData(index, note);
+                qDebug() << note.parentName();
+                m_listView->openPersistentEditorC(index);
+            } else {
+                qDebug() << __FUNCTION__ << "Note id" << nodeId << "not found!";
+            }
+        }
+    }
 }
 
 void ListViewLogic::onRemoveTagRequest(const QModelIndex &index, int tagId)
@@ -289,8 +320,8 @@ void ListViewLogic::onRemoveTagRequest(const QModelIndex &index, int tagId)
         auto tagIds = index.data(NoteListModel::NoteTagsList).value<QSet<int>>();
         tagIds.remove(tagId);
         m_listModel->setData(index, QVariant::fromValue(tagIds), NoteListModel::NoteTagsList);
-        m_listView->closePersistentEditor(index);
-        m_listView->openPersistentEditor(index);
+        m_listView->closePersistentEditorC(index);
+        m_listView->openPersistentEditorC(index);
         emit noteTagListChanged(noteId, tagIds);
     } else {
         qDebug() << __FUNCTION__ << "index is not valid";
@@ -396,7 +427,7 @@ void ListViewLogic::updateListViewLabel()
             }
         }
     }
-    l2 = QString::number(m_listModel->realRowCount());
+    l2 = QString::number(m_listModel->rowCount());
     emit listViewLabelChanged(l1, l2);
 }
 

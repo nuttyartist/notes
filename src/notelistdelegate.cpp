@@ -60,7 +60,7 @@ NoteListDelegate::NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject
     });
 
     connect(m_timeLine, &QTimeLine::finished, this, [this](){
-        m_view->openPersistentEditor(m_animatedIndex);
+        m_view->openPersistentEditorC(m_animatedIndex);
         m_animatedIndex = QModelIndex();
         m_state = Normal;
     });
@@ -71,7 +71,7 @@ void NoteListDelegate::setState(States NewState, QModelIndex index)
     m_animatedIndex = index;
 
     auto startAnimation = [this](QTimeLine::Direction diretion, int duration){
-        m_view->closePersistentEditor(m_animatedIndex);
+        m_view->closePersistentEditorC(m_animatedIndex);
         m_timeLine->setDirection(diretion);
         m_timeLine->setDuration(duration);
         m_timeLine->start();

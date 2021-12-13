@@ -26,6 +26,7 @@ public:
 
     void setCurrentFolderId(int newCurrentFolderId);
     void openPersistentEditorC(const QModelIndex& index);
+    void closePersistentEditorC(const QModelIndex& index);
     void closeAllEditor();
 
 public slots:

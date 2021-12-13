@@ -58,7 +58,10 @@ TreeViewLogic::TreeViewLogic(NodeTreeView* treeView,
     connect(this, &TreeViewLogic::requestMoveNodeInDB,
             m_dbManager, &DBManager::moveNode, Qt::QueuedConnection);
     connect(m_treeView, &NodeTreeView::moveNodeRequested,
-            this, &TreeViewLogic::onMoveNodeRequested);
+            this, [this] (int nodeId, int targetId) {
+        onMoveNodeRequested(nodeId, targetId);
+        emit noteMoved(nodeId, targetId);
+    });
     connect(m_treeView, &NodeTreeView::addNoteToTag,
             this, &TreeViewLogic::addNoteToTag);
     connect(m_treeModel, &NodeTreeModel::requestExpand,

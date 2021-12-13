@@ -684,6 +684,8 @@ void MainWindow::setupSignalsSlots()
             this, [this] (bool visible) {
         ui->newNoteButton->setVisible(visible);
     });
+    connect(m_treeViewLogic, &TreeViewLogic::noteMoved,
+            m_listViewLogic, &ListViewLogic::onNoteMovedOut);
 
 #ifdef __APPLE__
     // Replace setUseNativeWindowFrame with just the part that handles pushing things up

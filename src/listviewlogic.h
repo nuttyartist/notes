@@ -44,6 +44,7 @@ public slots:
     void onSearchEditTextChanged(const QString &keyword);
     void clearSearch();
     void onAddTagRequestD(int noteId, int tagId);
+    void onNoteMovedOut(int nodeId, int targetId);
 
 signals:
     void showNoteInEditor(const NodeData& noteData);
