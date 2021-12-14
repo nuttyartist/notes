@@ -505,8 +505,10 @@ void MainWindow::setupLine()
 {
 #ifdef __APPLE__
     ui->line->setStyleSheet(QStringLiteral("border: 0px solid rgb(221, 221, 221)"));
+    ui->line_2->setStyleSheet(QStringLiteral("border: 0px solid rgb(221, 221, 221)"));
 #else
     ui->line->setStyleSheet(QStringLiteral("border: 1px solid rgb(221, 221, 221)"));
+    ui->line_2->setStyleSheet(QStringLiteral("border: 1px solid rgb(221, 221, 221)"));
 #endif
 }
 
