@@ -9,6 +9,13 @@ class NoteListDelegate;
 class TagListModel;
 class TagListView;
 class TagListDelegate;
+struct NoteListConstant {
+    static constexpr int leftOffsetX = 10;
+    static constexpr int topOffsetY = 5;   // space on top of title
+    static constexpr int titleDateSpace = 1;  // space between title and date
+    static constexpr int dateDescSpace = 4;  // space between date and description
+    static constexpr int descFolderSpace = 9;  // space between description and folder name
+};
 
 class NoteListDelegateEditor : public QWidget
 {

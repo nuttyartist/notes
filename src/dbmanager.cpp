@@ -7,7 +7,6 @@
 #include <QtConcurrent>
 #include <QSqlRecord>
 #include <QSet>
-#include <bits/stdc++.h>
 
 #define DEFAULT_DATABASE_NAME "default_database"
 #define OUTSIDE_DATABASE_NAME "outside_database"
