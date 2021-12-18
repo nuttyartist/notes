@@ -105,7 +105,8 @@ void NoteListDelegate::setAnimationDuration(const int duration)
 
 void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    if(index != m_animatedIndex){
+    bool isHaveTags = index.data(NoteListModel::NoteTagsList).value<QSet<int>>().size() > 0;
+    if(index != m_animatedIndex && isHaveTags){
         return;
     }
     painter->setRenderHint(QPainter::Antialiasing);
@@ -142,10 +143,11 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
 {
     QSize result = QStyledItemDelegate::sizeHint(option, index);
     auto id = index.data(NoteListModel::NoteID).toInt();
+    bool isHaveTags = index.data(NoteListModel::NoteTagsList).value<QSet<int>>().size() > 0;
 #if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
-    if (index != m_animatedIndex) {
+    if (index != m_animatedIndex && isHaveTags) {
 #else
-    if (m_view->isPersistentEditorOpen(index) && index != m_animatedIndex) {
+    if (m_view->isPersistentEditorOpen(index) && index != m_animatedIndex && isHaveTags) {
 #endif
         if (szMap.contains(id)) {
             result.setHeight(szMap[id].height());
@@ -153,7 +155,7 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
         }
     }
     int rowHeight = 70;
-    if (index.data(NoteListModel::NoteTagsList).value<QSet<int>>().size() > 0) {
+    if (isHaveTags) {
         rowHeight = m_rowHeight;
     }
     if(index == m_animatedIndex){
@@ -437,6 +439,10 @@ void NoteListDelegate::editorDestroyed(int id, const QModelIndex &index)
 QWidget *NoteListDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     if (!index.isValid()) {
+        return nullptr;
+    }
+    bool isHaveTags = index.data(NoteListModel::NoteTagsList).value<QSet<int>>().size() > 0;
+    if (!isHaveTags) {
         return nullptr;
     }
     auto w = new NoteListDelegateEditor(this, m_view, option, index, m_tagPool, parent);
