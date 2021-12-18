@@ -44,6 +44,7 @@ class TreeViewLogic;
 class ListViewLogic;
 class NoteEditorLogic;
 class TagPool;
+class SpliterStyle;
 
 #if defined(Q_OS_WINDOWS) || defined(Q_OS_MACOS) || defined(Q_OS_WIN)
 class MainWindow : public CFramelessWindow
@@ -139,7 +140,7 @@ private:
     DBManager* m_dbManager;
     QThread* m_dbThread;
     QTimer* m_newNoteTimer;
-
+    SpliterStyle* m_spliterStyle;
     UpdaterWindow m_updater;
     StyleEditorWindow m_styleEditorWindow;
     AboutWindow m_aboutWindow;

@@ -13,6 +13,7 @@
 #include "listviewlogic.h"
 #include "noteeditorlogic.h"
 #include "tagpool.h"
+#include "spliterstyle.h"
 
 #include <QScrollBar>
 #include <QShortcut>
@@ -377,6 +378,8 @@ void MainWindow::setupMainWindow()
     ui->listviewLabel2->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
     ui->listviewLabel1->setStyleSheet("QLabel { color :  rgb(0, 0, 0); }");
     ui->listviewLabel2->setStyleSheet("QLabel { color :  rgb(132, 132, 132); }");
+    m_spliterStyle = new SpliterStyle();
+    m_splitter->setStyle(m_spliterStyle);
 }
 
 /*!
@@ -503,13 +506,8 @@ void MainWindow::setupSplitter()
  */
 void MainWindow::setupLine()
 {
-#ifdef __APPLE__
-    ui->line->setStyleSheet(QStringLiteral("border: 0px solid rgb(221, 221, 221)"));
-    ui->line_2->setStyleSheet(QStringLiteral("border: 0px solid rgb(221, 221, 221)"));
-#else
-    ui->line->setStyleSheet(QStringLiteral("border: 1px solid rgb(221, 221, 221)"));
-    ui->line_2->setStyleSheet(QStringLiteral("border: 1px solid rgb(221, 221, 221)"));
-#endif
+    ui->line->setStyleSheet(QStringLiteral("border: 1px solid rgb(191, 191, 191)"));
+    ui->line_2->setStyleSheet(QStringLiteral("border: 1px solid rgb(191, 191, 191)"));
 }
 
 /*!

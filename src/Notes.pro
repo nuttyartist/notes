@@ -36,6 +36,7 @@ SOURCES += \
     notelistmodel.cpp \
     notelistview.cpp \
     singleinstance.cpp \
+    spliterstyle.cpp \
     taglistdelegate.cpp \
     taglistmodel.cpp \
     taglistview.cpp \
@@ -72,6 +73,7 @@ HEADERS  += \
     notelistmodel.h \
     notelistview.h \
     singleinstance.h \
+    spliterstyle.h \
     taglistdelegate.h \
     taglistmodel.h \
     taglistview.h \

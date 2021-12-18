@@ -40,7 +40,7 @@ NoteListDelegate::NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject
       m_notActiveColor(175, 212, 228),
       m_hoverColor(207, 207, 207),
       m_applicationInactiveColor(207, 207, 207),
-      m_separatorColor(221, 221, 221),
+      m_separatorColor(191, 191, 191),
       m_defaultColor(247, 247, 247),
       m_rowHeight(106),
       m_maxFrame(200),
