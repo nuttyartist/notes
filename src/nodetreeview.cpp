@@ -14,6 +14,7 @@ NodeTreeView::NodeTreeView(QWidget *parent) :
     m_isEditing{false}
 {
     setHeaderHidden(true);
+#if defined(Q_OS_LINUX)
     setStyleSheet(
                 R"(QTreeView {)"
                 R"(    border-style: none;)"
@@ -34,6 +35,21 @@ NodeTreeView::NodeTreeView(QWidget *parent) :
                 R"(QScrollBar::add-line:vertical { width:0px; height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  )"
                 R"(QScrollBar::sub-line:vertical { width:0px; height: 0px; subcontrol-position: top; subcontrol-origin: margin; })"
                 );
+#else
+    setStyleSheet(
+                R"(QTreeView {)"
+                R"(    border-style: none;)"
+                R"(    background-color: rgb(255, 255, 255);)"
+                R"(    selection-background-color: white;)"
+                R"(    selection-color: white;)"
+                R"(})"
+                R"()"
+                R"(QTreeView::branch{)"
+                R"(    border-image: url(none.png);)"
+                R"(})"
+                );
+#endif
+
     setRootIsDecorated(false);
     setMouseTracking(true);
     setSelectionMode(QAbstractItemView::MultiSelection);
@@ -394,6 +410,7 @@ void NodeTreeView::setCurrentIndexC(const QModelIndex &index)
 void NodeTreeView::setTheme(Theme theme)
 {
     m_theme = theme;
+#if defined(Q_OS_LINUX)
     QString ss = QStringLiteral(
                 R"(QTreeView {)"
                 R"(    border-style: none;)"
@@ -413,6 +430,20 @@ void NodeTreeView::setTheme(Theme theme)
                 R"(QScrollBar:hover { background-color: rgb(217, 217, 217);})"
                 R"(QScrollBar::add-line:vertical { width:0px; height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  )"
                 R"(QScrollBar::sub-line:vertical { width:0px; height: 0px; subcontrol-position: top; subcontrol-origin: margin; })");
+#else
+    QString ss = QStringLiteral(
+                R"(QTreeView {)"
+                R"(    border-style: none;)"
+                R"(    background-color: %1;)"
+                R"(    selection-background-color: %1;)"
+                R"(    selection-color: white;)"
+                R"(})"
+                R"()"
+                R"(QTreeView::branch{)"
+                R"(    border-image: url(none.png);)"
+                R"(})");
+#endif
+
     switch(theme){
     case Theme::Light:
     {
