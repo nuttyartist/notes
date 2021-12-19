@@ -267,7 +267,7 @@ NoteData #dateLabel{
                 </spacer>
                </item>
                <item>
-                <widget class="QLabel" name="listviewLabel1">
+                <widget class="ElidedLabel" name="listviewLabel1">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                    <horstretch>0</horstretch>
@@ -949,6 +949,11 @@ p, li { white-space: pre-wrap; }
    <class>PushButtonType</class>
    <extends>QPushButton</extends>
    <header>pushbuttontype.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ElidedLabel</class>
+   <extends>QLabel</extends>
+   <header location="global">elidedlabel.h</header>
   </customwidget>
  </customwidgets>
  <resources>

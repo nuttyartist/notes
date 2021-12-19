@@ -28,6 +28,7 @@ SOURCES += \
     allnotebuttontreedelegateeditor.cpp \
     customapplicationstyle.cpp \
     defaultnotefolderdelegateeditor.cpp \
+    elidedlabel.cpp \
     main.cpp\
     mainwindow.cpp \
     noteeditorlogic.cpp \
@@ -65,6 +66,7 @@ HEADERS  += \
     allnotebuttontreedelegateeditor.h \
     customapplicationstyle.h \
     defaultnotefolderdelegateeditor.h \
+    elidedlabel.h \
     mainwindow.h \
     nodetreeview_p.h \
     noteeditorlogic.h \
@@ -109,6 +111,9 @@ RESOURCES += \
     $$PWD/images.qrc \
     $$PWD/fonts.qrc \
     $$PWD/styles.qrc
+
+QMAKE_CXXFLAGS += -Wall -Wextra -pedantic -fsanitize=address
+QMAKE_LFLAGS += -fsanitize=address
 
 linux:!android {
     isEmpty (PREFIX) {

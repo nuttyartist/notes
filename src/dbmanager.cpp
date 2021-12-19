@@ -675,8 +675,19 @@ NodeData DBManager::getNode(int nodeId)
         node.setIsPinnedNote(static_cast<bool>(query.value(11).toInt()));
         if (node.nodeType() == NodeData::Note) {
             node.setTagIds(getAllTagForNote(node.id()));
-            auto p = getNode(node.parentId());
-            node.setParentName(p.fullTitle());
+            QSqlQuery query2(m_db);
+            query2.prepare(R"(SELECT)"
+                          R"("title" )"
+                          R"(FROM node_table WHERE id=:id LIMIT 1;)"
+                        );
+            query2.bindValue(":id", node.parentId());
+            bool status = query2.exec();
+            if(status) {
+                query2.next();
+                node.setParentName(query2.value(0).toString());
+            } else {
+                qDebug() << __FUNCTION__ << __LINE__ << query2.lastError();
+            }
         }
         return node;
     } else {
@@ -690,23 +701,13 @@ NodeData DBManager::getNode(int nodeId)
 void DBManager::moveFolderToTrash(const NodeData &node)
 {
     QSqlQuery query(m_db);
-    query.prepare(R"(DELETE FROM "node_table" )"
-                  R"(WHERE absolute_path like (:path_expr) || '%' AND node_type = (:node_type);)"
-                    );
     QString parentPath = node.absolutePath();
-    query.bindValue(QStringLiteral(":path_expr"), parentPath);
-    query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Folder));
-    bool status = query.exec();
-    if(!status) {
-        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
-    }
-    query.clear();
     query.prepare(R"(SELECT id FROM "node_table" )"
                   R"(WHERE absolute_path like (:path_expr) || '%' AND node_type = (:node_type);)"
                     );
     query.bindValue(QStringLiteral(":path_expr"), parentPath);
     query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
-    status = query.exec();
+    bool status = query.exec();
     QSet<int> childIds;
     if (status) {
         while(query.next()) {
@@ -715,9 +716,19 @@ void DBManager::moveFolderToTrash(const NodeData &node)
     } else {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
+    query.clear();
     auto trashFolder = getNode(SpecialNodeID::TrashFolder);
     for (const auto& id : childIds) {
         moveNode(id, trashFolder);
+    }
+    query.prepare(R"(DELETE FROM "node_table" )"
+                  R"(WHERE absolute_path like (:path_expr) || '%' AND node_type = (:node_type);)"
+                    );
+    query.bindValue(QStringLiteral(":path_expr"), parentPath);
+    query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Folder));
+    status = query.exec();
+    if(!status) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
 }
 

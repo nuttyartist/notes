@@ -300,7 +300,6 @@ void ListViewLogic::onNoteMovedOut(int nodeId, int targetId)
             if (note.id() != SpecialNodeID::InvalidNodeId) {
                 m_listView->closePersistentEditorC(index);
                 m_listModel->setNoteData(index, note);
-                qDebug() << note.parentName();
                 m_listView->openPersistentEditorC(index);
             } else {
                 qDebug() << __FUNCTION__ << "Note id" << nodeId << "not found!";

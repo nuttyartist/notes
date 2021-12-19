@@ -34,7 +34,7 @@ enum Type {
     TagItem,
     RootItem
 };
-};
+}
 
 class NodeTreeItem {
 public:

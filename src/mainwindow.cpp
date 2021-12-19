@@ -664,9 +664,9 @@ void MainWindow::setupSignalsSlots()
             m_listViewLogic, &ListViewLogic::onAddTagRequestD);
     connect(m_listViewLogic, &ListViewLogic::listViewLabelChanged,
             this, [this] (const QString& l1, const QString& l2) {
-        QFontMetrics fm(ui->listviewLabel1->font());
-        auto l1e = fm.elidedText(l1, Qt::ElideRight, ui->listviewLabel1->width());
-        ui->listviewLabel1->setText(l1e);
+//        QFontMetrics fm(ui->listviewLabel1->font());
+//        auto l1e = fm.elidedText(l1, Qt::ElideRight, ui->listviewLabel1->width());
+        ui->listviewLabel1->setText(l1);
         ui->listviewLabel2->setText(l2);
     });
     connect(ui->toggleTreeViewButton, &QPushButton::pressed,
