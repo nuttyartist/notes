@@ -112,6 +112,9 @@ NoteData #dateLabel{
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
+         <property name="handleWidth">
+          <number>0</number>
+         </property>
          <widget class="QFrame" name="frameLeft">
           <property name="minimumSize">
            <size>
@@ -303,7 +306,26 @@ NoteData #dateLabel{
                  <property name="text">
                   <string>TextLabel</string>
                  </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
                 </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_4">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeType">
+                  <enum>QSizePolicy::Minimum</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>12</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
                </item>
               </layout>
              </item>

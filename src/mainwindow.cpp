@@ -316,7 +316,6 @@ void MainWindow::setupMainWindow()
     ui->frame->setMouseTracking(true);
     ui->frameRightTop->setMouseTracking(true);
     this->setMouseTracking(true);
-
     QPalette pal(palette());
     pal.setColor(QPalette::Background, QColor(248, 248, 248));
     this->setAutoFillBackground(true);
@@ -374,12 +373,11 @@ void MainWindow::setupMainWindow()
 #endif
     ui->listviewLabel1->setFont(m_titleFont);
     ui->listviewLabel2->setFont(m_titleFont);
-    ui->listviewLabel1->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
-    ui->listviewLabel2->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
     ui->listviewLabel1->setStyleSheet("QLabel { color :  rgb(0, 0, 0); }");
     ui->listviewLabel2->setStyleSheet("QLabel { color :  rgb(132, 132, 132); }");
     m_spliterStyle = new SpliterStyle();
     m_splitter->setStyle(m_spliterStyle);
+    m_splitter->setHandleWidth(0);
 }
 
 /*!
@@ -664,10 +662,9 @@ void MainWindow::setupSignalsSlots()
             m_listViewLogic, &ListViewLogic::onAddTagRequestD);
     connect(m_listViewLogic, &ListViewLogic::listViewLabelChanged,
             this, [this] (const QString& l1, const QString& l2) {
-//        QFontMetrics fm(ui->listviewLabel1->font());
-//        auto l1e = fm.elidedText(l1, Qt::ElideRight, ui->listviewLabel1->width());
         ui->listviewLabel1->setText(l1);
         ui->listviewLabel2->setText(l2);
+        m_splitter->setHandleWidth(0);
     });
     connect(ui->toggleTreeViewButton, &QPushButton::pressed,
             this, &MainWindow::toggleNodeTree);
