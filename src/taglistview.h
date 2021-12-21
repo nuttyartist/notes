@@ -21,6 +21,8 @@ protected:
     virtual void mouseReleaseEvent(QMouseEvent *event) override;
     virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
     virtual void mouseMoveEvent(QMouseEvent *event) override;
+private:
+    QColor m_backgroundColor;
 };
 
 #endif // TAGLISTVIEW_H

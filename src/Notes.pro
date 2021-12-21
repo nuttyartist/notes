@@ -112,9 +112,6 @@ RESOURCES += \
     $$PWD/fonts.qrc \
     $$PWD/styles.qrc
 
-QMAKE_CXXFLAGS += -Wall -Wextra -pedantic -fsanitize=address
-QMAKE_LFLAGS += -fsanitize=address
-
 linux:!android {
     isEmpty (PREFIX) {
         PREFIX = /usr
