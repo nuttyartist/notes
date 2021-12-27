@@ -139,7 +139,6 @@ private:
     TagPool* m_tagPool;
     DBManager* m_dbManager;
     QThread* m_dbThread;
-    QTimer* m_newNoteTimer;
     SpliterStyle* m_spliterStyle;
     UpdaterWindow m_updater;
     StyleEditorWindow m_styleEditorWindow;
@@ -277,9 +276,10 @@ private slots:
     void deleteSelectedNote();
     void clearSearch();
     void showErrorMessage(const QString& title, const QString& content);
+    void setNoteListLoading();
+
 signals:
     void requestNodesTree();
-    void requestNotesList(int parentID, bool isRecursive);
     void requestOpenDBManager(const QString& path, bool doCreate);
     void requestRestoreNotes(const QString& filePath);
     void requestImportNotes(const QString& filePath);

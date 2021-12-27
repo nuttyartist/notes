@@ -21,6 +21,8 @@ struct ListViewInfo {
     QSet<int> currentTagList;
     int parentFolderId;
     int currentNoteId;
+    bool needCreateNewNote;
+    int scrollToId;
 };
 
 using FolderListType = QMap<int, QString>;
@@ -42,6 +44,7 @@ private:
     bool isNodeExist(const NodeData& node);
     QString m_dbpath;
     QSqlDatabase m_db;
+
     QVector<NodeData> getAllFolders();
     QVector<TagData> getAllTagInfo();
     QSet<int> getAllTagForNote(int noteId);
@@ -62,8 +65,10 @@ signals:
 
 public slots:
     void onNodeTagTreeRequested();
-    void onNotesListInFolderRequested(int parentID, bool isRecursive);
-    void onNotesListInTagsRequested(const QSet<int>& tagIds);
+    void onNotesListInFolderRequested(int parentID, bool isRecursive,
+                                      bool newNote = false, int scrollToId = SpecialNodeID::InvalidNodeId);
+    void onNotesListInTagsRequested(const QSet<int>& tagIds,
+                                    bool newNote = false, int scrollToId = SpecialNodeID::InvalidNodeId);
     void onOpenDBManagerRequested(QString path, bool doCreate);
     void onCreateUpdateRequestedNoteContent(const NodeData& note);
     void onImportNotesRequested(const QString& fileName);

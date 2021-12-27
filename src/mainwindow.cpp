@@ -67,7 +67,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_tagPool(Q_NULLPTR),
     m_dbManager(Q_NULLPTR),
     m_dbThread(Q_NULLPTR),
-    m_newNoteTimer(Q_NULLPTR),
     m_styleEditorWindow(this),
     m_aboutWindow(this),
     m_trashCounter(0),
@@ -378,6 +377,7 @@ void MainWindow::setupMainWindow()
     m_spliterStyle = new SpliterStyle();
     m_splitter->setStyle(m_spliterStyle);
     m_splitter->setHandleWidth(0);
+    setNoteListLoading();
 }
 
 /*!
@@ -623,8 +623,6 @@ void MainWindow::setupSignalsSlots()
     });
 
     // MainWindow <-> DBManager
-    connect(this, &MainWindow::requestNotesList,
-            m_dbManager, &DBManager::onNotesListInFolderRequested, Qt::BlockingQueuedConnection);
     connect(this, &MainWindow::requestNodesTree,
             m_dbManager, &DBManager::onNodeTagTreeRequested, Qt::BlockingQueuedConnection);
     connect(this, &MainWindow::requestRestoreNotes,
@@ -684,6 +682,14 @@ void MainWindow::setupSignalsSlots()
     connect(m_treeViewLogic, &TreeViewLogic::noteMoved,
             m_listViewLogic, &ListViewLogic::onNoteMovedOut);
 
+    connect(m_listViewLogic, &ListViewLogic::requestSearchInDb,
+            this, &MainWindow::setNoteListLoading);
+    connect(m_listViewLogic, &ListViewLogic::requestClearSearchDb,
+            this, &MainWindow::setNoteListLoading);
+    connect(m_treeView, &NodeTreeView::loadNotesInTagsRequested,
+            this, &MainWindow::setNoteListLoading);
+    connect(m_treeView, &NodeTreeView::loadNotesInFolderRequested,
+            this, &MainWindow::setNoteListLoading);
 #ifdef __APPLE__
     // Replace setUseNativeWindowFrame with just the part that handles pushing things up
     connect(this, &MainWindow::toggleFullScreen, this, [=](bool isFullScreen){adjustUpperWidgets(isFullScreen);});
@@ -1236,14 +1242,7 @@ void MainWindow::onNewNoteButtonClicked()
     m_noteEditorLogic->saveNoteToDB();
 
     if(!m_searchEdit->text().isEmpty()){
-        m_listViewLogic->clearSearch();
-        delete m_newNoteTimer;
-        m_newNoteTimer = new QTimer(this);
-        m_newNoteTimer->setSingleShot(true);
-        connect(m_newNoteTimer, &QTimer::timeout, this, [this] {
-            this->createNewNote();
-        });
-        m_newNoteTimer->start(200);
+        m_listViewLogic->clearSearch(true);
     } else {
         this->createNewNote();
     }
@@ -2512,6 +2511,12 @@ void MainWindow::showErrorMessage(const QString &title, const QString &content)
     QMessageBox::information(this, title, content);
 }
 
+void MainWindow::setNoteListLoading()
+{
+    ui->listviewLabel1->setText("Loading…");
+    ui->listviewLabel2->setText("");
+}
+
 /*!
  * \brief MainWindow::checkMigration
  */
@@ -2992,14 +2997,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
             if(!m_isOperationRunning){
                 if (m_listModel->rowCount() == 0) {
                     if(!m_searchEdit->text().isEmpty()) {
-                        m_listViewLogic->clearSearch();
-                        delete m_newNoteTimer;
-                        m_newNoteTimer = new QTimer(this);
-                        m_newNoteTimer->setSingleShot(true);
-                        connect(m_newNoteTimer, &QTimer::timeout, this, [this] {
-                            this->createNewNote();
-                        });
-                        m_newNoteTimer->start(200);
+                        m_listViewLogic->clearSearch(true);
                     } else {
                         this->createNewNote();
                     }

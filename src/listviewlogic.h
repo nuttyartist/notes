@@ -42,7 +42,7 @@ public slots:
     void selectNoteUp();
     void selectNoteDown();
     void onSearchEditTextChanged(const QString &keyword);
-    void clearSearch();
+    void clearSearch(bool createNewNote = false, int scrollToId = SpecialNodeID::InvalidNodeId);
     void onAddTagRequestD(int noteId, int tagId);
     void onNoteMovedOut(int nodeId, int targetId);
 
@@ -71,6 +71,7 @@ private slots:
     void restoreNoteRequestedI(const QModelIndex& index);
     void updateListViewLabel();
     void onRowCountChanged();
+    void onNoteDoubleClicked(const QModelIndex& index);
 private:
     NoteListView* m_listView;
     NoteListModel* m_listModel;

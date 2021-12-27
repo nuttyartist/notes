@@ -4,6 +4,7 @@
 #include <QTreeView>
 #include <QTimer>
 #include "styleeditorwindow.h"
+#include "nodedata.h"
 
 class QMenu;
 class QAction;
@@ -38,8 +39,10 @@ signals:
     void renameFolderInDatabase(const QModelIndex& index, const QString& newName);
     void renameTagInDatabase(const QModelIndex& index, const QString& newName);
     void deleteNodeRequested(const QModelIndex& index);
-    void loadNotesInFolderRequested(int folderID, bool isRecursive);
-    void loadNotesInTagsRequested(const QSet<int>& tagIds);
+    void loadNotesInFolderRequested(int folderID, bool isRecursive,
+                                    bool notInterested = false, int scrollToId = SpecialNodeID::InvalidNodeId);
+    void loadNotesInTagsRequested(const QSet<int>& tagIds,
+                                  bool notInterested = false, int scrollToId = SpecialNodeID::InvalidNodeId);
     void moveNodeRequested(int node, int target);
     void renameTagRequested();
     void changeTagColorRequested(const QModelIndex& index);

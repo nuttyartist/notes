@@ -8,6 +8,7 @@
 #include <QLineEdit>
 #include <QToolButton>
 #include "tagpool.h"
+#include <QTimer>
 
 ListViewLogic::ListViewLogic(NoteListView* noteView,
                              NoteListModel* noteModel, QLineEdit *searchEdit, QToolButton *clearButton,
@@ -62,6 +63,8 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
             this, &ListViewLogic::moveNoteRequested);
     connect(m_listModel, &NoteListModel::rowCountChanged,
             this, &ListViewLogic::onRowCountChanged);
+    connect(m_listView, &NoteListView::doubleClicked,
+            this, &ListViewLogic::onNoteDoubleClicked);
 }
 
 void ListViewLogic::selectNote(const QModelIndex &noteIndex)
@@ -208,8 +211,10 @@ void ListViewLogic::onSearchEditTextChanged(const QString &keyword)
     }
 }
 
-void ListViewLogic::clearSearch()
+void ListViewLogic::clearSearch(bool createNewNote, int scrollToId)
 {
+    m_listViewInfo.needCreateNewNote = createNewNote;
+    m_listViewInfo.scrollToId = scrollToId;
     emit requestClearSearchDb(m_listViewInfo);
     emit requestClearSearchUI();
 }
@@ -240,7 +245,16 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData>& noteList, const L
         m_listView->setCurrentFolderId(m_listViewInfo.parentFolderId);
     }
 
+    if (m_listViewInfo.needCreateNewNote) {
+        m_listViewInfo.needCreateNewNote = false;
+        QTimer::singleShot(50, this, &ListViewLogic::requestNewNote);
+    }
+
     if (!m_listViewInfo.isInSearch && currentNoteId != SpecialNodeID::InvalidNodeId) {
+        if (m_listViewInfo.scrollToId != SpecialNodeID::InvalidNodeId) {
+            currentNoteId = m_listViewInfo.scrollToId;
+            m_listViewInfo.scrollToId = SpecialNodeID::InvalidNodeId;
+        }
         auto index = m_listModel->getNoteIndex(currentNoteId);
         if (index.isValid()) {
             m_listView->selectionModel()->select(index, QItemSelectionModel::ClearAndSelect);
@@ -445,6 +459,15 @@ void ListViewLogic::onRowCountChanged()
         }
         m_listView->openPersistentEditorC(index);
     }
+}
+
+void ListViewLogic::onNoteDoubleClicked(const QModelIndex &index)
+{
+    if (!index.isValid() || !m_listViewInfo.isInSearch) {
+        return;
+    }
+    auto id = index.data(NoteListModel::NoteID).toInt();
+    clearSearch(false, id);
 }
 
 void ListViewLogic::selectFirstNote()

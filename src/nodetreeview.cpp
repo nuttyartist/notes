@@ -249,11 +249,12 @@ void NodeTreeView::selectionChanged(const QItemSelection &selected, const QItemS
         case NodeItem::Type::TagItem: {
             auto tagId = index.data(NodeItem::Roles::NodeId).toInt();
             tagIds.insert(tagId);
-            break;
         }
         }
     }
-    emit loadNotesInTagsRequested(tagIds);
+    if (!tagIds.isEmpty()) {
+        emit loadNotesInTagsRequested(tagIds);
+    }
 }
 
 void NodeTreeView::currentChanged(const QModelIndex &current, const QModelIndex &previous)
@@ -339,19 +340,19 @@ void NodeTreeView::dropEvent(QDropEvent *event)
             if (ok) {
                 if (itemType == NodeItem::Type::FolderItem) {
                     emit moveNodeRequested(nodeId, dropIndex.data(NodeItem::NodeId).toInt());
-//                    setCurrentIndex(dropIndex);
-//                    clearSelection();
-//                    setSelectionMode(QAbstractItemView::SingleSelection);
-//                    selectionModel()->setCurrentIndex(dropIndex, QItemSelectionModel::SelectCurrent);
+                    //                    setCurrentIndex(dropIndex);
+                    //                    clearSelection();
+                    //                    setSelectionMode(QAbstractItemView::SingleSelection);
+                    //                    selectionModel()->setCurrentIndex(dropIndex, QItemSelectionModel::SelectCurrent);
                     event->acceptProposedAction();
                 } else if (itemType == NodeItem::Type::TagItem) {
                     emit addNoteToTag(nodeId, dropIndex.data(NodeItem::NodeId).toInt());
                 } else if (itemType == NodeItem::Type::TrashButton) {
                     emit moveNodeRequested(nodeId, SpecialNodeID::TrashFolder);
-//                    setCurrentIndex(dropIndex);
-//                    clearSelection();
-//                    setSelectionMode(QAbstractItemView::SingleSelection);
-//                    selectionModel()->setCurrentIndex(dropIndex, QItemSelectionModel::SelectCurrent);
+                    //                    setCurrentIndex(dropIndex);
+                    //                    clearSelection();
+                    //                    setSelectionMode(QAbstractItemView::SingleSelection);
+                    //                    selectionModel()->setCurrentIndex(dropIndex, QItemSelectionModel::SelectCurrent);
                     event->acceptProposedAction();
                 }
             }

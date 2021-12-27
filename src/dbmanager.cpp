@@ -965,12 +965,12 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
 void DBManager::clearSearch(const ListViewInfo &inf)
 {
     if (inf.isInTag) {
-        onNotesListInTagsRequested(inf.currentTagList);
+        onNotesListInTagsRequested(inf.currentTagList, inf.needCreateNewNote, inf.scrollToId);
     } else {
         if (inf.parentFolderId == SpecialNodeID::RootFolder) {
-            onNotesListInFolderRequested(inf.parentFolderId, true);
+            onNotesListInFolderRequested(inf.parentFolderId, true, inf.needCreateNewNote, inf.scrollToId);
         } else {
-            onNotesListInFolderRequested(inf.parentFolderId, false);
+            onNotesListInFolderRequested(inf.parentFolderId, false, inf.needCreateNewNote, inf.scrollToId);
         }
     }
 }
@@ -1012,7 +1012,7 @@ void DBManager::onNodeTagTreeRequested()
 /*!
  * \brief DBManager::onNotesListRequested
  */
-void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive)
+void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive, bool newNote, int scrollToId)
 {
     QVector<NodeData> nodeList;
     QSqlQuery query(m_db);
@@ -1150,13 +1150,15 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive)
     inf.isInTag = false;
     inf.parentFolderId = parentID;
     inf.currentNoteId = SpecialNodeID::InvalidNodeId;
+    inf.needCreateNewNote = newNote;
+    inf.scrollToId = scrollToId;
     std::sort(nodeList.begin(), nodeList.end(), [] (const NodeData& a, const NodeData& b) ->bool{
         return a.lastModificationdateTime() > b.lastModificationdateTime();
     });
     emit notesListReceived(nodeList, inf);
 }
 
-void DBManager::onNotesListInTagsRequested(const QSet<int> &tagIds)
+void DBManager::onNotesListInTagsRequested(const QSet<int> &tagIds, bool newNote, int scrollToId)
 {
     QVector<NodeData> nodeList;
     QVector<QSet<int>> nds;
@@ -1165,6 +1167,8 @@ void DBManager::onNotesListInTagsRequested(const QSet<int> &tagIds)
     inf.isInTag = true;
     inf.currentTagList = tagIds;
     inf.currentNoteId = SpecialNodeID::InvalidNodeId;
+    inf.needCreateNewNote = newNote;
+    inf.scrollToId = scrollToId;
     for (const auto& tagId : tagIds) {
         QSet<int> nd;
         QSqlQuery query(m_db);

@@ -73,7 +73,7 @@ void NoteEditorLogic::showNoteInEditor(const NodeData &note)
     m_textEdit->blockSignals(true);
     m_currentNote = note;
     showTagListForCurrentNote();
-    /// fixing bug #202
+//    / fixing bug #202
     m_textEdit->setTextBackgroundColor(QColor(247,247,247, 0));
 
     QString content = note.content();
