@@ -378,6 +378,8 @@ void MainWindow::setupMainWindow()
     m_splitter->setStyle(m_spliterStyle);
     m_splitter->setHandleWidth(0);
     setNoteListLoading();
+    ui->searchEdit->setFocus();
+    QTimer::singleShot(16, ui->searchEdit, &QTextEdit::clearFocus);
 }
 
 /*!
