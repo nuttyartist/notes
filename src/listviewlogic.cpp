@@ -251,7 +251,9 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData>& noteList, const L
     }
 
     if (!m_listViewInfo.isInSearch && currentNoteId != SpecialNodeID::InvalidNodeId) {
+        bool sr = false;
         if (m_listViewInfo.scrollToId != SpecialNodeID::InvalidNodeId) {
+            sr = true;
             currentNoteId = m_listViewInfo.scrollToId;
             m_listViewInfo.scrollToId = SpecialNodeID::InvalidNodeId;
         }
@@ -259,8 +261,11 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData>& noteList, const L
         if (index.isValid()) {
             m_listView->selectionModel()->select(index, QItemSelectionModel::ClearAndSelect);
             m_listView->setCurrentIndex(index);
-            auto firstNote = m_listModel->getNote(index);
-            emit showNoteInEditor(firstNote);
+            if (sr) {
+                m_listView->scrollTo(index, QAbstractItemView::PositionAtCenter);
+            }
+            auto currentNote = m_listModel->getNote(index);
+            emit showNoteInEditor(currentNote);
             return;
         }
     }
