@@ -682,8 +682,6 @@ void MainWindow::setupSignalsSlots()
     connect(m_treeViewLogic, &TreeViewLogic::noteMoved,
             m_listViewLogic, &ListViewLogic::onNoteMovedOut);
 
-    connect(m_listViewLogic, &ListViewLogic::requestSearchInDb,
-            this, &MainWindow::setNoteListLoading);
     connect(m_listViewLogic, &ListViewLogic::requestClearSearchDb,
             this, &MainWindow::setNoteListLoading);
     connect(m_treeView, &NodeTreeView::loadNotesInTagsRequested,
