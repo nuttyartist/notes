@@ -103,7 +103,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_currentEditorBackgroundColor(247, 247, 247),
     m_currentRightFrameColor(247, 247, 247),
     m_currentTheme(Theme::Light),
-    m_currentEditorTextColor(247, 247, 247),
+    m_currentEditorTextColor(26, 26, 26),
     m_currentThemeBackgroundColor(247, 247, 247),
     m_areNonEditorWidgetsVisible(true),
     m_isFrameRightTopWidgetsVisible(true)
@@ -708,16 +708,14 @@ void MainWindow::autoCheckForUpdates()
 
 void MainWindow::setSearchEditStyleSheet(bool isFocused = false)
 {
-    QColor textColor = m_currentTheme == Theme::Dark ? m_currentEditorTextColor : QColor(26, 26, 26);
-
     m_searchEdit->setStyleSheet(QStringLiteral("QLineEdit{ "
+                                               "  color: %3;"
                                                "  padding-left: 21px;"
                                                "  padding-right: 19px;"
                                                "  border: %2;"
                                                "  border-radius: 3px;"
                                                "  background: %1;"
                                                "  selection-background-color: rgb(61, 155, 218);"
-                                               "  color: %3;"
                                                "} "
                                                "QLineEdit:focus { "
                                                "  border: 2px solid rgb(61, 155, 218);"
@@ -726,7 +724,7 @@ void MainWindow::setSearchEditStyleSheet(bool isFocused = false)
                                                "  border: none; "
                                                "  padding: 0px;"
                                                "}").arg(m_currentThemeBackgroundColor.name(),
-                                                        isFocused ? "2px solid rgb(61, 155, 218)" : "1px solid rgb(205, 205, 205)",                                                      textColor.name()));
+                                                        isFocused ? "2px solid rgb(61, 155, 218)" : "1px solid rgb(205, 205, 205)", m_currentEditorTextColor.name()));
 }
 
 /*!
@@ -738,8 +736,6 @@ void MainWindow::setupSearchEdit()
     //    QLineEdit* searchEdit = m_searchEdit;
 
     m_searchEdit->setAttribute(Qt::WA_MacShowFocusRect, 0);
-
-    setSearchEditStyleSheet(false);
 
     // clear button
     m_clearButton = new QToolButton(m_searchEdit);
@@ -767,6 +763,8 @@ void MainWindow::setupSearchEdit()
     m_searchEdit->setLayout(layout);
 
     m_searchEdit->installEventFilter(this);
+
+    setSearchEditStyleSheet(false);
 }
 
 /*!
@@ -862,7 +860,8 @@ void MainWindow::setupTextEditStyleSheet(int paddingLeft, int paddingRight)
 #else
     QString ss = QString("QTextEdit {background-color: %1;} "
                          "QTextEdit{selection-background-color: rgb(63, 99, 139);}"
-                         ).arg(m_currentEditorBackgroundColor.name());
+                         "QTextEdit{color: %2}"
+                         ).arg(m_currentEditorBackgroundColor.name(), m_currentEditorTextColor.name());
 #endif
 
     m_textEdit->setStyleSheet(ss);
@@ -909,7 +908,7 @@ void MainWindow::setupTextEdit()
     m_textEdit->installEventFilter(this);
     m_textEdit->verticalScrollBar()->installEventFilter(this);
     m_textEdit->setCursorWidth(2);
-    m_textEdit->setTextColor(QColor(26, 26, 26));
+    setupTextEditStyleSheet(m_currentMinimumEditorPadding, m_currentMinimumEditorPadding);
     m_textEdit->setWordWrapMode(QTextOption::WordWrap);
 
 #ifdef __APPLE__
@@ -1556,7 +1555,7 @@ void MainWindow::setTheme(Theme theme)
         m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
         this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(247, 247, 247); }"));
-        m_textEdit->setTextColor(m_currentEditorTextColor);
+        setupTextEditStyleSheet(m_currentMinimumEditorPadding, m_currentMinimumEditorPadding);
         m_listViewLogic->setTheme(Theme::Light);
         m_styleEditorWindow.setTheme(Theme::Light, m_currentThemeBackgroundColor, m_currentEditorTextColor);
         m_aboutWindow.setTheme(m_currentThemeBackgroundColor, m_currentEditorTextColor);
@@ -1573,7 +1572,7 @@ void MainWindow::setTheme(Theme theme)
         m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
         this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(26, 26, 26); }"));
-        m_textEdit->setTextColor(m_currentEditorTextColor);
+        setupTextEditStyleSheet(m_currentMinimumEditorPadding, m_currentMinimumEditorPadding);
         m_listViewLogic->setTheme(Theme::Dark);
         m_styleEditorWindow.setTheme(Theme::Dark, m_currentThemeBackgroundColor, m_currentEditorTextColor);
         m_aboutWindow.setTheme(m_currentThemeBackgroundColor, m_currentEditorTextColor);
@@ -1590,7 +1589,7 @@ void MainWindow::setTheme(Theme theme)
         m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
         this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(251, 240, 217); }"));
-        m_textEdit->setTextColor(m_currentEditorTextColor);
+        setupTextEditStyleSheet(m_currentMinimumEditorPadding, m_currentMinimumEditorPadding);
         m_listViewLogic->setTheme(Theme::Sepia);
         m_styleEditorWindow.setTheme(Theme::Sepia, m_currentThemeBackgroundColor, QColor(26, 26, 26));
         m_aboutWindow.setTheme(m_currentThemeBackgroundColor, QColor(26, 26, 26));
