@@ -72,6 +72,8 @@ private slots:
     void updateListViewLabel();
     void onRowCountChanged();
     void onNoteDoubleClicked(const QModelIndex& index);
+    void onSetPinnedNoteRequested(int noteId, bool isPinned);
+
 private:
     NoteListView* m_listView;
     NoteListModel* m_listModel;

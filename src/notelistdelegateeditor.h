@@ -69,6 +69,7 @@ private:
     int m_rowRightOffset;
     bool m_isActive;
     QImage m_folderIcon;
+    QImage m_pinnedIcon;
     Theme m_theme;
     QModelIndex m_animatedIndex;
 

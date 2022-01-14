@@ -67,7 +67,9 @@ void DBManager::createTables()
                         R"(    "relative_position"	INTEGER NOT NULL,)"
                         R"(    "scrollbar_position"	INTEGER NOT NULL,)"
                         R"(    "absolute_path"	TEXT NOT NULL,)"
-                        R"(    "is_pinned_note"	INTEGER NOT NULL DEFAULT 0)"
+                        R"(    "is_pinned_note"	INTEGER NOT NULL DEFAULT 0,)"
+                        R"(    "is_pinned_note_an"	INTEGER NOT NULL DEFAULT 0,)"
+                        R"(    "relative_position_an"	INTEGER NOT NULL)"
                         R"();)";
     auto status = query.exec(nodeTable);
     if (!status) {
@@ -296,8 +298,8 @@ int DBManager::addNode(const NodeData &node)
     }
     absolutePath += PATH_SEPERATOR + QString::number(nodeId);
     QString queryStr = R"(INSERT INTO "node_table")"
-                       R"(("id", "title", "creation_date", "modification_date", "deletion_date", "content", "node_type", "parent_id", "relative_position", "scrollbar_position", "absolute_path", "is_pinned_note"))"
-                       R"(VALUES (:id, :title, :creation_date, :modification_date, :deletion_date, :content, :node_type, :parent_id, :relative_position, :scrollbar_position, :absolute_path, :is_pinned_note);)";
+                       R"(("id", "title", "creation_date", "modification_date", "deletion_date", "content", "node_type", "parent_id", "relative_position", "scrollbar_position", "absolute_path", "is_pinned_note", "is_pinned_note_an", "relative_position_an"))"
+                       R"(VALUES (:id, :title, :creation_date, :modification_date, :deletion_date, :content, :node_type, :parent_id, :relative_position, :scrollbar_position, :absolute_path, :is_pinned_note, :is_pinned_note_an, :relative_position_an);)";
 
     query.prepare(queryStr);
     query.bindValue(":id", nodeId);
@@ -312,6 +314,8 @@ int DBManager::addNode(const NodeData &node)
     query.bindValue(":scrollbar_position", node.scrollBarPosition());
     query.bindValue(":absolute_path", absolutePath);
     query.bindValue(":is_pinned_note", node.isPinnedNote() ? 1 : 0);
+    query.bindValue(":is_pinned_note_an", node.isPinnedNoteAN() ? 1 : 0);
+    query.bindValue(":relative_position_an", node.relativePosAN());
 
     query.exec();
     query.finish();
@@ -345,8 +349,8 @@ int DBManager::addNodePreComputed(const NodeData &node)
     int nodeId = node.id();
     QString absolutePath = node.absolutePath();
     QString queryStr = R"(INSERT INTO "node_table")"
-                       R"(("id", "title", "creation_date", "modification_date", "deletion_date", "content", "node_type", "parent_id", "relative_position", "scrollbar_position", "absolute_path", "is_pinned_note"))"
-                       R"(VALUES (:id, :title, :creation_date, :modification_date, :deletion_date, :content, :node_type, :parent_id, :relative_position, :scrollbar_position, :absolute_path, :is_pinned_note);)";
+                       R"(("id", "title", "creation_date", "modification_date", "deletion_date", "content", "node_type", "parent_id", "relative_position", "scrollbar_position", "absolute_path", "is_pinned_note", is_pinned_note_an", "relative_position_an"))"
+                       R"(VALUES (:id, :title, :creation_date, :modification_date, :deletion_date, :content, :node_type, :parent_id, :relative_position, :scrollbar_position, :absolute_path, :is_pinned_note, :is_pinned_note_an, :relative_position_an);)";
 
     query.prepare(queryStr);
     query.bindValue(":id", nodeId);
@@ -361,6 +365,8 @@ int DBManager::addNodePreComputed(const NodeData &node)
     query.bindValue(":scrollbar_position", node.scrollBarPosition());
     query.bindValue(":absolute_path", absolutePath);
     query.bindValue(":is_pinned_note", node.isPinnedNote() ? 1 : 0);
+    query.bindValue(":is_pinned_note_an", node.isPinnedNoteAN() ? 1 : 0);
+    query.bindValue(":relative_position_an", node.relativePosAN());
 
     query.exec();
     query.finish();
@@ -653,7 +659,9 @@ NodeData DBManager::getNode(int nodeId)
                   R"("relative_position",)"
                   R"("scrollbar_position",)"
                   R"("absolute_path", )"
-                  R"("is_pinned_note" )"
+                  R"("is_pinned_note", )"
+                  R"("is_pinned_note_an", )"
+                  R"("relative_position_an" )"
                   R"(FROM node_table WHERE id=:id LIMIT 1;)"
                 );
     query.bindValue(":id", nodeId);
@@ -673,6 +681,8 @@ NodeData DBManager::getNode(int nodeId)
         node.setScrollBarPosition(query.value(9).toInt());
         node.setAbsolutePath(query.value(10).toString());
         node.setIsPinnedNote(static_cast<bool>(query.value(11).toInt()));
+        node.setIsPinnedNoteAN(static_cast<bool>(query.value(12).toInt()));
+        node.setRelativePosAN(query.value(13).toInt());
         if (node.nodeType() == NodeData::Note) {
             node.setTagIds(getAllTagForNote(node.id()));
             QSqlQuery query2(m_db);
@@ -820,7 +830,9 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
                       R"("relative_position", )"
                       R"("scrollbar_position",)"
                       R"("absolute_path", )"
-                      R"("is_pinned_note" )"
+                      R"("is_pinned_note", )"
+                      R"("is_pinned_note_an", )"
+                      R"("relative_position_an" )"
                       R"(FROM node_table )"
                       R"(WHERE node_type = (:node_type) AND parent_id != (:parent_id) )"
                       R"(AND content like  '%' || (:search_expr) || '%';)"
@@ -845,6 +857,8 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
                 node.setScrollBarPosition(query.value(9).toInt());
                 node.setAbsolutePath(query.value(10).toString());
                 node.setIsPinnedNote(static_cast<bool>(query.value(11).toInt()));
+                node.setIsPinnedNoteAN(static_cast<bool>(query.value(12).toInt()));
+                node.setRelativePosAN(query.value(13).toInt());
                 node.setTagIds(getAllTagForNote(node.id()));
                 auto p = getNode(node.parentId());
                 node.setParentName(p.fullTitle());
@@ -866,7 +880,9 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
                       R"("relative_position", )"
                       R"("scrollbar_position",)"
                       R"("absolute_path", )"
-                      R"("is_pinned_note" )"
+                      R"("is_pinned_note", )"
+                      R"("is_pinned_note_an", )"
+                      R"("relative_position_an" )"
                       R"(FROM node_table )"
                       R"(WHERE node_type = (:node_type) AND parent_id == (:parent_id) )"
                       R"(AND content like  '%' || (:search_expr) || '%';)"
@@ -891,6 +907,8 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
                 node.setScrollBarPosition(query.value(9).toInt());
                 node.setAbsolutePath(query.value(10).toString());
                 node.setIsPinnedNote(static_cast<bool>(query.value(11).toInt()));
+                node.setIsPinnedNoteAN(static_cast<bool>(query.value(12).toInt()));
+                node.setRelativePosAN(query.value(13).toInt());
                 node.setTagIds(getAllTagForNote(node.id()));
                 auto p = getNode(node.parentId());
                 node.setParentName(p.fullTitle());
@@ -1001,6 +1019,62 @@ void DBManager::updateRelPosTag(int tagId, int relPos)
     }
 }
 
+void DBManager::updateRelPosPinnedNote(int nodeId, int relPos)
+{
+    QSqlQuery query(m_db);
+    query.prepare(QStringLiteral("UPDATE node_table SET relative_position = :relative_position "
+                                 "WHERE id = :id AND node_type=:node_type;"));
+    query.bindValue(QStringLiteral(":relative_position"), relPos);
+    query.bindValue(QStringLiteral(":id"), nodeId);
+    query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Type::Note));
+    bool status = query.exec();
+    if(!status) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+    }
+}
+
+void DBManager::updateRelPosPinnedNoteAN(int nodeId, int relPos)
+{
+    QSqlQuery query(m_db);
+    query.prepare(QStringLiteral("UPDATE node_table SET relative_position_an = :relative_position_an "
+                                 "WHERE id = :id AND node_type=:node_type;"));
+    query.bindValue(QStringLiteral(":relative_position_an"), relPos);
+    query.bindValue(QStringLiteral(":id"), nodeId);
+    query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Type::Note));
+    bool status = query.exec();
+    if(!status) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+    }
+}
+
+void DBManager::setNoteIsPinned(int noteId, bool isPinned)
+{
+    QSqlQuery query(m_db);
+    query.prepare(QStringLiteral("UPDATE node_table SET is_pinned_note = :is_pinned_note "
+                                 "WHERE id = :id AND node_type=:node_type;"));
+    query.bindValue(QStringLiteral(":is_pinned_note"), isPinned);
+    query.bindValue(QStringLiteral(":id"), noteId);
+    query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Type::Note));
+    bool status = query.exec();
+    if(!status) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+    }
+}
+
+void DBManager::setNoteIsPinnedAN(int noteId, bool isPinned)
+{
+    QSqlQuery query(m_db);
+    query.prepare(QStringLiteral("UPDATE node_table SET is_pinned_note_an = :is_pinned_note_an "
+                                 "WHERE id = :id AND node_type=:node_type;"));
+    query.bindValue(QStringLiteral(":is_pinned_note_an"), isPinned);
+    query.bindValue(QStringLiteral(":id"), noteId);
+    query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Type::Note));
+    bool status = query.exec();
+    if(!status) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+    }
+}
+
 void DBManager::onNodeTagTreeRequested()
 {
     NodeTagTreeData d;
@@ -1029,7 +1103,9 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive, boo
                       R"("relative_position",)"
                       R"("scrollbar_position",)"
                       R"("absolute_path", )"
-                      R"("is_pinned_note" )"
+                      R"("is_pinned_note", )"
+                      R"("is_pinned_note_an", )"
+                      R"("relative_position_an" )"
                       R"(FROM node_table )"
                       R"(WHERE node_type = (:node_type) AND parent_id != (:parent_id);)"
                     );
@@ -1052,6 +1128,8 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive, boo
                 node.setScrollBarPosition(query.value(9).toInt());
                 node.setAbsolutePath(query.value(10).toString());
                 node.setIsPinnedNote(static_cast<bool>(query.value(11).toInt()));
+                node.setIsPinnedNoteAN(static_cast<bool>(query.value(12).toInt()));
+                node.setRelativePosAN(query.value(13).toInt());
                 node.setTagIds(getAllTagForNote(node.id()));
                 auto p = getNode(node.parentId());
                 node.setParentName(p.fullTitle());
@@ -1073,7 +1151,9 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive, boo
                       R"("relative_position", )"
                       R"("scrollbar_position",)"
                       R"("absolute_path", )"
-                      R"("is_pinned_note" )"
+                      R"("is_pinned_note", )"
+                      R"("is_pinned_note_an", )"
+                      R"("relative_position_an" )"
                       R"(FROM node_table )"
                       R"(WHERE parent_id = (:parent_id) AND node_type = (:node_type);)"
                     );
@@ -1095,6 +1175,8 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive, boo
                 node.setScrollBarPosition(query.value(9).toInt());
                 node.setAbsolutePath(query.value(10).toString());
                 node.setIsPinnedNote(static_cast<bool>(query.value(11).toInt()));
+                node.setIsPinnedNoteAN(static_cast<bool>(query.value(12).toInt()));
+                node.setRelativePosAN(query.value(13).toInt());
                 node.setTagIds(getAllTagForNote(node.id()));
                 nodeList.append(node);
             }
@@ -1115,7 +1197,9 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive, boo
                       R"("relative_position", )"
                       R"("scrollbar_position",)"
                       R"("absolute_path", )"
-                      R"("is_pinned_note" )"
+                      R"("is_pinned_note", )"
+                      R"("is_pinned_note_an", )"
+                      R"("relative_position_an" )"
                       R"(FROM node_table )"
                       R"(WHERE absolute_path like (:path_expr) || '%' AND node_type = (:node_type);)"
                     );
@@ -1138,6 +1222,8 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive, boo
                 node.setScrollBarPosition(query.value(9).toInt());
                 node.setAbsolutePath(query.value(10).toString());
                 node.setIsPinnedNote(static_cast<bool>(query.value(11).toInt()));
+                node.setIsPinnedNoteAN(static_cast<bool>(query.value(12).toInt()));
+                node.setRelativePosAN(query.value(13).toInt());
                 node.setTagIds(getAllTagForNote(node.id()));
                 nodeList.append(node);
             }

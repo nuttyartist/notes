@@ -55,6 +55,7 @@ NoteListDelegate::NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject
     m_timeLine->setUpdateInterval(10);
     m_timeLine->setCurveShape(QTimeLine::EaseInCurve);
     m_folderIcon = QImage(":/images/folder.png");
+    m_pinnedIcon = QImage(":/images/pin.png");
     connect( m_timeLine, &QTimeLine::frameChanged, this, [this](){
         emit sizeHintChanged(m_animatedIndex);
     });
@@ -142,6 +143,7 @@ void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
 QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     QSize result = QStyledItemDelegate::sizeHint(option, index);
+    result.setWidth(option.rect.width());
     auto id = index.data(NoteListModel::NoteID).toInt();
     bool isHaveTags = index.data(NoteListModel::NoteTagsList).value<QSet<int>>().size() > 0;
 #if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
@@ -172,6 +174,10 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
     if (m_isInAllNotes) {
         result.setHeight(result.height() + 20);
     }
+    if (index.data(NoteListModel::NoteIsPinned).toBool()) {
+        result.setHeight(result.height() + 20);
+    }
+
     return result;
 }
 
@@ -182,6 +188,14 @@ QTimeLine::State NoteListDelegate::animationState()
 
 void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    int currentRow = index.row();
+    QModelIndex belowIndex = m_view->model()->index(currentRow + 1, 0);
+    bool isBelowPinned = false;
+    if (belowIndex.isValid()){
+        isBelowPinned = belowIndex.data(NoteListModel::NoteIsPinned).toBool();
+    }
+    bool isCurrentPinned = index.data(NoteListModel::NoteIsPinned).toBool();
+
     if((option.state & QStyle::State_Selected) == QStyle::State_Selected){
         if(qApp->applicationState() == Qt::ApplicationActive){
             if(m_isActive){
@@ -195,15 +209,59 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
     }else if((option.state & QStyle::State_MouseOver) == QStyle::State_MouseOver){
         painter->fillRect(option.rect, QBrush(m_hoverColor));
     }else if((index.row() !=  m_currentSelectedIndex.row() - 1)
-             && (index.row() !=  m_hoveredIndex.row() - 1)){
-
+             && (index.row() !=  m_hoveredIndex.row() - 1) && (!isCurrentPinned)){
         painter->fillRect(option.rect, QBrush(m_defaultColor));
         paintSeparator(painter, option, index);
     }
+
+    if (isCurrentPinned) {
+        auto rect = option.rect;
+        if (!isBelowPinned) {
+            rect.setTop(option.rect.bottom() - 2);
+            painter->fillRect(rect, QBrush("#d6d5d5"));
+        }
+        rect = option.rect;
+        rect.setHeight(20);
+        painter->fillRect(rect, QBrush("#d6d5d5"));
+    }
+
 }
 
 void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
+    auto bufferSizeHint = [this] (const QStyleOptionViewItem& option, const QModelIndex& index) -> QSize{
+        QSize result = QStyledItemDelegate::sizeHint(option, index);
+        result.setWidth(option.rect.width());
+        auto id = index.data(NoteListModel::NoteID).toInt();
+        bool isHaveTags = index.data(NoteListModel::NoteTagsList).value<QSet<int>>().size() > 0;
+    #if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
+        if (index != m_animatedIndex && isHaveTags) {
+    #else
+        if (m_view->isPersistentEditorOpen(index) && index != m_animatedIndex && isHaveTags) {
+    #endif
+            if (szMap.contains(id)) {
+                result.setHeight(szMap[id].height());
+                return result;
+            }
+        }
+        int rowHeight = 70;
+        if (isHaveTags) {
+            rowHeight = m_rowHeight;
+        }
+        result.setHeight(rowHeight);
+        if (m_isInAllNotes) {
+            result.setHeight(result.height() + 20);
+        }
+        if (index.data(NoteListModel::NoteIsPinned).toBool()) {
+            result.setHeight(result.height() + 20);
+        }
+        return result;
+    };
+    auto bufferSize = bufferSizeHint(option, index);
+    QPixmap buffer {bufferSize};
+    buffer.fill(Qt::transparent);
+    QPainter bufferPainter{&buffer};
+    bufferPainter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     QString title{index.data(NoteListModel::NoteFullTitle).toString()};
     QFont titleFont = (option.state & QStyle::State_Selected) == QStyle::State_Selected ? m_titleSelectedFont : m_titleFont;
     QFontMetrics fmTitle(titleFont);
@@ -221,9 +279,22 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
     content = NoteEditorLogic::getSecondLine(content);
     QFontMetrics fmContent(titleFont);
     QRect fmRectContent = fmContent.boundingRect(content);
-
-    double rowPosX = option.rect.x();
-    double rowPosY = option.rect.y();
+    double rowPosX = 0; //option.rect.x();
+    double rowPosY = 0; //option.rect.y();
+    if (index.data(NoteListModel::NoteIsPinned).toBool()) {
+        bufferPainter.drawImage(QRect(rowPosX + NoteListConstant::leftOffsetX,
+                                       rowPosY + 3 + 2,
+                                       12, 12), m_pinnedIcon);
+        QFontMetrics fm(m_dateFont);
+        QRect fmRect = fm.boundingRect("Pinned");
+        QRectF rect(rowPosX + NoteListConstant::leftOffsetX + 20,
+                    rowPosY + 2,
+                    fmRect.width(), fmRect.height());
+        bufferPainter.setPen(QColor(26, 26, 26));
+        bufferPainter.setFont(m_dateFont);
+        bufferPainter.drawText(rect, Qt::AlignBottom, "Pinned");
+        rowPosY += 20;
+    }
     double rowWidth = option.rect.width();
 
     double titleRectPosX = rowPosX + NoteListConstant::leftOffsetX;
@@ -253,77 +324,40 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
         folderNameRectHeight = fmRectParentName.height() + NoteListConstant::descFolderSpace;
     }
 
-    double rowRate = m_timeLine->currentFrame()/(m_maxFrame * 1.0);
-    double currRowHeight = m_rowHeight * rowRate;
-
-
-    auto drawStr = [painter](double posX, double posY, double width, double height, QColor color, QFont font, QString str){
-        QRectF rect(posX, posY, width, height);
-        painter->setPen(color);
-        painter->setFont(font);
-        painter->drawText(rect, Qt::AlignBottom, str);
-    };
-
-    // set the bounding Rect of title and date string
-    if(index.row() == m_animatedIndex.row()){
-        if(m_state == MoveIn){
-            titleRectHeight = NoteListConstant::topOffsetY + fmRectTitle.height() + currRowHeight;
-            dateRectPosY = titleRectHeight;
-            dateRectHeight = fmRectDate.height() + NoteListConstant::titleDateSpace;
-            if (m_isInAllNotes) {
-                contentRectPosY = fmParentName.height() + NoteListConstant::titleDateSpace;
-                folderNameRectPosY = contentRectPosY + dateRectPosY + dateRectHeight + 5;
-            } else {
-                contentRectPosY = dateRectPosY + dateRectHeight;
-            }
-        }else{
-            if((fmRectTitle.height() + NoteListConstant::topOffsetY) >= ((1.0 - rowRate) * m_rowHeight)){
-                titleRectHeight = (fmRectTitle.height() + NoteListConstant::topOffsetY) - (1.0 - rowRate) * m_rowHeight;
-            }else{
-                titleRectHeight = 0;
-
-                double labelsSumHeight = fmRectTitle.height() + NoteListConstant::topOffsetY
-                        + fmRectDate.height() + NoteListConstant::titleDateSpace;
-                double bottomSpace = m_rowHeight - labelsSumHeight;
-
-                if(currRowHeight > bottomSpace){
-                    dateRectHeight = currRowHeight - bottomSpace;
-                }else{
-                    dateRectHeight = 0;
-                }
-            }
-
-            dateRectPosY = titleRectHeight + rowPosY;
-            if (m_isInAllNotes) {
-                contentRectPosY = fmParentName.height() + NoteListConstant::titleDateSpace;
-                folderNameRectPosY = contentRectPosY + dateRectPosY + dateRectHeight + rowPosY + 5;
-            } else {
-                contentRectPosY = dateRectPosY + dateRectHeight + rowPosY;
-            }
-        }
+    int rowHeight;
+    if (index == m_animatedIndex) {
+        double rowRate = m_timeLine->currentFrame()/(m_maxFrame * 1.0);
+        rowHeight = bufferSize.height() * rowRate;
+    } else {
+        rowHeight = option.rect.height();
     }
 
-//    double tagsPosY = contentRectPosY + fmRectParentName.height() + fmRectContent.height() + topOffsetY + 10;
-
+    auto drawStr = [&bufferPainter](double posX, double posY, double width, double height, QColor color, QFont font, QString str){
+        QRectF rect(posX, posY, width, height);
+        bufferPainter.setPen(color);
+        bufferPainter.setFont(font);
+        bufferPainter.drawText(rect, Qt::AlignBottom, str);
+    };
     // draw title & date
     title = fmTitle.elidedText(title, Qt::ElideRight, int(titleRectWidth));
     content = fmContent.elidedText(content, Qt::ElideRight, int(titleRectWidth));
     drawStr(titleRectPosX, titleRectPosY, titleRectWidth, titleRectHeight, m_titleColor, titleFont, title);
     drawStr(dateRectPosX, dateRectPosY, dateRectWidth, dateRectHeight, m_dateColor, m_dateFont, date);
     if (m_isInAllNotes) {
-        painter->drawImage(QRect(rowPosX + NoteListConstant::leftOffsetX,
-                                 folderNameRectPosY + NoteListConstant::descFolderSpace,
-                                 16, 16), m_folderIcon);
+        bufferPainter.drawImage(QRect(rowPosX + NoteListConstant::leftOffsetX,
+                                       folderNameRectPosY + NoteListConstant::descFolderSpace,
+                                       16, 16), m_folderIcon);
         drawStr(folderNameRectPosX, folderNameRectPosY, folderNameRectWidth, folderNameRectHeight, m_contentColor, titleFont, parentName);
     }
     drawStr(contentRectPosX, contentRectPosY, contentRectWidth, contentRectHeight, m_contentColor, titleFont, content);
-//    paintTagList(tagsPosY, painter, option, index);
+    painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+    painter->drawPixmap(option.rect, buffer,
+                        QRect {0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight});
 }
 
 void NoteListDelegate::paintSeparator(QPainter*painter, const QStyleOptionViewItem&option, const QModelIndex&index) const
 {
-    Q_UNUSED(index)
-
+    Q_UNUSED(index);
     painter->setPen(QPen(m_separatorColor));
     const int leftOffsetX = 11;
     int posX1 = option.rect.x() + leftOffsetX;

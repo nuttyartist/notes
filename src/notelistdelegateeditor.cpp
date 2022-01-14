@@ -61,6 +61,7 @@ NoteListDelegateEditor::NoteListDelegateEditor(const NoteListDelegate *delegate,
 {
     setContentsMargins(0, 0, 0, 0);
     m_folderIcon = QImage(":/images/folder.png");
+    m_pinnedIcon = QImage(":/images/pin.png");
     m_tagListView = new TagListView(this);
     m_tagListModel = new TagListModel(this);
     m_tagListDelegate = new TagListDelegate(this);
@@ -70,9 +71,17 @@ NoteListDelegateEditor::NoteListDelegateEditor(const NoteListDelegate *delegate,
     m_tagListModel->setTagPool(tagPool);
     m_tagListModel->setModelData(index.data(NoteListModel::NoteTagsList).value<QSet<int>>());
     if (m_delegate->isInAllNotes()) {
-        m_tagListView->setGeometry(10, 90, rect().width(), m_tagListView->height());
+        if (index.data(NoteListModel::NoteIsPinned).toBool()) {
+            m_tagListView->setGeometry(10, 110, rect().width(), m_tagListView->height());
+        } else {
+            m_tagListView->setGeometry(10, 90, rect().width(), m_tagListView->height());
+        }
     } else {
-        m_tagListView->setGeometry(10, 70, rect().width(), m_tagListView->height());
+        if (index.data(NoteListModel::NoteIsPinned).toBool()) {
+            m_tagListView->setGeometry(10, 90, rect().width(), m_tagListView->height());
+        } else {
+            m_tagListView->setGeometry(10, 70, rect().width(), m_tagListView->height());
+        }
     }
     connect(m_tagListView->verticalScrollBar(), &QScrollBar::valueChanged,
             this, [this] {
@@ -88,6 +97,13 @@ NoteListDelegateEditor::NoteListDelegateEditor(const NoteListDelegate *delegate,
 
 void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    int currentRow = index.row();
+    QModelIndex belowIndex = m_view->model()->index(currentRow + 1, 0);
+    bool isBelowPinned = false;
+    if (belowIndex.isValid()){
+        isBelowPinned = belowIndex.data(NoteListModel::NoteIsPinned).toBool();
+    }
+    bool isCurrentPinned = index.data(NoteListModel::NoteIsPinned).toBool();
     if(m_view->selectionModel()->isSelected(index)){
         if(qApp->applicationState() == Qt::ApplicationActive){
             if(m_isActive){
@@ -105,7 +121,7 @@ void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOpti
         painter->fillRect(rect(), QBrush(m_hoverColor));
         m_tagListView->setBackground(m_hoverColor);
     }else if((index.row() != m_delegate->currentSelectedIndex().row() - 1)
-             && (index.row() !=  m_delegate->currentSelectedIndex().row() - 1)){
+             && (index.row() !=  m_delegate->currentSelectedIndex().row() - 1) && (!isCurrentPinned)){
         painter->fillRect(rect(), QBrush(m_defaultColor));
         m_tagListView->setBackground(m_defaultColor);
         paintSeparator(painter, option, index);
@@ -113,6 +129,18 @@ void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOpti
         painter->fillRect(rect(), QBrush(m_defaultColor));
         m_tagListView->setBackground(m_defaultColor);
     }
+
+    if (isCurrentPinned) {
+        auto m_rect = rect();
+        if (!isBelowPinned) {
+            m_rect.setTop(option.rect.bottom() - 2);
+            painter->fillRect(m_rect, QBrush("#d6d5d5"));
+        }
+        m_rect = rect();
+        m_rect.setHeight(20);
+        painter->fillRect(m_rect, QBrush("#d6d5d5"));
+    }
+
 }
 
 void NoteListDelegateEditor::paintLabels(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
@@ -139,6 +167,20 @@ void NoteListDelegateEditor::paintLabels(QPainter* painter, const QStyleOptionVi
 
     double rowPosX = rect().x();
     double rowPosY = rect().y();
+    if (index.data(NoteListModel::NoteIsPinned).toBool()) {
+        painter->drawImage(QRect(rowPosX + NoteListConstant::leftOffsetX,
+                                 rowPosY + 3 + 2,
+                                 12, 12), m_pinnedIcon);
+        QFontMetrics fm(m_dateFont);
+        QRect fmRect = fm.boundingRect("Pinned");
+        QRectF rect(rowPosX + NoteListConstant::leftOffsetX + 20,
+                    rowPosY + 2,
+                    fmRect.width(), fmRect.height());
+        painter->setPen(QColor(26, 26, 26));
+        painter->setFont(m_dateFont);
+        painter->drawText(rect, Qt::AlignBottom, "Pinned");
+        rowPosY += 20;
+    }
     double rowWidth = rect().width();
 
     double titleRectPosX = rowPosX + NoteListConstant::leftOffsetX;
@@ -236,10 +278,19 @@ void NoteListDelegateEditor::paintEvent(QPaintEvent *event)
 void NoteListDelegateEditor::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
+    auto index = dynamic_cast<NoteListModel*>(m_view->model())->getNoteIndex(m_id);
     if (m_delegate->isInAllNotes()) {
-        m_tagListView->setGeometry(10, 90, rect().width() - 15, m_tagListView->height());
+        if (index.data(NoteListModel::NoteIsPinned).toBool()) {
+            m_tagListView->setGeometry(10, 110, rect().width(), m_tagListView->height());
+        } else {
+            m_tagListView->setGeometry(10, 90, rect().width(), m_tagListView->height());
+        }
     } else {
-        m_tagListView->setGeometry(10, 70, rect().width() - 15, m_tagListView->height());
+        if (index.data(NoteListModel::NoteIsPinned).toBool()) {
+            m_tagListView->setGeometry(10, 90, rect().width(), m_tagListView->height());
+        } else {
+            m_tagListView->setGeometry(10, 70, rect().width(), m_tagListView->height());
+        }
     }
     recalculateSize();
 }
@@ -257,9 +308,12 @@ void NoteListDelegateEditor::recalculateSize()
     if (m_delegate->isInAllNotes()) {
         result.setHeight(result.height() + 20);
     }
+    auto m_index = dynamic_cast<NoteListModel*>(m_view->model())->getNoteIndex(m_id);
+    if (m_index.data(NoteListModel::NoteIsPinned).toBool()) {
+        result.setHeight(result.height() + 20);
+    }
     result.setHeight(result.height() + m_tagListView->height() + 2);
     result.setWidth(rect().width());
-    auto m_index = dynamic_cast<NoteListModel*>(m_view->model())->getNoteIndex(m_id);
     emit updateSizeHint(m_id, result, m_index);
 }
 

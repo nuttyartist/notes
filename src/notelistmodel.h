@@ -3,6 +3,7 @@
 
 #include <QAbstractListModel>
 #include "nodedata.h"
+#include "dbmanager.h"
 
 class NoteListModel : public QAbstractListModel
 {
@@ -19,7 +20,8 @@ public:
         NoteTagsList,
         NoteIsTemp,
         NoteParentName,
-        NoteTagListScrollbarPos
+        NoteTagListScrollbarPos,
+        NoteIsPinned,
     };
 
     explicit NoteListModel(QObject *parent = Q_NULLPTR);
@@ -29,7 +31,7 @@ public:
     QModelIndex insertNote(const NodeData& note, int row);
     NodeData getNote(const QModelIndex& index) const;
     QModelIndex getNoteIndex(int id) const;
-    void setListNote(const QVector<NodeData> notes);
+    void setListNote(const QVector<NodeData> notes, const ListViewInfo& inf);
     void removeNote(const QModelIndex& noteIndex);
     bool moveRow(const QModelIndex& sourceParent,
                  int sourceRow,
@@ -44,12 +46,25 @@ public:
     void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
     void setNoteData(const QModelIndex& index, const NodeData& note);
 
+private slots:
+    void onPinnedChanged(const QModelIndex& index, bool isPinned);
+
 private:
     QVector<NodeData> m_noteList;
+    QVector<NodeData> m_pinnedList;
+    ListViewInfo m_listViewInfo;
+    void updatePinnedRelativePosition();
+    bool isInAllNote() const;
+    bool noteIsPinned(const NodeData& note) const;
 
 signals:
     void noteRemoved();
     void rowCountChanged();
+    void pinnedChanged(const QModelIndex& index, bool isPinned);
+    void requestUpdatePinned(int noteId, bool isPinned);
+    void requestUpdatePinnedAN(int noteId, bool isPinned);
+    void requestUpdatePinnedRelPos(int noteId, int pos);
+    void requestUpdatePinnedRelPosAN(int noteId, int pos);
 };
 
 #endif // NOTELISTMODEL_H

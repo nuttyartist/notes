@@ -61,5 +61,6 @@
         <file>images/trash-icon-dark.png</file>
         <file>images/tree-node-expanded-dark.png</file>
         <file>images/tree-node-normal-dark.png</file>
+        <file>images/pin.png</file>
     </qresource>
 </RCC>

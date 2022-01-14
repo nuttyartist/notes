@@ -43,6 +43,15 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
     connect(this, &ListViewLogic::requestMoveNoteDb, dbManager, &DBManager::moveNode, Qt::QueuedConnection);
     connect(this, &ListViewLogic::requestSearchInDb, dbManager, &DBManager::searchForNotes, Qt::QueuedConnection);
     connect(this, &ListViewLogic::requestClearSearchDb, dbManager, &DBManager::clearSearch, Qt::QueuedConnection);
+    connect(m_listModel, &NoteListModel::requestUpdatePinnedRelPos,
+            dbManager, &DBManager::updateRelPosPinnedNote, Qt::QueuedConnection);
+    connect(m_listModel, &NoteListModel::requestUpdatePinnedRelPosAN,
+            dbManager, &DBManager::updateRelPosPinnedNoteAN, Qt::QueuedConnection);
+    connect(m_listModel, &NoteListModel::requestUpdatePinned,
+            dbManager, &DBManager::setNoteIsPinned, Qt::QueuedConnection);
+    connect(m_listModel, &NoteListModel::requestUpdatePinnedAN,
+            dbManager, &DBManager::setNoteIsPinnedAN, Qt::QueuedConnection);
+
     connect(m_listView, &NoteListView::deleteNoteRequested, this, &ListViewLogic::deleteNoteRequestedI);
     connect(m_listView, &NoteListView::restoreNoteRequested, this, &ListViewLogic::restoreNoteRequestedI);
 
@@ -65,6 +74,9 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
             this, &ListViewLogic::onRowCountChanged);
     connect(m_listView, &NoteListView::doubleClicked,
             this, &ListViewLogic::onNoteDoubleClicked);
+
+    connect(m_listView, &NoteListView::setPinnedNoteRequested,
+            this, &ListViewLogic::onSetPinnedNoteRequested);
 }
 
 void ListViewLogic::selectNote(const QModelIndex &noteIndex)
@@ -229,7 +241,8 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData>& noteList, const L
         m_listDelegate->setIsInAllNotes(false);
     }
 
-    m_listModel->setListNote(noteList);
+    m_listModel->setListNote(noteList, m_listViewInfo);
+    m_listView->setListViewInfo(m_listViewInfo);
     updateListViewLabel();
 
     if ((!m_listViewInfo.isInTag) && m_listViewInfo.parentFolderId == SpecialNodeID::TrashFolder) {
@@ -302,8 +315,8 @@ void ListViewLogic::onNoteMovedOut(int nodeId, int targetId)
     auto index = m_listModel->getNoteIndex(nodeId);
     if (index.isValid()) {
         if ((!m_listViewInfo.isInTag
-                && m_listViewInfo.parentFolderId != SpecialNodeID::RootFolder
-                && m_listViewInfo.parentFolderId != targetId)
+             && m_listViewInfo.parentFolderId != SpecialNodeID::RootFolder
+             && m_listViewInfo.parentFolderId != targetId)
                 || targetId == SpecialNodeID::TrashFolder) {
             selectNoteDown();
             m_listModel->removeNote(index);
@@ -475,14 +488,26 @@ void ListViewLogic::onNoteDoubleClicked(const QModelIndex &index)
     clearSearch(false, id);
 }
 
+void ListViewLogic::onSetPinnedNoteRequested(int noteId, bool isPinned)
+{
+    auto index = m_listModel->getNoteIndex(noteId);
+    if (index.isValid()) {
+        if (index.data(NoteListModel::NoteIsPinned).toBool() != isPinned) {
+            m_listModel->setData(index, QVariant::fromValue(isPinned), NoteListModel::NoteIsPinned);
+        }
+    }
+}
+
 void ListViewLogic::selectFirstNote()
 {
     if (m_listModel->rowCount() > 0){
         QModelIndex index = m_listModel->index(0,0);
-        m_listView->selectionModel()->select(index, QItemSelectionModel::ClearAndSelect);
-        m_listView->setCurrentIndex(index);
-        auto firstNote = m_listModel->getNote(index);
-        emit showNoteInEditor(firstNote);
+        if (index.isValid()) {
+            m_listView->selectionModel()->select(index, QItemSelectionModel::ClearAndSelect);
+            m_listView->setCurrentIndex(index);
+            auto firstNote = m_listModel->getNote(index);
+            emit showNoteInEditor(firstNote);
+        }
     } else {
         emit closeNoteEditor();
     }

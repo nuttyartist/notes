@@ -95,6 +95,10 @@ public slots:
     void clearSearch(const ListViewInfo& inf);
     void updateRelPosNode(int nodeId, int relPos);
     void updateRelPosTag(int tagId, int relPos);
+    void updateRelPosPinnedNote(int nodeId, int relPos);
+    void updateRelPosPinnedNoteAN(int nodeId, int relPos);
+    void setNoteIsPinned(int noteId, bool isPinned);
+    void setNoteIsPinnedAN(int noteId, bool isPinned);
 };
 
 #endif // DBMANAGER_H

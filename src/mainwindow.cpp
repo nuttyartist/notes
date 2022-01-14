@@ -378,8 +378,10 @@ void MainWindow::setupMainWindow()
     m_splitter->setStyle(m_spliterStyle);
     m_splitter->setHandleWidth(0);
     setNoteListLoading();
+#ifdef __APPLE__
     ui->searchEdit->setFocus();
     QTimer::singleShot(16, ui->searchEdit, &QTextEdit::clearFocus);
+#endif
 }
 
 /*!
@@ -1686,7 +1688,6 @@ void MainWindow::createNewNote()
         int row = newNoteIndex.row();
         m_listView->animateAddedRow(QModelIndex(),row, row);
     }
-
     // update the current selected index
     m_listView->setCurrentIndex(newNoteIndex);
     m_textEdit->setFocus();

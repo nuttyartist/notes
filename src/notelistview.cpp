@@ -58,6 +58,22 @@ NoteListView::NoteListView(QWidget *parent)
         }
     });
     pinNoteAction = new QAction(tr("Pin Note"), this);
+    connect(pinNoteAction, &QAction::triggered, this, [this] {
+        auto index = currentIndex();
+        if (index.isValid()) {
+            auto id = index.data(NoteListModel::NoteID).toInt();
+            emit setPinnedNoteRequested(id, true);
+        }
+    });
+    unpinNoteAction = new QAction(tr("Unpin Note"), this);
+    connect(unpinNoteAction, &QAction::triggered, this, [this] {
+        auto index = currentIndex();
+        if (index.isValid()) {
+            auto id = index.data(NoteListModel::NoteID).toInt();
+            emit setPinnedNoteRequested(id, false);
+        }
+    });
+
     newNoteAction = new QAction(tr("New Note"), this);
     connect(newNoteAction, &QAction::triggered, this, [this] {
         emit newNoteRequested();
@@ -139,6 +155,11 @@ void NoteListView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, in
     }
 
     QListView::rowsAboutToBeRemoved(parent, start, end);
+}
+
+void NoteListView::setListViewInfo(const ListViewInfo &newListViewInfo)
+{
+    m_listViewInfo = newListViewInfo;
 }
 
 void NoteListView::setCurrentFolderId(int newCurrentFolderId)
@@ -507,8 +528,15 @@ void NoteListView::onCustomContextMenu(const QPoint &point)
             contextMenu->addAction(restoreNoteAction);
         }
         contextMenu->addAction(deleteNoteAction);
-        contextMenu->addSeparator();
-        contextMenu->addAction(pinNoteAction);
+        if ((!m_listViewInfo.isInTag) && (m_listViewInfo.parentFolderId != SpecialNodeID::TrashFolder)) {
+            contextMenu->addSeparator();
+            auto isPinned = index.data(NoteListModel::NoteIsPinned).toBool();
+            if (!isPinned) {
+                contextMenu->addAction(pinNoteAction);
+            } else {
+                contextMenu->addAction(unpinNoteAction);
+            }
+        }
         contextMenu->addSeparator();
         if (m_dbManager) {
             for (auto action : QT_AS_CONST(m_folderActions)) {

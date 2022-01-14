@@ -4,9 +4,9 @@
 #include <QListView>
 #include <QScrollArea>
 #include "styleeditorwindow.h"
+#include "dbmanager.h"
 
 class TagPool;
-class DBManager;
 
 class NoteListView : public QListView
 {
@@ -27,7 +27,8 @@ public:
     void setCurrentFolderId(int newCurrentFolderId);
     void openPersistentEditorC(const QModelIndex& index);
     void closePersistentEditorC(const QModelIndex& index);
-    void closeAllEditor();
+    void closeAllEditor();    
+    void setListViewInfo(const ListViewInfo &newListViewInfo);
 
 public slots:
     void onCustomContextMenu(const QPoint& point);
@@ -65,6 +66,8 @@ signals:
     void restoreNoteRequested(const QModelIndex& index);
     void newNoteRequested();
     void moveNoteRequested(int noteId, int folderId);
+    void setPinnedNoteRequested(int noteId, bool isPinned);
+
 private:
     bool m_isScrollBarHidden;
     bool m_animationEnabled;
@@ -76,6 +79,7 @@ private:
     QAction* deleteNoteAction;
     QAction* restoreNoteAction;
     QAction* pinNoteAction;
+    QAction* unpinNoteAction;
     QAction* newNoteAction;
     QMenu* tagsMenu;
     TagPool* m_tagPool;
@@ -87,7 +91,7 @@ private:
     QPoint m_dragStartPosition;
     QPixmap m_dragPixmap;
     QSet<QModelIndex> m_openedEditor;
-
+    ListViewInfo m_listViewInfo;
     void setupSignalsSlots();
     void setupStyleSheet();
 

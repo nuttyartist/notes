@@ -78,6 +78,12 @@ public:
     int tagListScrollBarPos() const;
     void setTagListScrollBarPos(int newTagListScrollBarPos);
 
+    bool isPinnedNoteAN() const;
+    void setIsPinnedNoteAN(bool newIsPinnedNoteAN);
+
+    int relativePosAN() const;
+    void setRelativePosAN(int newRelativePosAN);
+
 private:
     int m_id;
     QString m_fullTitle;
@@ -97,6 +103,8 @@ private:
     QString m_parentName;
     bool m_isPinnedNote;
     int m_tagListScrollBarPos;
+    bool m_isPinnedNoteAN;
+    int m_relativePosAN;
 };
 
 Q_DECLARE_METATYPE(NodeData)
