@@ -31,6 +31,9 @@ public:
     QSize sizeHint(const QStyleOptionViewItem &option,
                    const QModelIndex &index) const Q_DECL_OVERRIDE;
 
+    QSize bufferSizeHint(const QStyleOptionViewItem &option,
+                   const QModelIndex &index) const;
+
     QTimeLine::State animationState();
 
     void setCurrentSelectedIndex(const QModelIndex &currentSelectedIndex);
@@ -58,7 +61,7 @@ signals:
 private:
     void paintBackground(QPainter* painter, const QStyleOptionViewItem &option, const QModelIndex &index)const;
     void paintLabels(QPainter* painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
-    void paintSeparator(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    void paintSeparator(QPainter *painter, const QRect &rect, const QModelIndex &index) const;
     void paintTagList(int top, QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     QString parseDateTime(const QDateTime& dateTime) const;
 
