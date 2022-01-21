@@ -140,7 +140,6 @@ void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOpti
         m_rect.setHeight(20);
         painter->fillRect(m_rect, QBrush("#d6d5d5"));
     }
-
 }
 
 void NoteListDelegateEditor::paintLabels(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
@@ -169,18 +168,19 @@ void NoteListDelegateEditor::paintLabels(QPainter* painter, const QStyleOptionVi
     double rowPosY = rect().y();
     if (index.data(NoteListModel::NoteIsPinned).toBool()) {
         painter->drawImage(QRect(rowPosX + NoteListConstant::leftOffsetX,
-                                 rowPosY + 3 + 2,
-                                 12, 12), m_pinnedIcon);
+                                       rowPosY + 3 + 2,
+                                       12, 12), m_pinnedIcon);
         QFontMetrics fm(m_dateFont);
         QRect fmRect = fm.boundingRect("Pinned");
         QRectF rect(rowPosX + NoteListConstant::leftOffsetX + 20,
                     rowPosY + 2,
-                    fmRect.width(), fmRect.height());
+                    fmRect.width() + 5, fmRect.height());
         painter->setPen(QColor(26, 26, 26));
         painter->setFont(m_dateFont);
         painter->drawText(rect, Qt::AlignBottom, "Pinned");
         rowPosY += 20;
     }
+
     double rowWidth = rect().width();
 
     double titleRectPosX = rowPosX + NoteListConstant::leftOffsetX;

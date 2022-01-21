@@ -46,6 +46,13 @@ public:
     void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
     void setNoteData(const QModelIndex& index, const NodeData& note);
 
+    virtual Qt::DropActions supportedDropActions() const override;
+    virtual Qt::DropActions supportedDragActions() const override;
+    virtual QStringList mimeTypes() const override;
+    virtual QMimeData *mimeData(const QModelIndexList &indexes) const override;
+    virtual bool dropMimeData(const QMimeData *mime, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
+
+    QModelIndex firstUnpinnedIndex() const;
 private slots:
     void onPinnedChanged(const QModelIndex& index, bool isPinned);
 

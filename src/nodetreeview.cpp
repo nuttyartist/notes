@@ -340,19 +340,11 @@ void NodeTreeView::dropEvent(QDropEvent *event)
             if (ok) {
                 if (itemType == NodeItem::Type::FolderItem) {
                     emit moveNodeRequested(nodeId, dropIndex.data(NodeItem::NodeId).toInt());
-                    //                    setCurrentIndex(dropIndex);
-                    //                    clearSelection();
-                    //                    setSelectionMode(QAbstractItemView::SingleSelection);
-                    //                    selectionModel()->setCurrentIndex(dropIndex, QItemSelectionModel::SelectCurrent);
                     event->acceptProposedAction();
                 } else if (itemType == NodeItem::Type::TagItem) {
                     emit addNoteToTag(nodeId, dropIndex.data(NodeItem::NodeId).toInt());
                 } else if (itemType == NodeItem::Type::TrashButton) {
                     emit moveNodeRequested(nodeId, SpecialNodeID::TrashFolder);
-                    //                    setCurrentIndex(dropIndex);
-                    //                    clearSelection();
-                    //                    setSelectionMode(QAbstractItemView::SingleSelection);
-                    //                    selectionModel()->setCurrentIndex(dropIndex, QItemSelectionModel::SelectCurrent);
                     event->acceptProposedAction();
                 }
             }

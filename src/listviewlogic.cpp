@@ -74,9 +74,16 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
             this, &ListViewLogic::onRowCountChanged);
     connect(m_listView, &NoteListView::doubleClicked,
             this, &ListViewLogic::onNoteDoubleClicked);
-
     connect(m_listView, &NoteListView::setPinnedNoteRequested,
             this, &ListViewLogic::onSetPinnedNoteRequested);
+    connect(m_listModel, &NoteListModel::pinnedChanged,
+            this, [this](const QModelIndex& index, bool) {
+        if (index.isValid()) {
+            m_listView->closePersistentEditorC(index);
+            m_listView->openPersistentEditorC(index);
+        }
+    });
+
 }
 
 void ListViewLogic::selectNote(const QModelIndex &noteIndex)

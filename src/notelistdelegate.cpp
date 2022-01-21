@@ -128,9 +128,6 @@ void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         }
         break;
     case MoveIn:
-        if(index == m_animatedIndex){
-//            opt.rect.setY(int(height));
-        }
         break;
     case Normal:
         break;
@@ -253,7 +250,7 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
     if (isCurrentPinned) {
         auto rect = buffer.rect();
         if (!isBelowPinned) {
-            rect.setTop(option.rect.bottom() - 2);
+            rect.setTop(rect.bottom() - 2);
             bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
         }
         rect = buffer.rect();
@@ -278,8 +275,8 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
     if (m_state == MoveIn) {
         painter->drawPixmap(
                     QRect {option.rect.x(), option.rect.y() + bufferSize.height() - rowHeight, option.rect.width(), rowHeight},
-                            buffer,
-                            QRect {0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight});
+                    buffer,
+                    QRect {0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight});
     } else {
         painter->drawPixmap(option.rect, buffer,
                             QRect {0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight});
@@ -289,113 +286,198 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
 
 void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
-    auto bufferSize = bufferSizeHint(option, index);
-    QPixmap buffer {bufferSize};
-    buffer.fill(Qt::transparent);
-    QPainter bufferPainter{&buffer};
-    bufferPainter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-    QString title{index.data(NoteListModel::NoteFullTitle).toString()};
-    QFont titleFont = (option.state & QStyle::State_Selected) == QStyle::State_Selected ? m_titleSelectedFont : m_titleFont;
-    QFontMetrics fmTitle(titleFont);
-    QRect fmRectTitle = fmTitle.boundingRect(title);
-
-    QString date = parseDateTime(index.data(NoteListModel::NoteLastModificationDateTime).toDateTime());
-    QFontMetrics fmDate(m_dateFont);
-    QRect fmRectDate = fmDate.boundingRect(date);
-
-    QString parentName{index.data(NoteListModel::NoteParentName).toString()};
-    QFontMetrics fmParentName(titleFont);
-    QRect fmRectParentName = fmParentName.boundingRect(parentName);
-
-    QString content{index.data(NoteListModel::NoteContent).toString()};
-    content = NoteEditorLogic::getSecondLine(content);
-    QFontMetrics fmContent(titleFont);
-    QRect fmRectContent = fmContent.boundingRect(content);
-    double rowPosX = 0; //option.rect.x();
-    double rowPosY = 0; //option.rect.y();
-    if (index.data(NoteListModel::NoteIsPinned).toBool()) {
-        bufferPainter.drawImage(QRect(rowPosX + NoteListConstant::leftOffsetX,
-                                       rowPosY + 3 + 2,
-                                       12, 12), m_pinnedIcon);
-        QFontMetrics fm(m_dateFont);
-        QRect fmRect = fm.boundingRect("Pinned");
-        QRectF rect(rowPosX + NoteListConstant::leftOffsetX + 20,
-                    rowPosY + 2,
-                    fmRect.width() + 5, fmRect.height());
-        bufferPainter.setPen(QColor(26, 26, 26));
-        bufferPainter.setFont(m_dateFont);
-        bufferPainter.drawText(rect, Qt::AlignBottom, "Pinned");
-        rowPosY += 20;
-    }
-    double rowWidth = option.rect.width();
-
-    double titleRectPosX = rowPosX + NoteListConstant::leftOffsetX;
-    double titleRectPosY = rowPosY;
-    double titleRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
-    double titleRectHeight = fmRectTitle.height() + NoteListConstant::topOffsetY;
-
-    double dateRectPosX = rowPosX + NoteListConstant::leftOffsetX;
-    double dateRectPosY = rowPosY + fmRectTitle.height() + NoteListConstant::topOffsetY;
-    double dateRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
-    double dateRectHeight = fmRectDate.height() + NoteListConstant::titleDateSpace;
-
-    double contentRectPosX = rowPosX + NoteListConstant::leftOffsetX;
-    double contentRectPosY = rowPosY + fmRectTitle.height() + fmRectDate.height() + NoteListConstant::topOffsetY;
-    double contentRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
-    double contentRectHeight = fmRectContent.height() + NoteListConstant::dateDescSpace;
-
-    double folderNameRectPosX = 0;
-    double folderNameRectPosY = 0;
-    double folderNameRectWidth = 0;
-    double folderNameRectHeight = 0;
-
-    if (m_isInAllNotes) {
-        folderNameRectPosX = rowPosX + NoteListConstant::leftOffsetX + 20;
-        folderNameRectPosY = rowPosY + fmRectContent.height() + fmRectTitle.height() + fmRectDate.height() + NoteListConstant::topOffsetY;
-        folderNameRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
-        folderNameRectHeight = fmRectParentName.height() + NoteListConstant::descFolderSpace;
-    }
-
-    auto drawStr = [&bufferPainter](double posX, double posY, double width, double height, QColor color, QFont font, QString str){
-        QRectF rect(posX, posY, width, height);
-        bufferPainter.setPen(color);
-        bufferPainter.setFont(font);
-        bufferPainter.drawText(rect, Qt::AlignBottom, str);
-    };
-    // draw title & date
-    title = fmTitle.elidedText(title, Qt::ElideRight, int(titleRectWidth));
-    content = fmContent.elidedText(content, Qt::ElideRight, int(titleRectWidth));
-    drawStr(titleRectPosX, titleRectPosY, titleRectWidth, titleRectHeight, m_titleColor, titleFont, title);
-    drawStr(dateRectPosX, dateRectPosY, dateRectWidth, dateRectHeight, m_dateColor, m_dateFont, date);
-    if (m_isInAllNotes) {
-        bufferPainter.drawImage(QRect(rowPosX + NoteListConstant::leftOffsetX,
-                                       folderNameRectPosY + NoteListConstant::descFolderSpace,
-                                       16, 16), m_folderIcon);
-        drawStr(folderNameRectPosX, folderNameRectPosY, folderNameRectWidth, folderNameRectHeight, m_contentColor, titleFont, parentName);
-    }
-    drawStr(contentRectPosX, contentRectPosY, contentRectWidth, contentRectHeight, m_contentColor, titleFont, content);
-    painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-    int rowHeight;
     if (index == m_animatedIndex) {
-        if (m_state != MoveIn) {
-            double rowRate = m_timeLine->currentFrame()/(m_maxFrame * 1.0);
-            rowHeight = bufferSize.height() * rowRate;
+        auto bufferSize = bufferSizeHint(option, index);
+        QPixmap buffer {bufferSize};
+        buffer.fill(Qt::transparent);
+        QPainter bufferPainter{&buffer};
+        bufferPainter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+        QString title{index.data(NoteListModel::NoteFullTitle).toString()};
+        QFont titleFont = (option.state & QStyle::State_Selected) == QStyle::State_Selected ? m_titleSelectedFont : m_titleFont;
+        QFontMetrics fmTitle(titleFont);
+        QRect fmRectTitle = fmTitle.boundingRect(title);
+
+        QString date = parseDateTime(index.data(NoteListModel::NoteLastModificationDateTime).toDateTime());
+        QFontMetrics fmDate(m_dateFont);
+        QRect fmRectDate = fmDate.boundingRect(date);
+
+        QString parentName{index.data(NoteListModel::NoteParentName).toString()};
+        QFontMetrics fmParentName(titleFont);
+        QRect fmRectParentName = fmParentName.boundingRect(parentName);
+
+        QString content{index.data(NoteListModel::NoteContent).toString()};
+        content = NoteEditorLogic::getSecondLine(content);
+        QFontMetrics fmContent(titleFont);
+        QRect fmRectContent = fmContent.boundingRect(content);
+        double rowPosX = 0; //option.rect.x();
+        double rowPosY = 0; //option.rect.y();
+        if (index.data(NoteListModel::NoteIsPinned).toBool()) {
+            bufferPainter.drawImage(QRect(rowPosX + NoteListConstant::leftOffsetX,
+                                          rowPosY + 3 + 2,
+                                          12, 12), m_pinnedIcon);
+            QFontMetrics fm(m_dateFont);
+            QRect fmRect = fm.boundingRect("Pinned");
+            QRectF rect(rowPosX + NoteListConstant::leftOffsetX + 20,
+                        rowPosY + 2,
+                        fmRect.width() + 5, fmRect.height());
+            bufferPainter.setPen(QColor(26, 26, 26));
+            bufferPainter.setFont(m_dateFont);
+            bufferPainter.drawText(rect, Qt::AlignBottom, "Pinned");
+            rowPosY += 20;
+        }
+        double rowWidth = option.rect.width();
+
+        double titleRectPosX = rowPosX + NoteListConstant::leftOffsetX;
+        double titleRectPosY = rowPosY;
+        double titleRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
+        double titleRectHeight = fmRectTitle.height() + NoteListConstant::topOffsetY;
+
+        double dateRectPosX = rowPosX + NoteListConstant::leftOffsetX;
+        double dateRectPosY = rowPosY + fmRectTitle.height() + NoteListConstant::topOffsetY;
+        double dateRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
+        double dateRectHeight = fmRectDate.height() + NoteListConstant::titleDateSpace;
+
+        double contentRectPosX = rowPosX + NoteListConstant::leftOffsetX;
+        double contentRectPosY = rowPosY + fmRectTitle.height() + fmRectDate.height() + NoteListConstant::topOffsetY;
+        double contentRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
+        double contentRectHeight = fmRectContent.height() + NoteListConstant::dateDescSpace;
+
+        double folderNameRectPosX = 0;
+        double folderNameRectPosY = 0;
+        double folderNameRectWidth = 0;
+        double folderNameRectHeight = 0;
+
+        if (m_isInAllNotes) {
+            folderNameRectPosX = rowPosX + NoteListConstant::leftOffsetX + 20;
+            folderNameRectPosY = rowPosY + fmRectContent.height() + fmRectTitle.height() + fmRectDate.height() + NoteListConstant::topOffsetY;
+            folderNameRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
+            folderNameRectHeight = fmRectParentName.height() + NoteListConstant::descFolderSpace;
+        }
+
+        auto drawStr = [&bufferPainter](double posX, double posY, double width, double height, QColor color, QFont font, QString str){
+            QRectF rect(posX, posY, width, height);
+            bufferPainter.setPen(color);
+            bufferPainter.setFont(font);
+            bufferPainter.drawText(rect, Qt::AlignBottom, str);
+        };
+        // draw title & date
+        title = fmTitle.elidedText(title, Qt::ElideRight, int(titleRectWidth));
+        content = fmContent.elidedText(content, Qt::ElideRight, int(titleRectWidth));
+        drawStr(titleRectPosX, titleRectPosY, titleRectWidth, titleRectHeight, m_titleColor, titleFont, title);
+        drawStr(dateRectPosX, dateRectPosY, dateRectWidth, dateRectHeight, m_dateColor, m_dateFont, date);
+        if (m_isInAllNotes) {
+            bufferPainter.drawImage(QRect(rowPosX + NoteListConstant::leftOffsetX,
+                                          folderNameRectPosY + NoteListConstant::descFolderSpace,
+                                          16, 16), m_folderIcon);
+            drawStr(folderNameRectPosX, folderNameRectPosY, folderNameRectWidth, folderNameRectHeight, m_contentColor, titleFont, parentName);
+        }
+        drawStr(contentRectPosX, contentRectPosY, contentRectWidth, contentRectHeight, m_contentColor, titleFont, content);
+        painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+        int rowHeight;
+        if (index == m_animatedIndex) {
+            if (m_state != MoveIn) {
+                double rowRate = m_timeLine->currentFrame()/(m_maxFrame * 1.0);
+                rowHeight = bufferSize.height() * rowRate;
+            } else {
+                double rowRate = 1.0 - m_timeLine->currentFrame()/(m_maxFrame * 1.0);
+                rowHeight = bufferSize.height() * rowRate;
+            }
         } else {
-            double rowRate = 1.0 - m_timeLine->currentFrame()/(m_maxFrame * 1.0);
-            rowHeight = bufferSize.height() * rowRate;
+            rowHeight = option.rect.height();
+        }
+
+        if (m_state == MoveIn) {
+            painter->drawPixmap(
+                        QRect {option.rect.x(), option.rect.y() + bufferSize.height() - rowHeight, option.rect.width(), rowHeight},
+                        buffer,
+                        QRect {0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight});
+        } else {
+            painter->drawPixmap(option.rect, buffer,
+                                QRect {0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight});
         }
     } else {
-        rowHeight = option.rect.height();
-    }
+        QString title{index.data(NoteListModel::NoteFullTitle).toString()};
+        QFont titleFont = m_view->selectionModel()->isSelected(index) ? m_titleSelectedFont : m_titleFont;
+        QFontMetrics fmTitle(titleFont);
+        QRect fmRectTitle = fmTitle.boundingRect(title);
 
-    if (m_state == MoveIn) {
-        painter->drawPixmap(
-                    QRect {option.rect.x(), option.rect.y() + bufferSize.height() - rowHeight, option.rect.width(), rowHeight},
-                            buffer,
-                            QRect {0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight});
-    } else {
-        painter->drawPixmap(option.rect, buffer,
-                            QRect {0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight});
+        QString date = parseDateTime(index.data(NoteListModel::NoteLastModificationDateTime).toDateTime());
+        QFontMetrics fmDate(m_dateFont);
+        QRect fmRectDate = fmDate.boundingRect(date);
+
+        QString parentName{index.data(NoteListModel::NoteParentName).toString()};
+        QFontMetrics fmParentName(titleFont);
+        QRect fmRectParentName = fmParentName.boundingRect(parentName);
+
+        QString content{index.data(NoteListModel::NoteContent).toString()};
+        content = NoteEditorLogic::getSecondLine(content);
+        QFontMetrics fmContent(titleFont);
+        QRect fmRectContent = fmContent.boundingRect(content);
+
+        double rowPosX = option.rect.x();
+        double rowPosY = option.rect.y();
+        if (index.data(NoteListModel::NoteIsPinned).toBool()) {
+            painter->drawImage(QRect(rowPosX + NoteListConstant::leftOffsetX,
+                                     rowPosY + 3 + 2,
+                                     12, 12), m_pinnedIcon);
+            QFontMetrics fm(m_dateFont);
+            QRect fmRect = fm.boundingRect("Pinned");
+            QRectF rect(rowPosX + NoteListConstant::leftOffsetX + 20,
+                        rowPosY + 2,
+                        fmRect.width() + 5, fmRect.height());
+            painter->setPen(QColor(26, 26, 26));
+            painter->setFont(m_dateFont);
+            painter->drawText(rect, Qt::AlignBottom, "Pinned");
+            rowPosY += 20;
+        }
+
+        double rowWidth = option.rect.width();
+
+        double titleRectPosX = rowPosX + NoteListConstant::leftOffsetX;
+        double titleRectPosY = rowPosY;
+        double titleRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
+        double titleRectHeight = fmRectTitle.height() + NoteListConstant::topOffsetY;
+
+        double dateRectPosX = rowPosX + NoteListConstant::leftOffsetX;
+        double dateRectPosY = rowPosY + fmRectTitle.height() + NoteListConstant::topOffsetY;
+        double dateRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
+        double dateRectHeight = fmRectDate.height() + NoteListConstant::titleDateSpace;
+
+        double contentRectPosX = rowPosX + NoteListConstant::leftOffsetX;
+        double contentRectPosY = rowPosY + fmRectTitle.height() + fmRectDate.height() + NoteListConstant::topOffsetY;
+        double contentRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
+        double contentRectHeight = fmRectContent.height() + NoteListConstant::dateDescSpace;
+
+        double folderNameRectPosX = 0;
+        double folderNameRectPosY = 0;
+        double folderNameRectWidth = 0;
+        double folderNameRectHeight = 0;
+
+        if (isInAllNotes()) {
+            folderNameRectPosX = rowPosX + NoteListConstant::leftOffsetX + 20;
+            folderNameRectPosY = rowPosY + fmRectContent.height() + fmRectTitle.height() + fmRectDate.height() + NoteListConstant::topOffsetY;
+            folderNameRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
+            folderNameRectHeight = fmRectParentName.height() + NoteListConstant::descFolderSpace;
+        }
+        auto drawStr = [painter](double posX, double posY, double width, double height, QColor color, QFont font, QString str){
+            QRectF rect(posX, posY, width, height);
+            painter->setPen(color);
+            painter->setFont(font);
+            painter->drawText(rect, Qt::AlignBottom, str);
+        };
+
+        // draw title & date
+        title = fmTitle.elidedText(title, Qt::ElideRight, int(titleRectWidth));
+        content = fmContent.elidedText(content, Qt::ElideRight, int(titleRectWidth));
+        drawStr(titleRectPosX, titleRectPosY, titleRectWidth, titleRectHeight, m_titleColor, titleFont, title);
+        drawStr(dateRectPosX, dateRectPosY, dateRectWidth, dateRectHeight, m_dateColor, m_dateFont, date);
+        if (isInAllNotes()) {
+            painter->drawImage(QRect(rowPosX + NoteListConstant::leftOffsetX,
+                                     folderNameRectPosY + NoteListConstant::descFolderSpace,
+                                     16, 16), m_folderIcon);
+            drawStr(folderNameRectPosX, folderNameRectPosY, folderNameRectWidth, folderNameRectHeight, m_contentColor, titleFont, parentName);
+        }
+        drawStr(contentRectPosX, contentRectPosY, contentRectWidth, contentRectHeight, m_contentColor, titleFont, content);
     }
 }
 

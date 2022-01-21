@@ -80,6 +80,8 @@ NoteListView::NoteListView(QWidget *parent)
     });
 
     m_dragPixmap.load("qrc:/images/notes_icon.icns");
+    setDragEnabled(true);
+    setAcceptDrops(true);
 }
 
 NoteListView::~NoteListView()
@@ -271,20 +273,26 @@ void NoteListView::mouseMoveEvent(QMouseEvent* event)
     if(!m_isMousePressed) {
         QListView::mouseMoveEvent(event);
     }
-    if (!(event->buttons() & Qt::LeftButton))
+    if (!(event->buttons() & Qt::LeftButton)) {
         return;
+    }
     if ((event->pos() - m_dragStartPosition).manhattanLength()
-            < QApplication::startDragDistance())
+            < QApplication::startDragDistance()) {
         return;
+    }
 
     QDrag *drag = new QDrag(this);
-    QMimeData *mimeData = new QMimeData;
     auto current = currentIndex();
-    mimeData->setData(NOTE_MIME, QString::number(
-                          current.data(NoteListModel::NoteID).toInt()).toUtf8());
+    QMimeData *mimeData = model()->mimeData(QModelIndexList{current});
     drag->setMimeData(mimeData);
     drag->setPixmap(m_dragPixmap);
-    drag->exec(Qt::MoveAction);
+    Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
+
+    /// Delete later, if there is no drop event.
+    if(dropAction == Qt::IgnoreAction ){
+       drag->deleteLater();
+       mimeData->deleteLater();
+    }
 }
 
 void NoteListView::mousePressEvent(QMouseEvent* e)
@@ -333,6 +341,41 @@ bool NoteListView::viewportEvent(QEvent*e)
     }
 
     return QListView::viewportEvent(e);
+}
+
+void NoteListView::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (event->mimeData()->hasFormat(NOTE_MIME)) {
+        event->acceptProposedAction();
+    } else {
+        QListView::dragEnterEvent(event);
+    }
+}
+
+void NoteListView::dragMoveEvent(QDragMoveEvent *event)
+{
+    if (event->mimeData()->hasFormat(NOTE_MIME)) {
+        bool ok = false;
+        auto nodeId = QString::fromUtf8(
+                    event->mimeData()->data(NOTE_MIME)).toInt(&ok);
+        if (ok) {
+            auto model = dynamic_cast<NoteListModel*>(this->model());
+            if (model) {
+                auto noteIndex = model->getNoteIndex(nodeId);
+                if (noteIndex.data(NoteListModel::NoteIsPinned).toBool()) {
+                    auto firstUnpinned = model->firstUnpinnedIndex();
+                    if (event->pos().y() <= visualRect(firstUnpinned).y() + 25) {
+                        event->acceptProposedAction();
+                        setDropIndicatorShown(true);
+                        QListView::dragMoveEvent(event);
+                        return;
+                    }
+                }
+            }
+        }
+    } else {
+        event->ignore();
+    }
 }
 
 void NoteListView::scrollContentsBy(int dx, int dy)

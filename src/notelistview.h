@@ -40,6 +40,9 @@ protected:
     void mousePressEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
     void mouseReleaseEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
     bool viewportEvent(QEvent* e) Q_DECL_OVERRIDE;
+    virtual void dragEnterEvent(QDragEnterEvent *event) override;
+    virtual void dragMoveEvent(QDragMoveEvent *event) override;
+
     // QAbstractScrollArea interface
 protected:
     virtual void scrollContentsBy(int dx, int dy) override;
@@ -97,7 +100,6 @@ private:
 
     void addCurrentNoteToTag(int tagId);
     void removeCurrentNoteFromTag(int tagId);
-
 };
 
 #endif // NOTELISTVIEW_H
