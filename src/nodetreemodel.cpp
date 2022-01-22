@@ -271,13 +271,13 @@ QModelIndex NodeTreeModel::parent(const QModelIndex &index) const
     }
 
     NodeTreeItem *childItem = static_cast<NodeTreeItem*>(index.internalPointer());
-    if (childItem == rootItem) {
+    if ((!childItem) || (childItem == rootItem)) {
         return QModelIndex();
     }
     NodeTreeItem *parentItem = childItem->parentItem();
-    if (parentItem == rootItem)
+    if ((!parentItem) || (parentItem == rootItem)) {
         return QModelIndex();
-
+    }
     return createIndex(parentItem->row(), 0, parentItem);
 }
 
@@ -766,7 +766,10 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime,
                 row = rowCount(parent);
             }
         }
-
+        auto sep = getSeparatorIndex();
+        if ((sep.size() == 2) && (row <= sep[1].row())) {
+            return false;
+        }
         auto idl = QString::fromUtf8(mime->data(TAG_MIME))
                 .split(QStringLiteral(PATH_SEPERATOR));
         beginResetModel();
@@ -816,7 +819,7 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime,
                     parentItem->data(NodeItem::Roles::ItemType).toInt());
         if (!(parentType == NodeItem::Type::FolderItem ||
               parentType == NodeItem::Type::RootItem ||
-                parentType == NodeItem::Type::TrashButton)) {
+              parentType == NodeItem::Type::TrashButton)) {
             return false;
         }
         movingItem = static_cast<NodeTreeItem*>(index.internalPointer());
@@ -826,6 +829,17 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime,
             emit requestMoveFolderToTrash(movingIndex);
             return false;
         }
+        if (parentItem == rootItem) {
+            auto sep = getSeparatorIndex();
+            if ((sep.size() == 2) && ((row <= sep[0].row()) || (row >= sep[1].row()))) {
+                return false;
+            }
+        }
+        auto sep = getSeparatorIndex();
+        if ((sep.size() == 2) && (row <= sep[1].row())) {
+            return false;
+        }
+
         if (movingItem->parentItem() == parentItem) {
             beginResetModel();
             for (int i = 0; i < parentItem->childCount(); ++i) {
