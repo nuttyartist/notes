@@ -271,10 +271,11 @@ bool NoteListModel::setData(const QModelIndex &index, const QVariant &value, int
 
 Qt::ItemFlags NoteListModel::flags(const QModelIndex &index) const
 {
-    if (!index.isValid())
-        return Qt::ItemIsEnabled;
+    if (!index.isValid()) {
+        return Qt::ItemIsEnabled | Qt::ItemIsDropEnabled;
+    }
 
-    return QAbstractListModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsEditable ;
+    return QAbstractListModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
 }
 
 int NoteListModel::rowCount(const QModelIndex &parent) const
@@ -419,134 +420,39 @@ bool NoteListModel::dropMimeData(const QMimeData *mime,
                                  const QModelIndex &parent)
 {
     Q_UNUSED(column);
-    //    if (!(mime->hasFormat(TAG_MIME) ||
-    //          mime->hasFormat(FOLDER_MIME)) &&
-    //            action == Qt::MoveAction) {
-    //        return false;
-    //    }
-    //    if (mime->hasFormat(TAG_MIME)) {
-    //        if (row == -1) {
-    //            // valid index: drop onto item
-    //            if (parent.isValid()) {
-    //                row = parent.row();
-    //            } else {
-    //                // invalid index: append at bottom, after last toplevel
-    //                row = rowCount(parent);
-    //            }
-    //        }
 
-    //        auto idl = QString::fromUtf8(mime->data(TAG_MIME))
-    //                .split(QStringLiteral(PATH_SEPERATOR));
-    //        beginResetModel();
-    //        QSet<int> movedIds;
-    //        for (const auto& id_s : QT_AS_CONST(idl)) {
-    //            auto id = id_s.toInt();
-    //            for (int i = 0; i < rootItem->childCount(); ++i) {
-    //                auto child = rootItem->child(i);
-    //                auto childType = static_cast<NodeItem::Type>(
-    //                            child->data(NodeItem::Roles::ItemType).toInt());
-    //                if (childType == NodeItem::Type::TagItem &&
-    //                        child->data(NodeItem::Roles::NodeId).toInt() == id) {
-    //                    rootItem->moveChild(i, row);
-    //                    movedIds.insert(id);
-    //                    break;
-    //                }
-    //            }
-    //        }
-    //        endResetModel();
-    //        emit topLevelItemLayoutChanged();
-    //        emit dropTagsSuccessfull(movedIds);
-    //        updateChildRelativePosition(rootItem, NodeItem::Type::TagItem);
-    //        return true;
-    //    }
-    //    if (mime->hasFormat(FOLDER_MIME)) {
-    //        if (row == -1) {
-    //            // valid index: drop onto item
-    //            if (parent.isValid()) {
-    //                row = 0;
-    //            } else {
-    //                // invalid index: append at bottom, after last toplevel
-    //                row = rowCount(parent);
-    //            }
-    //        }
-    //        auto absPath = QString::fromUtf8(mime->data(FOLDER_MIME));
-    //        auto index = folderIndexFromIdPath(absPath);
-    //        if (!index.isValid()) {
-    //            return false;
-    //        }
-    //        NodeTreeItem *parentItem, *movingItem;
-    //        if (!parent.isValid()) {
-    //            parentItem = rootItem;
-    //        } else {
-    //            parentItem = static_cast<NodeTreeItem*>(parent.internalPointer());
-    //        }
-    //        auto parentType = static_cast<NodeItem::Type>(
-    //                    parentItem->data(NodeItem::Roles::ItemType).toInt());
-    //        if (!(parentType == NodeItem::Type::FolderItem ||
-    //              parentType == NodeItem::Type::RootItem ||
-    //                parentType == NodeItem::Type::TrashButton)) {
-    //            return false;
-    //        }
-    //        movingItem = static_cast<NodeTreeItem*>(index.internalPointer());
-    //        if (parentType == NodeItem::Type::TrashButton) {
-    //            auto abs = movingItem->data(NodeItem::Roles::AbsPath).toString();
-    //            auto movingIndex = folderIndexFromIdPath(abs);
-    //            emit requestMoveFolderToTrash(movingIndex);
-    //            return false;
-    //        }
-    //        if (movingItem->parentItem() == parentItem) {
-    //            beginResetModel();
-    //            for (int i = 0; i < parentItem->childCount(); ++i) {
-    //                auto child = rootItem->child(i);
-    //                auto childType = static_cast<NodeItem::Type>(
-    //                            child->data(NodeItem::Roles::ItemType).toInt());
-    //                if (childType == NodeItem::Type::FolderItem &&
-    //                        child->data(NodeItem::Roles::NodeId) == movingItem->data(NodeItem::Roles::NodeId)) {
-    //                    parentItem->moveChild(i, row);
-    //                    break;
-    //                }
-    //            }
-    //            endResetModel();
-    //            emit topLevelItemLayoutChanged();
-    //            updateChildRelativePosition(parentItem, NodeItem::Type::FolderItem);
-    //            emit dropFolderSuccessfull(movingItem->data(NodeItem::Roles::AbsPath).toString());
-    //        } else {
-    //            auto movingParent = movingItem->parentItem();
-    //            int r = -1;
-    //            for (int i = 0; i < movingParent->childCount(); ++i) {
-    //                auto child = movingParent->child(i);
-    //                auto childType = static_cast<NodeItem::Type>(
-    //                            child->data(NodeItem::Roles::ItemType).toInt());
-    //                if ((childType == NodeItem::Type::FolderItem) &&
-    //                        (child->data(NodeItem::Roles::NodeId).toInt() == movingItem->data(NodeItem::Roles::NodeId).toInt())) {
-    //                    r = i;
-    //                    break;
-    //                }
-    //            }
-    //            if (r == -1) {
-    //                return false;
-    //            }
-    //            movingItem = movingParent->child(r);
-    //            auto oldAbsolutePath = movingItem->data(NodeItem::Roles::AbsPath).toString();
-    //            QString newAbsolutePath = parentItem->data(NodeItem::Roles::AbsPath).toString()
-    //                    + PATH_SEPERATOR + QString::number(movingItem->data(NodeItem::Roles::NodeId).toInt());
-    //            emit requestUpdateAbsPath(oldAbsolutePath, newAbsolutePath);
-    //            beginResetModel();
-    //            movingParent->takeChildAt(r);
-    //            movingItem->setParentItem(parentItem);
-    //            movingItem->recursiveUpdateFolderPath(oldAbsolutePath, newAbsolutePath);
-    //            parentItem->insertChild(row, movingItem);
-    //            endResetModel();
-    //            emit topLevelItemLayoutChanged();
-    //            emit requestExpand(parentItem->data(NodeItem::Roles::AbsPath).toString());
-    //            emit requestMoveNode(movingItem->data(NodeItem::Roles::NodeId).toInt(),
-    //                                 parentItem->data(NodeItem::Roles::NodeId).toInt());
-    //            updateChildRelativePosition(parentItem, NodeItem::Type::FolderItem);
-    //            emit dropFolderSuccessfull(movingItem->data(NodeItem::Roles::AbsPath).toString());
-    //        }
-    //        return true;
-    //    }
-    //    return false;
+    if (!(mime->hasFormat(NOTE_MIME) &&
+          action == Qt::MoveAction)) {
+        return false;
+    }
+    if (row == -1) {
+        // valid index: drop onto item
+        if (parent.isValid()) {
+            row = parent.row();
+        } else {
+            // invalid index: append at bottom, after last toplevel
+            row = rowCount(parent);
+        }
+    }
+
+    bool ok = false;
+    auto nodeId = QString::fromUtf8(mime->data(NOTE_MIME)).toInt(&ok);
+    if (ok) {
+        beginResetModel();
+        for (int i = 0; i < m_pinnedList.size(); ++i) {
+            if (m_pinnedList[i].id() == nodeId) {
+                vector_move(m_pinnedList, i, row);
+                break;
+            }
+        }
+
+        endResetModel();
+        emit setCurrentIndex(getNoteIndex(nodeId));
+        updatePinnedRelativePosition();
+        return true;
+    }
+
+    return false;
 }
 
 QModelIndex NoteListModel::firstUnpinnedIndex() const

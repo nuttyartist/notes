@@ -82,6 +82,7 @@ NoteListView::NoteListView(QWidget *parent)
     m_dragPixmap.load("qrc:/images/notes_icon.icns");
     setDragEnabled(true);
     setAcceptDrops(true);
+    setSelectionMode(QAbstractItemView::SingleSelection);
 }
 
 NoteListView::~NoteListView()
@@ -272,27 +273,26 @@ void NoteListView::mouseMoveEvent(QMouseEvent* event)
 {
     if(!m_isMousePressed) {
         QListView::mouseMoveEvent(event);
-    }
-    if (!(event->buttons() & Qt::LeftButton)) {
         return;
     }
-    if ((event->pos() - m_dragStartPosition).manhattanLength()
-            < QApplication::startDragDistance()) {
-        return;
-    }
+    if (event->buttons() & Qt::LeftButton) {
+        if ((event->pos() - m_dragStartPosition).manhattanLength()
+                >= QApplication::startDragDistance()) {
+            QDrag *drag = new QDrag(this);
+            auto current = currentIndex();
+            QMimeData *mimeData = model()->mimeData(QModelIndexList{current});
+            drag->setMimeData(mimeData);
+            drag->setPixmap(m_dragPixmap);
+            Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
 
-    QDrag *drag = new QDrag(this);
-    auto current = currentIndex();
-    QMimeData *mimeData = model()->mimeData(QModelIndexList{current});
-    drag->setMimeData(mimeData);
-    drag->setPixmap(m_dragPixmap);
-    Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
-
-    /// Delete later, if there is no drop event.
-    if(dropAction == Qt::IgnoreAction ){
-       drag->deleteLater();
-       mimeData->deleteLater();
+            /// Delete later, if there is no drop event.
+            if(dropAction == Qt::IgnoreAction){
+                drag->deleteLater();
+                mimeData->deleteLater();
+            }
+        }
     }
+    QListView::mouseMoveEvent(event);
 }
 
 void NoteListView::mousePressEvent(QMouseEvent* e)

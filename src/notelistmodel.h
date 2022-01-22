@@ -72,6 +72,7 @@ signals:
     void requestUpdatePinnedAN(int noteId, bool isPinned);
     void requestUpdatePinnedRelPos(int noteId, int pos);
     void requestUpdatePinnedRelPosAN(int noteId, int pos);
+    void setCurrentIndex(const QModelIndex& index);
 };
 
 #endif // NOTELISTMODEL_H

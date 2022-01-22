@@ -83,6 +83,10 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
             m_listView->openPersistentEditorC(index);
         }
     });
+    connect(m_listModel, &NoteListModel::setCurrentIndex,
+            this, [this] (const QModelIndex& index) {
+        m_listView->setCurrentIndex(index);
+    });
 
 }
 
