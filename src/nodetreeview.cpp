@@ -11,7 +11,8 @@
 NodeTreeView::NodeTreeView(QWidget *parent) :
     QTreeView(parent),
     m_isContextMenuOpened{false},
-    m_isEditing{false}
+    m_isEditing{false},
+    m_ignoreThisCurrentLoad{false}
 {
     setHeaderHidden(true);
 #if defined(Q_OS_LINUX)
@@ -130,6 +131,11 @@ void NodeTreeView::onCollapsed(const QModelIndex &index)
     m_expanded.removeAll(index.data(NodeItem::Roles::AbsPath).toString());
 }
 
+void NodeTreeView::setIgnoreThisCurrentLoad(bool newIgnoreThisCurrentLoad)
+{
+    m_ignoreThisCurrentLoad = newIgnoreThisCurrentLoad;
+}
+
 void NodeTreeView::onFolderDropSuccessfull(const QString &path)
 {
     auto m_model = dynamic_cast<NodeTreeModel*>(model());
@@ -169,6 +175,20 @@ Theme NodeTreeView::theme() const
 bool NodeTreeView::isDragging() const
 {
     return state() == DraggingState;
+}
+
+void NodeTreeView::reExpandC()
+{
+    auto needExpand = std::move(m_expanded);
+    m_expanded.clear();
+    QTreeView::reset();
+    for (const auto& path: needExpand) {
+        auto m_model = dynamic_cast<NodeTreeModel*>(model());
+        auto index = m_model->folderIndexFromIdPath(path);
+        if (index.isValid()) {
+            expand(index);
+        }
+    }
 }
 
 void NodeTreeView::onChangeTagColorAction()
@@ -222,6 +242,10 @@ void NodeTreeView::closeCurrentEditor()
 void NodeTreeView::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
 {
     QTreeView::selectionChanged(selected, deselected);
+    qDebug() << __FUNCTION__ << m_ignoreThisCurrentLoad;
+    if (m_ignoreThisCurrentLoad) {
+        return;
+    }
     auto indexes = selectedIndexes();
     QSet<int> tagIds;
     for (const auto index : QT_AS_CONST(indexes)) {
@@ -316,16 +340,7 @@ void NodeTreeView::dragMoveEvent(QDragMoveEvent *event)
 void NodeTreeView::reset()
 {
     closeCurrentEditor();
-    auto needExpand = std::move(m_expanded);
-    m_expanded.clear();
-    QTreeView::reset();
-    for (const auto& path: needExpand) {
-        auto m_model = dynamic_cast<NodeTreeModel*>(model());
-        auto index = m_model->folderIndexFromIdPath(path);
-        if (index.isValid()) {
-            expand(index);
-        }
-    }
+    reExpandC();
 }
 
 void NodeTreeView::dropEvent(QDropEvent *event)

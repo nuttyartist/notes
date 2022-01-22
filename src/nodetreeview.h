@@ -24,6 +24,9 @@ public:
     void setTheme(Theme theme);
     Theme theme() const;
     bool isDragging() const;
+    void reExpandC();
+
+    void setIgnoreThisCurrentLoad(bool newIgnoreThisCurrentLoad);
 
 public slots:
     void onCustomContextMenu(const QPoint& point);
@@ -72,6 +75,7 @@ private:
     Theme m_theme;
     QVector<QString> m_expanded;
     QModelIndex m_needReleaseIndex;
+    bool m_ignoreThisCurrentLoad;
     void updateEditingIndex(const QPoint &pos);
     void closeCurrentEditor();
 

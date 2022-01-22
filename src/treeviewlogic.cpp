@@ -102,6 +102,9 @@ void TreeViewLogic::onAddFolderRequested(bool fromPlusButton)
 {
     auto currentIndex = m_treeView->currentIndex();
     int parentId = SpecialNodeID::RootFolder;
+    NodeItem::Type currentType;
+    QString currentAbsPath;
+    int currentTagId;
     if (currentIndex.isValid() && !fromPlusButton) {
         auto type = static_cast<NodeItem::Type>(currentIndex.data(NodeItem::Roles::ItemType).toInt());
         if (type == NodeItem::FolderItem) {
@@ -117,6 +120,12 @@ void TreeViewLogic::onAddFolderRequested(bool fromPlusButton)
             currentIndex = m_treeModel->rootIndex();
         }
     } else {
+        currentType = static_cast<NodeItem::Type>(currentIndex.data(NodeItem::Roles::ItemType).toInt());
+        if (currentType == NodeItem::FolderItem) {
+            currentAbsPath = currentIndex.data(NodeItem::Roles::AbsPath).toString();
+        } else if (currentType == NodeItem::TagItem) {
+            currentTagId = currentIndex.data(NodeItem::Roles::NodeId).toInt();
+        }
         currentIndex = m_treeModel->rootIndex();
     }
     int newlyCreatedNodeId;
@@ -155,6 +164,24 @@ void TreeViewLogic::onAddFolderRequested(bool fromPlusButton)
                 PATH_SEPERATOR + QString::number(SpecialNodeID::RootFolder)
                 + PATH_SEPERATOR + QString::number(newlyCreatedNodeId);
         m_treeModel->appendChildNodeToParent(m_treeModel->rootIndex(), hs);
+    }
+    if (fromPlusButton) {
+        if (currentType == NodeItem::FolderItem) {
+            currentIndex = m_treeModel->folderIndexFromIdPath(currentAbsPath);
+        } else if (currentType == NodeItem::TagItem) {
+            currentIndex = m_treeModel->tagIndexFromId(currentTagId);
+        } else if (currentType == NodeItem::AllNoteButton) {
+            currentIndex = m_treeModel->getAllNotesButtonIndex();
+        } else if (currentType == NodeItem::TrashButton) {
+            currentIndex = m_treeModel->getTrashButtonIndex();
+        } else {
+            currentIndex = m_treeModel->getAllNotesButtonIndex();
+        }
+        m_treeView->setIgnoreThisCurrentLoad(true);
+        m_treeView->reExpandC();
+        m_treeView->setCurrentIndexC(currentIndex);
+        updateTreeViewSeparator();
+        m_treeView->setIgnoreThisCurrentLoad(false);
     }
 }
 
