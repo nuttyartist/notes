@@ -242,7 +242,6 @@ void NodeTreeView::closeCurrentEditor()
 void NodeTreeView::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
 {
     QTreeView::selectionChanged(selected, deselected);
-    qDebug() << __FUNCTION__ << m_ignoreThisCurrentLoad;
     if (m_ignoreThisCurrentLoad) {
         return;
     }

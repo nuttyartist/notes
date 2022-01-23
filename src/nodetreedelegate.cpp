@@ -11,6 +11,7 @@
 #include "trashbuttondelegateeditor.h"
 #include "defaultnotefolderdelegateeditor.h"
 #include "allnotebuttontreedelegateeditor.h"
+#include <QFontMetrics>
 
 NodeTreeDelegate::NodeTreeDelegate(QTreeView *view, QObject *parent):
     QStyledItemDelegate{parent},
@@ -116,6 +117,7 @@ void NodeTreeDelegate::paint(QPainter *painter,
         auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
         QRect nameRect(option.rect);
         nameRect.setLeft(iconRect.x() + iconRect.width() + 5);
+        nameRect.setWidth(nameRect.width() - 5);
         if((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
             painter->setPen(m_titleSelectedColor);
         } else {
@@ -156,9 +158,11 @@ void NodeTreeDelegate::paint(QPainter *painter,
             painter->drawImage(iconRect, QImage(iconPath));
         }
         QRect nameRect(option.rect);
-        //        nameRect.setLeft(nameRect.x() + 10 + 5);
         nameRect.setLeft(iconRect.x() + iconRect.width() + 5);
+        nameRect.setWidth(nameRect.width() - 5);
+        QFontMetrics fm(m_titleFont);
         auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
+        displayName = fm.elidedText(displayName, Qt::ElideRight, nameRect.width());
         if((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
             painter->setPen(m_titleSelectedColor);
         } else {
@@ -172,7 +176,10 @@ void NodeTreeDelegate::paint(QPainter *painter,
         paintBackgroundSelectable(painter, option, index);
         QRect nameRect(option.rect);
         nameRect.setLeft(nameRect.x() + 10 + 5);
+        nameRect.setWidth(nameRect.width() - 5);
         auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
+        QFontMetrics fm(m_titleFont);
+        displayName = fm.elidedText(displayName, Qt::ElideRight, nameRect.width());
         if((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
             painter->setPen(m_titleSelectedColor);
         } else {
@@ -193,7 +200,10 @@ void NodeTreeDelegate::paint(QPainter *painter,
         painter->setPen(Qt::black);
         QRect nameRect(option.rect);
         nameRect.setLeft(iconRect.x() + iconRect.width() + 5);
+        nameRect.setWidth(nameRect.width() - 5);
         auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
+        QFontMetrics fm(m_titleFont);
+        displayName = fm.elidedText(displayName, Qt::ElideRight, nameRect.width());
         if((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
             painter->setPen(m_titleSelectedColor);
         } else {

@@ -88,6 +88,9 @@ TagTreeDelegateEditor::TagTreeDelegateEditor(QTreeView *view,
 void TagTreeDelegateEditor::updateDelegate()
 {
     auto displayName = m_index.data(NodeItem::Roles::DisplayText).toString();
+    QFontMetrics fm(m_titleFont);
+    displayName = fm.elidedText(displayName, Qt::ElideRight, m_label->contentsRect().width());
+
     if (m_view->selectionModel()->selectedIndexes().contains(m_index)) {
         m_label->setStyleSheet(QStringLiteral("QLabel{color: rgb(%1, %2, %3);}")
                                .arg(QString::number(m_titleSelectedColor.red()),
