@@ -829,21 +829,17 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime,
             emit requestMoveFolderToTrash(movingIndex);
             return false;
         }
-        if (parentItem == rootItem) {
+        if (parentType == NodeItem::Type::RootItem) {
             auto sep = getSeparatorIndex();
-            if ((sep.size() == 2) && ((row <= sep[0].row()) || (row >= sep[1].row()))) {
+            if ((sep.size() == 2) && ((row <= sep[0].row()) || (row > sep[1].row()))) {
                 return false;
             }
-        }
-        auto sep = getSeparatorIndex();
-        if ((sep.size() == 2) && (row <= sep[1].row())) {
-            return false;
         }
 
         if (movingItem->parentItem() == parentItem) {
             beginResetModel();
             for (int i = 0; i < parentItem->childCount(); ++i) {
-                auto child = rootItem->child(i);
+                auto child = parentItem->child(i);
                 auto childType = static_cast<NodeItem::Type>(
                             child->data(NodeItem::Roles::ItemType).toInt());
                 if (childType == NodeItem::Type::FolderItem &&
