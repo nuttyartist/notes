@@ -1802,6 +1802,7 @@ void MainWindow::minimizeWindow()
  */
 void MainWindow::QuitApplication()
 {
+    m_noteEditorLogic->closeEditor();
     MainWindow::close();
 }
 
