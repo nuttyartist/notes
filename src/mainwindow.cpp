@@ -27,6 +27,10 @@
 #include <QList>
 #include <QWidgetAction>
 #include <QTimer>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+
+#define DEFAULT_DATABASE_NAME "default_database"
 
 /*!
  * \brief MainWindow::MainWindow
@@ -154,16 +158,11 @@ void MainWindow::InitData()
         connect(watcher, &QFutureWatcher<void>::finished, this, [&, pd](){
             pd->deleteLater();
             setButtonsAndFieldsEnabled(true);
-//            emit requestNotesList(SpecialNodeID::RootFolder, true);
         });
 
         QFuture<void> migration = QtConcurrent::run(this, &MainWindow::migrateFromV0_9_0);
         watcher->setFuture(migration);
-
-    } else {
-//        emit requestNotesList(SpecialNodeID::RootFolder, true);
     }
-
     /// Check if it is running with an argument (ex. hide)
     if (qApp->arguments().contains(QStringLiteral("--autostart"))) {
         setMainWindowVisibility(false);
@@ -1006,7 +1005,25 @@ void MainWindow::setupDatabases()
         qFatal("ERROR: Can't create settings folder : %s", dir.absolutePath().toStdString().c_str());
 
     QString noteDBFilePath(dir.path() + QDir::separator() + QStringLiteral("notes.db"));
-
+    if (QFile::exists(noteDBFilePath) && needMigrateFromV1_5_0) {
+        {
+            auto m_db = QSqlDatabase::addDatabase("QSQLITE", DEFAULT_DATABASE_NAME);
+            m_db.setDatabaseName(noteDBFilePath);
+            if (m_db.open()) {
+                QSqlQuery query(m_db);
+                bool status = query.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='tag_table';");
+                if(status) {
+                    query.next();
+                    if (query.value(0).toString() == "tag_table") {
+                        needMigrateFromV1_5_0 = false;
+                    }
+                }
+                m_db.close();
+            }
+            m_db = QSqlDatabase::database();
+        }
+        QSqlDatabase::removeDatabase(DEFAULT_DATABASE_NAME);
+    }
     if(!QFile::exists(noteDBFilePath)){
         QFile noteDBFile(noteDBFilePath);
         if(!noteDBFile.open(QIODevice::WriteOnly))

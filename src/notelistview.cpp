@@ -278,18 +278,19 @@ void NoteListView::mouseMoveEvent(QMouseEvent* event)
     if (event->buttons() & Qt::LeftButton) {
         if ((event->pos() - m_dragStartPosition).manhattanLength()
                 >= QApplication::startDragDistance()) {
-            QDrag *drag = new QDrag(this);
-            auto current = currentIndex();
-            QMimeData *mimeData = model()->mimeData(QModelIndexList{current});
-            drag->setMimeData(mimeData);
-            drag->setPixmap(m_dragPixmap);
-            Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
+            startDrag(model()->supportedDragActions());
+//            QDrag *drag = new QDrag(this);
+//            auto current = currentIndex();
+//            QMimeData *mimeData = model()->mimeData(QModelIndexList{current});
+//            drag->setMimeData(mimeData);
+//            drag->setPixmap(m_dragPixmap);
+//            Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
 
-            /// Delete later, if there is no drop event.
-            if(dropAction == Qt::IgnoreAction){
-                drag->deleteLater();
-                mimeData->deleteLater();
-            }
+//            /// Delete later, if there is no drop event.
+//            if(dropAction == Qt::IgnoreAction){
+//                drag->deleteLater();
+//                mimeData->deleteLater();
+//            }
         }
     }
     QListView::mouseMoveEvent(event);
