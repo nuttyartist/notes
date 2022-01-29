@@ -7,6 +7,7 @@
 #include "dbmanager.h"
 
 class TagPool;
+class NoteListViewPrivate;
 
 class NoteListView : public QListView
 {
@@ -46,6 +47,7 @@ protected:
     // QAbstractScrollArea interface
 protected:
     virtual void scrollContentsBy(int dx, int dy) override;
+    virtual void startDrag(Qt::DropActions supportedActions) override;
 
 public slots:
     void rowsAboutToBeMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd,
@@ -100,6 +102,8 @@ private:
 
     void addCurrentNoteToTag(int tagId);
     void removeCurrentNoteFromTag(int tagId);
+private:
+    Q_DECLARE_PRIVATE(NoteListView)
 };
 
 #endif // NOTELISTVIEW_H

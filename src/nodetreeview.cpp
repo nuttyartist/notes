@@ -305,8 +305,12 @@ void NodeTreeView::dragEnterEvent(QDragEnterEvent *event)
 void NodeTreeView::dragMoveEvent(QDragMoveEvent *event)
 {
     if (event->mimeData()->hasFormat(NOTE_MIME)) {
-        updateEditingIndex(event->pos());
-        event->acceptProposedAction();
+        auto index = indexAt(event->pos());
+        auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
+        if (itemType != NodeItem::Type::AllNoteButton) {
+            updateEditingIndex(event->pos());
+            event->acceptProposedAction();
+        }
     } else {
         if (event->mimeData()->hasFormat(TAG_MIME)) {
             if (event->pos().y() < visualRect(m_treeSeparator[1]).y() + 25) {

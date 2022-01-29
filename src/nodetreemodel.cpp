@@ -358,8 +358,8 @@ QModelIndex NodeTreeModel::folderIndexFromIdPath(const NodePath &idPath)
             }
         }
         if (!foundChild) {
-            qDebug() << __FUNCTION__ << "Can't find child id" << id << "inside parent"
-                     << static_cast<int>(item->data(NodeItem::Roles::NodeId).toInt());
+//            qDebug() << __FUNCTION__ << "Can't find child id" << id << "inside parent"
+//                     << static_cast<int>(item->data(NodeItem::Roles::NodeId).toInt());
             return QModelIndex();
         }
     }

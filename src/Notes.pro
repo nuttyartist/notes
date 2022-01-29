@@ -74,6 +74,7 @@ HEADERS  += \
     notelistdelegateeditor.h \
     notelistmodel.h \
     notelistview.h \
+    notelistview_p.h \
     singleinstance.h \
     spliterstyle.h \
     taglistdelegate.h \

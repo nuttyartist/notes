@@ -17,6 +17,7 @@
 #include "notelistmodel.h"
 #include "nodepath.h"
 #include "dbmanager.h"
+#include "notelistview_p.h"
 
 NoteListView::NoteListView(QWidget *parent)
     : QListView( parent ),
@@ -278,22 +279,10 @@ void NoteListView::mouseMoveEvent(QMouseEvent* event)
     if (event->buttons() & Qt::LeftButton) {
         if ((event->pos() - m_dragStartPosition).manhattanLength()
                 >= QApplication::startDragDistance()) {
-            startDrag(model()->supportedDragActions());
-//            QDrag *drag = new QDrag(this);
-//            auto current = currentIndex();
-//            QMimeData *mimeData = model()->mimeData(QModelIndexList{current});
-//            drag->setMimeData(mimeData);
-//            drag->setPixmap(m_dragPixmap);
-//            Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
-
-//            /// Delete later, if there is no drop event.
-//            if(dropAction == Qt::IgnoreAction){
-//                drag->deleteLater();
-//                mimeData->deleteLater();
-//            }
+            startDrag(Qt::MoveAction);
         }
     }
-    QListView::mouseMoveEvent(event);
+//    QListView::mouseMoveEvent(event);
 }
 
 void NoteListView::mousePressEvent(QMouseEvent* e)
@@ -365,7 +354,7 @@ void NoteListView::dragMoveEvent(QDragMoveEvent *event)
                 auto noteIndex = model->getNoteIndex(nodeId);
                 if (noteIndex.data(NoteListModel::NoteIsPinned).toBool()) {
                     auto firstUnpinned = model->firstUnpinnedIndex();
-                    if (event->pos().y() <= visualRect(firstUnpinned).y() + 25) {
+                    if (event->pos().y() <= visualRect(firstUnpinned).y() - 25) {
                         event->acceptProposedAction();
                         setDropIndicatorShown(true);
                         QListView::dragMoveEvent(event);
@@ -405,6 +394,38 @@ void NoteListView::scrollContentsBy(int dx, int dy)
             }
             openPersistentEditorC(index);
         }
+    }
+}
+
+void NoteListView::startDrag(Qt::DropActions supportedActions)
+{
+    Q_UNUSED(supportedActions);
+    Q_D(NoteListView);
+    auto current = currentIndex();
+    if (current.isValid()) {
+        auto indexes = QModelIndexList{current};
+        QMimeData *data = d->model->mimeData(QModelIndexList{indexes});
+        if (!data) {
+            return;
+        }
+        QRect rect;
+        QPixmap pixmap = d->renderToPixmap(indexes, &rect);
+        rect.adjust(horizontalOffset(), verticalOffset(), 0, 0);
+        QDrag *drag = new QDrag(this);
+        drag->setPixmap(pixmap);
+        drag->setMimeData(data);
+        drag->setHotSpot(d->pressedPosition - rect.topLeft());
+        Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
+        /// Delete later, if there is no drop event.
+        if(dropAction == Qt::IgnoreAction){
+            drag->deleteLater();
+            data->deleteLater();
+        }
+
+        d->dropEventMoved = false;
+        // Reset the drop indicator
+        d->dropIndicatorRect = QRect();
+        d->dropIndicatorPosition = OnItem;
     }
 }
 
@@ -666,4 +687,36 @@ void NoteListView::onTagsMenu(const QPoint &point)
             qDebug() << __FUNCTION__ << "tag pool is not init yet";
         }
     }
+}
+
+QPixmap NoteListViewPrivate::renderToPixmap(const QModelIndexList &indexes, QRect *r) const
+{
+    Q_ASSERT(r);
+    QItemViewPaintPairs paintPairs = draggablePaintPairs(indexes, r);
+    if (paintPairs.isEmpty())
+        return QPixmap();
+
+    QWindow *window = windowHandle(WindowHandleMode::Closest);
+    const qreal scale = window ? window->devicePixelRatio() : qreal(1);
+
+    QPixmap pixmap(r->size() * scale);
+    pixmap.setDevicePixelRatio(scale);
+
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    QStyleOptionViewItem option = viewOptionsV1();
+    option.state |= QStyle::State_Selected;
+    for (int j = 0; j < paintPairs.count(); ++j) {
+        option.rect = paintPairs.at(j).rect.translated(-r->topLeft());
+        const QModelIndex &current = paintPairs.at(j).index;
+        adjustViewOptionsForIndex(&option, current);
+        delegateForIndex(current)->paint(&painter, option, current);
+    }
+    return pixmap;
+}
+
+QStyleOptionViewItem NoteListViewPrivate::viewOptionsV1() const
+{
+    Q_Q(const NoteListView);
+    return q->viewOptions();
 }

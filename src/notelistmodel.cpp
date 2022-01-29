@@ -434,7 +434,9 @@ bool NoteListModel::dropMimeData(const QMimeData *mime,
             row = rowCount(parent);
         }
     }
-
+    if (row >= m_pinnedList.size()) {
+        return false;
+    }
     bool ok = false;
     auto nodeId = QString::fromUtf8(mime->data(NOTE_MIME)).toInt(&ok);
     if (ok) {
