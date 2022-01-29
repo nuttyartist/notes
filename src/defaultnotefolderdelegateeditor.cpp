@@ -38,7 +38,8 @@ void DefaultNoteFolderDelegateEditor::paintEvent(QPaintEvent *event)
     auto iconRect = QRect(rect().x() + 5, rect().y() + (rect().height() - 20) / 2, 20, 20);
     QRect nameRect(rect());
     nameRect.setLeft(iconRect.x() + iconRect.width() + 5);
-    nameRect.setWidth(nameRect.width() - 5);
+    nameRect.setWidth(nameRect.width() - 5 - 27);
+
     auto displayName = m_index.data(NodeItem::Roles::DisplayText).toString();
     QFontMetrics fm(m_titleFont);
     displayName = fm.elidedText(displayName, Qt::ElideRight, nameRect.width());
@@ -52,5 +53,16 @@ void DefaultNoteFolderDelegateEditor::paintEvent(QPaintEvent *event)
     }
     painter.setFont(m_titleFont);
     painter.drawText(nameRect, Qt::AlignLeft | Qt::AlignVCenter, displayName);
+    auto childCountRect = rect();
+    childCountRect.setLeft(nameRect.right() + 5);
+    childCountRect.setWidth(childCountRect.width() - 5);
+    auto childCount = m_index.data(NodeItem::Roles::ChildCount).toInt();
+    if (m_view->selectionModel()->isSelected(m_index)) {
+        painter.setPen(m_titleSelectedColor);
+    } else {
+        painter.setPen(m_titleColor);
+    }
+    painter.setFont(m_titleFont);
+    painter.drawText(childCountRect, Qt::AlignHCenter | Qt::AlignVCenter, QString::number(childCount));
     QWidget::paintEvent(event);
 }

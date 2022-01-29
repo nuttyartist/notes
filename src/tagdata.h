@@ -27,11 +27,15 @@ public:
     int relativePosition() const;
     void setRelativePosition(int newRelativePosition);
 
+    int childNotesCount() const;
+    void setChildNotesCount(int newChildCount);
+
 private:
     int m_id;
     QString m_name;
     QString m_color;
     int m_relativePosition;
+    int m_childNotesCount;
 };
 
 Q_DECLARE_METATYPE(TagData)

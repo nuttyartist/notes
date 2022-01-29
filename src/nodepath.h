@@ -4,7 +4,7 @@
 #include <QString>
 #include <QList>
 
-#define PATH_SEPERATOR "☃"
+#define PATH_SEPERATOR "/"
 #define FOLDER_MIME "application/x-foldernode"
 #define TAG_MIME "application/x-tagnode"
 #define NOTE_MIME "application/x-notenode"

@@ -41,6 +41,7 @@ void AllNoteButtonTreeDelegateEditor::paintEvent(QPaintEvent *event)
     auto displayName = m_index.data(NodeItem::Roles::DisplayText).toString();
     QRect nameRect(rect());
     nameRect.setLeft(iconRect.x() + iconRect.width() + 5);
+    nameRect.setWidth(nameRect.width() - 5 - 27);
     if (m_view->selectionModel()->isSelected(m_index)) {
         painter.fillRect(rect(), QBrush(m_activeColor));
         painter.setPen(m_titleSelectedColor);
@@ -51,5 +52,16 @@ void AllNoteButtonTreeDelegateEditor::paintEvent(QPaintEvent *event)
     painter.drawImage(iconRect, QImage(iconPath));
     painter.setFont(m_titleFont);
     painter.drawText(nameRect, Qt::AlignLeft | Qt::AlignVCenter, displayName);
+    auto childCountRect = rect();
+    childCountRect.setLeft(nameRect.right() + 5);
+    childCountRect.setWidth(childCountRect.width() - 5);
+    auto childCount = m_index.data(NodeItem::Roles::ChildCount).toInt();
+    if (m_view->selectionModel()->isSelected(m_index)) {
+        painter.setPen(m_titleSelectedColor);
+    } else {
+        painter.setPen(m_titleColor);
+    }
+    painter.setFont(m_titleFont);
+    painter.drawText(childCountRect, Qt::AlignHCenter | Qt::AlignVCenter, QString::number(childCount));
     QWidget::paintEvent(event);
 }

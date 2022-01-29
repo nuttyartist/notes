@@ -52,6 +52,14 @@ private:
     QList<NodeData> readOldNBK(const QString fileName);
     int nextAvailablePosition(int parentId, NodeData::Type nodeType);
     int addNodePreComputed(const NodeData& node);
+    void recalculateChildNotesCount();
+    void recalculateChildNotesCountFolder(int folderId);
+    void recalculateChildNotesCountTag(int tagId);
+    void recalculateChildNotesCountAllNotes();
+    void increaseChildNotesCountTag(int tagId);
+    void decreaseChildNotesCountTag(int tagId);
+    void increaseChildNotesCountFolder(int folderId);
+    void decreaseChildNotesCountFolder(int folderId);
 
 signals:
     void notesListReceived(const QVector<NodeData>& noteList, const ListViewInfo& inf);
@@ -62,6 +70,8 @@ signals:
     void tagRenamed(int tagId, const QString& newName);
     void tagColorChanged(int tagId, const QString& tagColor);
     void showErrorMessage(const QString& title, const QString& content);
+    void childNotesCountUpdatedTag(int tagId, int childCount);
+    void childNotesCountUpdatedFolder(int folderId, const QString& path, int childCount);
 
 public slots:
     void onNodeTagTreeRequested();
@@ -99,6 +109,7 @@ public slots:
     void updateRelPosPinnedNoteAN(int nodeId, int relPos);
     void setNoteIsPinned(int noteId, bool isPinned);
     void setNoteIsPinnedAN(int noteId, bool isPinned);
+    NodeData getChildNotesCountFolder(int folderId);
 };
 
 #endif // DBMANAGER_H

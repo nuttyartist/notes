@@ -20,6 +20,7 @@ enum Roles {
     IsExpandable,
     AbsPath,
     RelPos,
+    ChildCount,
     NodeId
 };
 enum Type {

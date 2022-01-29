@@ -2,7 +2,8 @@
 
 TagData::TagData():
     m_id{SpecialTagID::InvalidTagId},
-    m_relativePosition{-1}
+    m_relativePosition{-1},
+    m_childNotesCount{0}
 {
 
 }
@@ -45,4 +46,14 @@ int TagData::relativePosition() const
 void TagData::setRelativePosition(int newRelativePosition)
 {
     m_relativePosition = newRelativePosition;
+}
+
+int TagData::childNotesCount() const
+{
+    return m_childNotesCount;
+}
+
+void TagData::setChildNotesCount(int newChildCount)
+{
+    m_childNotesCount = newChildCount;
 }

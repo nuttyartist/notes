@@ -10,7 +10,8 @@ NodeData::NodeData():
     m_isPinnedNote{false},
     m_tagListScrollBarPos{0},
     m_isPinnedNoteAN{false},
-    m_relativePosAN{0}
+    m_relativePosAN{0},
+    m_childNotesCount{0}
 {
 
 }
@@ -203,6 +204,16 @@ int NodeData::relativePosAN() const
 void NodeData::setRelativePosAN(int newRelativePosAN)
 {
     m_relativePosAN = newRelativePosAN;
+}
+
+int NodeData::childNotesCount() const
+{
+    return m_childNotesCount;
+}
+
+void NodeData::setChildNotesCount(int newChildCount)
+{
+    m_childNotesCount = newChildCount;
 }
 
 QDateTime NodeData::creationDateTime() const

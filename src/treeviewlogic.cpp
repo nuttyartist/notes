@@ -22,7 +22,7 @@ TreeViewLogic::TreeViewLogic(NodeTreeView* treeView,
     m_treeDelegate = new NodeTreeDelegate(m_treeView, m_treeView);
     m_treeView->setItemDelegate(m_treeDelegate);
     connect(m_dbManager, &DBManager::nodesTagTreeReceived,
-            this, &TreeViewLogic::loadTreeModel);
+            this, &TreeViewLogic::loadTreeModel, Qt::QueuedConnection);
     connect(m_treeModel, &NodeTreeModel::topLevelItemLayoutChanged,
             this, &TreeViewLogic::updateTreeViewSeparator);
     connect(m_treeView, &NodeTreeView::addFolderRequested,
@@ -71,16 +71,19 @@ TreeViewLogic::TreeViewLogic(NodeTreeView* treeView,
     connect(m_treeModel, &NodeTreeModel::requestMoveNode,
             this, &TreeViewLogic::onMoveNodeRequested);
     connect(m_treeModel, &NodeTreeModel::requestUpdateNodeRelativePosition,
-            m_dbManager, &DBManager::updateRelPosNode);
+            m_dbManager, &DBManager::updateRelPosNode, Qt::QueuedConnection);
     connect(m_treeModel, &NodeTreeModel::requestUpdateTagRelativePosition,
-            m_dbManager, &DBManager::updateRelPosTag);
+            m_dbManager, &DBManager::updateRelPosTag, Qt::QueuedConnection);
     connect(m_treeModel, &NodeTreeModel::dropFolderSuccessfull,
             m_treeView, &NodeTreeView::onFolderDropSuccessfull);
     connect(m_treeModel, &NodeTreeModel::dropTagsSuccessfull,
             m_treeView, &NodeTreeView::onTagsDropSuccessfull);
     connect(m_treeModel, &NodeTreeModel::requestMoveFolderToTrash,
             this, &TreeViewLogic::onDeleteFolderRequested);
-
+    connect(m_dbManager, &DBManager::childNotesCountUpdatedFolder,
+            this, &TreeViewLogic::onChildNoteCountChangedFolder);
+    connect(m_dbManager, &DBManager::childNotesCountUpdatedTag,
+            this, &TreeViewLogic::onChildNotesCountChangedTag);
     m_style = new CustomApplicationStyle();
     qApp->setStyle(m_style);
 }
@@ -96,6 +99,28 @@ void TreeViewLogic::loadTreeModel(const NodeTagTreeData &treeData)
     m_treeModel->setTreeData(treeData);
     updateTreeViewSeparator();
     m_treeView->setCurrentIndexC(m_treeModel->getAllNotesButtonIndex());
+    {
+        NodeData node;
+        QMetaObject::invokeMethod(m_dbManager, "getChildNotesCountFolder", Qt::BlockingQueuedConnection,
+                                  Q_RETURN_ARG(NodeData, node),
+                                  Q_ARG(int, SpecialNodeID::RootFolder)
+                                  );
+        auto index = m_treeModel->getAllNotesButtonIndex();
+        if (index.isValid()) {
+            m_treeModel->setData(index, node.childNotesCount(), NodeItem::Roles::ChildCount);
+        }
+    }
+    {
+        NodeData node;
+        QMetaObject::invokeMethod(m_dbManager, "getChildNotesCountFolder", Qt::BlockingQueuedConnection,
+                                  Q_RETURN_ARG(NodeData, node),
+                                  Q_ARG(int, SpecialNodeID::TrashFolder)
+                                  );
+        auto index = m_treeModel->getTrashButtonIndex();
+        if (index.isValid()) {
+            m_treeModel->setData(index, node.childNotesCount(), NodeItem::Roles::ChildCount);
+        }
+    }
 }
 
 void TreeViewLogic::onAddFolderRequested(bool fromPlusButton)
@@ -282,6 +307,29 @@ void TreeViewLogic::onDeleteTagRequested(const QModelIndex &index)
     QMetaObject::invokeMethod(m_dbManager, "removeTag", Qt::QueuedConnection,
                               Q_ARG(int, id));
     m_treeView->setCurrentIndexC(m_treeModel->getAllNotesButtonIndex());
+}
+
+void TreeViewLogic::onChildNotesCountChangedTag(int tagId, int notesCount)
+{
+    auto index = m_treeModel->tagIndexFromId(tagId);
+    if (index.isValid()) {
+        m_treeModel->setData(index, notesCount, NodeItem::Roles::ChildCount);
+    }
+}
+
+void TreeViewLogic::onChildNoteCountChangedFolder(int folderId, const QString absPath, int notesCount)
+{
+    QModelIndex index;
+    if (folderId == SpecialNodeID::RootFolder) {
+        index = m_treeModel->getAllNotesButtonIndex();
+    } else if (folderId == SpecialNodeID::TrashFolder) {
+        index = m_treeModel->getTrashButtonIndex();
+    } else {
+        index = m_treeModel->folderIndexFromIdPath(absPath);
+    }
+    if (index.isValid()) {
+        m_treeModel->setData(index, notesCount, NodeItem::Roles::ChildCount);
+    }
 }
 
 void TreeViewLogic::openFolder(int id)

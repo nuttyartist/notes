@@ -84,6 +84,9 @@ public:
     int relativePosAN() const;
     void setRelativePosAN(int newRelativePosAN);
 
+    int childNotesCount() const;
+    void setChildNotesCount(int newChildCount);
+
 private:
     int m_id;
     QString m_fullTitle;
@@ -105,6 +108,7 @@ private:
     int m_tagListScrollBarPos;
     bool m_isPinnedNoteAN;
     int m_relativePosAN;
+    int m_childNotesCount;
 };
 
 Q_DECLARE_METATYPE(NodeData)

@@ -117,7 +117,7 @@ void NodeTreeDelegate::paint(QPainter *painter,
         auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
         QRect nameRect(option.rect);
         nameRect.setLeft(iconRect.x() + iconRect.width() + 5);
-        nameRect.setWidth(nameRect.width() - 5);
+        nameRect.setWidth(nameRect.width() - 5 - 27);
         if((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
             painter->setPen(m_titleSelectedColor);
         } else {
@@ -125,6 +125,17 @@ void NodeTreeDelegate::paint(QPainter *painter,
         }
         painter->setFont(m_titleFont);
         painter->drawText(nameRect, Qt::AlignLeft | Qt::AlignVCenter, displayName);
+        auto childCountRect = option.rect;
+        childCountRect.setLeft(nameRect.right() + 5);
+        childCountRect.setWidth(childCountRect.width() - 5);
+        auto childCount = index.data(NodeItem::Roles::ChildCount).toInt();
+        if((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
+            painter->setPen(m_titleSelectedColor);
+        } else {
+            painter->setPen(m_titleColor);
+        }
+        painter->setFont(m_titleFont);
+        painter->drawText(childCountRect, Qt::AlignHCenter | Qt::AlignVCenter, QString::number(childCount));
         break;
     }
     case NodeItem::Type::FolderSeparator:
@@ -159,7 +170,7 @@ void NodeTreeDelegate::paint(QPainter *painter,
         }
         QRect nameRect(option.rect);
         nameRect.setLeft(iconRect.x() + iconRect.width() + 5);
-        nameRect.setWidth(nameRect.width() - 5);
+        nameRect.setWidth(nameRect.width() - 5 - 27);
         QFontMetrics fm(m_titleFont);
         auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
         displayName = fm.elidedText(displayName, Qt::ElideRight, nameRect.width());
@@ -170,6 +181,17 @@ void NodeTreeDelegate::paint(QPainter *painter,
         }
         painter->setFont(m_titleFont);
         painter->drawText(nameRect, Qt::AlignLeft | Qt::AlignVCenter, displayName);
+        auto childCountRect = option.rect;
+        childCountRect.setLeft(nameRect.right() + 5);
+        childCountRect.setWidth(childCountRect.width() - 5);
+        auto childCount = index.data(NodeItem::Roles::ChildCount).toInt();
+        if((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
+            painter->setPen(m_titleSelectedColor);
+        } else {
+            painter->setPen(m_titleColor);
+        }
+        painter->setFont(m_titleFont);
+        painter->drawText(childCountRect, Qt::AlignHCenter | Qt::AlignVCenter, QString::number(childCount));
         break;
     }
     case NodeItem::Type::NoteItem: {
@@ -200,7 +222,7 @@ void NodeTreeDelegate::paint(QPainter *painter,
         painter->setPen(Qt::black);
         QRect nameRect(option.rect);
         nameRect.setLeft(iconRect.x() + iconRect.width() + 5);
-        nameRect.setWidth(nameRect.width() - 5);
+        nameRect.setWidth(nameRect.width() - 5 - 27);
         auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
         QFontMetrics fm(m_titleFont);
         displayName = fm.elidedText(displayName, Qt::ElideRight, nameRect.width());
@@ -211,6 +233,17 @@ void NodeTreeDelegate::paint(QPainter *painter,
         }
         painter->setFont(m_titleFont);
         painter->drawText(nameRect, Qt::AlignLeft | Qt::AlignVCenter, displayName);
+        auto childCountRect = option.rect;
+        childCountRect.setLeft(nameRect.right() + 5);
+        childCountRect.setWidth(childCountRect.width() - 5);
+        auto childCount = index.data(NodeItem::Roles::ChildCount).toInt();
+        if((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
+            painter->setPen(m_titleSelectedColor);
+        } else {
+            painter->setPen(m_titleColor);
+        }
+        painter->setFont(m_titleFont);
+        painter->drawText(childCountRect, Qt::AlignHCenter | Qt::AlignVCenter, QString::number(childCount));
         break;
     }
     }

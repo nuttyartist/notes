@@ -552,6 +552,7 @@ void NodeTreeModel::loadNodeTree(const QVector<NodeData> &nodeData, NodeTreeItem
                 hs[NodeItem::Roles::ItemType] = NodeItem::Type::FolderItem;
                 hs[NodeItem::Roles::AbsPath] = node.absolutePath();
                 hs[NodeItem::Roles::RelPos] = node.relativePosition();
+                hs[NodeItem::Roles::ChildCount] = node.childNotesCount();
             } else if (node.nodeType() == NodeData::Note) {
                 hs[NodeItem::Roles::ItemType] = NodeItem::Type::NoteItem;
             } else {
@@ -631,6 +632,7 @@ void NodeTreeModel::loadTagList(const QVector<TagData> &tagData, NodeTreeItem *r
         hs[NodeItem::Roles::TagColor] = tag.color();
         hs[NodeItem::Roles::NodeId] = tag.id();
         hs[NodeItem::Roles::RelPos] = tag.relativePosition();
+        hs[NodeItem::Roles::ChildCount] = tag.childNotesCount();
 
         auto tagItem = new NodeTreeItem(hs, rootNode);
         rootNode->appendChild(tagItem);
@@ -682,6 +684,12 @@ bool NodeTreeModel::setData(const QModelIndex &index, const QVariant &value, int
             return true;
         }
         if (role == NodeItem::Roles::TagColor) {
+            static_cast<NodeTreeItem*>(index.internalPointer())->setData(
+                        static_cast<NodeItem::Roles>(role), value);
+            emit dataChanged(index, index, {role});
+            return true;
+        }
+        if (role == NodeItem::Roles::ChildCount) {
             static_cast<NodeTreeItem*>(index.internalPointer())->setData(
                         static_cast<NodeItem::Roles>(role), value);
             emit dataChanged(index, index, {role});
