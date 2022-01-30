@@ -45,6 +45,7 @@ public:
     void setIsInAllNotes(bool newIsInAllNotes);
     bool isInAllNotes() const;
     void clearSizeMap();
+
 public slots:
     void updateSizeMap(int id, const QSize& sz, const QModelIndex& index);
     void editorDestroyed(int id, const QModelIndex& index);
@@ -94,7 +95,6 @@ private:
     QModelIndex m_currentSelectedIndex;
     QModelIndex m_hoveredIndex;    
     QMap<int, QSize> szMap;
-
 };
 
 #endif // NOTELISTDELEGATE_H

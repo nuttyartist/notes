@@ -7,6 +7,8 @@
 #include <QtMath>
 #include <QPainterPath>
 #include <QScrollBar>
+#include <QDragEnterEvent>
+#include <QMimeData>
 #include "notelistmodel.h"
 #include "noteeditorlogic.h"
 #include "tagpool.h"
@@ -57,7 +59,8 @@ NoteListDelegateEditor::NoteListDelegateEditor(const NoteListDelegate *delegate,
       m_rowHeight(106),
       m_rowRightOffset(0),
       m_isActive(false),
-      m_theme(Theme::Light)
+      m_theme(Theme::Light),
+      m_containsMouse(false)
 {
     setContentsMargins(0, 0, 0, 0);
     m_folderIcon = QImage(":/images/folder.png");
@@ -93,6 +96,14 @@ NoteListDelegateEditor::NoteListDelegateEditor(const NoteListDelegate *delegate,
         auto index = dynamic_cast<NoteListModel*>(m_view->model())->getNoteIndex(m_id);
         setScrollBarPos(index.data(NoteListModel::NoteTagListScrollbarPos).toInt());
     });
+    dynamic_cast<NoteListView*>(m_view)->setEditorWidget(m_id, this);
+    setMouseTracking(true);
+    setAcceptDrops(true);
+}
+
+NoteListDelegateEditor::~NoteListDelegateEditor()
+{
+    dynamic_cast<NoteListView*>(m_view)->unsetEditorWidget(m_id, nullptr);
 }
 
 void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
@@ -117,7 +128,7 @@ void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOpti
             painter->fillRect(rect(), QBrush(m_applicationInactiveColor));
             m_tagListView->setBackground(m_applicationInactiveColor);
         }
-    }else if(underMouse()){
+    }else if(underMouseC()){
         painter->fillRect(rect(), QBrush(m_hoverColor));
         m_tagListView->setBackground(m_hoverColor);
     }else if((index.row() != m_delegate->currentSelectedIndex().row() - 1)
@@ -263,6 +274,25 @@ QString NoteListDelegateEditor::parseDateTime(const QDateTime &dateTime) const
     return dateTime.date().toString("M/d/yy");
 }
 
+bool NoteListDelegateEditor::underMouseC() const
+{
+    return m_containsMouse;
+}
+
+QPixmap NoteListDelegateEditor::renderToPixmap()
+{
+    QPixmap result{rect().size()};
+    result.fill(Qt::yellow);
+    QPainter painter(&result);
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+    QStyleOptionViewItem opt = m_option;
+    opt.rect.setWidth(m_option.rect.width() - m_rowRightOffset);
+    auto m_index = dynamic_cast<NoteListModel*>(m_view->model())->getNoteIndex(m_id);
+    paintBackground(&painter, opt, m_index);
+    paintLabels(&painter, m_option, m_index);
+    return result;
+}
+
 void NoteListDelegateEditor::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
@@ -293,6 +323,54 @@ void NoteListDelegateEditor::resizeEvent(QResizeEvent *event)
         }
     }
     recalculateSize();
+}
+
+void NoteListDelegateEditor::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (event->mimeData()->hasFormat(NOTE_MIME)) {
+        bool ok = false;
+        auto nodeId = QString::fromUtf8(
+                    event->mimeData()->data(NOTE_MIME)).toInt(&ok);
+        if (ok) {
+            auto model = dynamic_cast<NoteListModel*>(m_view->model());
+            if (model) {
+                auto noteIndex = model->getNoteIndex(nodeId);
+                if (noteIndex.data(NoteListModel::NoteIsPinned).toBool()) {
+                    m_containsMouse = true;
+                    event->accept();
+                }
+            }
+        }
+    }
+}
+
+void NoteListDelegateEditor::dragLeaveEvent(QDragLeaveEvent *event)
+{
+    m_containsMouse = false;
+    Q_UNUSED(event);
+}
+
+void NoteListDelegateEditor::enterEvent(QEvent *event)
+{
+    m_containsMouse = true;
+    QWidget::enterEvent(event);
+}
+
+void NoteListDelegateEditor::leaveEvent(QEvent *event)
+{
+    m_containsMouse = false;
+    QWidget::leaveEvent(event);
+}
+
+void NoteListDelegateEditor::dropEvent(QDropEvent *event)
+{
+    auto model = dynamic_cast<NoteListModel*>(m_view->model());
+    if (model) {
+        auto index = model->getNoteIndex(m_id);
+        if (index.isValid()) {
+            model->dropMimeData(event->mimeData(), event->proposedAction(), index.row(), 0, QModelIndex());
+        }
+    }
 }
 
 void NoteListDelegateEditor::setActive(bool isActive)

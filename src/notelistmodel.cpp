@@ -465,3 +465,19 @@ QModelIndex NoteListModel::firstUnpinnedIndex() const
         return QModelIndex();
     }
 }
+
+bool NoteListModel::noteIsHaveTag(const QModelIndex index) const
+{
+    if (index.row() < 0 || index.row() >= (m_noteList.count() + m_pinnedList.count())) {
+        return false;
+    }
+    auto row = index.row();
+    NodeData note;
+    if (row < m_pinnedList.size()) {
+        note = m_pinnedList[row];
+    } else {
+        row = row - m_pinnedList.size();
+        note = m_noteList[row];
+    }
+    return !note.tagIds().empty();
+}

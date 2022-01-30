@@ -18,6 +18,7 @@
 #include "nodepath.h"
 #include "dbmanager.h"
 #include "notelistview_p.h"
+#include "notelistdelegateeditor.h"
 
 NoteListView::NoteListView(QWidget *parent)
     : QListView( parent ),
@@ -127,7 +128,6 @@ void NoteListView::paintEvent(QPaintEvent *e)
  */
 void NoteListView::rowsInserted(const QModelIndex &parent, int start, int end)
 {
-
     if(start == end && m_animationEnabled)
         animateAddedRow(parent, start, end);
 
@@ -173,19 +173,45 @@ void NoteListView::setCurrentFolderId(int newCurrentFolderId)
 
 void NoteListView::openPersistentEditorC(const QModelIndex &index)
 {
-    openPersistentEditor(index);
-    m_openedEditor.insert(index);
+    if (index.isValid()) {
+        auto isHaveTag = dynamic_cast<NoteListModel*>(model())->noteIsHaveTag(index);
+        if (isHaveTag) {
+            auto id = index.data(NoteListModel::NoteID).toInt();
+            m_openedEditor[id] = {};
+            openPersistentEditor(index);
+        }
+    }
 }
 
 void NoteListView::closePersistentEditorC(const QModelIndex &index)
 {
-    closePersistentEditor(index);
-    m_openedEditor.remove(index);
+    if (index.isValid()) {
+        auto id = index.data(NoteListModel::NoteID).toInt();
+        closePersistentEditor(index);
+        m_openedEditor.remove(id);
+    }
+}
+
+void NoteListView::setEditorWidget(int noteId, QWidget *w)
+{
+    if (m_openedEditor.contains(noteId)) {
+        m_openedEditor[noteId].push_back(w);
+    } else {
+        qDebug() << __FUNCTION__ << "Error: note id" << noteId << "is not in opened editor list";
+    }
+}
+
+void NoteListView::unsetEditorWidget(int noteId, QWidget *w)
+{
+    if (m_openedEditor.contains(noteId)) {
+        m_openedEditor[noteId].removeAll(w);
+    }
 }
 
 void NoteListView::closeAllEditor()
 {
-    for (const auto& index : QT_AS_CONST(m_openedEditor)) {
+    for (const auto& id : m_openedEditor.keys()) {
+        auto index = dynamic_cast<NoteListModel*>(model())->getNoteIndex(id);
         closePersistentEditor(index);
     }
     m_openedEditor.clear();
@@ -282,7 +308,7 @@ void NoteListView::mouseMoveEvent(QMouseEvent* event)
             startDrag(Qt::MoveAction);
         }
     }
-//    QListView::mouseMoveEvent(event);
+    //    QListView::mouseMoveEvent(event);
 }
 
 void NoteListView::mousePressEvent(QMouseEvent* e)
@@ -377,22 +403,25 @@ void NoteListView::scrollContentsBy(int dx, int dy)
     }
     for (int i = 0; i < m_listModel->rowCount(); ++i) {
         auto index = m_listModel->index(i, 0);
-        if (m_openedEditor.contains(index)) {
-            auto y = visualRect(index).y();
-            auto range = abs(viewport()->height());
-            if ((y < -range) || (y > 2 * range)) {
-                m_openedEditor.remove(index);
-                closePersistentEditor(index);
+        if (index.isValid()) {
+            auto id = index.data(NoteListModel::NoteID).toInt();
+            if (m_openedEditor.contains(id)) {
+                auto y = visualRect(index).y();
+                auto range = abs(viewport()->height());
+                if ((y < -range) || (y > 2 * range)) {
+                    m_openedEditor.remove(id);
+                    closePersistentEditor(index);
+                }
+            } else {
+                auto y = visualRect(index).y();
+                auto range = abs(viewport()->height());
+                if (y < -range) {
+                    continue;
+                } else if (y > 2 * range) {
+                    break;
+                }
+                openPersistentEditorC(index);
             }
-        } else {
-            auto y = visualRect(index).y();
-            auto range = abs(viewport()->height());
-            if (y < -range) {
-                continue;
-            } else if (y > 2 * range) {
-                break;
-            }
-            openPersistentEditorC(index);
         }
     }
 }
@@ -409,23 +438,41 @@ void NoteListView::startDrag(Qt::DropActions supportedActions)
             return;
         }
         QRect rect;
-        QPixmap pixmap = d->renderToPixmap(indexes, &rect);
+        QPixmap pixmap;
+        auto id = current.data(NoteListModel::NoteID).toInt();
+        if (m_openedEditor.contains(id)) {
+            QItemViewPaintPairs paintPairs = d->draggablePaintPairs(indexes, &rect);
+            Q_UNUSED(paintPairs);
+            auto wl = m_openedEditor[id];
+            if (!wl.empty()) {
+                pixmap = wl.first()->grab();
+            } else {
+                qDebug() << __FUNCTION__ << "Dragging row" << current.row() << "is in opened editor list but editor widget is null";
+            }
+        } else {
+            pixmap = d->renderToPixmap(indexes, &rect);
+        }
         rect.adjust(horizontalOffset(), verticalOffset(), 0, 0);
         QDrag *drag = new QDrag(this);
         drag->setPixmap(pixmap);
         drag->setMimeData(data);
         drag->setHotSpot(d->pressedPosition - rect.topLeft());
+        auto openedEditors = m_openedEditor.keys();
         Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
         /// Delete later, if there is no drop event.
         if(dropAction == Qt::IgnoreAction){
             drag->deleteLater();
             data->deleteLater();
         }
-
         d->dropEventMoved = false;
         // Reset the drop indicator
         d->dropIndicatorRect = QRect();
         d->dropIndicatorPosition = OnItem;
+        closeAllEditor();
+        for (const auto& id : QT_AS_CONST(openedEditors)) {
+            auto index = dynamic_cast<NoteListModel*>(model())->getNoteIndex(id);
+            openPersistentEditorC(index);
+        }
     }
 }
 

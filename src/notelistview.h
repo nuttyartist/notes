@@ -28,9 +28,10 @@ public:
     void setCurrentFolderId(int newCurrentFolderId);
     void openPersistentEditorC(const QModelIndex& index);
     void closePersistentEditorC(const QModelIndex& index);
+    void setEditorWidget(int noteId, QWidget* w);
+    void unsetEditorWidget(int noteId, QWidget* w);
     void closeAllEditor();    
     void setListViewInfo(const ListViewInfo &newListViewInfo);
-
 public slots:
     void onCustomContextMenu(const QPoint& point);
     void onTagsMenu(const QPoint& point);
@@ -95,7 +96,7 @@ private:
     bool m_isInTrash;
     QPoint m_dragStartPosition;
     QPixmap m_dragPixmap;
-    QSet<QModelIndex> m_openedEditor;
+    QMap<int, QVector<QWidget*>> m_openedEditor;
     ListViewInfo m_listViewInfo;
     void setupSignalsSlots();
     void setupStyleSheet();

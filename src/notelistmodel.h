@@ -53,6 +53,7 @@ public:
     virtual bool dropMimeData(const QMimeData *mime, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
 
     QModelIndex firstUnpinnedIndex() const;
+    bool noteIsHaveTag(const QModelIndex index) const;
 private slots:
     void onPinnedChanged(const QModelIndex& index, bool isPinned);
 

@@ -27,12 +27,15 @@ public:
                                     const QModelIndex &index,
                                     TagPool *tagPool,
                                     QWidget *parent = nullptr);
+    ~NoteListDelegateEditor();
 
     void setRowRightOffset(int rowRightOffset);
     void setActive(bool isActive);
     void recalculateSize();
     void setScrollBarPos(int pos);
     int getScrollBarPos();
+    bool underMouseC() const;
+    QPixmap renderToPixmap();
 
 public slots:
     void setTheme(Theme theme);
@@ -71,6 +74,7 @@ private:
     QImage m_folderIcon;
     QImage m_pinnedIcon;
     Theme m_theme;
+    bool m_containsMouse;
     QModelIndex m_animatedIndex;
 
     TagListView* m_tagListView;
@@ -80,6 +84,11 @@ private:
 protected:
     virtual void paintEvent(QPaintEvent *event) override;
     virtual void resizeEvent(QResizeEvent *event) override;
+    virtual void dragEnterEvent(QDragEnterEvent *event) override;
+    virtual void dragLeaveEvent(QDragLeaveEvent *event) override;
+    virtual void enterEvent(QEvent *event) override;
+    virtual void leaveEvent(QEvent *event) override;
+    virtual void dropEvent(QDropEvent *event) override;
 };
 
 #endif // NOTELISTDELEGATEEDITOR_H

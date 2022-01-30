@@ -107,7 +107,7 @@ void NoteListDelegate::setAnimationDuration(const int duration)
 void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     bool isHaveTags = index.data(NoteListModel::NoteTagsList).value<QSet<int>>().size() > 0;
-    if(index != m_animatedIndex && isHaveTags){
+    if(index != m_animatedIndex && isHaveTags) {
         return;
     }
     painter->setRenderHint(QPainter::Antialiasing);
