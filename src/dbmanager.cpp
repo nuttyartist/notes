@@ -1081,11 +1081,21 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
     auto node = getNode(nodeId);
 
     QString newAbsolutePath = target.absolutePath() + PATH_SEPERATOR + QString::number(nodeId);
-    query.prepare(QStringLiteral("UPDATE node_table SET parent_id = :parent_id, absolute_path = :absolute_path "
-                                 "WHERE id = :id;"));
-    query.bindValue(QStringLiteral(":parent_id"), target.id());
-    query.bindValue(QStringLiteral(":absolute_path"), newAbsolutePath);
-    query.bindValue(QStringLiteral(":id"), nodeId);
+    if (target.id() == SpecialNodeID::TrashFolder) {
+        query.prepare(QStringLiteral("UPDATE node_table SET parent_id = :parent_id, absolute_path = :absolute_path, is_pinned_note = :is_pinned_note, is_pinned_note_an = :is_pinned_note_an "
+                                     "WHERE id = :id;"));
+        query.bindValue(QStringLiteral(":parent_id"), target.id());
+        query.bindValue(QStringLiteral(":absolute_path"), newAbsolutePath);
+        query.bindValue(QStringLiteral(":id"), nodeId);
+        query.bindValue(QStringLiteral(":is_pinned_note"), false);
+        query.bindValue(QStringLiteral(":is_pinned_note_an"), false);
+    } else{
+        query.prepare(QStringLiteral("UPDATE node_table SET parent_id = :parent_id, absolute_path = :absolute_path "
+                                     "WHERE id = :id;"));
+        query.bindValue(QStringLiteral(":parent_id"), target.id());
+        query.bindValue(QStringLiteral(":absolute_path"), newAbsolutePath);
+        query.bindValue(QStringLiteral(":id"), nodeId);
+    }
     bool status = query.exec();
     if(!status) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
@@ -1113,10 +1123,19 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
             QString newP = oldP.replace(oldP.indexOf(oldAbsolutePath),
                                         oldAbsolutePath.size(),
                                         newAbsolutePath);
-            query.prepare(QStringLiteral("UPDATE node_table SET absolute_path = :absolute_path "
-                                         "WHERE id = :id;"));
-            query.bindValue(QStringLiteral(":absolute_path"), newP);
-            query.bindValue(QStringLiteral(":id"), id);
+            if (target.id() == SpecialNodeID::TrashFolder) {
+                query.prepare(QStringLiteral("UPDATE node_table SET absolute_path = :absolute_path, is_pinned_note = :is_pinned_note, is_pinned_note_an = :is_pinned_note_an "
+                                             "WHERE id = :id;"));
+                query.bindValue(QStringLiteral(":absolute_path"), newP);
+                query.bindValue(QStringLiteral(":id"), id);
+                query.bindValue(QStringLiteral(":is_pinned_note"), false);
+                query.bindValue(QStringLiteral(":is_pinned_note_an"), false);
+            } else {
+                query.prepare(QStringLiteral("UPDATE node_table SET absolute_path = :absolute_path "
+                                             "WHERE id = :id;"));
+                query.bindValue(QStringLiteral(":absolute_path"), newP);
+                query.bindValue(QStringLiteral(":id"), id);
+            }
             bool status = query.exec();
             if(!status) {
                 qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
