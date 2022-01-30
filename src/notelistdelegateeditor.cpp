@@ -72,15 +72,15 @@ NoteListDelegateEditor::NoteListDelegateEditor(const NoteListDelegate *delegate,
     m_tagListModel->setModelData(index.data(NoteListModel::NoteTagsList).value<QSet<int>>());
     if (m_delegate->isInAllNotes()) {
         if (index.data(NoteListModel::NoteIsPinned).toBool()) {
-            m_tagListView->setGeometry(10, 110, rect().width(), m_tagListView->height());
+            m_tagListView->setGeometry(10, 107, rect().width() - 15, m_tagListView->height());
         } else {
-            m_tagListView->setGeometry(10, 90, rect().width(), m_tagListView->height());
+            m_tagListView->setGeometry(10, 90, rect().width() - 15, m_tagListView->height());
         }
     } else {
         if (index.data(NoteListModel::NoteIsPinned).toBool()) {
-            m_tagListView->setGeometry(10, 90, rect().width(), m_tagListView->height());
+            m_tagListView->setGeometry(10, 87, rect().width() - 15, m_tagListView->height());
         } else {
-            m_tagListView->setGeometry(10, 70, rect().width(), m_tagListView->height());
+            m_tagListView->setGeometry(10, 70, rect().width() - 15, m_tagListView->height());
         }
     }
     connect(m_tagListView->verticalScrollBar(), &QScrollBar::valueChanged,
@@ -133,7 +133,7 @@ void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOpti
     if (isCurrentPinned) {
         auto m_rect = rect();
         if (!isBelowPinned) {
-            m_rect.setTop(option.rect.bottom() - 2);
+            m_rect.setTop(rect().bottom() - 2);
             painter->fillRect(m_rect, QBrush("#d6d5d5"));
         }
         m_rect = rect();
@@ -281,15 +281,15 @@ void NoteListDelegateEditor::resizeEvent(QResizeEvent *event)
     auto index = dynamic_cast<NoteListModel*>(m_view->model())->getNoteIndex(m_id);
     if (m_delegate->isInAllNotes()) {
         if (index.data(NoteListModel::NoteIsPinned).toBool()) {
-            m_tagListView->setGeometry(10, 110, rect().width(), m_tagListView->height());
+            m_tagListView->setGeometry(10, 107, rect().width() - 15, m_tagListView->height());
         } else {
-            m_tagListView->setGeometry(10, 90, rect().width(), m_tagListView->height());
+            m_tagListView->setGeometry(10, 90, rect().width() - 15, m_tagListView->height());
         }
     } else {
         if (index.data(NoteListModel::NoteIsPinned).toBool()) {
-            m_tagListView->setGeometry(10, 90, rect().width(), m_tagListView->height());
+            m_tagListView->setGeometry(10, 87, rect().width() - 15, m_tagListView->height());
         } else {
-            m_tagListView->setGeometry(10, 70, rect().width(), m_tagListView->height());
+            m_tagListView->setGeometry(10, 70, rect().width() - 15, m_tagListView->height());
         }
     }
     recalculateSize();

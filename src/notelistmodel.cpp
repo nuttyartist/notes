@@ -331,7 +331,7 @@ void NoteListModel::onPinnedChanged(const QModelIndex &index, bool isPinned)
     }
     if (isPinned && (sourceRow - m_pinnedList.size()) >= 0
             && (sourceRow - m_pinnedList.size()) < m_noteList.size()) {
-        int destinationChild = m_pinnedList.size();
+        int destinationChild = 0;
         auto destinationParent = this->index(destinationChild);
         if (beginMoveRows(sourceParent,sourceRow,sourceRow,destinationParent,destinationChild)) {
             m_pinnedList.prepend(m_noteList.takeAt(sourceRow - m_pinnedList.size()));

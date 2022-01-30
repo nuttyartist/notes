@@ -506,6 +506,8 @@ void ListViewLogic::onSetPinnedNoteRequested(int noteId, bool isPinned)
         if (index.data(NoteListModel::NoteIsPinned).toBool() != isPinned) {
             m_listModel->setData(index, QVariant::fromValue(isPinned), NoteListModel::NoteIsPinned);
         }
+//        auto newIndex = m_listModel->getNoteIndex(noteId);
+//        m_listModel->setCurrentIndex(newIndex);
     }
 }
 
