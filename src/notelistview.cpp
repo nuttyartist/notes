@@ -12,6 +12,7 @@
 #include <QAction>
 #include <QDrag>
 #include <QMimeData>
+#include <QWindow>
 #include <QMetaObject>
 #include "tagpool.h"
 #include "notelistmodel.h"
@@ -464,7 +465,9 @@ void NoteListView::startDrag(Qt::DropActions supportedActions)
             drag->deleteLater();
             data->deleteLater();
         }
+#if QT_VERSION > QT_VERSION_CHECK(5, 14, 0)
         d->dropEventMoved = false;
+#endif
         // Reset the drop indicator
         d->dropIndicatorRect = QRect();
         d->dropIndicatorPosition = OnItem;
@@ -749,9 +752,19 @@ QPixmap NoteListViewPrivate::renderToPixmap(const QModelIndexList &indexes, QRec
     QItemViewPaintPairs paintPairs = draggablePaintPairs(indexes, r);
     if (paintPairs.isEmpty())
         return QPixmap();
-
+#if QT_VERSION < QT_VERSION_CHECK(5, 12, 0)
+    qreal scale = 1.0f;
+    Q_Q(const QAbstractItemView);
+    QWidget *window = q->window();
+    if (window) {
+        QWindow *windowHandle = window->windowHandle();
+        if (windowHandle)
+            scale = windowHandle->devicePixelRatio();
+    }
+#else
     QWindow *window = windowHandle(WindowHandleMode::Closest);
     const qreal scale = window ? window->devicePixelRatio() : qreal(1);
+#endif
 
     QPixmap pixmap(r->size() * scale);
     pixmap.setDevicePixelRatio(scale);
