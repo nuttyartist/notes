@@ -190,6 +190,27 @@ void MainWindow::setMainWindowVisibility(bool state)
     }
 }
 
+void MainWindow::saveLastSelectedFolderTags(bool isFolder, const QString& folderPath, const QSet<int> &tagId)
+{
+    m_settingsDatabase->setValue("isSelectingFolder", isFolder);
+    m_settingsDatabase->setValue("currentSelectFolder", folderPath);
+    QStringList sl;
+    for (const auto& id: tagId) {
+        sl.append(QString::number(id));
+    }
+    m_settingsDatabase->setValue("currentSelectTagsId", sl);
+}
+
+void MainWindow::saveExpandedFolder(const QStringList &folderPaths)
+{
+    m_settingsDatabase->setValue("currentExpandedFolder", folderPaths);
+}
+
+void MainWindow::saveLastSelectedNote(int noteId)
+{
+    m_settingsDatabase->setValue("currentSelectNoteId", noteId);
+}
+
 /*!
  * \brief MainWindow::paintEvent
  * \param event
@@ -695,6 +716,12 @@ void MainWindow::setupSignalsSlots()
     // Replace setUseNativeWindowFrame with just the part that handles pushing things up
     connect(this, &MainWindow::toggleFullScreen, this, [=](bool isFullScreen){adjustUpperWidgets(isFullScreen);});
 #endif
+    connect(m_treeView, &NodeTreeView::saveExpand,
+            this, &MainWindow::saveExpandedFolder);
+    connect(m_treeView, &NodeTreeView::saveSelected,
+            this, &MainWindow::saveLastSelectedFolderTags);
+    connect(m_listView, &NoteListView::saveSelectedNote,
+            this, &MainWindow::saveLastSelectedNote);
 }
 
 /*!
@@ -1214,6 +1241,21 @@ void MainWindow::restoreStates()
     setCurrentFontBasedOnTypeface(m_currentFontTypeface);
     setTheme(m_currentTheme);
     m_styleEditorWindow.restoreSelectedOptions(isTextFullWidth, m_currentFontTypeface, m_currentTheme);
+
+    auto expandedFolder = m_settingsDatabase->value(QStringLiteral("currentExpandedFolder"), QStringList{}).toStringList();
+    auto isSelectingFolder = m_settingsDatabase->value(QStringLiteral("isSelectingFolder"), true).toBool();
+    auto currentSelectFolder = m_settingsDatabase->value(QStringLiteral("currentSelectFolder"), QString{}).toString();
+    auto currentSelectTagsId = m_settingsDatabase->value(QStringLiteral("currentSelectTagsId"), QStringList{}).toStringList();
+    QSet<int> tags;
+    for (const auto& tagId : QT_AS_CONST(currentSelectTagsId)) {
+        tags.insert(tagId.toInt());
+    }
+    m_treeViewLogic->setLastSavedState(isSelectingFolder,
+                                       currentSelectFolder,
+                                       tags,
+                                       expandedFolder);
+    auto currentSelectNote = m_settingsDatabase->value(QStringLiteral("currentSelectNoteId"), SpecialNodeID::InvalidNodeId).toInt();
+    m_listViewLogic->setLastSavedState(currentSelectNote);
 }
 
 /*!

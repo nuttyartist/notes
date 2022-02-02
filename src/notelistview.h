@@ -73,7 +73,7 @@ signals:
     void newNoteRequested();
     void moveNoteRequested(int noteId, int folderId);
     void setPinnedNoteRequested(int noteId, bool isPinned);
-
+    void saveSelectedNote(int noteId);
 private:
     bool m_isScrollBarHidden;
     bool m_animationEnabled;
@@ -105,6 +105,10 @@ private:
     void removeCurrentNoteFromTag(int tagId);
 private:
     Q_DECLARE_PRIVATE(NoteListView)
+
+    // QAbstractItemView interface
+protected slots:
+    void currentChanged(const QModelIndex &current, const QModelIndex &previous) override;
 };
 
 #endif // NOTELISTVIEW_H

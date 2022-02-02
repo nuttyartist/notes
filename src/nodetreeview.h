@@ -21,10 +21,12 @@ public:
     void onRenameFolderFinished(const QString& newName);
     void onRenameTagFinished(const QString& newName);
     void setCurrentIndexC(const QModelIndex& index);
+    void setCurrentIndexNC(const QModelIndex& index);
     void setTheme(Theme theme);
     Theme theme() const;
     bool isDragging() const;
     void reExpandC();
+    void reExpandC(const QStringList& expanded);
 
     void setIgnoreThisCurrentLoad(bool newIgnoreThisCurrentLoad);
 
@@ -51,7 +53,8 @@ signals:
     void changeTagColorRequested(const QModelIndex& index);
     void deleteTagRequested(const QModelIndex& index);
     void addNoteToTag(int noteId, int tagId);
-
+    void saveExpand(const QStringList& ex);
+    void saveSelected(bool isSelectingFolder, const QString& folder, const QSet<int>& tags);
 private slots:
     void onDeleteNodeAction();
     void onExpanded(const QModelIndex& index);

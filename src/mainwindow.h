@@ -95,6 +95,11 @@ public:
 
     void setMainWindowVisibility(bool state);
 
+public slots:
+    void saveLastSelectedFolderTags(bool isFolder, const QString &folderPath, const QSet<int>& tagId);
+    void saveExpandedFolder(const QStringList& folderPaths);
+    void saveLastSelectedNote(int noteId);
+
 protected:
     void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
     void resizeEvent(QResizeEvent* event) Q_DECL_OVERRIDE;

@@ -46,6 +46,8 @@ public:
 
     QString path() const;
     NodePath parentPath() const;
+    static QString getAllNoteFolderPath();
+    static QString getTrashFolderPath();
 private:
     QString m_path;
 };

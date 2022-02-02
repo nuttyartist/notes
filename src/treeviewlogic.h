@@ -22,7 +22,10 @@ public:
     void openFolder(int id);
     void onMoveNodeRequested(int nodeId, int targetId);
     void setTheme(Theme theme);
-
+    void setLastSavedState(bool isLastSelectFolder,
+                           const QString& lastSelectFolder,
+                           const QSet<int>& lastSelectTag,
+                           const QStringList &expandedFolder);
 private slots:
     void updateTreeViewSeparator();
     void loadTreeModel(const NodeTagTreeData &treeData);
@@ -52,6 +55,11 @@ private:
     NodeTreeDelegate* m_treeDelegate;
     DBManager* m_dbManager;
     CustomApplicationStyle* m_style;
+    bool m_needLoadSavedState;
+    bool m_isLastSelectFolder;
+    QString m_lastSelectFolder;
+    QSet<int> m_lastSelectTags;
+    QStringList m_expandedFolder;
 };
 
 #endif // TREEVIEWLOGIC_H

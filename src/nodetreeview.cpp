@@ -124,11 +124,13 @@ void NodeTreeView::onDeleteNodeAction()
 void NodeTreeView::onExpanded(const QModelIndex &index)
 {
     m_expanded.push_back(index.data(NodeItem::Roles::AbsPath).toString());
+    emit saveExpand(QStringList::fromVector(m_expanded));
 }
 
 void NodeTreeView::onCollapsed(const QModelIndex &index)
 {
     m_expanded.removeAll(index.data(NodeItem::Roles::AbsPath).toString());
+    emit saveExpand(QStringList::fromVector(m_expanded));
 }
 
 void NodeTreeView::setIgnoreThisCurrentLoad(bool newIgnoreThisCurrentLoad)
@@ -189,6 +191,13 @@ void NodeTreeView::reExpandC()
             expand(index);
         }
     }
+}
+
+void NodeTreeView::reExpandC(const QStringList &expanded)
+{
+    m_expanded.clear();
+    m_expanded = expanded.toVector();
+    reExpandC();
 }
 
 void NodeTreeView::onChangeTagColorAction()
@@ -258,14 +267,18 @@ void NodeTreeView::selectionChanged(const QItemSelection &selected, const QItemS
         }
         case NodeItem::Type::AllNoteButton: {
             emit loadNotesInFolderRequested(SpecialNodeID::RootFolder, true);
+            emit saveSelected(true, NodePath::getAllNoteFolderPath(), {});
             return;
         }
         case NodeItem::Type::TrashButton: {
             emit loadNotesInFolderRequested(SpecialNodeID::TrashFolder, true);
+            emit saveSelected(true, NodePath::getTrashFolderPath(), {});
             return;
         }
         case NodeItem::Type::FolderItem: {
             auto folderId = index.data(NodeItem::Roles::NodeId).toInt();
+            auto folderPath = index.data(NodeItem::Roles::AbsPath).toString();
+            emit saveSelected(true, folderPath, {});
             emit loadNotesInFolderRequested(folderId, false);
             return;
         }
@@ -276,6 +289,7 @@ void NodeTreeView::selectionChanged(const QItemSelection &selected, const QItemS
         }
     }
     if (!tagIds.isEmpty()) {
+        emit saveSelected(false, {}, tagIds);
         emit loadNotesInTagsRequested(tagIds);
     }
 }
@@ -416,6 +430,11 @@ void NodeTreeView::setCurrentIndexC(const QModelIndex &index)
     clearSelection();
     setSelectionMode(QAbstractItemView::SingleSelection);
     selectionModel()->setCurrentIndex(index, QItemSelectionModel::SelectCurrent);
+}
+
+void NodeTreeView::setCurrentIndexNC(const QModelIndex &index)
+{
+    setCurrentIndex(index);
 }
 
 void NodeTreeView::setTheme(Theme theme)

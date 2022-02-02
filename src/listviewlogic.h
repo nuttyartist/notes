@@ -33,6 +33,7 @@ public:
     void selectFirstNote();
     void setTheme(Theme theme);
     bool isAnimationRunning();
+    void setLastSavedState(int lastSelectedNote);
 
 public slots:
     void moveNoteToTop(const NodeData& note);
@@ -84,6 +85,9 @@ private:
     TagPool* m_tagPool;
     ListViewInfo m_listViewInfo;
     QVector<QModelIndex> m_editorIndexes;
+
+    int m_needLoadSavedState;
+    int m_lastSelectedNote;
 };
 
 #endif // LISTVIEWLOGIC_H

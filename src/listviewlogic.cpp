@@ -20,7 +20,9 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
     m_searchEdit{searchEdit},
     m_clearButton{clearButton},
     m_dbManager{dbManager},
-    m_tagPool{tagPool}
+    m_tagPool{tagPool},
+    m_needLoadSavedState{0},
+    m_lastSelectedNote{SpecialNodeID::InvalidNodeId}
 {
     m_listDelegate = new NoteListDelegate(m_listView, tagPool, m_listView);
     m_listView->setItemDelegate(m_listDelegate);
@@ -293,6 +295,16 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData>& noteList, const L
             return;
         }
     }
+    if (m_needLoadSavedState > 0) {
+        m_needLoadSavedState -= 1;
+        if (m_lastSelectedNote != SpecialNodeID::InvalidNodeId) {
+            auto index = m_listModel->getNoteIndex(m_lastSelectedNote);
+            if (index.isValid()) {
+                selectNote(index);
+                return;
+            }
+        }
+    }
     selectFirstNote();
 }
 
@@ -506,8 +518,8 @@ void ListViewLogic::onSetPinnedNoteRequested(int noteId, bool isPinned)
         if (index.data(NoteListModel::NoteIsPinned).toBool() != isPinned) {
             m_listModel->setData(index, QVariant::fromValue(isPinned), NoteListModel::NoteIsPinned);
         }
-//        auto newIndex = m_listModel->getNoteIndex(noteId);
-//        m_listModel->setCurrentIndex(newIndex);
+        //        auto newIndex = m_listModel->getNoteIndex(noteId);
+        //        m_listModel->setCurrentIndex(newIndex);
     }
 }
 
@@ -536,6 +548,12 @@ void ListViewLogic::setTheme(Theme theme)
 bool ListViewLogic::isAnimationRunning()
 {
     return m_listDelegate->animationState() == QTimeLine::Running;
+}
+
+void ListViewLogic::setLastSavedState(int lastSelectedNote)
+{
+    m_needLoadSavedState = 2;
+    m_lastSelectedNote = lastSelectedNote;
 }
 
 const ListViewInfo &ListViewLogic::listViewInfo() const

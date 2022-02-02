@@ -601,6 +601,13 @@ void NoteListView::removeCurrentNoteFromTag(int tagId)
     }
 }
 
+void NoteListView::currentChanged(const QModelIndex &current, const QModelIndex &previous)
+{
+    QListView::currentChanged(current, previous);
+    auto id = current.data(NoteListModel::NoteID).toInt();
+    emit saveSelectedNote(id);
+}
+
 /**
  * @brief Set theme color for noteView
  */

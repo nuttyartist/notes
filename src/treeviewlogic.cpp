@@ -17,7 +17,12 @@ TreeViewLogic::TreeViewLogic(NodeTreeView* treeView,
     QObject(parent),
     m_treeView{treeView},
     m_treeModel{treeModel},
-    m_dbManager{dbManager}
+    m_dbManager{dbManager},
+    m_needLoadSavedState{false},
+    m_isLastSelectFolder{true},
+    m_lastSelectFolder{},
+    m_lastSelectTags{},
+    m_expandedFolder{}
 {
     m_treeDelegate = new NodeTreeDelegate(m_treeView, m_treeView);
     m_treeView->setItemDelegate(m_treeDelegate);
@@ -97,8 +102,6 @@ void TreeViewLogic::updateTreeViewSeparator()
 void TreeViewLogic::loadTreeModel(const NodeTagTreeData &treeData)
 {
     m_treeModel->setTreeData(treeData);
-    updateTreeViewSeparator();
-    m_treeView->setCurrentIndexC(m_treeModel->getAllNotesButtonIndex());
     {
         NodeData node;
         QMetaObject::invokeMethod(m_dbManager, "getChildNotesCountFolder", Qt::BlockingQueuedConnection,
@@ -121,6 +124,35 @@ void TreeViewLogic::loadTreeModel(const NodeTagTreeData &treeData)
             m_treeModel->setData(index, node.childNotesCount(), NodeItem::Roles::ChildCount);
         }
     }
+    if (m_needLoadSavedState) {
+        m_needLoadSavedState = false;
+        m_treeView->reExpandC(m_expandedFolder);
+        if (m_isLastSelectFolder) {
+            QModelIndex index;
+            if (m_lastSelectFolder == NodePath::getAllNoteFolderPath()) {
+                index = m_treeModel->getAllNotesButtonIndex();
+            } else if (m_lastSelectFolder == NodePath::getTrashFolderPath()) {
+                index = m_treeModel->getTrashButtonIndex();
+            } else {
+                index = m_treeModel->folderIndexFromIdPath(m_lastSelectFolder);
+            }
+            if (index.isValid()) {
+                m_treeView->setCurrentIndexC(index);
+            } else {
+                m_treeView->setCurrentIndexC(m_treeModel->getAllNotesButtonIndex());
+            }
+        } else {
+            for (const auto& id: QT_AS_CONST(m_lastSelectTags)) {
+                m_treeView->setCurrentIndexNC(m_treeModel->tagIndexFromId(id));
+            }
+        }
+        m_lastSelectFolder.clear();
+        m_lastSelectTags.clear();
+        m_expandedFolder.clear();
+    } else {
+        m_treeView->setCurrentIndexC(m_treeModel->getAllNotesButtonIndex());
+    }
+    updateTreeViewSeparator();
 }
 
 void TreeViewLogic::onAddFolderRequested(bool fromPlusButton)
@@ -377,5 +409,17 @@ void TreeViewLogic::setTheme(Theme theme)
     m_treeDelegate->setTheme(theme);
     m_treeView->update();
     m_style->setTheme(theme);
+}
+
+void TreeViewLogic::setLastSavedState(bool isLastSelectFolder,
+                                      const QString &lastSelectFolder,
+                                      const QSet<int> &lastSelectTag,
+                                      const QStringList& expandedFolder)
+{
+    m_isLastSelectFolder = isLastSelectFolder;
+    m_lastSelectFolder = lastSelectFolder;
+    m_lastSelectTags = lastSelectTag;
+    m_expandedFolder = expandedFolder;
+    m_needLoadSavedState = true;
 }
 
