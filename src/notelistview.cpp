@@ -465,7 +465,7 @@ void NoteListView::startDrag(Qt::DropActions supportedActions)
             drag->deleteLater();
             data->deleteLater();
         }
-#if QT_VERSION > QT_VERSION_CHECK(5, 14, 0)
+#if QT_VERSION > QT_VERSION_CHECK(5, 15, 0)
         d->dropEventMoved = false;
 #endif
         // Reset the drop indicator
@@ -752,7 +752,7 @@ QPixmap NoteListViewPrivate::renderToPixmap(const QModelIndexList &indexes, QRec
     QItemViewPaintPairs paintPairs = draggablePaintPairs(indexes, r);
     if (paintPairs.isEmpty())
         return QPixmap();
-#if QT_VERSION < QT_VERSION_CHECK(5, 12, 0)
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
     qreal scale = 1.0f;
     Q_Q(const QAbstractItemView);
     QWidget *window = q->window();
