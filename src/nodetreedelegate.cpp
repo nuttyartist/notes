@@ -117,7 +117,7 @@ void NodeTreeDelegate::paint(QPainter *painter,
         auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
         QRect nameRect(option.rect);
         nameRect.setLeft(iconRect.x() + iconRect.width() + 5);
-        nameRect.setWidth(nameRect.width() - 5 - 27);
+        nameRect.setWidth(nameRect.width() - 5 - 32);
         if((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
             painter->setPen(m_titleSelectedColor);
         } else {
@@ -170,7 +170,7 @@ void NodeTreeDelegate::paint(QPainter *painter,
         }
         QRect nameRect(option.rect);
         nameRect.setLeft(iconRect.x() + iconRect.width() + 5);
-        nameRect.setWidth(nameRect.width() - 5 - 27);
+        nameRect.setWidth(nameRect.width() - 5 - 32);
         QFontMetrics fm(m_titleFont);
         auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
         displayName = fm.elidedText(displayName, Qt::ElideRight, nameRect.width());
@@ -222,7 +222,7 @@ void NodeTreeDelegate::paint(QPainter *painter,
         painter->setPen(Qt::black);
         QRect nameRect(option.rect);
         nameRect.setLeft(iconRect.x() + iconRect.width() + 5);
-        nameRect.setWidth(nameRect.width() - 5 - 27);
+        nameRect.setWidth(nameRect.width() - 5 - 32);
         auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
         QFontMetrics fm(m_titleFont);
         displayName = fm.elidedText(displayName, Qt::ElideRight, nameRect.width());
@@ -296,8 +296,8 @@ QWidget *NodeTreeDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
         label->setText(displayName);
         layout->addWidget(label);
         auto addButton = new PushButtonType(parent);
-        addButton->setMaximumSize({33, 25});
-        addButton->setMinimumSize({33, 25});
+        addButton->setMaximumSize({38, 25});
+        addButton->setMinimumSize({38, 25});
         addButton->setCursor(QCursor(Qt::PointingHandCursor));
         addButton->setFocusPolicy(Qt::TabFocus);
         addButton->setNormalIcon(QIcon(QString::fromUtf8(":/images/newNote_Regular.png")));

@@ -168,7 +168,10 @@ bool DBManager::isNodeExist(const NodeData& node)
     QString queryStr = QStringLiteral("SELECT EXISTS(SELECT 1 FROM node_table WHERE id = :id LIMIT 1 )");
     query.prepare(queryStr);
     query.bindValue(":id", id);
-    query.exec();
+    bool status = query.exec();
+    if (!status) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError() << query.isValid();
+    }
     query.next();
     return query.value(0).toInt() == 1;
 }
@@ -324,7 +327,9 @@ int DBManager::addNode(const NodeData &node)
     query.bindValue(":relative_position_an", node.relativePosAN());
     query.bindValue(":child_notes_count", node.childNotesCount());
 
-    query.exec();
+    if (!query.exec()) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+    }
     query.finish();
 
     query.prepare(R"(UPDATE "metadata" SET "value"=:value WHERE "key"='next_node_id';)");
@@ -359,8 +364,8 @@ int DBManager::addNodePreComputed(const NodeData &node)
     int relationalPosition = node.relativePosition();
     int nodeId = node.id();
     QString absolutePath = node.absolutePath();
-    QString queryStr = R"(INSERT INTO "node_table")"
-                       R"(("id", "title", "creation_date", "modification_date", "deletion_date", "content", "node_type", "parent_id", "relative_position", "scrollbar_position", "absolute_path", "is_pinned_note", is_pinned_note_an", "relative_position_an", "child_notes_count"))"
+    QString queryStr = R"(INSERT INTO "node_table" )"
+                       R"(("id", "title", "creation_date", "modification_date", "deletion_date", "content", "node_type", "parent_id", "relative_position", "scrollbar_position", "absolute_path", "is_pinned_note", "is_pinned_note_an", "relative_position_an", "child_notes_count") )"
                        R"(VALUES (:id, :title, :creation_date, :modification_date, :deletion_date, :content, :node_type, :parent_id, :relative_position, :scrollbar_position, :absolute_path, :is_pinned_note, :is_pinned_note_an, :relative_position_an, :child_notes_count);)";
 
     query.prepare(queryStr);
@@ -380,7 +385,11 @@ int DBManager::addNodePreComputed(const NodeData &node)
     query.bindValue(":relative_position_an", node.relativePosAN());
     query.bindValue(":child_notes_count", node.childNotesCount());
 
-    query.exec();
+    bool status = query.exec();
+    if (!status) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError() << query.isValid();
+    }
+
     query.finish();
 
     return nodeId;
@@ -948,7 +957,10 @@ NodePath DBManager::getNodeAbsolutePath(int nodeId)
     QSqlQuery query(m_db);
     query.prepare("SELECT absolute_path FROM node_table WHERE id = :id");
     query.bindValue(":id", nodeId);
-    query.exec();
+    bool status = query.exec();
+    if (!status) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError() << query.isValid();
+    }
     query.last();
     auto absolutePath = query.value(0).toString();
     return absolutePath;
@@ -1867,9 +1879,14 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                           R"("node_type",)"
                           R"("parent_id",)"
                           R"("relative_position",)"
-                          R"("absolute_path" )"
+                          R"("scrollbar_position",)"
+                          R"("absolute_path", )"
+                          R"("is_pinned_note", )"
+                          R"("is_pinned_note_an", )"
+                          R"("relative_position_an" )"
                           R"(FROM node_table WHERE node_type=:node_type;)"
                         );
+
             out_qr.bindValue(":node_type", static_cast<int>(NodeData::Type::Note));
             bool status = out_qr.exec();
             QVector<NodeData> nodeList;
@@ -1894,7 +1911,13 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                     node.setNodeType(static_cast<NodeData::Type>(out_qr.value(6).toInt()));
                     node.setParentId(out_qr.value(7).toInt());
                     node.setRelativePosition(out_qr.value(8).toInt());
-                    node.setAbsolutePath(out_qr.value(9).toString());
+                    node.setScrollBarPosition(out_qr.value(9).toInt());
+                    node.setAbsolutePath(out_qr.value(10).toString());
+                    node.setIsPinnedNote(static_cast<bool>(out_qr.value(11).toInt()));
+                    node.setIsPinnedNoteAN(static_cast<bool>(out_qr.value(12).toInt()));
+                    node.setRelativePosAN(out_qr.value(13).toInt());
+                    node.setChildNotesCount(out_qr.value(14).toInt());
+                    node.setTagIds(getAllTagForNote(node.id()));
                     nodeList.append(node);
                 }
                 m_db.transaction();

@@ -32,7 +32,7 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit,
             m_dbManager, &DBManager::onCreateUpdateRequestedNoteContent, Qt::QueuedConnection);
     // auto save timer
     m_autoSaveTimer.setSingleShot(true);
-    m_autoSaveTimer.setInterval(500);
+    m_autoSaveTimer.setInterval(50);
     connect(&m_autoSaveTimer, &QTimer::timeout, this, [this]() {
         saveNoteToDB();
     });
