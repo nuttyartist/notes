@@ -171,7 +171,7 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
     if (m_isInAllNotes) {
         result.setHeight(result.height() + 20);
     }
-    if (index.data(NoteListModel::NoteIsPinned).toBool()) {
+    if (index.data(NoteListModel::NoteIsPinned).toBool() && index.row() == 0) {
         result.setHeight(result.height() + 20);
     }
 
@@ -242,7 +242,8 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
     }else if((option.state & QStyle::State_MouseOver) == QStyle::State_MouseOver){
         bufferPainter.fillRect(buffer.rect(), QBrush(m_hoverColor));
     }else if((index.row() !=  m_currentSelectedIndex.row() - 1)
-             && (index.row() !=  m_hoveredIndex.row() - 1) && (!isCurrentPinned)){
+             && (index.row() !=  m_hoveredIndex.row() - 1)
+             && (!(isCurrentPinned && !isBelowPinned))){
         bufferPainter.fillRect(buffer.rect(), QBrush(m_defaultColor));
         paintSeparator(&bufferPainter, buffer.rect(), index);
     }
@@ -251,11 +252,13 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
         auto rect = buffer.rect();
         if (!isBelowPinned) {
             rect.setTop(rect.bottom() - 2);
+            bufferPainter.fillRect(rect, QBrush(Qt::darkGray));
+        }
+        if (index.row() == 0) {
+            rect = buffer.rect();
+            rect.setHeight(20);
             bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
         }
-        rect = buffer.rect();
-        rect.setHeight(20);
-        bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
     }
 
     int rowHeight;
@@ -311,7 +314,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
         QRect fmRectContent = fmContent.boundingRect(content);
         double rowPosX = 0; //option.rect.x();
         double rowPosY = 0; //option.rect.y();
-        if (index.data(NoteListModel::NoteIsPinned).toBool()) {
+        if (index.data(NoteListModel::NoteIsPinned).toBool() && index.row() == 0) {
             bufferPainter.drawImage(QRect(rowPosX + NoteListConstant::leftOffsetX,
                                           rowPosY + 3 + 2,
                                           12, 12), m_pinnedIcon);
@@ -416,7 +419,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
 
         double rowPosX = option.rect.x();
         double rowPosY = option.rect.y();
-        if (index.data(NoteListModel::NoteIsPinned).toBool()) {
+        if (index.data(NoteListModel::NoteIsPinned).toBool() && index.row() == 0) {
             painter->drawImage(QRect(rowPosX + NoteListConstant::leftOffsetX,
                                      rowPosY + 3 + 2,
                                      12, 12), m_pinnedIcon);

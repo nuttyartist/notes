@@ -132,7 +132,8 @@ void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOpti
         painter->fillRect(rect(), QBrush(m_hoverColor));
         m_tagListView->setBackground(m_hoverColor);
     }else if((index.row() != m_delegate->currentSelectedIndex().row() - 1)
-             && (index.row() !=  m_delegate->currentSelectedIndex().row() - 1) && (!isCurrentPinned)){
+             && (index.row() !=  m_delegate->currentSelectedIndex().row() - 1)
+             && (!(isCurrentPinned && !isBelowPinned))){
         painter->fillRect(rect(), QBrush(m_defaultColor));
         m_tagListView->setBackground(m_defaultColor);
         paintSeparator(painter, option, index);
@@ -145,11 +146,13 @@ void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOpti
         auto m_rect = rect();
         if (!isBelowPinned) {
             m_rect.setTop(rect().bottom() - 2);
+            painter->fillRect(m_rect, QBrush(Qt::darkGray));
+        }
+        if (index.row() == 0) {
+            m_rect = rect();
+            m_rect.setHeight(20);
             painter->fillRect(m_rect, QBrush("#d6d5d5"));
         }
-        m_rect = rect();
-        m_rect.setHeight(20);
-        painter->fillRect(m_rect, QBrush("#d6d5d5"));
     }
 }
 
@@ -177,10 +180,10 @@ void NoteListDelegateEditor::paintLabels(QPainter* painter, const QStyleOptionVi
 
     double rowPosX = rect().x();
     double rowPosY = rect().y();
-    if (index.data(NoteListModel::NoteIsPinned).toBool()) {
+    if (index.data(NoteListModel::NoteIsPinned).toBool() && index.row() == 0) {
         painter->drawImage(QRect(rowPosX + NoteListConstant::leftOffsetX,
-                                       rowPosY + 3 + 2,
-                                       12, 12), m_pinnedIcon);
+                                 rowPosY + 3 + 2,
+                                 12, 12), m_pinnedIcon);
         QFontMetrics fm(m_dateFont);
         QRect fmRect = fm.boundingRect("Pinned");
         QRectF rect(rowPosX + NoteListConstant::leftOffsetX + 20,
@@ -387,7 +390,7 @@ void NoteListDelegateEditor::recalculateSize()
         result.setHeight(result.height() + 20);
     }
     auto m_index = dynamic_cast<NoteListModel*>(m_view->model())->getNoteIndex(m_id);
-    if (m_index.data(NoteListModel::NoteIsPinned).toBool()) {
+    if (m_index.data(NoteListModel::NoteIsPinned).toBool() && m_index.row() == 0) {
         result.setHeight(result.height() + 20);
     }
     result.setHeight(result.height() + m_tagListView->height() + 2);
