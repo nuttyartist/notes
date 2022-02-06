@@ -842,6 +842,13 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime,
             if ((sep.size() == 2) && ((row <= sep[0].row()) || (row > sep[1].row()))) {
                 return false;
             }
+            auto dfNote = getDefaultNotesIndex();
+            if (row <= dfNote.row()) {
+                return false;
+            }
+        }
+        if (parent.data(NodeItem::Roles::NodeId).toInt() == SpecialNodeID::DefaultNotesFolder) {
+            return false;
         }
 
         if (movingItem->parentItem() == parentItem) {
@@ -852,7 +859,11 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime,
                             child->data(NodeItem::Roles::ItemType).toInt());
                 if (childType == NodeItem::Type::FolderItem &&
                         child->data(NodeItem::Roles::NodeId) == movingItem->data(NodeItem::Roles::NodeId)) {
-                    parentItem->moveChild(i, row);
+                    int targetRow = row;
+                    if (row > i && row > 0) {
+                        targetRow -= 1;
+                    }
+                    parentItem->moveChild(i, targetRow);
                     break;
                 }
             }
