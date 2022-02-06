@@ -106,6 +106,7 @@ void NoteListModel::setListNote(const QVector<NodeData> notes, const ListViewInf
     } else {
         m_noteList = notes;
     }
+    sort(0, Qt::AscendingOrder);
     endResetModel();
     emit rowCountChanged();
 }
@@ -289,8 +290,12 @@ void NoteListModel::sort(int column, Qt::SortOrder order)
     Q_UNUSED(column)
     Q_UNUSED(order)
 
-    std::stable_sort(m_pinnedList.begin(), m_pinnedList.end(), [](const NodeData& lhs, const NodeData& rhs){
-        return lhs.relativePosition() < rhs.relativePosition();
+    std::stable_sort(m_pinnedList.begin(), m_pinnedList.end(), [this](const NodeData& lhs, const NodeData& rhs) {
+        if (isInAllNote()) {
+            return lhs.relativePosAN() < rhs.relativePosAN();
+        } else {
+            return lhs.relativePosition() < rhs.relativePosition();
+        }
     });
 
     std::stable_sort(m_noteList.begin(), m_noteList.end(), [](const NodeData& lhs, const NodeData& rhs){
