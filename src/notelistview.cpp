@@ -31,7 +31,8 @@ NoteListView::NoteListView(QWidget *parent)
       m_tagPool(nullptr),
       m_dbManager(nullptr),
       m_currentFolderId{SpecialNodeID::InvalidNodeId},
-      m_isInTrash{false}
+      m_isInTrash{false},
+      m_isDragging{false}
 {
     this->setAttribute(Qt::WA_MacShowFocusRect, 0);
 
@@ -160,6 +161,11 @@ void NoteListView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, in
     }
 
     QListView::rowsAboutToBeRemoved(parent, start, end);
+}
+
+bool NoteListView::isDragging() const
+{
+    return m_isDragging;
 }
 
 void NoteListView::setListViewInfo(const ListViewInfo &newListViewInfo)
@@ -459,6 +465,7 @@ void NoteListView::startDrag(Qt::DropActions supportedActions)
         drag->setMimeData(data);
         drag->setHotSpot(d->pressedPosition - rect.topLeft());
         auto openedEditors = m_openedEditor.keys();
+        m_isDragging = true;
         Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
         /// Delete later, if there is no drop event.
         if(dropAction == Qt::IgnoreAction){
@@ -468,6 +475,7 @@ void NoteListView::startDrag(Qt::DropActions supportedActions)
 #if QT_VERSION > QT_VERSION_CHECK(5, 15, 0)
         d->dropEventMoved = false;
 #endif
+        m_isDragging = false;
         // Reset the drop indicator
         d->dropIndicatorRect = QRect();
         d->dropIndicatorPosition = OnItem;
@@ -476,6 +484,7 @@ void NoteListView::startDrag(Qt::DropActions supportedActions)
             auto index = dynamic_cast<NoteListModel*>(model())->getNoteIndex(id);
             openPersistentEditorC(index);
         }
+        openPersistentEditorC(current);
     }
 }
 

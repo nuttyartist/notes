@@ -32,6 +32,8 @@ public:
     void unsetEditorWidget(int noteId, QWidget* w);
     void closeAllEditor();    
     void setListViewInfo(const ListViewInfo &newListViewInfo);
+    bool isDragging() const;
+
 public slots:
     void onCustomContextMenu(const QPoint& point);
     void onTagsMenu(const QPoint& point);
@@ -98,6 +100,8 @@ private:
     QPixmap m_dragPixmap;
     QMap<int, QVector<QWidget*>> m_openedEditor;
     ListViewInfo m_listViewInfo;
+    bool m_isDragging;
+
     void setupSignalsSlots();
     void setupStyleSheet();
 

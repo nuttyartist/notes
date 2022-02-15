@@ -128,9 +128,15 @@ void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOpti
             painter->fillRect(rect(), QBrush(m_applicationInactiveColor));
             m_tagListView->setBackground(m_applicationInactiveColor);
         }
-    }else if(underMouseC()){
-        painter->fillRect(rect(), QBrush(m_hoverColor));
-        m_tagListView->setBackground(m_hoverColor);
+    }else if (underMouseC()){
+        if (dynamic_cast<NoteListView*>(m_view)->isDragging()) {
+            auto rect = this->rect();
+            rect.setTop(rect.bottom() - 5);
+            painter->fillRect(rect, QBrush("#d6d5d5"));
+        } else {
+            painter->fillRect(rect(), QBrush(m_hoverColor));
+            m_tagListView->setBackground(m_hoverColor);
+        }
     }else if((index.row() != m_delegate->currentSelectedIndex().row() - 1)
              && (index.row() !=  m_delegate->currentSelectedIndex().row() - 1)
              && (!(isCurrentPinned && !isBelowPinned))){

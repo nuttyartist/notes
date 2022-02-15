@@ -240,7 +240,13 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
             bufferPainter.fillRect(buffer.rect(), QBrush(m_applicationInactiveColor));
         }
     }else if((option.state & QStyle::State_MouseOver) == QStyle::State_MouseOver){
-        bufferPainter.fillRect(buffer.rect(), QBrush(m_hoverColor));
+        if (dynamic_cast<NoteListView*>(m_view)->isDragging()) {
+            auto rect = buffer.rect();
+            rect.setTop(rect.bottom() - 5);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+        } else {
+            bufferPainter.fillRect(buffer.rect(), QBrush(m_hoverColor));
+        }
     }else if((index.row() !=  m_currentSelectedIndex.row() - 1)
              && (index.row() !=  m_hoveredIndex.row() - 1)
              && (!(isCurrentPinned && !isBelowPinned))){
