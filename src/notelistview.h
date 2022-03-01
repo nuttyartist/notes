@@ -34,6 +34,10 @@ public:
     void setListViewInfo(const ListViewInfo &newListViewInfo);
     bool isDragging() const;
 
+    void setIsPinnedList(bool newIsPinnedList);
+
+    bool isPinnedList() const;
+
 public slots:
     void onCustomContextMenu(const QPoint& point);
     void onTagsMenu(const QPoint& point);
@@ -101,6 +105,7 @@ private:
     QMap<int, QVector<QWidget*>> m_openedEditor;
     ListViewInfo m_listViewInfo;
     bool m_isDragging;
+    bool m_isPinnedList;
 
     void setupSignalsSlots();
     void setupStyleSheet();

@@ -72,7 +72,6 @@ private:
     int m_rowRightOffset;
     bool m_isActive;
     QImage m_folderIcon;
-    QImage m_pinnedIcon;
     Theme m_theme;
     bool m_containsMouse;
     QModelIndex m_animatedIndex;

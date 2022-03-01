@@ -137,6 +137,8 @@ private:
 
     NoteListView* m_listView;
     NoteListModel* m_listModel;
+    NoteListView* m_pinnedListView;
+    NoteListModel* m_pinnedListModel;
     ListViewLogic* m_listViewLogic;
     NodeTreeView* m_treeView;
     NodeTreeModel* m_treeModel;
@@ -282,6 +284,7 @@ private slots:
     void clearSearch();
     void showErrorMessage(const QString& title, const QString& content);
     void setNoteListLoading();
+    void setPinnedNoteExpand(bool isExpand);
 
 signals:
     void requestNodesTree();

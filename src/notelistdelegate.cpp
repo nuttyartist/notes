@@ -55,7 +55,6 @@ NoteListDelegate::NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject
     m_timeLine->setUpdateInterval(10);
     m_timeLine->setCurveShape(QTimeLine::EaseInCurve);
     m_folderIcon = QImage(":/images/folder.png");
-    m_pinnedIcon = QImage(":/images/pin.png");
     connect( m_timeLine, &QTimeLine::frameChanged, this, [this](){
         emit sizeHintChanged(m_animatedIndex);
     });
@@ -171,9 +170,6 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
     if (m_isInAllNotes) {
         result.setHeight(result.height() + 20);
     }
-    if (index.data(NoteListModel::NoteIsPinned).toBool() && index.row() == 0) {
-        result.setHeight(result.height() + 20);
-    }
 
     return result;
 }
@@ -202,9 +198,6 @@ QSize NoteListDelegate::bufferSizeHint(const QStyleOptionViewItem &option, const
     if (m_isInAllNotes) {
         result.setHeight(result.height() + 20);
     }
-    if (index.data(NoteListModel::NoteIsPinned).toBool()) {
-        result.setHeight(result.height() + 20);
-    }
     return result;
 }
 
@@ -223,11 +216,6 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
 
     int currentRow = index.row();
     QModelIndex belowIndex = m_view->model()->index(currentRow + 1, 0);
-    bool isBelowPinned = false;
-    if (belowIndex.isValid()){
-        isBelowPinned = belowIndex.data(NoteListModel::NoteIsPinned).toBool();
-    }
-    bool isCurrentPinned = index.data(NoteListModel::NoteIsPinned).toBool();
 
     if((option.state & QStyle::State_Selected) == QStyle::State_Selected){
         if(qApp->applicationState() == Qt::ApplicationActive){
@@ -247,24 +235,10 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
         } else {
             bufferPainter.fillRect(buffer.rect(), QBrush(m_hoverColor));
         }
-    }else if((index.row() !=  m_currentSelectedIndex.row() - 1)
-             && (index.row() !=  m_hoveredIndex.row() - 1)
-             && (!(isCurrentPinned && !isBelowPinned))){
+    } else if((index.row() !=  m_currentSelectedIndex.row() - 1)
+             && (index.row() !=  m_hoveredIndex.row() - 1)) {
         bufferPainter.fillRect(buffer.rect(), QBrush(m_defaultColor));
         paintSeparator(&bufferPainter, buffer.rect(), index);
-    }
-
-    if (isCurrentPinned) {
-        auto rect = buffer.rect();
-        if (!isBelowPinned) {
-            rect.setTop(rect.bottom() - 2);
-            bufferPainter.fillRect(rect, QBrush(Qt::darkGray));
-        }
-        if (index.row() == 0) {
-            rect = buffer.rect();
-            rect.setHeight(20);
-            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
-        }
     }
 
     int rowHeight;
@@ -320,20 +294,6 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
         QRect fmRectContent = fmContent.boundingRect(content);
         double rowPosX = 0; //option.rect.x();
         double rowPosY = 0; //option.rect.y();
-        if (index.data(NoteListModel::NoteIsPinned).toBool() && index.row() == 0) {
-            bufferPainter.drawImage(QRect(rowPosX + NoteListConstant::leftOffsetX,
-                                          rowPosY + 3 + 2,
-                                          12, 12), m_pinnedIcon);
-            QFontMetrics fm(m_dateFont);
-            QRect fmRect = fm.boundingRect("Pinned");
-            QRectF rect(rowPosX + NoteListConstant::leftOffsetX + 20,
-                        rowPosY + 2,
-                        fmRect.width() + 5, fmRect.height());
-            bufferPainter.setPen(QColor(26, 26, 26));
-            bufferPainter.setFont(m_dateFont);
-            bufferPainter.drawText(rect, Qt::AlignBottom, "Pinned");
-            rowPosY += 20;
-        }
         double rowWidth = option.rect.width();
 
         double titleRectPosX = rowPosX + NoteListConstant::leftOffsetX;
@@ -425,21 +385,6 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
 
         double rowPosX = option.rect.x();
         double rowPosY = option.rect.y();
-        if (index.data(NoteListModel::NoteIsPinned).toBool() && index.row() == 0) {
-            painter->drawImage(QRect(rowPosX + NoteListConstant::leftOffsetX,
-                                     rowPosY + 3 + 2,
-                                     12, 12), m_pinnedIcon);
-            QFontMetrics fm(m_dateFont);
-            QRect fmRect = fm.boundingRect("Pinned");
-            QRectF rect(rowPosX + NoteListConstant::leftOffsetX + 20,
-                        rowPosY + 2,
-                        fmRect.width() + 5, fmRect.height());
-            painter->setPen(QColor(26, 26, 26));
-            painter->setFont(m_dateFont);
-            painter->drawText(rect, Qt::AlignBottom, "Pinned");
-            rowPosY += 20;
-        }
-
         double rowWidth = option.rect.width();
 
         double titleRectPosX = rowPosX + NoteListConstant::leftOffsetX;

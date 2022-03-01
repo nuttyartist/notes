@@ -7,6 +7,8 @@
 #include "dbmanager.h"
 #include "styleeditorwindow.h"
 #include <QModelIndex>
+#include <utility>
+#include <functional>
 
 class NoteListView;
 class NoteListModel;
@@ -22,15 +24,18 @@ class ListViewLogic : public QObject
 public:
     explicit ListViewLogic(NoteListView* noteView,
                            NoteListModel* noteModel,
+                           NoteListView* pinnedNoteView,
+                           NoteListModel* pinnedNoteModel,
                            QLineEdit* searchEdit,
                            QToolButton* clearButton,
                            TagPool* tagPool,
                            DBManager* dbManager,
                            QObject *parent = nullptr);
-    void selectNote(const QModelIndex &noteIndex);
+    void selectNote(NoteListView &listView, const QModelIndex &noteIndex);
 
     const ListViewInfo &listViewInfo() const;
     void selectFirstNote();
+    void selectLastNote();
     void setTheme(Theme theme);
     bool isAnimationRunning();
     void setLastSavedState(int lastSelectedNote);
@@ -61,33 +66,43 @@ signals:
     void requestClearSearchUI();
     void requestNewNote();
     void moveNoteRequested(int id, int target);
-    void listViewLabelChanged(const QString& label1, const QString& label2);
+    void listViewLabelChanged(const QString& label1, const QString& label2, bool havePinnedNote);
     void setNewNoteButtonVisible(bool visible);
+    void pinnedNoteListVisibleChanged(bool visible);
+    void requestUpdatePinnedDb(int noteId, bool isPinned);
+
 private slots:
     void loadNoteListModel(const QVector<NodeData>& noteList, const ListViewInfo& inf);
-    void onAddTagRequest(const QModelIndex& index, int tagId);
-    void onRemoveTagRequest(const QModelIndex& index, int tagId);
-    void onNotePressed(const QModelIndex& index);
-    void deleteNoteRequestedI(const QModelIndex& index);
-    void restoreNoteRequestedI(const QModelIndex& index);
+    void onAddTagRequest(NoteListView &listView, const QModelIndex& index, int tagId);
+    void onRemoveTagRequest(NoteListView &listView, const QModelIndex& index, int tagId);
+    void onNotePressed(NoteListView &listView, const QModelIndex& index);
+    void deleteNoteRequestedI(NoteListView &listView, const QModelIndex& index);
+    void restoreNoteRequestedI(NoteListView &listView, const QModelIndex& index);
     void updateListViewLabel();
-    void onRowCountChanged();
+    void onRowCountChanged(NoteListView &listView);
     void onNoteDoubleClicked(const QModelIndex& index);
     void onSetPinnedNoteRequested(int noteId, bool isPinned);
 
 private:
     NoteListView* m_listView;
     NoteListModel* m_listModel;
+    NoteListView* m_pinnedNoteView;
+    NoteListModel* m_pinnedNoteModel;
     QLineEdit* m_searchEdit;
     QToolButton* m_clearButton;
     DBManager* m_dbManager;
-    NoteListDelegate* m_listDelegate;
+    NoteListDelegate* m_noteListDelegate;
+    NoteListDelegate* m_pinnedNoteListDelegate;
     TagPool* m_tagPool;
     ListViewInfo m_listViewInfo;
     QVector<QModelIndex> m_editorIndexes;
 
     int m_needLoadSavedState;
     int m_lastSelectedNote;
+
+    bool havePinnedNote() const;
+    std::pair<QModelIndex, NoteListView &> getNoteIndex(int id) const;
+    std::pair<QModelIndex, NoteListView &> getCurrentIndex() const;
 };
 
 #endif // LISTVIEWLOGIC_H
