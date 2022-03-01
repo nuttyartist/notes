@@ -78,9 +78,6 @@ public:
     int tagListScrollBarPos() const;
     void setTagListScrollBarPos(int newTagListScrollBarPos);
 
-    bool isPinnedNoteAN() const;
-    void setIsPinnedNoteAN(bool newIsPinnedNoteAN);
-
     int relativePosAN() const;
     void setRelativePosAN(int newRelativePosAN);
 
@@ -106,7 +103,6 @@ private:
     QString m_parentName;
     bool m_isPinnedNote;
     int m_tagListScrollBarPos;
-    bool m_isPinnedNoteAN;
     int m_relativePosAN;
     int m_childNotesCount;
 };

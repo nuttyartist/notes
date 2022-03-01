@@ -382,18 +382,10 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData>& noteList, const L
     m_pinnedNoteListDelegate->setIsInAllNotes(isInAllNote);
     QVector<NodeData> pinned, notPinned;
     for (const auto& note: QT_AS_CONST(noteList)) {
-        if (isInAllNote) {
-            if (note.isPinnedNoteAN()) {
-                pinned.push_back(note);
-            } else {
-                notPinned.push_back(note);
-            }
+        if (note.isPinnedNote()) {
+            pinned.push_back(note);
         } else {
-            if (note.isPinnedNote()) {
-                pinned.push_back(note);
-            } else {
-                notPinned.push_back(note);
-            }
+            notPinned.push_back(note);
         }
     }
     m_listModel->setListNote(notPinned, m_listViewInfo);

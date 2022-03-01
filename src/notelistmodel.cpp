@@ -240,15 +240,6 @@ bool NoteListModel::isInAllNote() const
     return (!m_listViewInfo.isInTag) && (m_listViewInfo.parentFolderId == SpecialNodeID::RootFolder);
 }
 
-bool NoteListModel::noteIsPinned(const NodeData &note) const
-{
-    if (isInAllNote()) {
-        return note.isPinnedNoteAN();
-    } else {
-        return note.isPinnedNote();
-    }
-}
-
 Qt::DropActions NoteListModel::supportedDropActions() const
 {
     return Qt::MoveAction;

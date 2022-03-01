@@ -61,7 +61,6 @@ private:
     bool m_isPinnedList;
 
     bool isInAllNote() const;
-    bool noteIsPinned(const NodeData& note) const;
 
 signals:
     void noteRemoved();

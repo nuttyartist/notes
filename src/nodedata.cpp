@@ -9,7 +9,6 @@ NodeData::NodeData():
     m_isTempNote{false},
     m_isPinnedNote{false},
     m_tagListScrollBarPos{0},
-    m_isPinnedNoteAN{false},
     m_relativePosAN{0},
     m_childNotesCount{0}
 {
@@ -184,16 +183,6 @@ int NodeData::tagListScrollBarPos() const
 void NodeData::setTagListScrollBarPos(int newTagListScrollBarPos)
 {
     m_tagListScrollBarPos = newTagListScrollBarPos;
-}
-
-bool NodeData::isPinnedNoteAN() const
-{
-    return m_isPinnedNoteAN;
-}
-
-void NodeData::setIsPinnedNoteAN(bool newIsPinnedNoteAN)
-{
-    m_isPinnedNoteAN = newIsPinnedNoteAN;
 }
 
 int NodeData::relativePosAN() const

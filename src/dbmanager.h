@@ -108,7 +108,6 @@ public slots:
     void updateRelPosPinnedNote(int nodeId, int relPos);
     void updateRelPosPinnedNoteAN(int nodeId, int relPos);
     void setNoteIsPinned(int noteId, bool isPinned);
-    void setNoteIsPinnedAN(int noteId, bool isPinned);
     NodeData getChildNotesCountFolder(int folderId);
 };
 
