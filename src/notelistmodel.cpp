@@ -55,7 +55,9 @@ void NoteListModel::setListNote(const QVector<NodeData> notes, const ListViewInf
     beginResetModel();
     m_listViewInfo = inf;
     m_noteList = notes;
-    sort(0, Qt::AscendingOrder);
+    if (!m_noteList.isEmpty()) {
+        sort(0, Qt::AscendingOrder);
+    }
     endResetModel();
     emit rowCountChanged();
 }

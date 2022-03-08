@@ -9,6 +9,7 @@
 #include <QToolButton>
 #include "tagpool.h"
 #include <QTimer>
+#include <QStyleOptionViewItem>
 
 ListViewLogic::ListViewLogic(NoteListView* noteView,
                              NoteListModel* noteModel,
@@ -432,6 +433,7 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData>& noteList, const L
             }
             auto currentNote = dynamic_cast<NoteListModel*>(index.second.model())->getNote(index.first);
             emit showNoteInEditor(currentNote);
+            emit configPinnedNoteSpliter();
             return;
         }
     }
@@ -441,11 +443,13 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData>& noteList, const L
             auto index = getNoteIndex(m_lastSelectedNote);
             if (index.first.isValid()) {
                 selectNote(index.second, index.first);
+                emit configPinnedNoteSpliter();
                 return;
             }
         }
     }
     selectFirstNote();
+    emit configPinnedNoteSpliter();
 }
 
 void ListViewLogic::onAddTagRequest(NoteListView& listView, const QModelIndex &index, int tagId)
@@ -821,6 +825,58 @@ void ListViewLogic::setLastSavedState(int lastSelectedNote)
 {
     m_needLoadSavedState = 2;
     m_lastSelectedNote = lastSelectedNote;
+}
+
+bool ListViewLogic::isHavePinnedNote() const
+{
+    return m_pinnedNoteModel->rowCount() > 0;
+}
+
+int ListViewLogic::minimiumNoteListHeight()
+{
+    if (m_listModel->rowCount() == 0) {
+        return 130;
+    }
+    QModelIndex firstIndex = m_listModel->index(0,0);
+    if (firstIndex.isValid()) {
+        auto viewOptions = m_listView->getViewOptions();
+        auto sizeHint = m_noteListDelegate->sizeHint(viewOptions, firstIndex);
+        return sizeHint.height() + 25;
+    } else {
+        return 130;
+    }
+}
+
+int ListViewLogic::minimiumPinnedNoteListHeight()
+{
+    if (!isHavePinnedNote()) {
+        return 0;
+    }
+    QModelIndex firstIndex = m_pinnedNoteModel->index(0,0);
+    if (firstIndex.isValid()) {
+        auto viewOptions = m_pinnedNoteView->getViewOptions();
+        auto sizeHint = m_pinnedNoteListDelegate->sizeHint(viewOptions, firstIndex);
+        return sizeHint.height() + 25;
+    } else {
+        return 0;
+    }
+}
+
+int ListViewLogic::maximiumPinnedNoteListHeight()
+{
+    if (!isHavePinnedNote()) {
+        return 0;
+    }
+    auto viewOptions = m_pinnedNoteView->getViewOptions();
+    int result = 0;
+    for (int i = 0; i < m_pinnedNoteModel->rowCount(); ++i) {
+        auto index = m_pinnedNoteModel->index(i, 0);
+        if (index.isValid()) {
+            auto sizeHint = m_pinnedNoteListDelegate->sizeHint(viewOptions, index);
+            result += sizeHint.height();
+        }
+    }
+    return result + 25 + 5;
 }
 
 const ListViewInfo &ListViewLogic::listViewInfo() const

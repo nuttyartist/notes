@@ -551,11 +551,11 @@ NoteData #dateLabel{
                  <number>0</number>
                 </property>
                 <item>
-                 <widget class="QSplitter" name="splitter_2">
+                 <widget class="QSplitter" name="noteSpliter">
                   <property name="orientation">
                    <enum>Qt::Vertical</enum>
                   </property>
-                  <widget class="QWidget" name="widget_2" native="true">
+                  <widget class="QWidget" name="pinnedNoteW" native="true">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
                      <horstretch>0</horstretch>
@@ -706,7 +706,13 @@ NoteData #dateLabel{
                     </item>
                    </layout>
                   </widget>
-                  <widget class="QWidget" name="widget_3" native="true">
+                  <widget class="QWidget" name="noteW" native="true">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>130</height>
+                    </size>
+                   </property>
                    <layout class="QVBoxLayout" name="verticalLayout_6">
                     <property name="spacing">
                      <number>0</number>
@@ -774,7 +780,7 @@ NoteData #dateLabel{
                       <property name="minimumSize">
                        <size>
                         <width>0</width>
-                        <height>130</height>
+                        <height>0</height>
                        </size>
                       </property>
                       <property name="baseSize">

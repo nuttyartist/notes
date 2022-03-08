@@ -37,6 +37,7 @@ public:
     void setIsPinnedList(bool newIsPinnedList);
 
     bool isPinnedList() const;
+    QStyleOptionViewItem getViewOptions();
 
 public slots:
     void onCustomContextMenu(const QPoint& point);

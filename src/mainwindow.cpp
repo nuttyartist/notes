@@ -213,6 +213,31 @@ void MainWindow::saveLastSelectedNote(int noteId)
     m_settingsDatabase->setValue("currentSelectNoteId", noteId);
 }
 
+void MainWindow::configPinnedNoteSpliter()
+{
+    auto minimumPinnedHeight = m_listViewLogic->minimiumPinnedNoteListHeight();
+    auto minimumUnpinnedHeight = m_listViewLogic->minimiumNoteListHeight();
+    ui->noteSpliter->setCollapsible(1, false);
+    if (minimumPinnedHeight == 0) {
+        ui->noteSpliter->setCollapsible(0, true);
+        ui->pinnedNoteW->setVisible(false);
+    } else {
+        ui->noteSpliter->setCollapsible(0, false);
+        ui->pinnedNoteW->setVisible(true);
+    }
+    ui->pinnedNoteW->setMinimumHeight(minimumPinnedHeight);
+    ui->noteW->setMinimumHeight(minimumUnpinnedHeight);
+    auto maximiumPinnedHeight = m_listViewLogic->maximiumPinnedNoteListHeight();
+    auto size = ui->noteSpliter->sizes();
+    if (maximiumPinnedHeight < ui->noteSpliter->height() - minimumUnpinnedHeight) {
+        size[0] = maximiumPinnedHeight;
+    } else {
+        size[0] = ui->noteSpliter->height() - minimumUnpinnedHeight;
+    }
+    size[1] = ui->noteSpliter->height() - size[0];
+    ui->noteSpliter->setSizes(size);
+}
+
 /*!
  * \brief MainWindow::paintEvent
  * \param event
@@ -748,6 +773,8 @@ void MainWindow::setupSignalsSlots()
             this, [this] (bool visible){
         setPinnedNoteExpand(visible);
     });
+    connect(m_listViewLogic, &ListViewLogic::configPinnedNoteSpliter,
+            this, &MainWindow::configPinnedNoteSpliter);
 }
 
 /*!
@@ -2611,13 +2638,32 @@ void MainWindow::setNoteListLoading()
 
 void MainWindow::setPinnedNoteExpand(bool isExpand)
 {
-    ui->pinnedNoteList->setVisible(isExpand);
-    if (isExpand) {
-        auto pix = QPixmap(QStringLiteral(":/images/pinned-expand.png"));
-        ui->label_2->setPixmap(pix.scaled(QSize{18, 18}));
-    } else {
-        auto pix = QPixmap(QStringLiteral(":/images/pinned-collasped.png"));
-        ui->label_2->setPixmap(pix.scaled(QSize{18, 18}));
+    if (m_listViewLogic && m_listViewLogic->isHavePinnedNote()) {
+        if (isExpand) {
+            auto pix = QPixmap(QStringLiteral(":/images/pinned-expand.png"));
+            ui->label_2->setPixmap(pix.scaled(QSize{18, 18}));
+            auto miniminumUnpinnedHeight = m_listViewLogic->minimiumNoteListHeight();
+            auto maximiumPinnedHeight = m_listViewLogic->maximiumPinnedNoteListHeight();
+            auto minimiumPinnedHeight = m_listViewLogic->minimiumPinnedNoteListHeight();
+            ui->pinnedNoteW->setMinimumHeight(minimiumPinnedHeight);
+            auto size = ui->noteSpliter->sizes();
+            if (maximiumPinnedHeight < ui->noteSpliter->height() - miniminumUnpinnedHeight) {
+                size[0] = maximiumPinnedHeight;
+            } else {
+                size[0] = ui->noteSpliter->height() - miniminumUnpinnedHeight;
+            }
+            size[1] = ui->noteSpliter->height() - size[0];
+            ui->noteSpliter->setSizes(size);
+        } else {
+            auto size = ui->noteSpliter->sizes();
+            ui->pinnedNoteW->setMinimumHeight(25);
+            size[0] = 25;
+            size[1] = ui->noteSpliter->height() - size[0];
+            ui->noteSpliter->setSizes(size);
+            auto pix = QPixmap(QStringLiteral(":/images/pinned-collasped.png"));
+            ui->label_2->setPixmap(pix.scaled(QSize{18, 18}));
+        }
+        ui->pinnedNoteList->setVisible(isExpand);
     }
 }
 

@@ -167,6 +167,11 @@ bool NoteListView::isPinnedList() const
     return m_isPinnedList;
 }
 
+QStyleOptionViewItem NoteListView::getViewOptions()
+{
+    return viewOptions();
+}
+
 void NoteListView::setIsPinnedList(bool newIsPinnedList)
 {
     m_isPinnedList = newIsPinnedList;

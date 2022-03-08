@@ -39,6 +39,11 @@ public:
     void setTheme(Theme theme);
     bool isAnimationRunning();
     void setLastSavedState(int lastSelectedNote);
+    bool isHavePinnedNote() const;
+
+    int minimiumNoteListHeight();
+    int minimiumPinnedNoteListHeight();
+    int maximiumPinnedNoteListHeight();
 
 public slots:
     void moveNoteToTop(const NodeData& note);
@@ -70,6 +75,7 @@ signals:
     void setNewNoteButtonVisible(bool visible);
     void pinnedNoteListVisibleChanged(bool visible);
     void requestUpdatePinnedDb(int noteId, bool isPinned);
+    void configPinnedNoteSpliter();
 
 private slots:
     void loadNoteListModel(const QVector<NodeData>& noteList, const ListViewInfo& inf);
