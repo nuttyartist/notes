@@ -236,6 +236,7 @@ void MainWindow::configPinnedNoteSpliter()
     }
     size[1] = ui->noteSpliter->height() - size[0];
     ui->noteSpliter->setSizes(size);
+    setPinnedNoteExpand(true);
 }
 
 /*!
@@ -2654,6 +2655,7 @@ void MainWindow::setPinnedNoteExpand(bool isExpand)
             }
             size[1] = ui->noteSpliter->height() - size[0];
             ui->noteSpliter->setSizes(size);
+            m_listViewLogic->selectFirstNote();
         } else {
             auto size = ui->noteSpliter->sizes();
             ui->pinnedNoteW->setMinimumHeight(25);
@@ -2662,6 +2664,7 @@ void MainWindow::setPinnedNoteExpand(bool isExpand)
             ui->noteSpliter->setSizes(size);
             auto pix = QPixmap(QStringLiteral(":/images/pinned-collasped.png"));
             ui->label_2->setPixmap(pix.scaled(QSize{18, 18}));
+            m_listViewLogic->selectFirstUnpinned();
         }
         ui->pinnedNoteList->setVisible(isExpand);
     }

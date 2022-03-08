@@ -44,6 +44,7 @@ public:
     int minimiumNoteListHeight();
     int minimiumPinnedNoteListHeight();
     int maximiumPinnedNoteListHeight();
+    void selectFirstUnpinned();
 
 public slots:
     void moveNoteToTop(const NodeData& note);

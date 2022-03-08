@@ -768,6 +768,7 @@ void ListViewLogic::selectFirstNote()
             m_pinnedNoteView->setCurrentIndex(index);
             auto firstNote = m_pinnedNoteModel->getNote(index);
             emit showNoteInEditor(firstNote);
+            m_listView->setCurrentIndex(QModelIndex{});
         }
     } else if (m_listModel->rowCount() > 0){
         QModelIndex index = m_listModel->index(0,0);
@@ -776,6 +777,7 @@ void ListViewLogic::selectFirstNote()
             m_listView->setCurrentIndex(index);
             auto firstNote = m_listModel->getNote(index);
             emit showNoteInEditor(firstNote);
+            m_pinnedNoteView->setCurrentIndex(QModelIndex{});
         }
     } else {
         emit closeNoteEditor();
@@ -877,6 +879,24 @@ int ListViewLogic::maximiumPinnedNoteListHeight()
         }
     }
     return result + 25 + 5;
+}
+
+void ListViewLogic::selectFirstUnpinned()
+{
+    m_pinnedNoteView->setCurrentIndex(QModelIndex{});
+    if (m_listModel->rowCount() == 0) {
+        emit closeNoteEditor();
+    } else {
+        QModelIndex index = m_listModel->index(0,0);
+        if (index.isValid()) {
+            m_listView->selectionModel()->select(index, QItemSelectionModel::ClearAndSelect);
+            m_listView->setCurrentIndex(index);
+            auto firstNote = m_listModel->getNote(index);
+            emit showNoteInEditor(firstNote);
+        } else {
+            emit closeNoteEditor();
+        }
+    }
 }
 
 const ListViewInfo &ListViewLogic::listViewInfo() const
