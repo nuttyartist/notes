@@ -2655,7 +2655,6 @@ void MainWindow::setPinnedNoteExpand(bool isExpand)
             }
             size[1] = ui->noteSpliter->height() - size[0];
             ui->noteSpliter->setSizes(size);
-            m_listViewLogic->selectFirstNote();
         } else {
             auto size = ui->noteSpliter->sizes();
             ui->pinnedNoteW->setMinimumHeight(25);

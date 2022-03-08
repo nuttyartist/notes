@@ -189,18 +189,18 @@ void ListViewLogic::moveNoteToTop(const NodeData &note)
         noteIndex = destinationIndex;
         m_listView->setCurrentIndex(noteIndex);
     } else {
-        noteIndex = m_pinnedNoteModel->getNoteIndex(note.id());
-        if (noteIndex.isValid()) {
-            m_pinnedNoteView->scrollToTop();
-            // move the current selected note to the top
-            QModelIndex destinationIndex = m_pinnedNoteModel->index(0);
-            m_pinnedNoteModel->moveRow(noteIndex, noteIndex.row(), destinationIndex, 0);
-            // update the current item
-            noteIndex = destinationIndex;
-            m_pinnedNoteView->setCurrentIndex(noteIndex);
-        } else {
-            qDebug() << "ListViewLogic::moveNoteToTop : Note is not in list";
-        }
+//        noteIndex = m_pinnedNoteModel->getNoteIndex(note.id());
+//        if (noteIndex.isValid()) {
+//            m_pinnedNoteView->scrollToTop();
+//            // move the current selected note to the top
+//            QModelIndex destinationIndex = m_pinnedNoteModel->index(0);
+//            m_pinnedNoteModel->moveRow(noteIndex, noteIndex.row(), destinationIndex, 0);
+//            // update the current item
+//            noteIndex = destinationIndex;
+//            m_pinnedNoteView->setCurrentIndex(noteIndex);
+//        } else {
+//            qDebug() << "ListViewLogic::moveNoteToTop : Note is not in list";
+//        }
     }
 }
 
