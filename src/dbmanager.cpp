@@ -1732,6 +1732,9 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                 qDebug() << __FUNCTION__ << __LINE__ << out_qr.lastError();
             }
             out_qr.finish();
+            std::sort(tagList.begin(), tagList.end(), [] (auto a, auto b) {
+                return a.relativePosition() < b.relativePosition();
+            });
             for (const auto& tag : QT_AS_CONST(tagList)) {
                 QSqlQuery qr(m_db);
                 qr.prepare(R"(SELECT "id" FROM tag_table WHERE name = :name AND color = :color;)");
@@ -1829,8 +1832,53 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                     }
                 };
 
+                struct Folder {
+                    int id;
+                    int parentId;
+                    std::vector<Folder*> children;
+                };
+                Folder* rootFolder = nullptr;
+                QHash<int, Folder> needImportFolderMap;
                 for (const auto& node: QT_AS_CONST(nodeList)) {
-                    matchFolderFunc(node.id(), matchFolderFunc);
+                    Folder f;
+                    f.id = node.id();
+                    f.parentId = node.parentId();
+                    needImportFolderMap[node.id()] = f;
+                    if (f.id == SpecialNodeID::RootFolder) {
+                        rootFolder = &needImportFolderMap[node.id()];
+                    }
+                }
+                if (rootFolder) {
+                    for (const auto& folder: QT_AS_CONST(needImportFolderMap)) {
+                        if (folder.id != SpecialNodeID::RootFolder) {
+                            needImportFolderMap[folder.parentId].children.push_back(
+                                        &needImportFolderMap[folder.id]);
+                        }
+                    }
+                    auto sortChildFunc = [&] (Folder* f) {
+                        std::sort(f->children.begin(), f->children.end(), [&] (Folder* f1, Folder* f2) {
+                            return nodeList[f1->id].relativePosition() < nodeList[f2->id].relativePosition();
+                        });
+                    };
+                    auto sortFunc = [&] (Folder* f, const auto& sf) ->void {
+                        sortChildFunc(f);
+                        for (auto c : f->children) {
+                            sf(c, sf);
+                        }
+                    };
+                    sortFunc(rootFolder, sortFunc);
+                    auto matchFunc = [&] (Folder* f, const auto& mf) ->void {
+                        matchFolderFunc(f->id, matchFolderFunc);
+                        for (auto c : f->children) {
+                            mf(c, mf);
+                        }
+                    };
+                    matchFunc(rootFolder, matchFunc);
+                } else {
+                    qDebug() << __FUNCTION__ << "Error while keeping folder position";
+                    for (const auto& node: QT_AS_CONST(nodeList)) {
+                        matchFolderFunc(node.id(), matchFolderFunc);
+                    }
                 }
             } else {
                 qDebug() << __FUNCTION__ << __LINE__ << out_qr.lastError();
