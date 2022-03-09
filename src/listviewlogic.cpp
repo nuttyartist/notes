@@ -711,6 +711,11 @@ void ListViewLogic::onSetPinnedNoteRequested(int noteId, bool isPinned)
     if (index.first.isValid()) {
         auto model = dynamic_cast<NoteListModel*>(index.second.model());
         if (model) {
+            bool needReconfigSpliter = false;
+            if ((isPinned && (m_pinnedNoteModel->rowCount() == 0)) ||
+                    (!isPinned && (m_pinnedNoteModel->rowCount() == 1))) {
+                needReconfigSpliter = true;
+            }
             auto note = model->getNote(index.first);
             if (note.isPinnedNote() != isPinned) {
                 note.setIsPinnedNote(isPinned);
@@ -725,6 +730,9 @@ void ListViewLogic::onSetPinnedNoteRequested(int noteId, bool isPinned)
                 emit requestUpdatePinnedDb(noteId, isPinned);
                 auto newIndex = getNoteIndex(noteId);
                 selectNote(newIndex.second, newIndex.first);
+                if (needReconfigSpliter) {
+                    emit configPinnedNoteSpliter();
+                }
             }
         } else {
             qDebug() << __FUNCTION__ << "model is not valid";
