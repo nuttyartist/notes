@@ -64,8 +64,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_trayIconMenu(new QMenu(this)),
     m_listView(Q_NULLPTR),
     m_listModel(new NoteListModel(this)),
-    m_pinnedListView(Q_NULLPTR),
-    m_pinnedListModel(new NoteListModel(this)),
     m_listViewLogic(Q_NULLPTR),
     m_treeView(Q_NULLPTR),
     m_treeModel(new NodeTreeModel(this)),
@@ -211,32 +209,6 @@ void MainWindow::saveExpandedFolder(const QStringList &folderPaths)
 void MainWindow::saveLastSelectedNote(int noteId)
 {
     m_settingsDatabase->setValue("currentSelectNoteId", noteId);
-}
-
-void MainWindow::configPinnedNoteSpliter()
-{
-    auto minimumPinnedHeight = m_listViewLogic->minimiumPinnedNoteListHeight();
-    auto minimumUnpinnedHeight = m_listViewLogic->minimiumNoteListHeight();
-    ui->noteSpliter->setCollapsible(1, false);
-    if (minimumPinnedHeight == 0) {
-        ui->noteSpliter->setCollapsible(0, true);
-        ui->pinnedNoteW->setVisible(false);
-    } else {
-        ui->noteSpliter->setCollapsible(0, false);
-        ui->pinnedNoteW->setVisible(true);
-    }
-    ui->pinnedNoteW->setMinimumHeight(minimumPinnedHeight);
-    ui->noteW->setMinimumHeight(minimumUnpinnedHeight);
-    auto maximiumPinnedHeight = m_listViewLogic->maximiumPinnedNoteListHeight();
-    auto size = ui->noteSpliter->sizes();
-    if (maximiumPinnedHeight < ui->noteSpliter->height() - minimumUnpinnedHeight) {
-        size[0] = maximiumPinnedHeight;
-    } else {
-        size[0] = ui->noteSpliter->height() - minimumUnpinnedHeight;
-    }
-    size[1] = ui->noteSpliter->height() - size[0];
-    ui->noteSpliter->setSizes(size);
-    setPinnedNoteExpand(true);
 }
 
 /*!
@@ -430,11 +402,6 @@ void MainWindow::setupMainWindow()
     ui->searchEdit->setFocus();
     QTimer::singleShot(16, ui->searchEdit, &QTextEdit::clearFocus);
 #endif
-    ui->label->setStyleSheet("QLabel { color :  rgb(132, 132, 132); }");
-    ui->label_3->setStyleSheet("QLabel { color :  rgb(132, 132, 132); }");
-    ui->label->setFont(m_titleFont);
-    ui->label_3->setFont(m_titleFont);
-    setPinnedNoteExpand(false);
 }
 
 /*!
@@ -664,13 +631,6 @@ void MainWindow::setupSignalsSlots()
         }
         m_listViewLogic->selectFirstNote();
     });
-    connect(m_pinnedListView, &NoteListView::viewportPressed, this, [this](){
-        if (m_noteEditorLogic->isTempNote()) {
-            m_noteEditorLogic->closeEditor();
-        }
-        m_listViewLogic->selectFirstNote();
-    });
-
     // clear button
     connect(m_clearButton, &QToolButton::clicked, this, &MainWindow::onClearButtonClicked);
     // Restore Notes Action
@@ -684,7 +644,6 @@ void MainWindow::setupSignalsSlots()
     // Application state changed
     connect(qApp, &QApplication::applicationStateChanged, this,[this](){
         m_listView->update(m_listView->currentIndex());
-        m_pinnedListView->update(m_pinnedListView->currentIndex());
     });
 
     // MainWindow <-> DBManager
@@ -724,11 +683,10 @@ void MainWindow::setupSignalsSlots()
     connect(m_treeViewLogic, &TreeViewLogic::addNoteToTag,
             m_listViewLogic, &ListViewLogic::onAddTagRequestD);
     connect(m_listViewLogic, &ListViewLogic::listViewLabelChanged,
-            this, [this] (const QString& l1, const QString& l2, bool havePinned) {
+            this, [this] (const QString& l1, const QString& l2) {
         ui->listviewLabel1->setText(l1);
         ui->listviewLabel2->setText(l2);
         m_splitter->setHandleWidth(0);
-        ui->pinnedNoteListIndicator->setVisible(havePinned);
     });
     connect(ui->toggleTreeViewButton, &QPushButton::pressed,
             this, &MainWindow::toggleNodeTree);
@@ -764,18 +722,6 @@ void MainWindow::setupSignalsSlots()
             this, &MainWindow::saveLastSelectedFolderTags);
     connect(m_listView, &NoteListView::saveSelectedNote,
             this, &MainWindow::saveLastSelectedNote);
-    connect(m_pinnedListView, &NoteListView::saveSelectedNote,
-            this, &MainWindow::saveLastSelectedNote);
-    connect(ui->pinnedNoteListIndicator, &QPushButton::clicked,
-            this, [this] {
-        setPinnedNoteExpand(!ui->pinnedNoteList->isVisible());
-    });
-    connect(m_listViewLogic, &ListViewLogic::pinnedNoteListVisibleChanged,
-            this, [this] (bool visible){
-        setPinnedNoteExpand(visible);
-    });
-    connect(m_listViewLogic, &ListViewLogic::configPinnedNoteSpliter,
-            this, &MainWindow::configPinnedNoteSpliter);
 }
 
 /*!
@@ -1156,16 +1102,11 @@ void MainWindow::setupDatabases()
 void MainWindow::setupModelView()
 {
     m_listView = static_cast<NoteListView*>(ui->listView);
-    m_pinnedListView = static_cast<NoteListView*>(ui->pinnedNoteList);
     m_tagPool = new TagPool(m_dbManager);
     m_listView->setTagPool(m_tagPool);
     m_listView->setModel(m_listModel);
-    m_pinnedListView->setTagPool(m_tagPool);
-    m_pinnedListView->setModel(m_pinnedListModel);
     m_listViewLogic = new ListViewLogic(m_listView,
                                         m_listModel,
-                                        m_pinnedListView,
-                                        m_pinnedListModel,
                                         m_searchEdit,
                                         m_clearButton,
                                         m_tagPool,
@@ -1824,7 +1765,6 @@ void MainWindow::setFocusOnText()
 {
     if(m_noteEditorLogic->currentEditingNote().id() != SpecialNodeID::InvalidNodeId && !m_textEdit->hasFocus()) {
         m_listView->setCurrentRowActive(true);
-        m_pinnedListView->setCurrentRowActive(true);
         m_textEdit->setFocus();
     }
 }
@@ -2611,7 +2551,7 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 void MainWindow::clearSearch()
 {
     m_listView->setFocusPolicy(Qt::StrongFocus);
-    m_pinnedListView->setFocusPolicy(Qt::StrongFocus);
+
     m_searchEdit->blockSignals(true);
     m_searchEdit->clear();
     m_searchEdit->blockSignals(false);
@@ -2635,38 +2575,6 @@ void MainWindow::setNoteListLoading()
 {
     ui->listviewLabel1->setText("Loading…");
     ui->listviewLabel2->setText("");
-}
-
-void MainWindow::setPinnedNoteExpand(bool isExpand)
-{
-    if (m_listViewLogic && m_listViewLogic->isHavePinnedNote()) {
-        if (isExpand) {
-            auto pix = QPixmap(QStringLiteral(":/images/pinned-expand.png"));
-            ui->label_2->setPixmap(pix.scaled(QSize{18, 18}));
-            auto miniminumUnpinnedHeight = m_listViewLogic->minimiumNoteListHeight();
-            auto maximiumPinnedHeight = m_listViewLogic->maximiumPinnedNoteListHeight();
-            auto minimiumPinnedHeight = m_listViewLogic->minimiumPinnedNoteListHeight();
-            ui->pinnedNoteW->setMinimumHeight(minimiumPinnedHeight);
-            auto size = ui->noteSpliter->sizes();
-            if (maximiumPinnedHeight < ui->noteSpliter->height() - miniminumUnpinnedHeight) {
-                size[0] = maximiumPinnedHeight;
-            } else {
-                size[0] = ui->noteSpliter->height() - miniminumUnpinnedHeight;
-            }
-            size[1] = ui->noteSpliter->height() - size[0];
-            ui->noteSpliter->setSizes(size);
-        } else {
-            auto size = ui->noteSpliter->sizes();
-            ui->pinnedNoteW->setMinimumHeight(25);
-            size[0] = 25;
-            size[1] = ui->noteSpliter->height() - size[0];
-            ui->noteSpliter->setSizes(size);
-            auto pix = QPixmap(QStringLiteral(":/images/pinned-collasped.png"));
-            ui->label_2->setPixmap(pix.scaled(QSize{18, 18}));
-            m_listViewLogic->selectFirstUnpinned();
-        }
-        ui->pinnedNoteList->setVisible(isExpand);
-    }
 }
 
 /*!
@@ -3156,7 +3064,6 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                 }
             }
             m_listView->setCurrentRowActive(true);
-            m_pinnedListView->setCurrentRowActive(true);
             m_textEdit->setFocus();
         }
 

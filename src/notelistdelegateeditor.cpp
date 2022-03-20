@@ -345,6 +345,12 @@ void NoteListDelegateEditor::recalculateSize()
     auto m_index = dynamic_cast<NoteListModel*>(m_view->model())->getNoteIndex(m_id);
     result.setHeight(result.height() + m_tagListView->height() + 2);
     result.setWidth(rect().width());
+    auto model = dynamic_cast<NoteListModel*>(m_view->model());
+    if (model) {
+        if (model->isFirstPinnedNote(m_index) || model->isFirstUnpinnedNote(m_index)) {
+            result.setHeight(result.height() + 25);
+        }
+    }
     emit updateSizeHint(m_id, result, m_index);
 }
 

@@ -20,7 +20,8 @@ public:
         NoteTagsList,
         NoteIsTemp,
         NoteParentName,
-        NoteTagListScrollbarPos
+        NoteTagListScrollbarPos,
+        NoteIsPinned,
     };
 
     explicit NoteListModel(QObject *parent = Q_NULLPTR);
@@ -51,20 +52,26 @@ public:
     virtual QMimeData *mimeData(const QModelIndexList &indexes) const override;
     virtual bool dropMimeData(const QMimeData *mime, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
 
+    QModelIndex firstUnpinnedIndex() const;
     bool noteIsHaveTag(const QModelIndex index) const;
-    void setIsPinnedList(bool newIsPinnedList);
-    void updatePinnedRelativePosition();
+    bool isFirstPinnedNote(const QModelIndex index) const;
+    bool isFirstUnpinnedNote(const QModelIndex index) const;
+private slots:
+    void onPinnedChanged(const QModelIndex& index, bool isPinned);
 
 private:
     QVector<NodeData> m_noteList;
+    QVector<NodeData> m_pinnedList;
     ListViewInfo m_listViewInfo;
-    bool m_isPinnedList;
-
+    void updatePinnedRelativePosition();
     bool isInAllNote() const;
 
 signals:
     void noteRemoved();
     void rowCountChanged();
+    void pinnedChanged(const QModelIndex& index, bool isPinned);
+    void requestUpdatePinned(int noteId, bool isPinned);
+    void requestUpdatePinnedAN(int noteId, bool isPinned);
     void requestUpdatePinnedRelPos(int noteId, int pos);
     void requestUpdatePinnedRelPosAN(int noteId, int pos);
     void setCurrentIndex(const QModelIndex& index);

@@ -55,6 +55,8 @@ NoteListDelegate::NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject
     m_timeLine->setUpdateInterval(10);
     m_timeLine->setCurveShape(QTimeLine::EaseInCurve);
     m_folderIcon = QImage(":/images/folder.png");
+    m_pinnedExpandIcon = QImage(":/images/pinned-expand.png");
+    m_pinnedCollapseIcon = QImage(":/images/pinned-collasped.png");
     connect( m_timeLine, &QTimeLine::frameChanged, this, [this](){
         emit sizeHintChanged(m_animatedIndex);
     });
@@ -170,7 +172,12 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
     if (m_isInAllNotes) {
         result.setHeight(result.height() + 20);
     }
-
+    auto model = dynamic_cast<NoteListModel*>(m_view->model());
+    if (model) {
+        if (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index)) {
+            result.setHeight(result.height() + 25);
+        }
+    }
     return result;
 }
 
@@ -197,6 +204,12 @@ QSize NoteListDelegate::bufferSizeHint(const QStyleOptionViewItem &option, const
     result.setHeight(rowHeight);
     if (m_isInAllNotes) {
         result.setHeight(result.height() + 20);
+    }
+    auto model = dynamic_cast<NoteListModel*>(m_view->model());
+    if (model) {
+        if (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index)) {
+            result.setHeight(result.height() + 25);
+        }
     }
     return result;
 }
@@ -294,6 +307,33 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
         QRect fmRectContent = fmContent.boundingRect(content);
         double rowPosX = 0; //option.rect.x();
         double rowPosY = 0; //option.rect.y();
+        auto model = dynamic_cast<NoteListModel*>(m_view->model());
+        if (model) {
+            if (model->isFirstPinnedNote(index)) {
+                bufferPainter.drawImage(QRect(option.rect.x() - 20,
+                                              rowPosY + 3 + 2,
+                                              20, 20), m_pinnedExpandIcon);
+                QFontMetrics fm(m_dateFont);
+                QRect fmRect = fm.boundingRect("Pinned");
+                QRectF rect(rowPosX + NoteListConstant::leftOffsetX,
+                            rowPosY + 2,
+                            fmRect.width() + 5, fmRect.height());
+                bufferPainter.setPen(m_contentColor);
+                bufferPainter.setFont(m_titleFont);
+                bufferPainter.drawText(rect, Qt::AlignBottom, "Pinned");
+                rowPosY += 25;
+            } else if (model->isFirstPinnedNote(index)) {
+                QFontMetrics fm(m_dateFont);
+                QRect fmRect = fm.boundingRect("Note");
+                QRectF rect(rowPosX + NoteListConstant::leftOffsetX,
+                            rowPosY + 2,
+                            fmRect.width() + 5, fmRect.height());
+                bufferPainter.setPen(m_contentColor);
+                bufferPainter.setFont(m_titleFont);
+                bufferPainter.drawText(rect, Qt::AlignBottom, "Note");
+                rowPosY += 25;
+            }
+        }
         double rowWidth = option.rect.width();
 
         double titleRectPosX = rowPosX + NoteListConstant::leftOffsetX;
@@ -385,6 +425,34 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
 
         double rowPosX = option.rect.x();
         double rowPosY = option.rect.y();
+        auto model = dynamic_cast<NoteListModel*>(m_view->model());
+        if (model) {
+            if (model->isFirstPinnedNote(index)) {
+                painter->drawImage(QRect(option.rect.x() - 20,
+                                              rowPosY + 3 + 2,
+                                              20, 20), m_pinnedExpandIcon);
+                QFontMetrics fm(m_titleFont);
+                QRect fmRect = fm.boundingRect("Pinned");
+                QRectF rect(rowPosX + NoteListConstant::leftOffsetX,
+                            rowPosY + 4,
+                            fmRect.width() + 5, fmRect.height());
+                painter->setPen(m_contentColor);
+                painter->setFont(m_titleFont);
+                painter->drawText(rect, Qt::AlignBottom, "Pinned");
+                rowPosY += 25;
+            } else if (model->isFirstUnpinnedNote(index)) {
+                QFontMetrics fm(m_titleFont);
+                QRect fmRect = fm.boundingRect("Notes");
+                QRectF rect(rowPosX + NoteListConstant::leftOffsetX,
+                            rowPosY + 4,
+                            fmRect.width() + 5, fmRect.height());
+                painter->setPen(m_contentColor);
+                painter->setFont(m_titleFont);
+                painter->drawText(rect, Qt::AlignBottom, "Notes");
+                rowPosY += 25;
+            }
+        }
+
         double rowWidth = option.rect.width();
 
         double titleRectPosX = rowPosX + NoteListConstant::leftOffsetX;

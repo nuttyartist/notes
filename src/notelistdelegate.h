@@ -88,6 +88,8 @@ private:
     bool m_isActive;
     bool m_isInAllNotes;
     QImage m_folderIcon;
+    QImage m_pinnedExpandIcon;
+    QImage m_pinnedCollapseIcon;
     Theme m_theme;
     QTimeLine *m_timeLine;
     QModelIndex m_animatedIndex;

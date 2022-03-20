@@ -32,8 +32,7 @@ NoteListView::NoteListView(QWidget *parent)
       m_dbManager(nullptr),
       m_currentFolderId{SpecialNodeID::InvalidNodeId},
       m_isInTrash{false},
-      m_isDragging{false},
-      m_isPinnedList{false}
+      m_isDragging{false}
 {
     this->setAttribute(Qt::WA_MacShowFocusRect, 0);
 
@@ -85,6 +84,8 @@ NoteListView::NoteListView(QWidget *parent)
     });
 
     m_dragPixmap.load("qrc:/images/notes_icon.icns");
+    setDragEnabled(true);
+    setAcceptDrops(true);
     setSelectionMode(QAbstractItemView::SingleSelection);
 }
 
@@ -150,23 +151,6 @@ void NoteListView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, in
     }
 
     QListView::rowsAboutToBeRemoved(parent, start, end);
-}
-
-bool NoteListView::isPinnedList() const
-{
-    return m_isPinnedList;
-}
-
-QStyleOptionViewItem NoteListView::getViewOptions()
-{
-    return viewOptions();
-}
-
-void NoteListView::setIsPinnedList(bool newIsPinnedList)
-{
-    m_isPinnedList = newIsPinnedList;
-    setDragEnabled(m_isPinnedList);
-    setAcceptDrops(m_isPinnedList);
 }
 
 bool NoteListView::isDragging() const
@@ -374,9 +358,24 @@ void NoteListView::dragEnterEvent(QDragEnterEvent *event)
 void NoteListView::dragMoveEvent(QDragMoveEvent *event)
 {
     if (event->mimeData()->hasFormat(NOTE_MIME)) {
-        event->acceptProposedAction();
-        setDropIndicatorShown(true);
-        QListView::dragMoveEvent(event);
+        bool ok = false;
+        auto nodeId = QString::fromUtf8(
+                    event->mimeData()->data(NOTE_MIME)).toInt(&ok);
+        if (ok) {
+            auto model = dynamic_cast<NoteListModel*>(this->model());
+            if (model) {
+                auto noteIndex = model->getNoteIndex(nodeId);
+                if (noteIndex.data(NoteListModel::NoteIsPinned).toBool()) {
+                    auto firstUnpinned = model->firstUnpinnedIndex();
+                    if (event->pos().y() <= visualRect(firstUnpinned).y() - 25) {
+                        event->acceptProposedAction();
+                        setDropIndicatorShown(true);
+                        QListView::dragMoveEvent(event);
+                        return;
+                    }
+                }
+            }
+        }
     } else {
         event->ignore();
     }
@@ -642,7 +641,8 @@ void NoteListView::onCustomContextMenu(const QPoint &point)
         contextMenu->addAction(deleteNoteAction);
         if ((!m_listViewInfo.isInTag) && (m_listViewInfo.parentFolderId != SpecialNodeID::TrashFolder)) {
             contextMenu->addSeparator();
-            if (!m_isPinnedList) {
+            auto isPinned = index.data(NoteListModel::NoteIsPinned).toBool();
+            if (!isPinned) {
                 contextMenu->addAction(pinNoteAction);
             } else {
                 contextMenu->addAction(unpinNoteAction);
