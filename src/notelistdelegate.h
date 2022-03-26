@@ -72,6 +72,7 @@ private:
     QFont m_titleFont;
     QFont m_titleSelectedFont;
     QFont m_dateFont;
+    QFont m_headerFont;
     QColor m_titleColor;
     QColor m_dateColor;
     QColor m_contentColor;

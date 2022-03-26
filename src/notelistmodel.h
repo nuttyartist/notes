@@ -56,6 +56,8 @@ public:
     bool noteIsHaveTag(const QModelIndex index) const;
     bool isFirstPinnedNote(const QModelIndex index) const;
     bool isFirstUnpinnedNote(const QModelIndex index) const;
+    QModelIndex getFirstPinnedNote() const;
+
 private slots:
     void onPinnedChanged(const QModelIndex& index, bool isPinned);
 

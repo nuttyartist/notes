@@ -32,7 +32,8 @@ NoteListView::NoteListView(QWidget *parent)
       m_dbManager(nullptr),
       m_currentFolderId{SpecialNodeID::InvalidNodeId},
       m_isInTrash{false},
-      m_isDragging{false}
+      m_isDragging{false},
+      m_isPinnedNotesCollapsed{false}
 {
     this->setAttribute(Qt::WA_MacShowFocusRect, 0);
 
@@ -151,6 +152,23 @@ void NoteListView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, in
     }
 
     QListView::rowsAboutToBeRemoved(parent, start, end);
+}
+
+bool NoteListView::isPinnedNotesCollapsed() const
+{
+    return m_isPinnedNotesCollapsed;
+}
+
+void NoteListView::setIsPinnedNotesCollapsed(bool newIsPinnedNotesCollapsed)
+{
+    m_isPinnedNotesCollapsed = newIsPinnedNotesCollapsed;
+    for (int i = 0; i < model()->rowCount(); ++i) {
+        auto index = model()->index(i, 0);
+        if (index.isValid()) {
+            itemDelegate()->sizeHintChanged(index);
+        }
+    }
+    update();
 }
 
 bool NoteListView::isDragging() const
@@ -300,6 +318,17 @@ void NoteListView::mouseMoveEvent(QMouseEvent* event)
 
 void NoteListView::mousePressEvent(QMouseEvent* e)
 {
+    auto index = indexAt(e->pos());
+    auto model = dynamic_cast<NoteListModel*>(this->model());
+    if (model && model->isFirstPinnedNote(index)) {
+        auto rect = visualRect(index);
+        auto iconRect = QRect(rect.right() - 25, rect.y() + 2, 20, 20);
+        if (iconRect.contains(e->pos())) {
+            setIsPinnedNotesCollapsed(!isPinnedNotesCollapsed());
+            return;
+        }
+    }
+
     m_isMousePressed = true;
     if (e->button() == Qt::LeftButton) {
         m_dragStartPosition = e->pos();

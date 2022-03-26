@@ -513,3 +513,11 @@ bool NoteListModel::isFirstUnpinnedNote(const QModelIndex index) const
     }
     return false;
 }
+
+QModelIndex NoteListModel::getFirstPinnedNote() const
+{
+    if (m_pinnedList.isEmpty()) {
+        return QModelIndex();
+    }
+    return createIndex(0, 0);
+}

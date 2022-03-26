@@ -42,10 +42,12 @@ NoteListDelegateEditor::NoteListDelegateEditor(const NoteListDelegate *delegate,
       m_titleFont(m_displayFont, 13, 65),
       m_titleSelectedFont(m_displayFont, 13),
       m_dateFont(m_displayFont, 13),
+      m_headerFont(m_displayFont, 10, 65),
       #else
       m_titleFont(m_displayFont, 10, 60),
       m_titleSelectedFont(m_displayFont, 10),
       m_dateFont(m_displayFont, 10),
+      m_headerFont(m_displayFont, 10, 60),
       #endif
       m_titleColor(26, 26, 26),
       m_dateColor(26, 26, 26),
@@ -64,6 +66,8 @@ NoteListDelegateEditor::NoteListDelegateEditor(const NoteListDelegate *delegate,
 {
     setContentsMargins(0, 0, 0, 0);
     m_folderIcon = QImage(":/images/folder.png");
+    m_pinnedExpandIcon = QImage(":/images/pinned-expand.png");
+    m_pinnedCollapseIcon = QImage(":/images/pinned-collasped.png");
     m_tagListView = new TagListView(this);
     m_tagListModel = new TagListModel(this);
     m_tagListDelegate = new TagListDelegate(this);
@@ -123,9 +127,16 @@ void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOpti
         }
     }else if((index.row() != m_delegate->currentSelectedIndex().row() - 1)
              && (index.row() !=  m_delegate->currentSelectedIndex().row() - 1)){
-        painter->fillRect(rect(), QBrush(m_defaultColor));
-        m_tagListView->setBackground(m_defaultColor);
-        paintSeparator(painter, option, index);
+        auto view = dynamic_cast<NoteListView*>(m_view);
+        auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
+        if (view && view->isPinnedNotesCollapsed() && !isPinned) {
+                painter->fillRect(rect(), QBrush(m_defaultColor));
+                m_tagListView->setBackground(m_defaultColor);
+                paintSeparator(painter, option, index);
+        } else {
+            painter->fillRect(rect(), QBrush(m_defaultColor));
+            m_tagListView->setBackground(m_defaultColor);
+        }
     } else {
         painter->fillRect(rect(), QBrush(m_defaultColor));
         m_tagListView->setBackground(m_defaultColor);
@@ -156,9 +167,41 @@ void NoteListDelegateEditor::paintLabels(QPainter* painter, const QStyleOptionVi
 
     double rowPosX = rect().x();
     double rowPosY = rect().y();
-
     double rowWidth = rect().width();
-
+    auto model = dynamic_cast<NoteListModel*>(m_view->model());
+    auto view = dynamic_cast<NoteListView*>(m_view);
+    if (model) {
+        if (model->isFirstPinnedNote(index)) {
+            QRect headerRect(rowPosX + NoteListConstant::leftOffsetX, rowPosY,
+                             rowWidth - NoteListConstant::leftOffsetX, 25);
+            if (view && view->isPinnedNotesCollapsed()) {
+                painter->drawImage(QRect(headerRect.right() - 25,
+                                              headerRect.y() + 2,
+                                              20, 20), m_pinnedCollapseIcon);
+            } else {
+                painter->drawImage(QRect(headerRect.right() - 25,
+                                              headerRect.y() + 2,
+                                              20, 20), m_pinnedExpandIcon);
+            }
+            painter->setPen(m_contentColor);
+            painter->setFont(m_headerFont);
+            painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Pinned");
+            rowPosY += 25;
+        } else if (model->isFirstUnpinnedNote(index)) {
+            QRect headerRect(rowPosX + NoteListConstant::leftOffsetX, rowPosY,
+                             rowWidth - NoteListConstant::leftOffsetX, 25);
+            painter->setPen(m_contentColor);
+            painter->setFont(m_headerFont);
+            painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Note");
+            rowPosY += 25;
+        }
+    }
+    if (view && view->isPinnedNotesCollapsed()) {
+        auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
+        if (isPinned) {
+            return;
+        }
+    }
     double titleRectPosX = rowPosX + NoteListConstant::leftOffsetX;
     double titleRectPosY = rowPosY;
     double titleRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
@@ -342,16 +385,27 @@ void NoteListDelegateEditor::recalculateSize()
     if (m_delegate->isInAllNotes()) {
         result.setHeight(result.height() + 20);
     }
-    auto m_index = dynamic_cast<NoteListModel*>(m_view->model())->getNoteIndex(m_id);
     result.setHeight(result.height() + m_tagListView->height() + 2);
     result.setWidth(rect().width());
     auto model = dynamic_cast<NoteListModel*>(m_view->model());
     if (model) {
+        auto m_index = model->getNoteIndex(m_id);
         if (model->isFirstPinnedNote(m_index) || model->isFirstUnpinnedNote(m_index)) {
             result.setHeight(result.height() + 25);
         }
+        auto view = dynamic_cast<NoteListView*>(m_view);
+        if (view && view->isPinnedNotesCollapsed()) {
+            auto isPinned = m_index.data(NoteListModel::NoteIsPinned).value<bool>();
+            if (isPinned) {
+                if (model->isFirstPinnedNote(m_index)) {
+                    result.setHeight(25);
+                } else {
+                    result.setHeight(0);
+                }
+            }
+        }
+        emit updateSizeHint(m_id, result, m_index);
     }
-    emit updateSizeHint(m_id, result, m_index);
 }
 
 void NoteListDelegateEditor::setScrollBarPos(int pos)
