@@ -176,7 +176,8 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
     }
     auto model = dynamic_cast<NoteListModel*>(m_view->model());
     if (model) {
-        if (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index)) {
+        if (model->hasPinnedNote() &&
+                (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
             result.setHeight(result.height() + 25);
         }
     }
@@ -219,7 +220,8 @@ QSize NoteListDelegate::bufferSizeHint(const QStyleOptionViewItem &option, const
     }
     auto model = dynamic_cast<NoteListModel*>(m_view->model());
     if (model) {
-        if (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index)) {
+        if (model->hasPinnedNote() &&
+                (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
             result.setHeight(result.height() + 25);
         }
     }
@@ -250,7 +252,8 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
     bufferPainter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     QRect bufferRect = buffer.rect();
     auto model = dynamic_cast<NoteListModel*>(m_view->model());
-    if (model && (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
+    if (model && model->hasPinnedNote() &&
+            (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
         bufferRect.setY(bufferRect.y() + 25);
     }
 
@@ -273,7 +276,8 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
             bufferPainter.fillRect(bufferRect, QBrush(m_hoverColor));
         }
     } else if((index.row() !=  m_currentSelectedIndex.row() - 1)
-              && (index.row() !=  m_hoveredIndex.row() - 1)) {
+              && (index.row() !=  m_hoveredIndex.row() - 1)
+              && (index.row() != model->getFirstUnpinnedNote().row() - 1)){
         if (m_view->isPinnedNotesCollapsed()) {
             auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
             if (!isPinned) {
@@ -357,7 +361,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
                 bufferPainter.setFont(m_headerFont);
                 bufferPainter.drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Pinned");
                 rowPosY += 25;
-            } else if (model->isFirstUnpinnedNote(index)) {
+            } else if (model->hasPinnedNote() && model->isFirstUnpinnedNote(index)) {
                 QRect headerRect(rowPosX + NoteListConstant::leftOffsetX, rowPosY,
                                  bufferSize.width() - NoteListConstant::leftOffsetX, 25);
                 bufferPainter.setPen(m_contentColor);
@@ -481,7 +485,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
                 painter->setFont(m_headerFont);
                 painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Pinned");
                 rowPosY += 25;
-            } else if (model->isFirstUnpinnedNote(index)) {
+            } else if (model->hasPinnedNote() && model->isFirstUnpinnedNote(index)) {
                 QRect headerRect(rowPosX + NoteListConstant::leftOffsetX, rowPosY,
                                  option.rect.width() - NoteListConstant::leftOffsetX, 25);
                 painter->setPen(m_contentColor);

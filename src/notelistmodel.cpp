@@ -447,13 +447,18 @@ bool NoteListModel::dropMimeData(const QMimeData *mime,
     return false;
 }
 
-QModelIndex NoteListModel::firstUnpinnedIndex() const
+QModelIndex NoteListModel::getFirstUnpinnedNote() const
 {
     if (!m_noteList.isEmpty()) {
         return createIndex(m_pinnedList.size(), 0);
     } else {
         return QModelIndex();
     }
+}
+
+bool NoteListModel::hasPinnedNote() const
+{
+    return !m_pinnedList.isEmpty();
 }
 
 bool NoteListModel::noteIsHaveTag(const QModelIndex index) const

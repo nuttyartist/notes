@@ -395,7 +395,7 @@ void NoteListView::dragMoveEvent(QDragMoveEvent *event)
             if (model) {
                 auto noteIndex = model->getNoteIndex(nodeId);
                 if (noteIndex.data(NoteListModel::NoteIsPinned).toBool()) {
-                    auto firstUnpinned = model->firstUnpinnedIndex();
+                    auto firstUnpinned = model->getFirstUnpinnedNote();
                     if (event->pos().y() <= visualRect(firstUnpinned).y() - 25) {
                         event->acceptProposedAction();
                         setDropIndicatorShown(true);

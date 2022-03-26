@@ -52,11 +52,12 @@ public:
     virtual QMimeData *mimeData(const QModelIndexList &indexes) const override;
     virtual bool dropMimeData(const QMimeData *mime, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
 
-    QModelIndex firstUnpinnedIndex() const;
     bool noteIsHaveTag(const QModelIndex index) const;
     bool isFirstPinnedNote(const QModelIndex index) const;
     bool isFirstUnpinnedNote(const QModelIndex index) const;
     QModelIndex getFirstPinnedNote() const;
+    QModelIndex getFirstUnpinnedNote() const;
+    bool hasPinnedNote() const;
 
 private slots:
     void onPinnedChanged(const QModelIndex& index, bool isPinned);
