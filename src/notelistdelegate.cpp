@@ -113,6 +113,16 @@ void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     if(index != m_animatedIndex && isHaveTags) {
         return;
     }
+    if (m_view->isPinnedNotesCollapsed()) {
+        auto model = dynamic_cast<NoteListModel*>(m_view->model());
+        auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
+        if (isPinned) {
+            if (model && (!model->isFirstPinnedNote(index))) {
+                return;
+            }
+        }
+    }
+
     painter->setRenderHint(QPainter::Antialiasing);
     QStyleOptionViewItem opt = option;
     opt.rect.setWidth(option.rect.width() - m_rowRightOffset);
@@ -671,12 +681,16 @@ QWidget *NoteListDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
         return nullptr;
     }
     auto model = dynamic_cast<NoteListModel*>(m_view->model());
-    bool isFirstPinned = false;
-    if (model && model->isFirstPinnedNote(index)) {
-        isFirstPinned = true;
+    if (m_view->isPinnedNotesCollapsed()) {
+        auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
+        if (isPinned) {
+            if (model && (!model->isFirstPinnedNote(index))) {
+                return nullptr;
+            }
+        }
     }
     bool isHaveTags = index.data(NoteListModel::NoteTagsList).value<QSet<int>>().size() > 0;
-    if ((!isFirstPinned) && (!isHaveTags)) {
+    if (!isHaveTags) {
         return nullptr;
     }
     auto w = new NoteListDelegateEditor(this, m_view, option, index, m_tagPool, parent);

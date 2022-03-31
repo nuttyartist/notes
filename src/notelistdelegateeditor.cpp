@@ -103,6 +103,7 @@ NoteListDelegateEditor::~NoteListDelegateEditor()
 
 void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    auto model = dynamic_cast<NoteListModel*>(m_view->model());
     if(m_view->selectionModel()->isSelected(index)){
         if(qApp->applicationState() == Qt::ApplicationActive){
             if(m_isActive){
@@ -126,7 +127,8 @@ void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOpti
             m_tagListView->setBackground(m_hoverColor);
         }
     }else if((index.row() != m_delegate->currentSelectedIndex().row() - 1)
-             && (index.row() !=  m_delegate->currentSelectedIndex().row() - 1)){
+             && (index.row() !=  m_delegate->currentSelectedIndex().row() - 1)
+             && (index.row() != model->getFirstUnpinnedNote().row() - 1)){
         auto view = dynamic_cast<NoteListView*>(m_view);
         auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
         if (view && view->isPinnedNotesCollapsed() && !isPinned) {
