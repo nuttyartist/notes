@@ -79,6 +79,7 @@ signals:
     void moveNoteRequested(int noteId, int folderId);
     void setPinnedNoteRequested(int noteId, bool isPinned);
     void saveSelectedNote(int noteId);
+    void pinnedCollapseChanged();
 private:
     bool m_isScrollBarHidden;
     bool m_animationEnabled;

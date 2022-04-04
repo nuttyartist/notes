@@ -76,6 +76,8 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
             this, &ListViewLogic::onNoteDoubleClicked);
     connect(m_listView, &NoteListView::setPinnedNoteRequested,
             this, &ListViewLogic::onSetPinnedNoteRequested);
+    connect(m_listView, &NoteListView::pinnedCollapseChanged,
+            this, &ListViewLogic::onRowCountChanged);
     connect(m_listModel, &NoteListModel::pinnedChanged,
             this, [this](const QModelIndex& index, bool) {
         if (index.isValid()) {

@@ -332,11 +332,21 @@ void NoteListModel::onPinnedChanged(const QModelIndex &index, bool isPinned)
             && (sourceRow - m_pinnedList.size()) < m_noteList.size()) {
         int destinationChild = 0;
         auto destinationParent = this->index(destinationChild);
-        if (beginMoveRows(sourceParent,sourceRow,sourceRow,destinationParent,destinationChild)) {
+        if (sourceRow == destinationChild) {
+            beginRemoveRows(sourceParent, sourceRow, sourceRow);
+            endRemoveRows();
+            beginInsertRows(destinationParent, destinationChild, destinationChild);
             m_pinnedList.prepend(m_noteList.takeAt(sourceRow - m_pinnedList.size()));
-            endMoveRows();
+            endInsertRows();
             emit rowCountChanged();
             updatePinnedRelativePosition();
+        } else {
+            if (beginMoveRows(sourceParent,sourceRow,sourceRow,destinationParent,destinationChild)) {
+                m_pinnedList.prepend(m_noteList.takeAt(sourceRow - m_pinnedList.size()));
+                endMoveRows();
+                emit rowCountChanged();
+                updatePinnedRelativePosition();
+            }
         }
     }
 

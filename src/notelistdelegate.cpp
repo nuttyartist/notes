@@ -229,12 +229,12 @@ QSize NoteListDelegate::bufferSizeHint(const QStyleOptionViewItem &option, const
         result.setHeight(result.height() + 20);
     }
     auto model = dynamic_cast<NoteListModel*>(m_view->model());
-    if (model) {
-        if (model->hasPinnedNote() &&
-                (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
-            result.setHeight(result.height() + 25);
-        }
-    }
+//    if (model) {
+//        if (model->hasPinnedNote() &&
+//                (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
+//            result.setHeight(result.height() + 25);
+//        }
+//    }
     if (m_view->isPinnedNotesCollapsed()) {
         auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
         if (isPinned) {
@@ -262,10 +262,6 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
     bufferPainter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     QRect bufferRect = buffer.rect();
     auto model = dynamic_cast<NoteListModel*>(m_view->model());
-    if (model && model->hasPinnedNote() &&
-            (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
-        bufferRect.setY(bufferRect.y() + 25);
-    }
 
     if((option.state & QStyle::State_Selected) == QStyle::State_Selected){
         if(qApp->applicationState() == Qt::ApplicationActive){
@@ -314,16 +310,35 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
     }
     painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
-    if (m_state == MoveIn) {
-        painter->drawPixmap(
-                    QRect {option.rect.x(), option.rect.y() + bufferSize.height() - rowHeight, option.rect.width(), rowHeight},
-                    buffer,
-                    QRect {0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight});
+    if (index == m_animatedIndex) {
+        if (m_state == MoveIn) {
+            if (model && model->hasPinnedNote() &&
+                    (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
+                painter->drawPixmap(
+                            QRect {option.rect.x(), option.rect.y() + bufferSize.height() - rowHeight + 25, option.rect.width(), rowHeight},
+                            buffer,
+                            QRect {0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight});
+            } else {
+                painter->drawPixmap(
+                            QRect {option.rect.x(), option.rect.y() + bufferSize.height() - rowHeight, option.rect.width(), rowHeight},
+                            buffer,
+                            QRect {0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight});
+            }
+        } else {
+            if (model && model->hasPinnedNote() &&
+                    (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
+                painter->drawPixmap(QRect {option.rect.x(), option.rect.y() + 25, option.rect.width(), option.rect.height()},
+                                    buffer,
+                                    QRect {0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight});
+            } else {
+                painter->drawPixmap(option.rect, buffer,
+                                    QRect {0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight});
+            }
+        }
     } else {
         painter->drawPixmap(option.rect, buffer,
                             QRect {0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight});
     }
-
 }
 
 void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
@@ -354,32 +369,6 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
         double rowPosX = 0; //option.rect.x();
         double rowPosY = 0; //option.rect.y();
         auto model = dynamic_cast<NoteListModel*>(m_view->model());
-        if (model) {
-            if (model->isFirstPinnedNote(index)) {
-                QRect headerRect(rowPosX + NoteListConstant::leftOffsetX, rowPosY,
-                                 bufferSize.width() - NoteListConstant::leftOffsetX, 25);
-                if (m_view->isPinnedNotesCollapsed()) {
-                    bufferPainter.drawImage(QRect(headerRect.right() - 25,
-                                                  headerRect.y() + 2,
-                                                  20, 20), m_pinnedCollapseIcon);
-                } else {
-                    bufferPainter.drawImage(QRect(headerRect.right() - 25,
-                                                  headerRect.y() + 2,
-                                                  20, 20), m_pinnedExpandIcon);
-                }
-                bufferPainter.setPen(m_contentColor);
-                bufferPainter.setFont(m_headerFont);
-                bufferPainter.drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Pinned");
-                rowPosY += 25;
-            } else if (model->hasPinnedNote() && model->isFirstUnpinnedNote(index)) {
-                QRect headerRect(rowPosX + NoteListConstant::leftOffsetX, rowPosY,
-                                 bufferSize.width() - NoteListConstant::leftOffsetX, 25);
-                bufferPainter.setPen(m_contentColor);
-                bufferPainter.setFont(m_headerFont);
-                bufferPainter.drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Note");
-                rowPosY += 25;
-            }
-        }
         if (m_view->isPinnedNotesCollapsed()) {
             auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
             if (isPinned) {
@@ -448,13 +437,50 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
         }
 
         if (m_state == MoveIn) {
-            painter->drawPixmap(
-                        QRect {option.rect.x(), option.rect.y() + bufferSize.height() - rowHeight, option.rect.width(), rowHeight},
-                        buffer,
-                        QRect {0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight});
+            if (model && model->hasPinnedNote() && (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
+                painter->drawPixmap(
+                            QRect {option.rect.x(), option.rect.y() + bufferSize.height() - rowHeight + 25, option.rect.width(), rowHeight},
+                            buffer,
+                            QRect {0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight});
+            } else {
+                painter->drawPixmap(
+                            QRect {option.rect.x(), option.rect.y() + bufferSize.height() - rowHeight, option.rect.width(), rowHeight},
+                            buffer,
+                            QRect {0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight});
+            }
         } else {
-            painter->drawPixmap(option.rect, buffer,
-                                QRect {0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight});
+            if (model && model->hasPinnedNote() && (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
+                painter->drawPixmap(QRect {option.rect.x(), option.rect.y() + 25, option.rect.width(), option.rect.height()},
+                                    buffer,
+                                    QRect {0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight});
+            } else {
+                painter->drawPixmap(option.rect, buffer,
+                                    QRect {0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight});
+            }
+        }
+        if (model && model->hasPinnedNote()) {
+            if (model->isFirstPinnedNote(index)) {
+                QRect headerRect(option.rect.x() + NoteListConstant::leftOffsetX, option.rect.y(),
+                                 option.rect.width() - NoteListConstant::leftOffsetX, 25);
+                if (m_view->isPinnedNotesCollapsed()) {
+                    painter->drawImage(QRect(headerRect.right() - 25,
+                                                  headerRect.y() + 2,
+                                                  20, 20), m_pinnedCollapseIcon);
+                } else {
+                    painter->drawImage(QRect(headerRect.right() - 25,
+                                                  headerRect.y() + 2,
+                                                  20, 20), m_pinnedExpandIcon);
+                }
+                painter->setPen(m_contentColor);
+                painter->setFont(m_headerFont);
+                painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Pinned");
+            } else if (model->hasPinnedNote() && model->isFirstUnpinnedNote(index)) {
+                QRect headerRect(option.rect.x() + NoteListConstant::leftOffsetX, option.rect.y(),
+                                 option.rect.width() - NoteListConstant::leftOffsetX, 25);
+                painter->setPen(m_contentColor);
+                painter->setFont(m_headerFont);
+                painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Note");
+            }
         }
     } else {
         QString title{index.data(NoteListModel::NoteFullTitle).toString()};
@@ -500,7 +526,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
                                  option.rect.width() - NoteListConstant::leftOffsetX, 25);
                 painter->setPen(m_contentColor);
                 painter->setFont(m_headerFont);
-                painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Notes");
+                painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Note");
                 rowPosY += 25;
             }
         }

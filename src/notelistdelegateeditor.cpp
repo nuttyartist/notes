@@ -103,27 +103,38 @@ NoteListDelegateEditor::~NoteListDelegateEditor()
 
 void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    auto bufferSize = rect().size();
+    QPixmap buffer{bufferSize};
+    buffer.fill(Qt::transparent);
+    QPainter bufferPainter{&buffer};
+    bufferPainter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+    QRect bufferRect = buffer.rect();
     auto model = dynamic_cast<NoteListModel*>(m_view->model());
+    if (model && model->hasPinnedNote() &&
+            (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
+        bufferRect.setY(bufferRect.y() + 25);
+    }
+
     if(m_view->selectionModel()->isSelected(index)){
         if(qApp->applicationState() == Qt::ApplicationActive){
             if(m_isActive){
-                painter->fillRect(rect(), QBrush(m_ActiveColor));
+                bufferPainter.fillRect(bufferRect, QBrush(m_ActiveColor));
                 m_tagListView->setBackground(m_ActiveColor);
             }else{
-                painter->fillRect(rect(), QBrush(m_notActiveColor));
+                bufferPainter.fillRect(bufferRect, QBrush(m_notActiveColor));
                 m_tagListView->setBackground(m_notActiveColor);
             }
         }else if(qApp->applicationState() == Qt::ApplicationInactive){
-            painter->fillRect(rect(), QBrush(m_applicationInactiveColor));
+            bufferPainter.fillRect(bufferRect, QBrush(m_applicationInactiveColor));
             m_tagListView->setBackground(m_applicationInactiveColor);
         }
     }else if (underMouseC()){
         if (dynamic_cast<NoteListView*>(m_view)->isDragging()) {
-            auto rect = this->rect();
+            auto rect = bufferRect;
             rect.setTop(rect.bottom() - 5);
-            painter->fillRect(rect, QBrush("#d6d5d5"));
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
         } else {
-            painter->fillRect(rect(), QBrush(m_hoverColor));
+            bufferPainter.fillRect(bufferRect, QBrush(m_hoverColor));
             m_tagListView->setBackground(m_hoverColor);
         }
     }else if((index.row() != m_delegate->currentSelectedIndex().row() - 1)
@@ -132,17 +143,20 @@ void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOpti
         auto view = dynamic_cast<NoteListView*>(m_view);
         auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
         if (view && view->isPinnedNotesCollapsed() && !isPinned) {
-                painter->fillRect(rect(), QBrush(m_defaultColor));
+                bufferPainter.fillRect(bufferRect, QBrush(m_defaultColor));
                 m_tagListView->setBackground(m_defaultColor);
                 paintSeparator(painter, option, index);
         } else {
-            painter->fillRect(rect(), QBrush(m_defaultColor));
+            bufferPainter.fillRect(bufferRect, QBrush(m_defaultColor));
             m_tagListView->setBackground(m_defaultColor);
         }
     } else {
-        painter->fillRect(rect(), QBrush(m_defaultColor));
+        bufferPainter.fillRect(bufferRect, QBrush(m_defaultColor));
         m_tagListView->setBackground(m_defaultColor);
     }
+    auto rowHeight = rect().height();
+    painter->drawPixmap(rect(), buffer,
+                        QRect {0, bufferSize.height() - rowHeight, rect().width(), rowHeight});
 }
 
 void NoteListDelegateEditor::paintLabels(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
@@ -172,7 +186,7 @@ void NoteListDelegateEditor::paintLabels(QPainter* painter, const QStyleOptionVi
     double rowWidth = rect().width();
     auto model = dynamic_cast<NoteListModel*>(m_view->model());
     auto view = dynamic_cast<NoteListView*>(m_view);
-    if (model) {
+    if (model && model->hasPinnedNote()) {
         if (model->isFirstPinnedNote(index)) {
             QRect headerRect(rowPosX + NoteListConstant::leftOffsetX, rowPosY,
                              rowWidth - NoteListConstant::leftOffsetX, 25);
@@ -392,9 +406,9 @@ void NoteListDelegateEditor::recalculateSize()
     auto model = dynamic_cast<NoteListModel*>(m_view->model());
     if (model) {
         auto m_index = model->getNoteIndex(m_id);
-        if (model->isFirstPinnedNote(m_index) || model->isFirstUnpinnedNote(m_index)) {
-            result.setHeight(result.height() + 25);
-        }
+//        if (model->isFirstPinnedNote(m_index) || model->isFirstUnpinnedNote(m_index)) {
+//            result.setHeight(result.height() + 25);
+//        }
         auto view = dynamic_cast<NoteListView*>(m_view);
         if (view && view->isPinnedNotesCollapsed()) {
             auto isPinned = m_index.data(NoteListModel::NoteIsPinned).value<bool>();

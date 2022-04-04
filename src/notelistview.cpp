@@ -169,6 +169,7 @@ void NoteListView::setIsPinnedNotesCollapsed(bool newIsPinnedNotesCollapsed)
         }
     }
     update();
+    emit pinnedCollapseChanged();
 }
 
 bool NoteListView::isDragging() const
