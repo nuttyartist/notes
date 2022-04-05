@@ -8,6 +8,7 @@
 
 class TagPool;
 class NoteListViewPrivate;
+enum class NoteListState;
 
 class NoteListView : public QListView
 {
@@ -37,9 +38,12 @@ public:
     bool isPinnedNotesCollapsed() const;
     void setIsPinnedNotesCollapsed(bool newIsPinnedNotesCollapsed);
 
+
 public slots:
     void onCustomContextMenu(const QPoint& point);
     void onTagsMenu(const QPoint& point);
+    void onRemoveRowRequested(const QModelIndexList indexes);
+    void onAnimationFinished(NoteListState state);
 
 protected:
     void paintEvent(QPaintEvent *e) Q_DECL_OVERRIDE;
@@ -67,7 +71,6 @@ private slots:
 
 protected slots:
     void rowsInserted(const QModelIndex &parent, int start, int end) Q_DECL_OVERRIDE;
-    void rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end) Q_DECL_OVERRIDE;
 
 signals:
     void viewportPressed();
@@ -103,6 +106,7 @@ private:
     QPoint m_dragStartPosition;
     QPixmap m_dragPixmap;
     QMap<int, QVector<QWidget*>> m_openedEditor;
+    QVector<int> m_needRemovedNotes;
     ListViewInfo m_listViewInfo;
     bool m_isDragging;
     bool m_isPinnedNotesCollapsed;

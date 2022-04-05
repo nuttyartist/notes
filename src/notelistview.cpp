@@ -105,7 +105,7 @@ void NoteListView::animateAddedRow(const QModelIndex& parent, int start, int end
 
     NoteListDelegate* delegate = dynamic_cast<NoteListDelegate*>(itemDelegate());
     if(delegate != Q_NULLPTR){
-        delegate->setState( NoteListDelegate::Insert, idx);
+        delegate->setState(NoteListState::Insert, idx);
     }
 }
 
@@ -132,28 +132,6 @@ void NoteListView::rowsInserted(const QModelIndex &parent, int start, int end)
     QListView::rowsInserted(parent, start, end);
 }
 
-/**
- * @brief Reimplemented from QAbstractItemView::rowsAboutToBeRemoved().
- */
-void NoteListView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end)
-{
-    if(start == end){
-        NoteListDelegate* delegate = dynamic_cast<NoteListDelegate*>(itemDelegate());
-        if(delegate != Q_NULLPTR){
-            QModelIndex idx = model()->index(start,0);
-            delegate->setCurrentSelectedIndex(QModelIndex());
-
-            if(m_animationEnabled){
-                delegate->setState( NoteListDelegate::Remove, idx);
-            }else{
-                delegate->setState( NoteListDelegate::Normal, idx);
-            }
-        }
-    }
-
-    QListView::rowsAboutToBeRemoved(parent, start, end);
-}
-
 bool NoteListView::isPinnedNotesCollapsed() const
 {
     return m_isPinnedNotesCollapsed;
@@ -170,6 +148,23 @@ void NoteListView::setIsPinnedNotesCollapsed(bool newIsPinnedNotesCollapsed)
     }
     update();
     emit pinnedCollapseChanged();
+}
+
+void NoteListView::onRemoveRowRequested(const QModelIndexList indexes)
+{
+    if (!indexes.isEmpty()) {
+        for (const auto index : QT_AS_CONST(indexes)) {
+            m_needRemovedNotes.push_back(index.data(NoteListModel::NoteID).toInt());
+        }
+        NoteListDelegate* delegate = dynamic_cast<NoteListDelegate*>(itemDelegate());
+        if (delegate) {
+            if (m_animationEnabled){
+                delegate->setState(NoteListState::Remove, indexes[0]);
+            } else {
+                delegate->setState(NoteListState::Normal, indexes[0]);
+            }
+        }
+    }
 }
 
 bool NoteListView::isDragging() const
@@ -260,11 +255,10 @@ void NoteListView::rowsAboutToBeMoved(const QModelIndex &sourceParent, int sourc
         QModelIndex idx = model()->index(sourceStart,0);
         NoteListDelegate* delegate = dynamic_cast<NoteListDelegate*>(itemDelegate());
         if(delegate != Q_NULLPTR){
-
             if(m_animationEnabled){
-                delegate->setState( NoteListDelegate::MoveOut, idx);
+                delegate->setState(NoteListState::MoveOut, idx);
             }else{
-                delegate->setState( NoteListDelegate::Normal, idx);
+                delegate->setState(NoteListState::Normal, idx);
             }
         }
     }
@@ -282,13 +276,12 @@ void NoteListView::rowsMoved(const QModelIndex &parent, int start, int end,
     setCurrentIndex(idx);
 
     NoteListDelegate* delegate = dynamic_cast<NoteListDelegate*>(itemDelegate());
-    if(delegate == Q_NULLPTR)
-        return;
-
-    if(m_animationEnabled){
-        delegate->setState( NoteListDelegate::MoveIn, idx );
-    }else{
-        delegate->setState( NoteListDelegate::Normal, idx);
+    if (delegate) {
+        if (m_animationEnabled){
+            delegate->setState(NoteListState::MoveIn, idx );
+        } else {
+            delegate->setState(NoteListState::Normal, idx);
+        }
     }
 }
 
@@ -761,6 +754,20 @@ void NoteListView::onTagsMenu(const QPoint &point)
             tagsMenu->exec(viewport()->mapToGlobal(point));
         } else {
             qDebug() << __FUNCTION__ << "tag pool is not init yet";
+        }
+    }
+}
+
+void NoteListView::onAnimationFinished(NoteListState state)
+{
+    if (state == NoteListState::Remove) {
+        auto model = dynamic_cast<NoteListModel*>(this->model());
+        if (model) {
+            for (const auto id : QT_AS_CONST(m_needRemovedNotes)) {
+                auto index = model->getNoteIndex(id);
+                model->removeRow(index.row());
+            }
+            m_needRemovedNotes.clear();
         }
     }
 }

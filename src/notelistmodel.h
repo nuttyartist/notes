@@ -78,6 +78,10 @@ signals:
     void requestUpdatePinnedRelPos(int noteId, int pos);
     void requestUpdatePinnedRelPosAN(int noteId, int pos);
     void setCurrentIndex(const QModelIndex& index);
+    void requestRemoveNotes(QModelIndexList index);
+    // QAbstractItemModel interface
+public:
+    bool removeRows(int row, int count, const QModelIndex &parent) override;
 };
 
 #endif // NOTELISTMODEL_H

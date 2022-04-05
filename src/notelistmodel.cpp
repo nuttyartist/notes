@@ -113,18 +113,7 @@ void NoteListModel::setListNote(const QVector<NodeData> notes, const ListViewInf
 
 void NoteListModel::removeNote(const QModelIndex &noteIndex)
 {
-    if (noteIndex.isValid()) {
-        int row = noteIndex.row();
-        beginRemoveRows(QModelIndex(), row, row);
-        if (row < m_pinnedList.size()) {
-            m_pinnedList.takeAt(row);
-        } else {
-            row = row - m_pinnedList.size();
-            m_noteList.takeAt(row);
-        }
-        endRemoveRows();
-        emit rowCountChanged();
-    }
+    emit requestRemoveNotes({noteIndex});
 }
 
 
@@ -392,6 +381,25 @@ void NoteListModel::updatePinnedRelativePosition()
 bool NoteListModel::isInAllNote() const
 {
     return (!m_listViewInfo.isInTag) && (m_listViewInfo.parentFolderId == SpecialNodeID::RootFolder);
+}
+
+bool NoteListModel::removeRows(int row, int count, const QModelIndex &parent)
+{
+    if (row < 0 || (row + count) > (m_pinnedList.size() + m_noteList.size())) {
+        return false;
+    }
+    beginRemoveRows(parent, row, row + count);
+    for (int r = row; r < row + count; ++r) {
+        if (r < m_pinnedList.size()) {
+            m_pinnedList.takeAt(r);
+        } else {
+            r = r - m_pinnedList.size();
+            m_noteList.takeAt(r);
+        }
+    }
+    endRemoveRows();
+    emit rowCountChanged();
+    return true;
 }
 
 Qt::DropActions NoteListModel::supportedDropActions() const

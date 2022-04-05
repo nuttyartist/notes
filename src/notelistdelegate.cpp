@@ -47,7 +47,7 @@ NoteListDelegate::NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject
       m_rowHeight(106),
       m_maxFrame(200),
       m_rowRightOffset(0),
-      m_state(Normal),
+      m_state(NoteListState::Normal),
       m_isActive(false),
       m_isInAllNotes(false),
       m_theme(Theme::Light)
@@ -63,14 +63,15 @@ NoteListDelegate::NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject
         emit sizeHintChanged(m_animatedIndex);
     });
 
-    connect(m_timeLine, &QTimeLine::finished, this, [this](){
+    connect(m_timeLine, &QTimeLine::finished, this, [this]() {
+        emit animationFinished(m_state);
         m_view->openPersistentEditorC(m_animatedIndex);
         m_animatedIndex = QModelIndex();
-        m_state = Normal;
+        m_state = NoteListState::Normal;
     });
 }
 
-void NoteListDelegate::setState(States NewState, QModelIndex index)
+void NoteListDelegate::setState(NoteListState NewState, QModelIndex index)
 {
     m_animatedIndex = index;
 
@@ -82,19 +83,19 @@ void NoteListDelegate::setState(States NewState, QModelIndex index)
     };
 
     switch ( NewState ){
-    case Insert:
+    case NoteListState::Insert:
         startAnimation(QTimeLine::Forward, m_maxFrame);
         break;
-    case Remove:
+    case NoteListState::Remove:
         startAnimation(QTimeLine::Backward, m_maxFrame);
         break;
-    case MoveOut:
+    case NoteListState::MoveOut:
         startAnimation(QTimeLine::Backward, m_maxFrame);
         break;
-    case MoveIn:
+    case NoteListState::MoveIn:
         startAnimation(QTimeLine::Backward, m_maxFrame);
         break;
-    case Normal:
+    case NoteListState::Normal:
         m_animatedIndex = QModelIndex();
         break;
     }
@@ -131,18 +132,18 @@ void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     double rate = (currentFrame/(m_maxFrame * 1.0));
     double height = m_rowHeight * rate;
 
-    switch(m_state){
-    case Insert:
-    case Remove:
-    case MoveOut:
+    switch (m_state){
+    case NoteListState::Insert:
+    case NoteListState::Remove:
+    case NoteListState::MoveOut:
         if(index == m_animatedIndex){
             opt.rect.setHeight(int(height));
             opt.backgroundBrush.setColor(m_notActiveColor);
         }
         break;
-    case MoveIn:
+    case NoteListState::MoveIn:
         break;
-    case Normal:
+    case NoteListState::Normal:
         break;
     }
 
@@ -171,9 +172,9 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
         rowHeight = m_rowHeight;
     }
     if(index == m_animatedIndex){
-        if(m_state == MoveIn){
+        if (m_state == NoteListState::MoveIn){
             result.setHeight(rowHeight);
-        }else{
+        } else {
             double rate = m_timeLine->currentFrame()/(m_maxFrame * 1.0);
             double height = rowHeight * rate;
             result.setHeight(int(height));
@@ -298,7 +299,7 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
 
     int rowHeight;
     if (index == m_animatedIndex) {
-        if (m_state != MoveIn) {
+        if (m_state != NoteListState::MoveIn) {
             double rowRate = m_timeLine->currentFrame()/(m_maxFrame * 1.0);
             rowHeight = bufferSize.height() * rowRate;
         } else {
@@ -311,7 +312,7 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
     painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
     if (index == m_animatedIndex) {
-        if (m_state == MoveIn) {
+        if (m_state == NoteListState::MoveIn) {
             if (model && model->hasPinnedNote() &&
                     (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
                 painter->drawPixmap(
@@ -425,7 +426,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
         painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
         int rowHeight;
         if (index == m_animatedIndex) {
-            if (m_state != MoveIn) {
+            if (m_state != NoteListState::MoveIn) {
                 double rowRate = m_timeLine->currentFrame()/(m_maxFrame * 1.0);
                 rowHeight = bufferSize.height() * rowRate;
             } else {
@@ -436,7 +437,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
             rowHeight = option.rect.height();
         }
 
-        if (m_state == MoveIn) {
+        if (m_state == NoteListState::MoveIn) {
             if (model && model->hasPinnedNote() && (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
                 painter->drawPixmap(
                             QRect {option.rect.x(), option.rect.y() + bufferSize.height() - rowHeight + 25, option.rect.width(), rowHeight},

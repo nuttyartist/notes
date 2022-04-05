@@ -7,6 +7,14 @@
 
 class TagPool;
 
+enum class NoteListState{
+    Normal,
+    Insert,
+    Remove,
+    MoveOut,
+    MoveIn
+};
+
 class NoteListDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
@@ -14,15 +22,7 @@ class NoteListDelegate : public QStyledItemDelegate
 public:
     NoteListDelegate(NoteListView* view, TagPool *tagPool, QObject *parent = Q_NULLPTR);
 
-    enum States{
-        Normal,
-        Insert,
-        Remove,
-        MoveOut,
-        MoveIn
-    };
-
-    void setState(States NewState , QModelIndex index);
+    void setState(NoteListState NewState , QModelIndex index);
     void setAnimationDuration(const int duration);
 
     void paint(QPainter *painter, const QStyleOptionViewItem &option,
@@ -59,6 +59,8 @@ public:
 
 signals:
     void themeChanged(Theme theme);
+    void animationFinished(NoteListState animationState);
+
 private:
     void paintBackground(QPainter* painter, const QStyleOptionViewItem &option, const QModelIndex &index)const;
     void paintLabels(QPainter* painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
@@ -85,7 +87,7 @@ private:
     int m_rowHeight;
     int m_maxFrame;
     int m_rowRightOffset;
-    States m_state;
+    NoteListState m_state;
     bool m_isActive;
     bool m_isInAllNotes;
     QImage m_folderIcon;
