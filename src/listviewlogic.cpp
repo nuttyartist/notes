@@ -97,14 +97,14 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
 
 void ListViewLogic::selectNote(const QModelIndex &noteIndex)
 {
-    if(noteIndex.isValid()){
+    if (noteIndex.isValid()){
         auto note = m_listModel->getNote(noteIndex);
         m_listView->selectionModel()->select(noteIndex, QItemSelectionModel::ClearAndSelect);
         m_listView->setCurrentIndex(noteIndex);
         m_listView->scrollTo(noteIndex);
         emit showNoteInEditor(note);
     } else {
-        qDebug() << "MainWindow::selectNote() : noteIndex is not valid";
+        qDebug() << __PRETTY_FUNCTION__ << "noteIndex is not valid";
     }
 }
 

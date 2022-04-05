@@ -388,13 +388,13 @@ bool NoteListModel::removeRows(int row, int count, const QModelIndex &parent)
     if (row < 0 || (row + count) > (m_pinnedList.size() + m_noteList.size())) {
         return false;
     }
-    beginRemoveRows(parent, row, row + count);
+    beginRemoveRows(parent, row, row + count - 1);
     for (int r = row; r < row + count; ++r) {
         if (r < m_pinnedList.size()) {
             m_pinnedList.takeAt(r);
         } else {
-            r = r - m_pinnedList.size();
-            m_noteList.takeAt(r);
+            auto rr = r - m_pinnedList.size();
+            m_noteList.takeAt(rr);
         }
     }
     endRemoveRows();
@@ -483,6 +483,11 @@ QModelIndex NoteListModel::getFirstUnpinnedNote() const
 
 bool NoteListModel::hasPinnedNote() const
 {
+    if ((!m_listViewInfo.isInTag)
+            && (m_listViewInfo.parentFolderId == SpecialNodeID::TrashFolder)) {
+        // Trash don't have pinned note
+        return false;
+    }
     return !m_pinnedList.isEmpty();
 }
 

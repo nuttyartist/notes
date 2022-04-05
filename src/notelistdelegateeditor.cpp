@@ -77,9 +77,27 @@ NoteListDelegateEditor::NoteListDelegateEditor(const NoteListDelegate *delegate,
     m_tagListModel->setTagPool(tagPool);
     m_tagListModel->setModelData(index.data(NoteListModel::NoteTagsList).value<QSet<int>>());
     if (m_delegate->isInAllNotes()) {
-        m_tagListView->setGeometry(10, 90, rect().width() - 15, m_tagListView->height());
+        int y = 90;
+        auto model = dynamic_cast<NoteListModel*>(m_view->model());
+        if (model) {
+            auto m_index = model->getNoteIndex(m_id);
+            if (model->hasPinnedNote() &&
+                    (model->isFirstPinnedNote(m_index) || model->isFirstUnpinnedNote(m_index))) {
+                y += 25;
+            }
+        }
+        m_tagListView->setGeometry(10, y, rect().width() - 15, m_tagListView->height());
     } else {
-        m_tagListView->setGeometry(10, 70, rect().width() - 15, m_tagListView->height());
+        int y = 70;
+        auto model = dynamic_cast<NoteListModel*>(m_view->model());
+        if (model) {
+            auto m_index = model->getNoteIndex(m_id);
+            if (model->hasPinnedNote() &&
+                    (model->isFirstPinnedNote(m_index) || model->isFirstUnpinnedNote(m_index))) {
+                y += 25;
+            }
+        }
+        m_tagListView->setGeometry(10, y, rect().width() - 15, m_tagListView->height());
     }
     connect(m_tagListView->verticalScrollBar(), &QScrollBar::valueChanged,
             this, [this] {
@@ -333,9 +351,27 @@ void NoteListDelegateEditor::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
     if (m_delegate->isInAllNotes()) {
-        m_tagListView->setGeometry(10, 90, rect().width() - 15, m_tagListView->height());
+        int y = 90;
+        auto model = dynamic_cast<NoteListModel*>(m_view->model());
+        if (model) {
+            auto m_index = model->getNoteIndex(m_id);
+            if (model->hasPinnedNote() &&
+                    (model->isFirstPinnedNote(m_index) || model->isFirstUnpinnedNote(m_index))) {
+                y += 25;
+            }
+        }
+        m_tagListView->setGeometry(10, y, rect().width() - 15, m_tagListView->height());
     } else {
-        m_tagListView->setGeometry(10, 70, rect().width() - 15, m_tagListView->height());
+        int y = 70;
+        auto model = dynamic_cast<NoteListModel*>(m_view->model());
+        if (model) {
+            auto m_index = model->getNoteIndex(m_id);
+            if (model->hasPinnedNote() &&
+                    (model->isFirstPinnedNote(m_index) || model->isFirstUnpinnedNote(m_index))) {
+                y += 25;
+            }
+        }
+        m_tagListView->setGeometry(10, y, rect().width() - 15, m_tagListView->height());
     }
     recalculateSize();
 }
@@ -406,11 +442,12 @@ void NoteListDelegateEditor::recalculateSize()
     auto model = dynamic_cast<NoteListModel*>(m_view->model());
     if (model) {
         auto m_index = model->getNoteIndex(m_id);
-//        if (model->isFirstPinnedNote(m_index) || model->isFirstUnpinnedNote(m_index)) {
-//            result.setHeight(result.height() + 25);
-//        }
+        if (model->hasPinnedNote() &&
+                (model->isFirstPinnedNote(m_index) || model->isFirstUnpinnedNote(m_index))) {
+            result.setHeight(result.height() + 25);
+        }
         auto view = dynamic_cast<NoteListView*>(m_view);
-        if (view && view->isPinnedNotesCollapsed()) {
+        if (view && model->hasPinnedNote() && view->isPinnedNotesCollapsed()) {
             auto isPinned = m_index.data(NoteListModel::NoteIsPinned).value<bool>();
             if (isPinned) {
                 if (model->isFirstPinnedNote(m_index)) {
