@@ -567,23 +567,12 @@ void NodeTreeView::mousePressEvent(QMouseEvent *event)
 {
     Q_D(NodeTreeView);
     d->delayedAutoScroll.stop();
-
-    QPoint pos = event->pos();
-    QPersistentModelIndex index = indexAt(pos);
-
-    d->pressedAlreadySelected = d->selectionModel->isSelected(index);
-    d->pressedIndex = index;
-    d->pressedModifiers = event->modifiers();
-    QPoint offset = d->offset();
-    d->pressedPosition = pos + offset;
-    updateEditingIndex(event->pos());
     {
         auto index = indexAt(event->pos());
         if (index.isValid()) {
             auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
             switch (itemType) {
             case NodeItem::Type::FolderItem: {
-                setCurrentIndexC(index);
                 auto rect = visualRect(index);
                 auto iconRect = QRect(rect.x() + 5, rect.y() + (rect.height() - 20) / 2, 20, 20);
                 if (iconRect.contains(event->pos())) {
@@ -592,8 +581,9 @@ void NodeTreeView::mousePressEvent(QMouseEvent *event)
                     } else {
                         expand(index);
                     }
+                    return;
                 }
-
+                setCurrentIndexC(index);
                 break;
             }
             case NodeItem::Type::TagItem: {
@@ -627,6 +617,14 @@ void NodeTreeView::mousePressEvent(QMouseEvent *event)
             }
         }
     }
+    QPoint pos = event->pos();
+    QPersistentModelIndex index = indexAt(pos);
+    d->pressedAlreadySelected = d->selectionModel->isSelected(index);
+    d->pressedIndex = index;
+    d->pressedModifiers = event->modifiers();
+    QPoint offset = d->offset();
+    d->pressedPosition = pos + offset;
+    updateEditingIndex(event->pos());
 }
 
 void NodeTreeView::leaveEvent(QEvent *event)
