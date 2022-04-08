@@ -458,6 +458,7 @@ void MainWindow::setupKeyboardShortcuts()
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_K), this, SLOT(toggleStayOnTop()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_J), this, SLOT(toggleNoteList()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S), this, SLOT(onStyleEditorButtonClicked()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_J), this, SLOT(toggleNodeTree()));
 
     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
 #if defined(Q_OS_LINUX)
@@ -1365,19 +1366,35 @@ void MainWindow::onDotsButtonClicked()
 #endif
 
     // note list visiblity action
-    bool isCollapsed = (m_splitter->sizes().at(0) == 0);
-    QString actionLabel = isCollapsed? tr("Show notes list")
-                                     : tr("Hide notes list");
+    bool isNoteListCollapsed = (m_splitter->sizes().at(1) == 0);
+    QString actionLabel = isNoteListCollapsed? tr("Show notes list")
+                                             : tr("Hide notes list");
 
     QAction* noteListVisbilityAction = viewMenu->addAction(actionLabel);
     noteListVisbilityAction->setShortcut(Qt::CTRL + Qt::Key_J);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
     noteListVisbilityAction->setShortcutVisibleInContextMenu(true);
 #endif
-    if(isCollapsed){
+    if(isNoteListCollapsed){
         connect(noteListVisbilityAction, &QAction::triggered, this, &MainWindow::expandNoteList);
     }else{
         connect(noteListVisbilityAction, &QAction::triggered, this, &MainWindow::collapseNoteList);
+    }
+
+    // folder tree view visiblity action
+    bool isFolderTreeCollapsed = (m_splitter->sizes().at(0) == 0);
+    QString factionLabel = isFolderTreeCollapsed? tr("Show folders tree")
+                                               : tr("Hide folders tree");
+
+    QAction* folderTreeVisbilityAction = viewMenu->addAction(factionLabel);
+    folderTreeVisbilityAction->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_J);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
+    folderTreeVisbilityAction->setShortcutVisibleInContextMenu(true);
+#endif
+    if(isFolderTreeCollapsed){
+        connect(folderTreeVisbilityAction, &QAction::triggered, this, &MainWindow::expandNodeTree);
+    }else{
+        connect(folderTreeVisbilityAction, &QAction::triggered, this, &MainWindow::collapseNodeTree);
     }
 
     // Enable or Disable markdown
