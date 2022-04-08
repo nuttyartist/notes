@@ -272,18 +272,23 @@ void NoteListModel::sort(int column, Qt::SortOrder order)
 {
     Q_UNUSED(column)
     Q_UNUSED(order)
+    if (m_listViewInfo.parentFolderId == SpecialNodeID::TrashFolder) {
+        std::stable_sort(m_noteList.begin(), m_noteList.end(), [](const NodeData& lhs, const NodeData& rhs){
+            return lhs.deletionDateTime() > rhs.deletionDateTime();
+        });
+    } else {
+        std::stable_sort(m_pinnedList.begin(), m_pinnedList.end(), [this](const NodeData& lhs, const NodeData& rhs) {
+            if (isInAllNote()) {
+                return lhs.relativePosAN() < rhs.relativePosAN();
+            } else {
+                return lhs.relativePosition() < rhs.relativePosition();
+            }
+        });
 
-    std::stable_sort(m_pinnedList.begin(), m_pinnedList.end(), [this](const NodeData& lhs, const NodeData& rhs) {
-        if (isInAllNote()) {
-            return lhs.relativePosAN() < rhs.relativePosAN();
-        } else {
-            return lhs.relativePosition() < rhs.relativePosition();
-        }
-    });
-
-    std::stable_sort(m_noteList.begin(), m_noteList.end(), [](const NodeData& lhs, const NodeData& rhs){
-        return lhs.lastModificationdateTime() > rhs.lastModificationdateTime();
-    });
+        std::stable_sort(m_noteList.begin(), m_noteList.end(), [](const NodeData& lhs, const NodeData& rhs){
+            return lhs.lastModificationdateTime() > rhs.lastModificationdateTime();
+        });
+    }
 
     emit dataChanged(index(0), index(rowCount()-1));
 }
