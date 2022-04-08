@@ -41,7 +41,7 @@ void AllNoteButtonTreeDelegateEditor::paintEvent(QPaintEvent *event)
     auto displayName = m_index.data(NodeItem::Roles::DisplayText).toString();
     QRect nameRect(rect());
     nameRect.setLeft(iconRect.x() + iconRect.width() + 5);
-    nameRect.setWidth(nameRect.width() - 5 - 32);
+    nameRect.setWidth(nameRect.width() - 5 - 40);
     if (m_view->selectionModel()->isSelected(m_index)) {
         painter.fillRect(rect(), QBrush(m_activeColor));
         painter.setPen(m_titleSelectedColor);

@@ -375,8 +375,8 @@ void MainWindow::setupMainWindow()
                 QIcon(QString::fromUtf8(":/images/drawer_icon.png")));
     ui->toggleTreeViewButton->setPressedIcon(
                 QIcon(QString::fromUtf8(":/images/drawer_icon.png")));
-    ui->listviewLabel2->setMinimumSize({33, 25});
-    ui->listviewLabel2->setMaximumSize({33, 25});
+    ui->listviewLabel2->setMinimumSize({40, 25});
+    ui->listviewLabel2->setMaximumSize({40, 25});
 
 #ifdef __APPLE__
     QString m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto"));

@@ -80,6 +80,7 @@ TagTreeDelegateEditor::TagTreeDelegateEditor(QTreeView *view,
                     tree_view->visualRect(m_index).topLeft() + m_contextButton->geometry().bottomLeft());
     });
     layout->addWidget(m_contextButton, 0, Qt::AlignRight);
+    layout->addSpacing(5);
     connect(m_view, &QTreeView::expanded, this, [this] (const QModelIndex &) {
         this->update();
     });
