@@ -157,7 +157,15 @@ void TreeViewLogic::loadTreeModel(const NodeTagTreeData &treeData)
 
 void TreeViewLogic::onAddFolderRequested(bool fromPlusButton)
 {
-    auto currentIndex = m_treeView->currentIndex();
+    QModelIndex currentIndex;
+    if (fromPlusButton) {
+        currentIndex = m_treeView->currentIndex();
+    } else {
+        currentIndex = m_treeView->currentEditingIndex();
+        if (!currentIndex.isValid()) {
+            currentIndex = m_treeView->currentIndex();
+        }
+    }
     int parentId = SpecialNodeID::RootFolder;
     NodeItem::Type currentType;
     QString currentAbsPath;

@@ -20,9 +20,6 @@ public:
                                       const QModelIndex &index,
                                       QWidget *parent = nullptr);
 
-signals:
-    void contextMenuRequested();
-
 private:
     QStyleOptionViewItem m_option;
     QModelIndex m_index;

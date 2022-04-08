@@ -133,6 +133,11 @@ void NodeTreeView::onCollapsed(const QModelIndex &index)
     emit saveExpand(QStringList::fromVector(m_expanded));
 }
 
+const QModelIndex &NodeTreeView::currentEditingIndex() const
+{
+    return m_currentEditingIndex;
+}
+
 void NodeTreeView::setIgnoreThisCurrentLoad(bool newIgnoreThisCurrentLoad)
 {
     m_ignoreThisCurrentLoad = newIgnoreThisCurrentLoad;

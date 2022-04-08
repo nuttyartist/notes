@@ -29,6 +29,7 @@ public:
     void reExpandC(const QStringList& expanded);
 
     void setIgnoreThisCurrentLoad(bool newIgnoreThisCurrentLoad);
+    const QModelIndex &currentEditingIndex() const;
 
 public slots:
     void onCustomContextMenu(const QPoint& point);

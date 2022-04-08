@@ -79,7 +79,7 @@ FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
                                             R"(})"));
     connect(m_contextButton, &QPushButton::clicked, m_view, [this] (bool) {
         auto tree_view = dynamic_cast<NodeTreeView*>(m_view);
-        tree_view->setCurrentIndexC(m_index);
+//        tree_view->setCurrentIndexC(m_index);
         tree_view->onCustomContextMenu(
                     tree_view->visualRect(m_index).topLeft() + m_contextButton->geometry().bottomLeft());
     });
