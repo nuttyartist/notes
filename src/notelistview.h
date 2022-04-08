@@ -41,7 +41,6 @@ public:
 
 public slots:
     void onCustomContextMenu(const QPoint& point);
-    void onTagsMenu(const QPoint& point);
     void onRemoveRowRequested(const QModelIndexList indexes);
     void onAnimationFinished(NoteListState state);
 
@@ -90,13 +89,11 @@ private:
     int m_rowHeight;
     QColor m_currentBackgroundColor;
     QMenu* contextMenu;
-    QAction* addToTagAction;
     QAction* deleteNoteAction;
     QAction* restoreNoteAction;
     QAction* pinNoteAction;
     QAction* unpinNoteAction;
     QAction* newNoteAction;
-    QMenu* tagsMenu;
     TagPool* m_tagPool;
     DBManager* m_dbManager;
     int m_currentFolderId;

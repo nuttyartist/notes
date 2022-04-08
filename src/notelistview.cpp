@@ -42,11 +42,6 @@ NoteListView::NoteListView(QWidget *parent)
     connect(this, &QWidget::customContextMenuRequested,
             this, &NoteListView::onCustomContextMenu);
     contextMenu = new QMenu(this);
-    tagsMenu = new QMenu(this);
-    addToTagAction = new QAction(tr("Tags..."), this);
-    connect(addToTagAction, &QAction::triggered, this, [this] {
-        onTagsMenu(visualRect(currentIndex()).bottomLeft());
-    });
 
     deleteNoteAction = new QAction(tr("Delete Note"), this);
     connect(deleteNoteAction, &QAction::triggered, this, [this] {
@@ -655,8 +650,50 @@ void NoteListView::onCustomContextMenu(const QPoint &point)
     if (index.isValid()) {
         contextMenu->clear();
         if (m_tagPool) {
-            contextMenu->addAction(addToTagAction);
-            contextMenu->addSeparator();
+            auto tagsMenu = contextMenu->addMenu("Tags ...");
+            for (auto action : QT_AS_CONST(m_noteTagActions)) {
+                delete action;
+            }
+            m_noteTagActions.clear();
+            auto current = currentIndex();
+            auto createTagIcon = [](const QString& color) -> QIcon{
+                QPixmap pix{32, 32};
+                pix.fill(Qt::transparent);
+                QPainter painter{&pix};
+                painter.setRenderHint(QPainter::Antialiasing);
+                auto iconRect = QRect((pix.width() - 30) / 2,
+                                      (pix.height() - 30) / 2, 30, 30);
+                painter.setBrush(QColor(color));
+                painter.setPen(QColor(color));
+                painter.drawEllipse(iconRect);
+                return QIcon{pix};
+            };
+            auto tagInNote = current.data(NoteListModel::NoteTagsList).value<QSet<int>>();
+            for (auto id : QT_AS_CONST(tagInNote)) {
+                auto tag = m_tagPool->getTag(id);
+                auto tagAction = new QAction(QString("Remove tag ") + tag.name(), this);
+                connect(tagAction, &QAction::triggered, this, [this, id] {
+                    removeCurrentNoteFromTag(id);
+                });
+                tagAction->setIcon(createTagIcon(tag.color()));
+                tagsMenu->addAction(tagAction);
+                m_noteTagActions.append(tagAction);
+            }
+            tagsMenu->addSeparator();
+            const auto tagIds = m_tagPool->tagIds();
+            for (auto id : tagIds) {
+                if (tagInNote.contains(id)) {
+                    continue;
+                }
+                auto tag = m_tagPool->getTag(id);
+                auto tagAction = new QAction(QString("Assign tag ") + tag.name(), this);
+                connect(tagAction, &QAction::triggered, this, [this, id] {
+                    addCurrentNoteToTag(id);
+                });
+                tagAction->setIcon(createTagIcon(tag.color()));
+                tagsMenu->addAction(tagAction);
+                m_noteTagActions.append(tagAction);
+            }
         }
         if (m_isInTrash) {
             contextMenu->addAction(restoreNoteAction);
@@ -700,61 +737,6 @@ void NoteListView::onCustomContextMenu(const QPoint &point)
         }
         contextMenu->addAction(newNoteAction);
         contextMenu->exec(viewport()->mapToGlobal(point));
-    }
-}
-
-void NoteListView::onTagsMenu(const QPoint &point)
-{
-    tagsMenu->clear();
-    for (auto action : QT_AS_CONST(m_noteTagActions)) {
-        delete action;
-    }
-    m_noteTagActions.clear();
-    auto current = currentIndex();
-    auto createTagIcon = [](const QString& color) -> QIcon{
-        QPixmap pix{32, 32};
-        pix.fill(Qt::transparent);
-        QPainter painter{&pix};
-        painter.setRenderHint(QPainter::Antialiasing);
-        auto iconRect = QRect((pix.width() - 30) / 2,
-                              (pix.height() - 30) / 2, 30, 30);
-        painter.setBrush(QColor(color));
-        painter.setPen(QColor(color));
-        painter.drawEllipse(iconRect);
-        return QIcon{pix};
-    };
-    if (current.isValid()) {
-        if (m_tagPool) {
-            auto tagInNote = current.data(NoteListModel::NoteTagsList).value<QSet<int>>();
-            for (auto id : QT_AS_CONST(tagInNote)) {
-                auto tag = m_tagPool->getTag(id);
-                auto tagAction = new QAction(QString("Remove tag ") + tag.name(), this);
-                connect(tagAction, &QAction::triggered, this, [this, id] {
-                    removeCurrentNoteFromTag(id);
-                });
-                tagAction->setIcon(createTagIcon(tag.color()));
-                tagsMenu->addAction(tagAction);
-                m_noteTagActions.append(tagAction);
-            }
-            tagsMenu->addSeparator();
-            const auto tagIds = m_tagPool->tagIds();
-            for (auto id : tagIds) {
-                if (tagInNote.contains(id)) {
-                    continue;
-                }
-                auto tag = m_tagPool->getTag(id);
-                auto tagAction = new QAction(QString("Assign tag ") + tag.name(), this);
-                connect(tagAction, &QAction::triggered, this, [this, id] {
-                    addCurrentNoteToTag(id);
-                });
-                tagAction->setIcon(createTagIcon(tag.color()));
-                tagsMenu->addAction(tagAction);
-                m_noteTagActions.append(tagAction);
-            }
-            tagsMenu->exec(viewport()->mapToGlobal(point));
-        } else {
-            qDebug() << __FUNCTION__ << "tag pool is not init yet";
-        }
     }
 }
 
