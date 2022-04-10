@@ -723,6 +723,10 @@ void MainWindow::setupSignalsSlots()
             this, &MainWindow::saveLastSelectedFolderTags);
     connect(m_listView, &NoteListView::saveSelectedNote,
             this, &MainWindow::saveLastSelectedNote);
+    connect(m_treeView, &NodeTreeView::saveLastSelectedNote,
+            m_listViewLogic, &ListViewLogic::setLastSelectedNote);
+    connect(m_treeView, &NodeTreeView::requestLoadLastSelectedNote,
+            m_listViewLogic, &ListViewLogic::loadLastSelectedNoteRequested);
 }
 
 /*!

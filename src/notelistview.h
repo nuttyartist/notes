@@ -82,6 +82,7 @@ signals:
     void setPinnedNoteRequested(int noteId, bool isPinned);
     void saveSelectedNote(int noteId);
     void pinnedCollapseChanged();
+
 private:
     bool m_isScrollBarHidden;
     bool m_animationEnabled;
@@ -107,7 +108,6 @@ private:
     ListViewInfo m_listViewInfo;
     bool m_isDragging;
     bool m_isPinnedNotesCollapsed;
-
     void setupSignalsSlots();
     void setupStyleSheet();
 

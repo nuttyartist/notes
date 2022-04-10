@@ -12,7 +12,8 @@ NodeTreeView::NodeTreeView(QWidget *parent) :
     QTreeView(parent),
     m_isContextMenuOpened{false},
     m_isEditing{false},
-    m_ignoreThisCurrentLoad{false}
+    m_ignoreThisCurrentLoad{false},
+    m_isLastSelectedFolder{false}
 {
     setHeaderHidden(true);
 #if defined(Q_OS_LINUX)
@@ -271,11 +272,17 @@ void NodeTreeView::selectionChanged(const QItemSelection &selected, const QItemS
             return;
         }
         case NodeItem::Type::AllNoteButton: {
+            auto folderPath = index.data(NodeItem::Roles::AbsPath).toString();
+            m_lastSelectFolder = folderPath;
+            m_isLastSelectedFolder = true;
             emit loadNotesInFolderRequested(SpecialNodeID::RootFolder, true);
             emit saveSelected(true, NodePath::getAllNoteFolderPath(), {});
             return;
         }
         case NodeItem::Type::TrashButton: {
+            auto folderPath = index.data(NodeItem::Roles::AbsPath).toString();
+            m_lastSelectFolder = folderPath;
+            m_isLastSelectedFolder = true;
             emit loadNotesInFolderRequested(SpecialNodeID::TrashFolder, true);
             emit saveSelected(true, NodePath::getTrashFolderPath(), {});
             return;
@@ -283,6 +290,8 @@ void NodeTreeView::selectionChanged(const QItemSelection &selected, const QItemS
         case NodeItem::Type::FolderItem: {
             auto folderId = index.data(NodeItem::Roles::NodeId).toInt();
             auto folderPath = index.data(NodeItem::Roles::AbsPath).toString();
+            m_lastSelectFolder = folderPath;
+            m_isLastSelectedFolder = true;
             emit saveSelected(true, folderPath, {});
             emit loadNotesInFolderRequested(folderId, false);
             return;
@@ -294,6 +303,10 @@ void NodeTreeView::selectionChanged(const QItemSelection &selected, const QItemS
         }
     }
     if (!tagIds.isEmpty()) {
+        if (m_isLastSelectedFolder) {
+            emit saveLastSelectedNote();
+        }
+        m_isLastSelectedFolder = false;
         emit saveSelected(false, {}, tagIds);
         emit loadNotesInTagsRequested(tagIds);
     }
@@ -647,7 +660,18 @@ void NodeTreeView::mouseReleaseEvent(QMouseEvent *event)
     if (m_needReleaseIndex.isValid()) {
         selectionModel()->select(m_needReleaseIndex, QItemSelectionModel::Deselect);
         if (selectionModel()->selectedIndexes().isEmpty()) {
-            setCurrentIndexC(dynamic_cast<NodeTreeModel*>(model())->getAllNotesButtonIndex());
+            if (!m_isLastSelectedFolder) {
+                auto index = dynamic_cast<NodeTreeModel*>(model())
+                        ->folderIndexFromIdPath(m_lastSelectFolder);
+                if (index.isValid()) {
+                    emit requestLoadLastSelectedNote();
+                    setCurrentIndexC(index);
+                } else {
+                    setCurrentIndexC(dynamic_cast<NodeTreeModel*>(model())->getAllNotesButtonIndex());
+                }
+            } else {
+                setCurrentIndexC(dynamic_cast<NodeTreeModel*>(model())->getAllNotesButtonIndex());
+            }
         }
     }
     m_needReleaseIndex = QModelIndex();

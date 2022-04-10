@@ -56,6 +56,9 @@ signals:
     void addNoteToTag(int noteId, int tagId);
     void saveExpand(const QStringList& ex);
     void saveSelected(bool isSelectingFolder, const QString& folder, const QSet<int>& tags);
+    void saveLastSelectedNote();
+    void requestLoadLastSelectedNote();
+
 private slots:
     void onDeleteNodeAction();
     void onExpanded(const QModelIndex& index);
@@ -80,6 +83,8 @@ private:
     QVector<QString> m_expanded;
     QModelIndex m_needReleaseIndex;
     bool m_ignoreThisCurrentLoad;
+    QString m_lastSelectFolder;
+    bool m_isLastSelectedFolder;
     void updateEditingIndex(const QPoint &pos);
     void closeCurrentEditor();
 

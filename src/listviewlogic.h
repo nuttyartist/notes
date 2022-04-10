@@ -33,7 +33,8 @@ public:
     void selectFirstNote();
     void setTheme(Theme theme);
     bool isAnimationRunning();
-    void setLastSavedState(int lastSelectedNote);
+    void setLastSavedState(int lastSelectedNote, int needLoadSavedState = 2);
+    void requestLoadSavedState(int needLoadSavedState);
 
 public slots:
     void moveNoteToTop(const NodeData& note);
@@ -46,6 +47,8 @@ public slots:
     void clearSearch(bool createNewNote = false, int scrollToId = SpecialNodeID::InvalidNodeId);
     void onAddTagRequestD(int noteId, int tagId);
     void onNoteMovedOut(int nodeId, int targetId);
+    void setLastSelectedNote();
+    void loadLastSelectedNoteRequested();
 
 signals:
     void showNoteInEditor(const NodeData& noteData);

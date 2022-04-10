@@ -366,6 +366,22 @@ void ListViewLogic::onNoteMovedOut(int nodeId, int targetId)
     }
 }
 
+void ListViewLogic::setLastSelectedNote()
+{
+    auto index = m_listView->currentIndex();
+    if (index.isValid()) {
+        auto id = index.data(NoteListModel::NoteID).toInt();
+        setLastSavedState(id, 0);
+    } else {
+        setLastSavedState(SpecialNodeID::InvalidNodeId, 0);
+    }
+}
+
+void ListViewLogic::loadLastSelectedNoteRequested()
+{
+    requestLoadSavedState(2);
+}
+
 void ListViewLogic::onRemoveTagRequest(const QModelIndex &index, int tagId)
 {
     if (index.isValid()) {
@@ -553,10 +569,15 @@ bool ListViewLogic::isAnimationRunning()
     return m_listDelegate->animationState() == QTimeLine::Running;
 }
 
-void ListViewLogic::setLastSavedState(int lastSelectedNote)
+void ListViewLogic::setLastSavedState(int lastSelectedNote, int needLoadSavedState)
 {
-    m_needLoadSavedState = 2;
+    m_needLoadSavedState = needLoadSavedState;
     m_lastSelectedNote = lastSelectedNote;
+}
+
+void ListViewLogic::requestLoadSavedState(int needLoadSavedState)
+{
+    m_needLoadSavedState = needLoadSavedState;
 }
 
 const ListViewInfo &ListViewLogic::listViewInfo() const
