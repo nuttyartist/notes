@@ -56,10 +56,6 @@ TreeViewLogic::TreeViewLogic(NodeTreeView* treeView,
             this, &TreeViewLogic::onDeleteTagRequested);
     connect(this, &TreeViewLogic::requestChangeTagColorInDB,
             m_dbManager, &DBManager::changeTagColor, Qt::QueuedConnection);
-    connect(m_treeView, &NodeTreeView::loadNotesInFolderRequested,
-            m_dbManager, &DBManager::onNotesListInFolderRequested, Qt::QueuedConnection);
-    connect(m_treeView, &NodeTreeView::loadNotesInTagsRequested,
-            m_dbManager, &DBManager::onNotesListInTagsRequested, Qt::QueuedConnection);
     connect(this, &TreeViewLogic::requestMoveNodeInDB,
             m_dbManager, &DBManager::moveNode, Qt::QueuedConnection);
     connect(m_treeView, &NodeTreeView::moveNodeRequested,

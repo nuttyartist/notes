@@ -93,6 +93,10 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
             m_listView, &NoteListView::onAnimationFinished);
     connect(m_listModel, &NoteListModel::requestRemoveNotes,
             m_listView, &NoteListView::onRemoveRowRequested);
+    connect(this, &ListViewLogic::requestNotesListInFolder,
+            m_dbManager, &DBManager::onNotesListInFolderRequested, Qt::QueuedConnection);
+    connect(this, &ListViewLogic::requestNotesListInTags,
+            m_dbManager, &DBManager::onNotesListInTagsRequested, Qt::QueuedConnection);
 }
 
 void ListViewLogic::selectNote(const QModelIndex &noteIndex)
@@ -380,6 +384,37 @@ void ListViewLogic::setLastSelectedNote()
 void ListViewLogic::loadLastSelectedNoteRequested()
 {
     requestLoadSavedState(2);
+}
+
+void ListViewLogic::onNotesListInFolderRequested(int parentID, bool isRecursive, bool newNote, int scrollToId)
+{
+    if (m_listViewInfo.isInSearch && !m_searchEdit->text().isEmpty()) {
+        m_listViewInfo.parentFolderId = parentID;
+        m_listViewInfo.currentNoteId = SpecialNodeID::InvalidNodeId;
+        m_listViewInfo.isInTag = false;
+        m_listViewInfo.needCreateNewNote = false;
+        m_listViewInfo.currentTagList = {};
+        m_listViewInfo.scrollToId = SpecialNodeID::InvalidNodeId;
+        m_clearButton->show();
+        emit requestSearchInDb(m_searchEdit->text(), m_listViewInfo);
+    } else {
+        emit requestNotesListInFolder(parentID, isRecursive, newNote, scrollToId);
+    }
+}
+
+void ListViewLogic::onNotesListInTagsRequested(const QSet<int> &tagIds, bool newNote, int scrollToId)
+{
+    if (m_listViewInfo.isInSearch && !m_searchEdit->text().isEmpty()) {
+        m_listViewInfo.parentFolderId = SpecialNodeID::InvalidNodeId;
+        m_listViewInfo.currentNoteId = SpecialNodeID::InvalidNodeId;
+        m_listViewInfo.isInTag = true;
+        m_listViewInfo.needCreateNewNote = false;
+        m_listViewInfo.currentTagList = tagIds;
+        m_listViewInfo.scrollToId = SpecialNodeID::InvalidNodeId;
+        emit requestSearchInDb(m_searchEdit->text(), m_listViewInfo);
+    } else {
+        emit requestNotesListInTags(tagIds, newNote, scrollToId);
+    }
 }
 
 void ListViewLogic::onRemoveTagRequest(const QModelIndex &index, int tagId)

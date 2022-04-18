@@ -49,6 +49,8 @@ public slots:
     void onNoteMovedOut(int nodeId, int targetId);
     void setLastSelectedNote();
     void loadLastSelectedNoteRequested();
+    void onNotesListInFolderRequested(int parentID, bool isRecursive, bool newNote, int scrollToId);
+    void onNotesListInTagsRequested(const QSet<int> &tagIds, bool newNote, int scrollToId);
 
 signals:
     void showNoteInEditor(const NodeData& noteData);
@@ -66,6 +68,9 @@ signals:
     void moveNoteRequested(int id, int target);
     void listViewLabelChanged(const QString& label1, const QString& label2);
     void setNewNoteButtonVisible(bool visible);
+    void requestNotesListInFolder(int parentID, bool isRecursive, bool newNote, int scrollToId);
+    void requestNotesListInTags(const QSet<int> &tagIds, bool newNote, int scrollToId);
+
 private slots:
     void loadNoteListModel(const QVector<NodeData>& noteList, const ListViewInfo& inf);
     void onAddTagRequest(const QModelIndex& index, int tagId);

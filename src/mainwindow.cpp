@@ -727,6 +727,10 @@ void MainWindow::setupSignalsSlots()
             m_listViewLogic, &ListViewLogic::setLastSelectedNote);
     connect(m_treeView, &NodeTreeView::requestLoadLastSelectedNote,
             m_listViewLogic, &ListViewLogic::loadLastSelectedNoteRequested);
+    connect(m_treeView, &NodeTreeView::loadNotesInFolderRequested,
+            m_listViewLogic, &ListViewLogic::onNotesListInFolderRequested);
+    connect(m_treeView, &NodeTreeView::loadNotesInTagsRequested,
+            m_listViewLogic, &ListViewLogic::onNotesListInTagsRequested);
 }
 
 /*!
