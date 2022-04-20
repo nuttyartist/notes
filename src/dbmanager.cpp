@@ -314,7 +314,11 @@ int DBManager::addNode(const NodeData &node)
     query.bindValue(":title", fullTitle);
     query.bindValue(":creation_date", epochTimeDateCreated);
     query.bindValue(":modification_date", epochTimeDateLastModified);
-    query.bindValue(":deletion_date", -1);
+    if (node.deletionDateTime().isNull()) {
+        query.bindValue(":deletion_date", -1);
+    } else {
+        query.bindValue(":deletion_date", node.deletionDateTime().toMSecsSinceEpoch());
+    }
     query.bindValue(":content", content);
     query.bindValue(":node_type", static_cast<int>(node.nodeType()));
     query.bindValue(":parent_id", node.parentId());
@@ -371,7 +375,11 @@ int DBManager::addNodePreComputed(const NodeData &node)
     query.bindValue(":title", fullTitle);
     query.bindValue(":creation_date", epochTimeDateCreated);
     query.bindValue(":modification_date", epochTimeDateLastModified);
-    query.bindValue(":deletion_date", -1);
+    if (node.deletionDateTime().isNull()) {
+        query.bindValue(":deletion_date", -1);
+    } else {
+        query.bindValue(":deletion_date", node.deletionDateTime().toMSecsSinceEpoch());
+    }
     query.bindValue(":content", content);
     query.bindValue(":node_type", static_cast<int>(node.nodeType()));
     query.bindValue(":parent_id", node.parentId());
@@ -816,7 +824,6 @@ void DBManager::changeTagColor(int id, const QString &newColor)
 void DBManager::removeNote(const NodeData &note)
 {
     if (note.parentId() == SpecialNodeID::TrashFolder) {
-        auto allTagInNote = getAllTagForNote(note.id());
         QSqlQuery query(m_db);
         query.prepare(R"(DELETE FROM "node_table" )"
                       R"(WHERE id = (:id) AND node_type = (:node_type);)"
@@ -836,15 +843,10 @@ void DBManager::removeNote(const NodeData &note)
         }
         if (note.nodeType() == NodeData::Note) {
             decreaseChildNotesCountFolder(SpecialNodeID::TrashFolder);
-            decreaseChildNotesCountFolder(SpecialNodeID::RootFolder);
-            for (const auto& tagId: QT_AS_CONST(allTagInNote)) {
-                decreaseChildNotesCountTag(tagId);
-            }
         }
     } else {
         auto trashFolder = getNode(SpecialNodeID::TrashFolder);
         moveNode(note.id(), trashFolder);
-        recalculateChildNotesCountFolder(SpecialNodeID::TrashFolder);
     }
 }
 
@@ -1089,12 +1091,14 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
 
     QString newAbsolutePath = target.absolutePath() + PATH_SEPERATOR + QString::number(nodeId);
     if (target.id() == SpecialNodeID::TrashFolder) {
-        query.prepare(QStringLiteral("UPDATE node_table SET parent_id = :parent_id, absolute_path = :absolute_path, is_pinned_note = :is_pinned_note "
+        qint64 deletionTime = QDateTime::currentMSecsSinceEpoch();
+        query.prepare(QStringLiteral("UPDATE node_table SET parent_id = :parent_id, absolute_path = :absolute_path, is_pinned_note = :is_pinned_note, deletion_date = :deletion_date "
                                      "WHERE id = :id;"));
         query.bindValue(QStringLiteral(":parent_id"), target.id());
         query.bindValue(QStringLiteral(":absolute_path"), newAbsolutePath);
-        query.bindValue(QStringLiteral(":id"), nodeId);
         query.bindValue(QStringLiteral(":is_pinned_note"), false);
+        query.bindValue(QStringLiteral(":deletion_date"), deletionTime);
+        query.bindValue(QStringLiteral(":id"), nodeId);
     } else{
         query.prepare(QStringLiteral("UPDATE node_table SET parent_id = :parent_id, absolute_path = :absolute_path "
                                      "WHERE id = :id;"));
@@ -1104,7 +1108,7 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
     }
     bool status = query.exec();
     if(!status) {
-        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError() << query.lastQuery();
     }
 
     if (node.nodeType() == NodeData::Folder) {
@@ -1112,7 +1116,7 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
         QMap<int, QString> childs;
         query.clear();
         query.prepare(R"(SELECT id, absolute_path FROM "node_table" )"
-                      R"(WHERE absolute_path like (:path_expr);)");
+                      R"(WHERE absolute_path like (:path_expr) || '%';)");
         query.bindValue(QStringLiteral(":path_expr"), oldAbsolutePath);
         bool status = query.exec();
         if(status) {
@@ -1130,11 +1134,13 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
                                         oldAbsolutePath.size(),
                                         newAbsolutePath);
             if (target.id() == SpecialNodeID::TrashFolder) {
-                query.prepare(QStringLiteral("UPDATE node_table SET absolute_path = :absolute_path, is_pinned_note = :is_pinned_note "
+                qint64 deletionTime = QDateTime::currentMSecsSinceEpoch();
+                query.prepare(QStringLiteral("UPDATE node_table SET absolute_path = :absolute_path, is_pinned_note = :is_pinned_note, deletion_date = :deletion_date "
                                              "WHERE id = :id;"));
                 query.bindValue(QStringLiteral(":absolute_path"), newP);
                 query.bindValue(QStringLiteral(":id"), id);
                 query.bindValue(QStringLiteral(":is_pinned_note"), false);
+                query.bindValue(QStringLiteral(":deletion_date"), deletionTime);
             } else {
                 query.prepare(QStringLiteral("UPDATE node_table SET absolute_path = :absolute_path "
                                              "WHERE id = :id;"));
@@ -1146,8 +1152,16 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
                 qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
             }
         }
+        recalculateChildNotesCount();
     } else {
         decreaseChildNotesCountFolder(node.parentId());
+        decreaseChildNotesCountFolder(SpecialNodeID::RootFolder);
+        if (target.id() == SpecialNodeID::TrashFolder) {
+            auto allTagInNote = getAllTagForNote(node.id());
+            for (const auto& tagId: QT_AS_CONST(allTagInNote)) {
+                decreaseChildNotesCountTag(tagId);
+            }
+        }
         increaseChildNotesCountFolder(target.id());
     }
 }

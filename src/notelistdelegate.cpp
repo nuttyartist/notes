@@ -483,7 +483,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
                                  option.rect.width() - NoteListConstant::leftOffsetX, 25);
                 painter->setPen(m_contentColor);
                 painter->setFont(m_headerFont);
-                painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Note");
+                painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Notes");
             }
         }
     } else {
@@ -530,7 +530,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
                                  option.rect.width() - NoteListConstant::leftOffsetX, 25);
                 painter->setPen(m_contentColor);
                 painter->setFont(m_headerFont);
-                painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Note");
+                painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Notes");
                 rowPosY += 25;
             }
         }
