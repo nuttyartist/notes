@@ -906,24 +906,51 @@ bool DBManager::updateNoteContent(const NodeData& note)
 
 QList<NodeData> DBManager::readOldNBK(const QString fileName)
 {
-    QFile file(fileName);
-    file.open(QIODevice::ReadOnly);
     QList<NodeData> noteList;
-    QDataStream in(&file);
+    {
+        QFile file(fileName);
+        file.open(QIODevice::ReadOnly);
+        QDataStream in(&file);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-    in.setVersion(QDataStream::Qt_5_6);
+        in.setVersion(QDataStream::Qt_5_6);
 #elif QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
-    in.setVersion(QDataStream::Qt_5_4);
+        in.setVersion(QDataStream::Qt_5_4);
 #elif QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
-    in.setVersion(QDataStream::Qt_5_2);
+        in.setVersion(QDataStream::Qt_5_2);
 #endif
 
-    try {
-        in >> noteList;
-    } catch (...) {
-        // Any exception deserializing will result in an empty note list and  the user will be notified
+        try {
+            in >> noteList;
+        } catch (...) {
+            // Any exception deserializing will result in an empty note list and  the user will be notified
+        }
+        file.close();
     }
-    file.close();
+    if (noteList.isEmpty()) {
+        QFile file(fileName);
+        file.open(QIODevice::ReadOnly);
+        QDataStream in(&file);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
+        in.setVersion(QDataStream::Qt_5_6);
+#elif QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+        in.setVersion(QDataStream::Qt_5_4);
+#elif QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
+        in.setVersion(QDataStream::Qt_5_2);
+#endif
+        QList<NodeData*> nl;
+        try {
+            in >> nl;
+        } catch (...) {
+            // Any exception deserializing will result in an empty note list and  the user will be notified
+        }
+        if (!nl.isEmpty()) {
+            for (const auto& n : QT_AS_CONST(nl)) {
+                noteList.append(*n);
+            }
+        }
+        qDeleteAll(nl);
+        file.close();
+    }
     return noteList;
 }
 
