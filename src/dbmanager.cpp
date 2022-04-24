@@ -1059,7 +1059,7 @@ NodeData DBManager::getNode(int nodeId)
 void DBManager::moveFolderToTrash(const NodeData &node)
 {
     QSqlQuery query(m_db);
-    QString parentPath = node.absolutePath();
+    QString parentPath = node.absolutePath() + PATH_SEPERATOR;
     query.prepare(R"(SELECT id FROM "node_table" )"
                   R"(WHERE absolute_path like (:path_expr) || '%' AND node_type = (:node_type);)"
                     );
@@ -1083,6 +1083,16 @@ void DBManager::moveFolderToTrash(const NodeData &node)
                   R"(WHERE absolute_path like (:path_expr) || '%' AND node_type = (:node_type);)"
                     );
     query.bindValue(QStringLiteral(":path_expr"), parentPath);
+    query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Folder));
+    status = query.exec();
+    if(!status) {
+        qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
+    }
+    query.clear();
+    query.prepare(R"(DELETE FROM "node_table" )"
+                  R"(WHERE absolute_path like (:path_expr) AND node_type = (:node_type);)"
+                    );
+    query.bindValue(QStringLiteral(":path_expr"), node.absolutePath());
     query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Folder));
     status = query.exec();
     if(!status) {
@@ -1573,7 +1583,7 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive, boo
             qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
         }
     } else {
-        auto parentPath = getNodeAbsolutePath(parentID).path();
+        auto parentPath = getNodeAbsolutePath(parentID).path() + PATH_SEPERATOR;
         query.prepare(R"(SELECT )"
                       R"("id",)"
                       R"("title",)"

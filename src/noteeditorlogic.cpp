@@ -207,10 +207,13 @@ void NoteEditorLogic::deleteCurrentNote()
  */
 QString NoteEditorLogic::getFirstLine(const QString& str)
 {
-    if(str.simplified().isEmpty())
-        return "New Note";
-
     QString text = str.trimmed();
+    if (text.startsWith("#")) {
+        text.remove(0, 1);
+    }
+    if (text.isEmpty()) {
+        return "New Note";
+    }
     QTextStream ts(&text);
     return ts.readLine(FIRST_LINE_MAX);
 }

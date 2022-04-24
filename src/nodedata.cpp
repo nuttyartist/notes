@@ -209,7 +209,7 @@ QDateTime NodeData::creationDateTime() const
 {
     return m_creationDateTime;
 }
-#include <QtDebug>
+
 void NodeData::setCreationDateTime(const QDateTime&creationDateTime)
 {
     m_creationDateTime = creationDateTime;
@@ -229,6 +229,7 @@ QDataStream &operator>>(QDataStream &stream, NodeData &nodeData){
     nodeData.setContent(content);
     return stream;
 }
+
 QDataStream &operator>>(QDataStream &stream, NodeData* &nodeData)
 {
     nodeData = new NodeData();
