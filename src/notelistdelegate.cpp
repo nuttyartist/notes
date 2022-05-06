@@ -59,24 +59,30 @@ NoteListDelegate::NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject
     m_folderIcon = QImage(":/images/folder.png");
     m_pinnedExpandIcon = QImage(":/images/pinned-expand.png");
     m_pinnedCollapseIcon = QImage(":/images/pinned-collasped.png");
-    connect( m_timeLine, &QTimeLine::frameChanged, this, [this](){
-        emit sizeHintChanged(m_animatedIndex);
+    connect(m_timeLine, &QTimeLine::frameChanged, this, [this](){
+        for (const auto& index : QT_AS_CONST(m_animatedIndexes)) {
+            emit sizeHintChanged(index);
+        }
     });
 
     connect(m_timeLine, &QTimeLine::finished, this, [this]() {
         emit animationFinished(m_state);
-        m_view->openPersistentEditorC(m_animatedIndex);
-        m_animatedIndex = QModelIndex();
+        for (const auto& index : QT_AS_CONST(m_animatedIndexes)) {
+            m_view->openPersistentEditorC(index);
+        }
+        m_animatedIndexes.clear();
         m_state = NoteListState::Normal;
     });
 }
 
-void NoteListDelegate::setState(NoteListState NewState, QModelIndex index)
+void NoteListDelegate::setState(NoteListState NewState, QModelIndexList indexes)
 {
-    m_animatedIndex = index;
+    m_animatedIndexes = indexes;
 
     auto startAnimation = [this](QTimeLine::Direction diretion, int duration){
-        m_view->closePersistentEditorC(m_animatedIndex);
+        for (const auto& index : QT_AS_CONST(m_animatedIndexes)) {
+            m_view->closePersistentEditorC(index);
+        }
         m_timeLine->setDirection(diretion);
         m_timeLine->setDuration(duration);
         m_timeLine->start();
@@ -96,7 +102,7 @@ void NoteListDelegate::setState(NoteListState NewState, QModelIndex index)
         startAnimation(QTimeLine::Backward, m_maxFrame);
         break;
     case NoteListState::Normal:
-        m_animatedIndex = QModelIndex();
+        m_animatedIndexes.clear();
         break;
     }
 
@@ -111,7 +117,7 @@ void NoteListDelegate::setAnimationDuration(const int duration)
 void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     bool isHaveTags = index.data(NoteListModel::NoteTagsList).value<QSet<int>>().size() > 0;
-    if(index != m_animatedIndex && isHaveTags) {
+    if((!m_animatedIndexes.contains(index)) && isHaveTags) {
         return;
     }
     if (m_view->isPinnedNotesCollapsed()) {
@@ -136,7 +142,7 @@ void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     case NoteListState::Insert:
     case NoteListState::Remove:
     case NoteListState::MoveOut:
-        if(index == m_animatedIndex){
+        if(m_animatedIndexes.contains(index)){
             opt.rect.setHeight(int(height));
             opt.backgroundBrush.setColor(m_notActiveColor);
         }
@@ -158,9 +164,9 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
     auto id = index.data(NoteListModel::NoteID).toInt();
     bool isHaveTags = index.data(NoteListModel::NoteTagsList).value<QSet<int>>().size() > 0;
 #if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
-    if (index != m_animatedIndex && isHaveTags) {
+    if ((!m_animatedIndex.contains(index)) && isHaveTags) {
 #else
-    if (m_view->isPersistentEditorOpen(index) && index != m_animatedIndex && isHaveTags) {
+    if (m_view->isPersistentEditorOpen(index) && (!m_animatedIndexes.contains(index)) && isHaveTags) {
 #endif
         if (szMap.contains(id)) {
             result.setHeight(szMap[id].height());
@@ -171,7 +177,7 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
     if (isHaveTags) {
         rowHeight = m_rowHeight;
     }
-    if(index == m_animatedIndex){
+    if (m_animatedIndexes.contains(index)){
         if (m_state == NoteListState::MoveIn){
             result.setHeight(rowHeight);
         } else {
@@ -214,7 +220,7 @@ QSize NoteListDelegate::bufferSizeHint(const QStyleOptionViewItem &option, const
 #if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
     if (index != m_animatedIndex && isHaveTags) {
 #else
-    if (m_view->isPersistentEditorOpen(index) && index != m_animatedIndex && isHaveTags) {
+    if (m_view->isPersistentEditorOpen(index) && (!m_animatedIndexes.contains(index)) && isHaveTags) {
 #endif
         if (szMap.contains(id)) {
             result.setHeight(szMap[id].height());
@@ -230,12 +236,12 @@ QSize NoteListDelegate::bufferSizeHint(const QStyleOptionViewItem &option, const
         result.setHeight(result.height() + 20);
     }
     auto model = dynamic_cast<NoteListModel*>(m_view->model());
-//    if (model) {
-//        if (model->hasPinnedNote() &&
-//                (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
-//            result.setHeight(result.height() + 25);
-//        }
-//    }
+    //    if (model) {
+    //        if (model->hasPinnedNote() &&
+    //                (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
+    //            result.setHeight(result.height() + 25);
+    //        }
+    //    }
     if (m_view->isPinnedNotesCollapsed()) {
         auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
         if (isPinned) {
@@ -285,23 +291,21 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
         } else {
             bufferPainter.fillRect(bufferRect, QBrush(m_hoverColor));
         }
-    } else if((index.row() !=  m_currentSelectedIndex.row() - 1)
-              && (index.row() !=  m_hoveredIndex.row() - 1)
-              && (index.row() != model->getFirstUnpinnedNote().row() - 1)){
+    } else {
         if (m_view->isPinnedNotesCollapsed()) {
             auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
             if (!isPinned) {
                 bufferPainter.fillRect(bufferRect, QBrush(m_defaultColor));
-                paintSeparator(&bufferPainter, bufferRect, index);
             }
         } else {
             bufferPainter.fillRect(bufferRect, QBrush(m_defaultColor));
-            paintSeparator(&bufferPainter, bufferRect, index);
         }
     }
-
+    if (model && shouldPaintSeparator(index, *model)) {
+        paintSeparator(&bufferPainter, bufferRect, index);
+    }
     int rowHeight;
-    if (index == m_animatedIndex) {
+    if (m_animatedIndexes.contains(index)) {
         if (m_state != NoteListState::MoveIn) {
             double rowRate = m_timeLine->currentFrame()/(m_maxFrame * 1.0);
             rowHeight = bufferSize.height() * rowRate;
@@ -314,7 +318,7 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
     }
     painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
-    if (index == m_animatedIndex) {
+    if (m_animatedIndexes.contains(index)) {
         if (m_state == NoteListState::MoveIn) {
             if (model && model->hasPinnedNote() &&
                     (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
@@ -347,7 +351,7 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
 
 void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
-    if (index == m_animatedIndex) {
+    if (m_animatedIndexes.contains(index)) {
         auto bufferSize = bufferSizeHint(option, index);
         QPixmap buffer {bufferSize};
         buffer.fill(Qt::transparent);
@@ -428,7 +432,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
         drawStr(contentRectPosX, contentRectPosY, contentRectWidth, contentRectHeight, m_contentColor, titleFont, content);
         painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
         int rowHeight;
-        if (index == m_animatedIndex) {
+        if (m_animatedIndexes.contains(index)) {
             if (m_state != NoteListState::MoveIn) {
                 double rowRate = m_timeLine->currentFrame()/(m_maxFrame * 1.0);
                 rowHeight = bufferSize.height() * rowRate;
@@ -468,12 +472,12 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
                                  option.rect.width() - NoteListConstant::leftOffsetX, 25);
                 if (m_view->isPinnedNotesCollapsed()) {
                     painter->drawImage(QRect(headerRect.right() - 25,
-                                                  headerRect.y() + 2,
-                                                  20, 20), m_pinnedCollapseIcon);
+                                             headerRect.y() + 2,
+                                             20, 20), m_pinnedCollapseIcon);
                 } else {
                     painter->drawImage(QRect(headerRect.right() - 25,
-                                                  headerRect.y() + 2,
-                                                  20, 20), m_pinnedExpandIcon);
+                                             headerRect.y() + 2,
+                                             20, 20), m_pinnedExpandIcon);
                 }
                 painter->setPen(m_contentColor);
                 painter->setFont(m_headerFont);
@@ -645,6 +649,28 @@ void NoteListDelegate::paintTagList(int top, QPainter *painter, const QStyleOpti
     }
 }
 
+bool NoteListDelegate::shouldPaintSeparator(const QModelIndex &index, const NoteListModel &model) const
+{
+    for (const auto selected : m_view->selectedIndex()) {
+        if (index.row() == selected.row() - 1) {
+            return false;
+        }
+    }
+    if ((index.row() !=  m_hoveredIndex.row() - 1)
+            && (index.row() != model.getFirstUnpinnedNote().row() - 1)
+            && (index.row() != model.rowCount() - 1)) {
+        if (m_view && m_view->isPinnedNotesCollapsed()) {
+            auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
+            if (!isPinned) {
+                return true;
+            }
+        } else {
+            return true;
+        }
+    }
+    return false;
+}
+
 QString NoteListDelegate::parseDateTime(const QDateTime &dateTime) const
 {
     QLocale usLocale(QLocale("en_US"));
@@ -666,11 +692,6 @@ QString NoteListDelegate::parseDateTime(const QDateTime &dateTime) const
 const QModelIndex &NoteListDelegate::hoveredIndex() const
 {
     return m_hoveredIndex;
-}
-
-const QModelIndex &NoteListDelegate::currentSelectedIndex() const
-{
-    return m_currentSelectedIndex;
 }
 
 bool NoteListDelegate::isInAllNotes() const
@@ -748,11 +769,6 @@ void NoteListDelegate::setRowRightOffset(int rowRightOffset)
 void NoteListDelegate::setHoveredIndex(const QModelIndex &hoveredIndex)
 {
     m_hoveredIndex = hoveredIndex;
-}
-
-void NoteListDelegate::setCurrentSelectedIndex(const QModelIndex &currentSelectedIndex)
-{
-    m_currentSelectedIndex = currentSelectedIndex;
 }
 
 void NoteListDelegate::setTheme(Theme theme)

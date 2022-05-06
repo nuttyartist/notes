@@ -32,7 +32,7 @@ public:
     NodeData getNote(const QModelIndex& index) const;
     QModelIndex getNoteIndex(int id) const;
     void setListNote(const QVector<NodeData> notes, const ListViewInfo& inf);
-    void removeNote(const QModelIndex& noteIndex);
+    void removeNotes(const QModelIndexList &noteIndexes);
     bool moveRow(const QModelIndex& sourceParent,
                  int sourceRow,
                  const QModelIndex& destinationParent,
@@ -79,6 +79,10 @@ signals:
     void requestUpdatePinnedRelPosAN(int noteId, int pos);
     void setCurrentIndex(const QModelIndex& index);
     void requestRemoveNotes(QModelIndexList index);
+    void rowsInsertedC(const QModelIndexList& rows);
+    void rowsAboutToBeMovedC(const QModelIndexList& source);
+    void rowsMovedC(const QModelIndexList& dest);
+
     // QAbstractItemModel interface
 public:
     bool removeRows(int row, int count, const QModelIndex &parent) override;

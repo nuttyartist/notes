@@ -23,6 +23,7 @@ QModelIndex NoteListModel::addNote(const NodeData& note)
         beginInsertRows(QModelIndex(), rowCnt, rowCnt);
         m_noteList << note;
         endInsertRows();
+        emit rowsInsertedC({createIndex(rowCnt, 0)});
         emit rowCountChanged();
         return createIndex(rowCnt, 0);
     } else {
@@ -30,6 +31,7 @@ QModelIndex NoteListModel::addNote(const NodeData& note)
         beginInsertRows(QModelIndex(), rowCnt, rowCnt);
         m_pinnedList << note;
         endInsertRows();
+        emit rowsInsertedC({createIndex(rowCnt, 0)});
         emit rowCountChanged();
         return createIndex(rowCnt, 0);
     }
@@ -46,6 +48,7 @@ QModelIndex NoteListModel::insertNote(const NodeData &note, int row)
         beginInsertRows(QModelIndex(), row, row);
         m_pinnedList.insert(row, note);
         endInsertRows();
+        emit rowsInsertedC({createIndex(row, 0)});
         emit rowCountChanged();
         return createIndex(row, 0);
     } else {
@@ -57,6 +60,7 @@ QModelIndex NoteListModel::insertNote(const NodeData &note, int row)
         beginInsertRows(QModelIndex(), row, row);
         m_noteList.insert(row - m_pinnedList.size(), note);
         endInsertRows();
+        emit rowsInsertedC({createIndex(row, 0)});
         emit rowCountChanged();
         return createIndex(row, 0);
     }
@@ -111,9 +115,9 @@ void NoteListModel::setListNote(const QVector<NodeData> notes, const ListViewInf
     emit rowCountChanged();
 }
 
-void NoteListModel::removeNote(const QModelIndex &noteIndex)
+void NoteListModel::removeNotes(const QModelIndexList &noteIndexes)
 {
-    emit requestRemoveNotes({noteIndex});
+    emit requestRemoveNotes(noteIndexes);
 }
 
 
@@ -129,6 +133,8 @@ bool NoteListModel::moveRow(const QModelIndex &sourceParent, int sourceRow, cons
         if (beginMoveRows(sourceParent,sourceRow,sourceRow,destinationParent,destinationChild)) {
             vector_move(m_pinnedList, sourceRow, destinationChild);
             endMoveRows();
+            emit rowsAboutToBeMovedC({createIndex(sourceRow, 0)});
+            emit rowsMovedC({createIndex(destinationChild, 0)});
             emit rowCountChanged();
             return true;
         }
@@ -139,6 +145,8 @@ bool NoteListModel::moveRow(const QModelIndex &sourceParent, int sourceRow, cons
         if (beginMoveRows(sourceParent,sourceRow,sourceRow,destinationParent,destinationChild)) {
             vector_move(m_noteList, sourceRow, destinationChild);
             endMoveRows();
+            emit rowsAboutToBeMovedC({createIndex(sourceRow, 0)});
+            emit rowsMovedC({createIndex(destinationChild, 0)});
             emit rowCountChanged();
             return true;
         }
@@ -332,12 +340,15 @@ void NoteListModel::onPinnedChanged(const QModelIndex &index, bool isPinned)
             beginInsertRows(destinationParent, destinationChild, destinationChild);
             m_pinnedList.prepend(m_noteList.takeAt(sourceRow - m_pinnedList.size()));
             endInsertRows();
+            emit rowsInsertedC({createIndex(0, 0)});
             emit rowCountChanged();
             updatePinnedRelativePosition();
         } else {
             if (beginMoveRows(sourceParent,sourceRow,sourceRow,destinationParent,destinationChild)) {
                 m_pinnedList.prepend(m_noteList.takeAt(sourceRow - m_pinnedList.size()));
                 endMoveRows();
+                emit rowsAboutToBeMovedC({createIndex(sourceRow, 0)});
+                emit rowsMovedC({createIndex(destinationChild, 0)});
                 emit rowCountChanged();
                 updatePinnedRelativePosition();
             }
@@ -361,11 +372,14 @@ void NoteListModel::onPinnedChanged(const QModelIndex &index, bool isPinned)
             beginInsertRows(destinationParent, destc, destc);
             m_noteList.insert(destinationChild, m_pinnedList.takeAt(sourceRow));
             endInsertRows();
+            emit rowsInsertedC({createIndex(destc, 0)});
             emit rowCountChanged();
             updatePinnedRelativePosition();
         } else if (beginMoveRows(sourceParent,sourceRow,sourceRow,destinationParent,destc)) {
             m_noteList.insert(destinationChild, m_pinnedList.takeAt(sourceRow));
             endMoveRows();
+            emit rowsAboutToBeMovedC({createIndex(sourceRow, 0)});
+            emit rowsMovedC({createIndex(destinationChild, 0)});
             emit rowCountChanged();
             updatePinnedRelativePosition();
         }

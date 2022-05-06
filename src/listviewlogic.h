@@ -76,8 +76,8 @@ private slots:
     void onAddTagRequest(const QModelIndex& index, int tagId);
     void onRemoveTagRequest(const QModelIndex& index, int tagId);
     void onNotePressed(const QModelIndex& index);
-    void deleteNoteRequestedI(const QModelIndex& index);
-    void restoreNoteRequestedI(const QModelIndex& index);
+    void deleteNoteRequestedI(const QModelIndexList& indexes);
+    void restoreNotesRequestedI(const QModelIndexList& indexes);
     void updateListViewLabel();
     void onRowCountChanged();
     void onNoteDoubleClicked(const QModelIndex& index);

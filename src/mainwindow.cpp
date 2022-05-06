@@ -1769,11 +1769,10 @@ void MainWindow::createNewNote()
     } else {
         newNoteIndex = m_listModel->getNoteIndex(
                     m_noteEditorLogic->currentEditingNote().id());
-        int row = newNoteIndex.row();
-        m_listView->animateAddedRow(QModelIndex(),row, row);
+        m_listView->animateAddedRow({newNoteIndex});
     }
     // update the current selected index
-    m_listView->setCurrentIndex(newNoteIndex);
+    m_listView->setCurrentIndexC(newNoteIndex);
     m_textEdit->setFocus();
 }
 

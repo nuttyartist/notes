@@ -1192,11 +1192,19 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
         recalculateChildNotesCount();
     } else {
         decreaseChildNotesCountFolder(node.parentId());
-        decreaseChildNotesCountFolder(SpecialNodeID::RootFolder);
-        if (target.id() == SpecialNodeID::TrashFolder) {
+        if (node.parentId() != SpecialNodeID::TrashFolder &&
+                target.id() == SpecialNodeID::TrashFolder) {
+            decreaseChildNotesCountFolder(SpecialNodeID::RootFolder);
             auto allTagInNote = getAllTagForNote(node.id());
             for (const auto& tagId: QT_AS_CONST(allTagInNote)) {
                 decreaseChildNotesCountTag(tagId);
+            }
+        } else if (node.parentId() == SpecialNodeID::TrashFolder &&
+                   target.id() != SpecialNodeID::TrashFolder) {
+            increaseChildNotesCountFolder(SpecialNodeID::RootFolder);
+            auto allTagInNote = getAllTagForNote(node.id());
+            for (const auto& tagId: QT_AS_CONST(allTagInNote)) {
+                increaseChildNotesCountTag(tagId);
             }
         }
         increaseChildNotesCountFolder(target.id());

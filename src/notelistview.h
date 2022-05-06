@@ -18,7 +18,7 @@ public:
     explicit NoteListView(QWidget* parent = Q_NULLPTR);
     ~NoteListView();
 
-    void animateAddedRow(const QModelIndex &parent, int start, int end);
+    void animateAddedRow(const QModelIndexList &indexes);
     void setAnimationEnabled(bool isEnabled);
     void setCurrentRowActive(bool isActive);
     void setTheme(Theme theme);    
@@ -37,15 +37,14 @@ public:
 
     bool isPinnedNotesCollapsed() const;
     void setIsPinnedNotesCollapsed(bool newIsPinnedNotesCollapsed);
-
-
+    void setCurrentIndexC(const QModelIndex& index);
+    QModelIndexList selectedIndex() const;
 public slots:
     void onCustomContextMenu(const QPoint& point);
     void onRemoveRowRequested(const QModelIndexList indexes);
     void onAnimationFinished(NoteListState state);
 
 protected:
-    void paintEvent(QPaintEvent *e) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
     void mouseReleaseEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
@@ -59,29 +58,25 @@ protected:
     virtual void startDrag(Qt::DropActions supportedActions) override;
 
 public slots:
-    void rowsAboutToBeMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd,
-                            const QModelIndex &destinationParent, int destinationRow);
-
-    void rowsMoved(const QModelIndex &parent, int start, int end,
-                   const QModelIndex &destination, int row);
+    void rowsAboutToBeMoved(const QModelIndexList &source);
+    void rowsMoved(const QModelIndexList &dest);
+    void onRowsInserted(const QModelIndexList& rows);
 
 private slots:
     void init();
-
-protected slots:
-    void rowsInserted(const QModelIndex &parent, int start, int end) Q_DECL_OVERRIDE;
 
 signals:
     void viewportPressed();
     void addTagRequested(const QModelIndex& index, int tadId);
     void removeTagRequested(const QModelIndex& index, int tadId);
-    void deleteNoteRequested(const QModelIndex& index);
-    void restoreNoteRequested(const QModelIndex& index);
+    void deleteNoteRequested(const QModelIndexList& index);
+    void restoreNoteRequested(const QModelIndexList& indexes);
     void newNoteRequested();
     void moveNoteRequested(int noteId, int folderId);
     void setPinnedNoteRequested(int noteId, bool isPinned);
     void saveSelectedNote(int noteId);
     void pinnedCollapseChanged();
+    void pressed(const QModelIndexList selected);
 
 private:
     bool m_isScrollBarHidden;
@@ -111,8 +106,8 @@ private:
     void setupSignalsSlots();
     void setupStyleSheet();
 
-    void addCurrentNoteToTag(int tagId);
-    void removeCurrentNoteFromTag(int tagId);
+    void addNotesToTag(QSet<int> notesId, int tagId);
+    void removeNotesFromTag(QSet<int> notesId, int tagId);
 private:
     Q_DECLARE_PRIVATE(NoteListView)
 

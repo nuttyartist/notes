@@ -6,7 +6,7 @@
 #include <QTimeLine>
 
 class TagPool;
-
+class NoteListModel;
 enum class NoteListState{
     Normal,
     Insert,
@@ -22,7 +22,7 @@ class NoteListDelegate : public QStyledItemDelegate
 public:
     NoteListDelegate(NoteListView* view, TagPool *tagPool, QObject *parent = Q_NULLPTR);
 
-    void setState(NoteListState NewState , QModelIndex index);
+    void setState(NoteListState NewState , QModelIndexList indexes);
     void setAnimationDuration(const int duration);
 
     void paint(QPainter *painter, const QStyleOptionViewItem &option,
@@ -36,7 +36,6 @@ public:
 
     QTimeLine::State animationState();
 
-    void setCurrentSelectedIndex(const QModelIndex &currentSelectedIndex);
     void setHoveredIndex(const QModelIndex &hoveredIndex);
     void setRowRightOffset(int rowRightOffset);
     void setActive(bool isActive);
@@ -53,8 +52,6 @@ public slots:
     // QAbstractItemDelegate interface
 public:
     virtual QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
-
-    const QModelIndex &currentSelectedIndex() const;
     const QModelIndex &hoveredIndex() const;
 
 signals:
@@ -66,6 +63,7 @@ private:
     void paintLabels(QPainter* painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     void paintSeparator(QPainter *painter, const QRect &rect, const QModelIndex &index) const;
     void paintTagList(int top, QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    bool shouldPaintSeparator(const QModelIndex& index, const NoteListModel& model) const;
     QString parseDateTime(const QDateTime& dateTime) const;
 
     NoteListView* m_view;
@@ -95,8 +93,7 @@ private:
     QImage m_pinnedCollapseIcon;
     Theme m_theme;
     QTimeLine *m_timeLine;
-    QModelIndex m_animatedIndex;
-    QModelIndex m_currentSelectedIndex;
+    QModelIndexList m_animatedIndexes;
     QModelIndex m_hoveredIndex;    
     QMap<int, QSize> szMap;
 };

@@ -45,32 +45,32 @@ NoteListView::NoteListView(QWidget *parent)
 
     deleteNoteAction = new QAction(tr("Delete Note"), this);
     connect(deleteNoteAction, &QAction::triggered, this, [this] {
-        auto index = currentIndex();
-        if (index.isValid()) {
-            emit deleteNoteRequested(index);
-        }
+        auto indexes = selectedIndexes();
+        emit deleteNoteRequested(indexes);
     });
     restoreNoteAction = new QAction(tr("Restore Note"), this);
     connect(restoreNoteAction, &QAction::triggered, this, [this] {
-        auto index = currentIndex();
-        if (index.isValid()) {
-            emit restoreNoteRequested(index);
-        }
+        auto indexes = selectedIndexes();
+        emit restoreNoteRequested(indexes);
     });
     pinNoteAction = new QAction(tr("Pin Note"), this);
     connect(pinNoteAction, &QAction::triggered, this, [this] {
-        auto index = currentIndex();
-        if (index.isValid()) {
-            auto id = index.data(NoteListModel::NoteID).toInt();
-            emit setPinnedNoteRequested(id, true);
+        auto indexes = selectedIndexes();
+        for (const auto& index: QT_AS_CONST(indexes)) {
+            if (index.isValid()) {
+                auto id = index.data(NoteListModel::NoteID).toInt();
+                emit setPinnedNoteRequested(id, true);
+            }
         }
     });
     unpinNoteAction = new QAction(tr("Unpin Note"), this);
     connect(unpinNoteAction, &QAction::triggered, this, [this] {
-        auto index = currentIndex();
-        if (index.isValid()) {
-            auto id = index.data(NoteListModel::NoteID).toInt();
-            emit setPinnedNoteRequested(id, false);
+        auto indexes = selectedIndexes();
+        for (const auto& index: QT_AS_CONST(indexes)) {
+            if (index.isValid()) {
+                auto id = index.data(NoteListModel::NoteID).toInt();
+                emit setPinnedNoteRequested(id, false);
+            }
         }
     });
 
@@ -89,42 +89,12 @@ NoteListView::~NoteListView()
 {
 }
 
-void NoteListView::animateAddedRow(const QModelIndex& parent, int start, int end)
+void NoteListView::animateAddedRow(const QModelIndexList& indexes)
 {
-    Q_UNUSED(parent)
-    Q_UNUSED(end)
-
-    QModelIndex idx = model()->index(start,0);
-    // Note: this line add flikering, seen when the animation runs slow
-    selectionModel()->select(idx, QItemSelectionModel::ClearAndSelect);
-
     NoteListDelegate* delegate = dynamic_cast<NoteListDelegate*>(itemDelegate());
     if(delegate != Q_NULLPTR){
-        delegate->setState(NoteListState::Insert, idx);
+        delegate->setState(NoteListState::Insert, indexes);
     }
-}
-
-/**
- * @brief Reimplemented from QWidget::paintEvent()
- */
-void NoteListView::paintEvent(QPaintEvent *e)
-{
-    NoteListDelegate* delegate = dynamic_cast<NoteListDelegate*>(itemDelegate());
-    if(delegate != Q_NULLPTR)
-        delegate->setCurrentSelectedIndex(currentIndex());
-
-    QListView::paintEvent(e);
-}
-
-/**
- * @brief Reimplemented from QAbstractItemView::rowsInserted().
- */
-void NoteListView::rowsInserted(const QModelIndex &parent, int start, int end)
-{
-    if(start == end && m_animationEnabled)
-        animateAddedRow(parent, start, end);
-
-    QListView::rowsInserted(parent, start, end);
 }
 
 bool NoteListView::isPinnedNotesCollapsed() const
@@ -145,6 +115,19 @@ void NoteListView::setIsPinnedNotesCollapsed(bool newIsPinnedNotesCollapsed)
     emit pinnedCollapseChanged();
 }
 
+void NoteListView::setCurrentIndexC(const QModelIndex &index)
+{
+    setCurrentIndex(index);
+    clearSelection();
+    setSelectionMode(QAbstractItemView::SingleSelection);
+    selectionModel()->setCurrentIndex(index, QItemSelectionModel::SelectCurrent);
+}
+
+QModelIndexList NoteListView::selectedIndex() const
+{
+    return selectedIndexes();
+}
+
 void NoteListView::onRemoveRowRequested(const QModelIndexList indexes)
 {
     if (!indexes.isEmpty()) {
@@ -154,9 +137,9 @@ void NoteListView::onRemoveRowRequested(const QModelIndexList indexes)
         NoteListDelegate* delegate = dynamic_cast<NoteListDelegate*>(itemDelegate());
         if (delegate) {
             if (m_animationEnabled){
-                delegate->setState(NoteListState::Remove, indexes[0]);
+                delegate->setState(NoteListState::Remove, indexes);
             } else {
-                delegate->setState(NoteListState::Normal, indexes[0]);
+                delegate->setState(NoteListState::Normal, indexes);
             }
         }
     }
@@ -238,46 +221,33 @@ void NoteListView::setTagPool(TagPool *newTagPool)
     m_tagPool = newTagPool;
 }
 
-void NoteListView::rowsAboutToBeMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd,
-                                      const QModelIndex &destinationParent, int destinationRow)
+void NoteListView::rowsAboutToBeMoved(const QModelIndexList& source)
 {
-    Q_UNUSED(sourceParent)
-    Q_UNUSED(sourceEnd)
-    Q_UNUSED(destinationParent)
-    Q_UNUSED(destinationRow)
-
-    if(model() != Q_NULLPTR){
-        QModelIndex idx = model()->index(sourceStart,0);
-        NoteListDelegate* delegate = dynamic_cast<NoteListDelegate*>(itemDelegate());
-        if(delegate != Q_NULLPTR){
-            if(m_animationEnabled){
-                delegate->setState(NoteListState::MoveOut, idx);
-            }else{
-                delegate->setState(NoteListState::Normal, idx);
-            }
+    NoteListDelegate* delegate = dynamic_cast<NoteListDelegate*>(itemDelegate());
+    if(delegate){
+        if(m_animationEnabled){
+            delegate->setState(NoteListState::MoveOut, source);
+        }else{
+            delegate->setState(NoteListState::Normal, source);
         }
     }
 }
 
-void NoteListView::rowsMoved(const QModelIndex &parent, int start, int end,
-                             const QModelIndex &destination, int row)
+void NoteListView::rowsMoved(const QModelIndexList& dest)
 {
-    Q_UNUSED(parent)
-    Q_UNUSED(start)
-    Q_UNUSED(end)
-    Q_UNUSED(destination)
-
-    QModelIndex idx = model()->index(row,0);
-    setCurrentIndex(idx);
-
     NoteListDelegate* delegate = dynamic_cast<NoteListDelegate*>(itemDelegate());
     if (delegate) {
         if (m_animationEnabled){
-            delegate->setState(NoteListState::MoveIn, idx );
+            delegate->setState(NoteListState::MoveIn, dest);
         } else {
-            delegate->setState(NoteListState::Normal, idx);
+            delegate->setState(NoteListState::Normal, dest);
         }
     }
+}
+
+void NoteListView::onRowsInserted(const QModelIndexList &rows)
+{
+    animateAddedRow(rows);
 }
 
 void NoteListView::init()
@@ -321,8 +291,28 @@ void NoteListView::mousePressEvent(QMouseEvent* e)
     m_isMousePressed = true;
     if (e->button() == Qt::LeftButton) {
         m_dragStartPosition = e->pos();
+        if (e->modifiers() == Qt::ControlModifier) {
+            setSelectionMode(QAbstractItemView::MultiSelection);
+            auto oldIndexes = selectionModel()->selectedIndexes();
+            if (oldIndexes.contains(index) && oldIndexes.size() > 1) {
+                selectionModel()->select(index, QItemSelectionModel::Deselect);
+            } else {
+                setCurrentIndex(index);
+                selectionModel()->setCurrentIndex(index, QItemSelectionModel::SelectCurrent);
+            }
+            auto selectedIndexes = selectionModel()->selectedIndexes();
+            emit pressed(selectedIndexes);
+        } else {
+            setCurrentIndexC(index);
+            emit pressed({index});
+        }
+    } else if (e->button() == Qt::RightButton) {
+        auto oldIndexes = selectionModel()->selectedIndexes();
+        if (!oldIndexes.contains(index)) {
+            setCurrentIndexC(index);
+            emit pressed({index});
+        }
     }
-    QListView::mousePressEvent(e);
 }
 
 void NoteListView::mouseReleaseEvent(QMouseEvent*e)
@@ -595,19 +585,29 @@ void NoteListView::setupStyleSheet()
     setStyleSheet(ss);
 }
 
-void NoteListView::addCurrentNoteToTag(int tagId)
+void NoteListView::addNotesToTag(QSet<int> notesId, int tagId)
 {
-    auto current = currentIndex();
-    if (current.isValid()) {
-        emit addTagRequested(current, tagId);
+    for (const auto& id: QT_AS_CONST(notesId)) {
+        auto model = dynamic_cast<NoteListModel*>(this->model());
+        if (model) {
+            auto index = model->getNoteIndex(id);
+            if (index.isValid()) {
+                emit addTagRequested(index, tagId);
+            }
+        }
     }
 }
 
-void NoteListView::removeCurrentNoteFromTag(int tagId)
+void NoteListView::removeNotesFromTag(QSet<int> notesId, int tagId)
 {
-    auto current = currentIndex();
-    if (current.isValid()) {
-        emit removeTagRequested(current, tagId);
+    for (const auto& id: QT_AS_CONST(notesId)) {
+        auto model = dynamic_cast<NoteListModel*>(this->model());
+        if (model) {
+            auto index = model->getNoteIndex(id);
+            if (index.isValid()) {
+                emit removeTagRequested(index, tagId);
+            }
+        }
     }
 }
 
@@ -648,6 +648,15 @@ void NoteListView::onCustomContextMenu(const QPoint &point)
 {
     QModelIndex index = indexAt(point);
     if (index.isValid()) {
+        auto indexList = selectionModel()->selectedIndexes();
+        if (!indexList.contains(index)) {
+            setCurrentIndexC(index);
+            indexList = selectionModel()->selectedIndexes();
+        }
+        QSet<int> notes;
+        for (const auto& idx : QT_AS_CONST(indexList)) {
+            notes.insert(idx.data(NoteListModel::NoteID).toInt());
+        }
         contextMenu->clear();
         if (m_tagPool) {
             auto tagsMenu = contextMenu->addMenu("Tags ...");
@@ -655,7 +664,6 @@ void NoteListView::onCustomContextMenu(const QPoint &point)
                 delete action;
             }
             m_noteTagActions.clear();
-            auto current = currentIndex();
             auto createTagIcon = [](const QString& color) -> QIcon{
                 QPixmap pix{32, 32};
                 pix.fill(Qt::transparent);
@@ -668,27 +676,40 @@ void NoteListView::onCustomContextMenu(const QPoint &point)
                 painter.drawEllipse(iconRect);
                 return QIcon{pix};
             };
-            auto tagInNote = current.data(NoteListModel::NoteTagsList).value<QSet<int>>();
+            QSet<int> tagInNote;
+            const auto tagIds = m_tagPool->tagIds();
+            for (const auto& id : tagIds) {
+                bool all = true;
+                for (const auto& index : QT_AS_CONST(indexList)) {
+                    auto tags = index.data(NoteListModel::NoteTagsList).value<QSet<int>>();
+                    if (!tags.contains(id)) {
+                        all = false;
+                        break;
+                    }
+                }
+                if (all) {
+                    tagInNote.insert(id);
+                }
+            }
             for (auto id : QT_AS_CONST(tagInNote)) {
                 auto tag = m_tagPool->getTag(id);
                 auto tagAction = new QAction(QString("Remove tag ") + tag.name(), this);
-                connect(tagAction, &QAction::triggered, this, [this, id] {
-                    removeCurrentNoteFromTag(id);
+                connect(tagAction, &QAction::triggered, this, [this, id, notes] {
+                    removeNotesFromTag(notes, id);
                 });
                 tagAction->setIcon(createTagIcon(tag.color()));
                 tagsMenu->addAction(tagAction);
                 m_noteTagActions.append(tagAction);
             }
             tagsMenu->addSeparator();
-            const auto tagIds = m_tagPool->tagIds();
             for (auto id : tagIds) {
                 if (tagInNote.contains(id)) {
                     continue;
                 }
                 auto tag = m_tagPool->getTag(id);
                 auto tagAction = new QAction(QString("Assign tag ") + tag.name(), this);
-                connect(tagAction, &QAction::triggered, this, [this, id] {
-                    addCurrentNoteToTag(id);
+                connect(tagAction, &QAction::triggered, this, [this, id, notes] {
+                    addNotesToTag(notes, id);
                 });
                 tagAction->setIcon(createTagIcon(tag.color()));
                 tagsMenu->addAction(tagAction);
@@ -725,9 +746,11 @@ void NoteListView::onCustomContextMenu(const QPoint &point)
                 }
                 auto action = new QAction(folders[id], this);
                 connect(action, &QAction::triggered, this, [this, id] {
-                    auto index = currentIndex();
-                    if (index.isValid()) {
-                        emit moveNoteRequested(index.data(NoteListModel::NoteID).toInt(), id);
+                    auto indexes = selectedIndexes();
+                    for (const auto& index: QT_AS_CONST(indexes)) {
+                        if (index.isValid()) {
+                            emit moveNoteRequested(index.data(NoteListModel::NoteID).toInt(), id);
+                        }
                     }
                 });
                 m->addAction(action);
