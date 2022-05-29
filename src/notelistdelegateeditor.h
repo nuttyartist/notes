@@ -9,6 +9,7 @@ class NoteListDelegate;
 class TagListModel;
 class TagListView;
 class TagListDelegate;
+class NoteListModel;
 struct NoteListConstant {
     static constexpr int leftOffsetX = 10;
     static constexpr int topOffsetY = 5;   // space on top of title

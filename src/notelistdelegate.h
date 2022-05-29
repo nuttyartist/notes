@@ -54,6 +54,7 @@ public slots:
 public:
     virtual QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
     const QModelIndex &hoveredIndex() const;
+    bool shouldPaintSeparator(const QModelIndex& index, const NoteListModel& model) const;
 
 signals:
     void themeChanged(Theme theme);
@@ -64,7 +65,6 @@ private:
     void paintLabels(QPainter* painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     void paintSeparator(QPainter *painter, const QRect &rect, const QModelIndex &index) const;
     void paintTagList(int top, QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
-    bool shouldPaintSeparator(const QModelIndex& index, const NoteListModel& model) const;
     QString parseDateTime(const QDateTime& dateTime) const;
     void setStateI(NoteListState NewState , QModelIndexList indexes);
 

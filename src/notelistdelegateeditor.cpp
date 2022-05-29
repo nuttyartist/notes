@@ -155,23 +155,21 @@ void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOpti
             bufferPainter.fillRect(bufferRect, QBrush(m_hoverColor));
             m_tagListView->setBackground(m_hoverColor);
         }
-    }else /*if((index.row() != m_delegate->currentSelectedIndex().row() - 1)
-             && (index.row() !=  m_delegate->currentSelectedIndex().row() - 1)
-             && (index.row() != model->getFirstUnpinnedNote().row() - 1))*/{
+    } else {
         auto view = dynamic_cast<NoteListView*>(m_view);
         auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
         if (view && view->isPinnedNotesCollapsed() && !isPinned) {
                 bufferPainter.fillRect(bufferRect, QBrush(m_defaultColor));
                 m_tagListView->setBackground(m_defaultColor);
-                paintSeparator(painter, option, index);
         } else {
             bufferPainter.fillRect(bufferRect, QBrush(m_defaultColor));
             m_tagListView->setBackground(m_defaultColor);
         }
-    } /*else {
-        bufferPainter.fillRect(bufferRect, QBrush(m_defaultColor));
-        m_tagListView->setBackground(m_defaultColor);
-    }*/
+    }
+    if (model && m_delegate && m_delegate->shouldPaintSeparator(index, *model)) {
+        paintSeparator(&bufferPainter, option, index);
+    }
+
     auto rowHeight = rect().height();
     painter->drawPixmap(rect(), buffer,
                         QRect {0, bufferSize.height() - rowHeight, rect().width(), rowHeight});
