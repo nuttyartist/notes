@@ -70,43 +70,43 @@ NoteListDelegate::NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject
         for (const auto& index : QT_AS_CONST(m_animatedIndexes)) {
             m_view->openPersistentEditorC(index);
         }
-        m_animatedIndexes.clear();
-        m_state = NoteListState::Normal;
+        if (!animationQueue.empty()) {
+            auto a = animationQueue.front();
+            animationQueue.pop_front();
+            QModelIndexList indexes;
+            for (const auto& id : QT_AS_CONST(a.first)) {
+                auto model = dynamic_cast<NoteListModel*>(m_view->model());
+                if (model) {
+                    auto index = model->getNoteIndex(id);
+                    if (index.isValid()) {
+                        indexes.push_back(index);
+                    }
+                }
+            }
+            setStateI(a.second, indexes);
+        } else {
+            m_animatedIndexes.clear();
+            m_state = NoteListState::Normal;
+        }
     });
 }
 
 void NoteListDelegate::setState(NoteListState NewState, QModelIndexList indexes)
 {
-    m_animatedIndexes = indexes;
-
-    auto startAnimation = [this](QTimeLine::Direction diretion, int duration){
-        for (const auto& index : QT_AS_CONST(m_animatedIndexes)) {
-            m_view->closePersistentEditorC(index);
+    if (animationState() != QTimeLine::NotRunning) {
+        QSet<int> ids;
+        for (const auto& index : QT_AS_CONST(indexes)) {
+            auto noteId = index.data(NoteListModel::NoteID).toInt();
+            if (noteId != SpecialNodeID::InvalidNodeId) {
+                ids.insert(noteId);
+            }
         }
-        m_timeLine->setDirection(diretion);
-        m_timeLine->setDuration(duration);
-        m_timeLine->start();
-    };
-
-    switch ( NewState ){
-    case NoteListState::Insert:
-        startAnimation(QTimeLine::Forward, m_maxFrame);
-        break;
-    case NoteListState::Remove:
-        startAnimation(QTimeLine::Backward, m_maxFrame);
-        break;
-    case NoteListState::MoveOut:
-        startAnimation(QTimeLine::Backward, m_maxFrame);
-        break;
-    case NoteListState::MoveIn:
-        startAnimation(QTimeLine::Backward, m_maxFrame);
-        break;
-    case NoteListState::Normal:
-        m_animatedIndexes.clear();
-        break;
+        if (!ids.empty()) {
+            animationQueue.push_back(qMakePair(ids, NewState));
+        }
+    } else {
+        setStateI(NewState, indexes);
     }
-
-    m_state = NewState;
 }
 
 void NoteListDelegate::setAnimationDuration(const int duration)
@@ -651,21 +651,31 @@ void NoteListDelegate::paintTagList(int top, QPainter *painter, const QStyleOpti
 
 bool NoteListDelegate::shouldPaintSeparator(const QModelIndex &index, const NoteListModel &model) const
 {
-    for (const auto selected : m_view->selectedIndex()) {
+    if (index.row() == model.rowCount() - 1) {
+        return false;
+    }
+    const auto& selectedIndexes = m_view->selectedIndex();
+    bool isCurrentSelected = selectedIndexes.contains(index);
+    bool isNextRowSelected = false;
+    for (const auto& selected : selectedIndexes) {
         if (index.row() == selected.row() - 1) {
-            return false;
+            isNextRowSelected = true;
         }
     }
-    if ((index.row() !=  m_hoveredIndex.row() - 1)
-            && (index.row() != model.getFirstUnpinnedNote().row() - 1)
-            && (index.row() != model.rowCount() - 1)) {
-        if (m_view && m_view->isPinnedNotesCollapsed()) {
-            auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
-            if (!isPinned) {
+    if (!isCurrentSelected &&
+            ((index.row() == m_hoveredIndex.row() - 1) || index.row() == m_hoveredIndex.row())) {
+        return false;
+    }
+    if (isCurrentSelected == isNextRowSelected) {
+        if (index.row() != model.getFirstUnpinnedNote().row() - 1) {
+            if (m_view && m_view->isPinnedNotesCollapsed()) {
+                auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
+                if (!isPinned) {
+                    return true;
+                }
+            } else {
                 return true;
             }
-        } else {
-            return true;
         }
     }
     return false;
@@ -687,6 +697,40 @@ QString NoteListDelegate::parseDateTime(const QDateTime &dateTime) const
     }
 
     return dateTime.date().toString("M/d/yy");
+}
+
+void NoteListDelegate::setStateI(NoteListState NewState, QModelIndexList indexes)
+{
+    m_animatedIndexes = indexes;
+
+    auto startAnimation = [this](QTimeLine::Direction diretion, int duration){
+        for (const auto& index : QT_AS_CONST(m_animatedIndexes)) {
+            m_view->closePersistentEditorC(index);
+        }
+        m_timeLine->setDirection(diretion);
+        m_timeLine->setDuration(duration);
+        m_timeLine->start();
+    };
+
+    switch ( NewState ){
+    case NoteListState::Insert:
+        startAnimation(QTimeLine::Forward, m_maxFrame);
+        break;
+    case NoteListState::Remove:
+        startAnimation(QTimeLine::Backward, m_maxFrame);
+        break;
+    case NoteListState::MoveOut:
+        startAnimation(QTimeLine::Backward, m_maxFrame);
+        break;
+    case NoteListState::MoveIn:
+        startAnimation(QTimeLine::Backward, m_maxFrame);
+        break;
+    case NoteListState::Normal:
+        m_animatedIndexes.clear();
+        break;
+    }
+
+    m_state = NewState;
 }
 
 const QModelIndex &NoteListDelegate::hoveredIndex() const

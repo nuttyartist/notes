@@ -73,10 +73,10 @@ signals:
     void restoreNoteRequested(const QModelIndexList& indexes);
     void newNoteRequested();
     void moveNoteRequested(int noteId, int folderId);
-    void setPinnedNoteRequested(int noteId, bool isPinned);
-    void saveSelectedNote(int noteId);
+    void setPinnedNoteRequested(const QModelIndexList& indexes, bool isPinned);
+    void saveSelectedNote(const QSet<int>& noteId);
     void pinnedCollapseChanged();
-    void pressed(const QModelIndexList selected);
+    void pressed(const QModelIndexList& selected);
 
 private:
     bool m_isScrollBarHidden;
@@ -113,7 +113,7 @@ private:
 
     // QAbstractItemView interface
 protected slots:
-    void currentChanged(const QModelIndex &current, const QModelIndex &previous) override;
+    void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
 };
 
 #endif // NOTELISTVIEW_H

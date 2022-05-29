@@ -1642,7 +1642,7 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive, boo
     inf.isInSearch = false;
     inf.isInTag = false;
     inf.parentFolderId = parentID;
-    inf.currentNoteId = SpecialNodeID::InvalidNodeId;
+    inf.currentNotesId = {SpecialNodeID::InvalidNodeId};
     inf.needCreateNewNote = newNote;
     inf.scrollToId = scrollToId;
     std::sort(nodeList.begin(), nodeList.end(), [] (const NodeData& a, const NodeData& b) ->bool{
@@ -1659,7 +1659,7 @@ void DBManager::onNotesListInTagsRequested(const QSet<int> &tagIds, bool newNote
     inf.isInSearch = false;
     inf.isInTag = true;
     inf.currentTagList = tagIds;
-    inf.currentNoteId = SpecialNodeID::InvalidNodeId;
+    inf.currentNotesId = {SpecialNodeID::InvalidNodeId};
     inf.needCreateNewNote = newNote;
     inf.scrollToId = scrollToId;
     for (const auto& tagId : tagIds) {

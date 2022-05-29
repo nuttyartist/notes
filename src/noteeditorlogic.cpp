@@ -9,9 +9,12 @@
 #include <QScrollBar>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListWidget>
 #include <QDebug>
+#include <QCursor>
 
 #define FIRST_LINE_MAX 80
+
 
 NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit,
                                  QLabel* editorDateLabel,
@@ -24,7 +27,8 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit,
     m_searchEdit{searchEdit},
     m_tagListView{tagListView},
     m_dbManager{dbManager},
-    m_isContentModified{false}
+    m_isContentModified{false},
+    m_spacerColor{26, 26, 26}
 {
     m_highlighter = new MarkdownHighlighter(m_textEdit->document());
     connect(m_textEdit, &QTextEdit::textChanged, this, &NoteEditorLogic::onTextEditTextChanged);
@@ -65,41 +69,72 @@ void NoteEditorLogic::setMarkdownEnabled(bool newMarkdownEnabled)
     }
 }
 
-void NoteEditorLogic::showNoteInEditor(const NodeData &note)
+void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
 {
-    if (note.id() != m_currentNote.id()) {
-        emit noteEditClosed(m_currentNote);
+    if (notes.size() == 1 && notes[0].id() != SpecialNodeID::InvalidNodeId ) {
+        auto currentId = currentEditingNoteId();
+        if (currentId != SpecialNodeID::InvalidNodeId && notes[0].id() != currentId) {
+            emit noteEditClosed(m_currentNotes[0]);
+        }
+        m_textEdit->blockSignals(true);
+        m_textEdit->setVisible(true);
+        m_currentNotes = notes;
+        showTagListForCurrentNote();
+        //     fixing bug #202
+        m_textEdit->setTextBackgroundColor(QColor(247,247,247, 0));
+
+        QString content = notes[0].content();
+        QDateTime dateTime = notes[0].lastModificationdateTime();
+        int scrollbarPos = notes[0].scrollBarPosition();
+
+        // set text and date
+        m_textEdit->setText(content);
+        QString noteDate = dateTime.toString(Qt::ISODate);
+        QString noteDateEditor = getNoteDateEditor(noteDate);
+        m_editorDateLabel->setText(noteDateEditor);
+        // set scrollbar position
+        m_textEdit->verticalScrollBar()->setValue(scrollbarPos);
+        m_textEdit->blockSignals(false);
+        m_textEdit->setReadOnly(false);
+        m_textEdit->setFocusPolicy(Qt::StrongFocus);
+        highlightSearch();
+    } else if (notes.size() > 1) {
+        m_currentNotes = notes;
+        m_tagListView->setVisible(false);
+        m_textEdit->blockSignals(true);
+        m_textEdit->clear();
+        for (int i = 0; i < notes.size(); ++i) {
+            auto cursor = m_textEdit->textCursor().currentFrame()
+                    ->lastCursorPosition();
+            cursor.insertText(notes[i].content());
+            if (i != 0 ) {
+                m_textEdit->append("");
+            }
+            if (i != notes.size() - 1) {
+                m_textEdit->textCursor().movePosition(QTextCursor::End);
+                QTextFrameFormat frameFormat;
+                frameFormat.setHeight(1);
+                frameFormat.setWidth(m_textEdit->width() - 100);
+                frameFormat.setBackground(m_spacerColor);
+                m_textEdit->textCursor().insertFrame(frameFormat);
+            }
+            m_textEdit->setTextCursor(cursor);
+        }
+        m_textEdit->blockSignals(false);
+        m_textEdit->setReadOnly(true);
+        m_textEdit->setFocusPolicy(Qt::NoFocus);
+        highlightSearch();
     }
-    m_textEdit->blockSignals(true);
-    m_currentNote = note;
-    showTagListForCurrentNote();
-//    / fixing bug #202
-    m_textEdit->setTextBackgroundColor(QColor(247,247,247, 0));
-
-    QString content = note.content();
-    QDateTime dateTime = note.lastModificationdateTime();
-    int scrollbarPos = note.scrollBarPosition();
-
-    // set text and date
-    m_textEdit->setText(content);
-    QString noteDate = dateTime.toString(Qt::ISODate);
-    QString noteDateEditor = getNoteDateEditor(noteDate);
-    m_editorDateLabel->setText(noteDateEditor);
-    // set scrollbar position
-    m_textEdit->verticalScrollBar()->setValue(scrollbarPos);
-    m_textEdit->blockSignals(false);
-
-    highlightSearch();
 }
 
 void NoteEditorLogic::onTextEditTextChanged()
 {
-    if (m_currentNote.id() != SpecialNodeID::InvalidNodeId) {
+    if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId) {
         m_textEdit->blockSignals(true);
-        QString content = m_currentNote.content();
+        QString content = m_currentNotes[0].content();
         if(m_textEdit->toPlainText() != content){
             // move note to the top of the list
-            emit moveNoteToListViewTop(m_currentNote);
+            emit moveNoteToListViewTop(m_currentNotes[0]);
 
             // Get the new data
             QString firstline = getFirstLine(m_textEdit->toPlainText());
@@ -107,13 +142,13 @@ void NoteEditorLogic::onTextEditTextChanged()
             QString noteDate = dateTime.toString(Qt::ISODate);
             m_editorDateLabel->setText(NoteEditorLogic::getNoteDateEditor(noteDate));
             // update note data
-            m_currentNote.setContent(m_textEdit->toPlainText());
-            m_currentNote.setFullTitle(firstline);
-            m_currentNote.setLastModificationDateTime(dateTime);
-            m_currentNote.setIsTempNote(false);
-            m_currentNote.setScrollBarPosition(m_textEdit->verticalScrollBar()->value());
+            m_currentNotes[0].setContent(m_textEdit->toPlainText());
+            m_currentNotes[0].setFullTitle(firstline);
+            m_currentNotes[0].setLastModificationDateTime(dateTime);
+            m_currentNotes[0].setIsTempNote(false);
+            m_currentNotes[0].setScrollBarPosition(m_textEdit->verticalScrollBar()->value());
             // update note data in list view
-            emit updateNoteDataInList(m_currentNote);
+            emit updateNoteDataInList(m_currentNotes[0]);
             m_isContentModified = true;
             m_autoSaveTimer.start();
             emit setVisibilityOfFrameRightNonEditor(false);
@@ -132,8 +167,8 @@ QDateTime NoteEditorLogic::getQDateTime(QString date)
 
 void NoteEditorLogic::showTagListForCurrentNote()
 {
-    if (m_currentNote.id() != SpecialNodeID::InvalidNodeId) {
-        auto tagIds = m_currentNote.tagIds();
+    if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId) {
+        auto tagIds = m_currentNotes[0].tagIds();
         if (tagIds.count() > 0) {
             m_tagListView->setVisible(true);
             m_tagListModel->setModelData(tagIds);
@@ -144,24 +179,39 @@ void NoteEditorLogic::showTagListForCurrentNote()
     m_tagListView->setVisible(false);
 }
 
+bool NoteEditorLogic::isInEditMode() const
+{
+    if (m_currentNotes.size() == 1) {
+        return true;
+    }
+    return false;
+}
+
+int NoteEditorLogic::currentEditingNoteId() const
+{
+    if (isInEditMode()) {
+        return m_currentNotes[0].id();
+    }
+    return SpecialNodeID::InvalidNodeId;
+}
+
 void NoteEditorLogic::saveNoteToDB()
 {
-    if(m_currentNote.id() != SpecialNodeID::InvalidNodeId
-            && m_isContentModified && !m_currentNote.isTempNote()) {
-        emit requestCreateUpdateNote(m_currentNote);
+    if(currentEditingNoteId() != SpecialNodeID::InvalidNodeId
+            && m_isContentModified && !m_currentNotes[0].isTempNote()) {
+        emit requestCreateUpdateNote(m_currentNotes[0]);
         m_isContentModified = false;
     }
 }
 
 void NoteEditorLogic::closeEditor()
 {
-    if (m_currentNote.id() != SpecialNodeID::InvalidNodeId) {
+    if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId) {
         saveNoteToDB();
-        emit noteEditClosed(m_currentNote);
-        m_currentNote.setId(SpecialNodeID::InvalidNodeId);
-    } /*else {
-        qDebug() << "NoteEditorLogic::closeEditor() : m_currentNote is not valid";
-    }*/
+        emit noteEditClosed(m_currentNotes[0]);
+    }
+    m_currentNotes.clear();
+
     m_textEdit->blockSignals(true);
     m_textEdit->clear();
     m_textEdit->clearFocus();
@@ -171,23 +221,19 @@ void NoteEditorLogic::closeEditor()
 
 void NoteEditorLogic::onNoteTagListChanged(int noteId, const QSet<int> tagIds)
 {
-    if (m_currentNote.id() == noteId) {
-        m_currentNote.setTagIds(tagIds);
+    if (currentEditingNoteId() == noteId) {
+        m_currentNotes[0].setTagIds(tagIds);
         showTagListForCurrentNote();
     }
 }
 
-NodeData NoteEditorLogic::currentEditingNote() const
-{
-    return m_currentNote;
-}
 
 void NoteEditorLogic::deleteCurrentNote()
 {
-    if (m_currentNote.id() != SpecialNodeID::InvalidNodeId) {
-        auto noteNeedDeleted = m_currentNote;
+    if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId) {
+        auto noteNeedDeleted = m_currentNotes[0];
         saveNoteToDB();
-        m_currentNote.setId(SpecialNodeID::InvalidNodeId);
+        m_currentNotes.clear();
         m_textEdit->blockSignals(true);
         m_textEdit->clear();
         m_textEdit->clearFocus();
@@ -244,6 +290,33 @@ QString NoteEditorLogic::getSecondLine(const QString &str)
 void NoteEditorLogic::setTheme(Theme newTheme)
 {
     m_tagListDelegate->setTheme(newTheme);
+    m_tagListView->update();
+    switch(newTheme){
+    case Theme::Light:
+    {
+        m_spacerColor = QColor(26, 26, 26);
+        break;
+    }
+    case Theme::Dark:
+    {
+        m_spacerColor = QColor(204, 204, 204);
+        break;
+    }
+    case Theme::Sepia:
+    {
+        m_spacerColor = QColor(26, 26, 26);
+        break;
+    }
+    }
+    if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId) {
+        int verticalScrollBarValueToRestore = m_textEdit->verticalScrollBar()->value();
+        m_textEdit->setText(m_textEdit->toPlainText()); // TODO: Update the text color without setting the text
+        m_textEdit->verticalScrollBar()->setValue(verticalScrollBarValueToRestore);
+    } else {
+        int verticalScrollBarValueToRestore = m_textEdit->verticalScrollBar()->value();
+        showNotesInEditor(m_currentNotes);
+        m_textEdit->verticalScrollBar()->setValue(verticalScrollBarValueToRestore);
+    }
 }
 
 QString NoteEditorLogic::getNoteDateEditor(QString dateEdited)
@@ -278,7 +351,7 @@ void NoteEditorLogic::highlightSearch() const
 
 bool NoteEditorLogic::isTempNote() const
 {
-    if (m_currentNote.id() != SpecialNodeID::InvalidNodeId && m_currentNote.isTempNote()) {
+    if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId && m_currentNotes[0].isTempNote()) {
         return true;
     }
     return false;

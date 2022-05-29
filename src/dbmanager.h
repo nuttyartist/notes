@@ -20,7 +20,7 @@ struct ListViewInfo {
     bool isInTag;
     QSet<int> currentTagList;
     int parentFolderId;
-    int currentNoteId;
+    QSet<int> currentNotesId;
     bool needCreateNewNote;
     int scrollToId;
 };

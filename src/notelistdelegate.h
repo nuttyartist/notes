@@ -4,6 +4,7 @@
 #include "notelistview.h"
 #include <QStyledItemDelegate>
 #include <QTimeLine>
+#include <QQueue>
 
 class TagPool;
 class NoteListModel;
@@ -65,6 +66,7 @@ private:
     void paintTagList(int top, QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     bool shouldPaintSeparator(const QModelIndex& index, const NoteListModel& model) const;
     QString parseDateTime(const QDateTime& dateTime) const;
+    void setStateI(NoteListState NewState , QModelIndexList indexes);
 
     NoteListView* m_view;
     TagPool* m_tagPool;
@@ -96,6 +98,7 @@ private:
     QModelIndexList m_animatedIndexes;
     QModelIndex m_hoveredIndex;    
     QMap<int, QSize> szMap;
+    QQueue<QPair<QSet<int>, NoteListState>> animationQueue;
 };
 
 #endif // NOTELISTDELEGATE_H

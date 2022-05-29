@@ -33,7 +33,7 @@ public:
     void selectFirstNote();
     void setTheme(Theme theme);
     bool isAnimationRunning();
-    void setLastSavedState(int lastSelectedNote, int needLoadSavedState = 2);
+    void setLastSavedState(const QSet<int>& lastSelectedNotes, int needLoadSavedState = 2);
     void requestLoadSavedState(int needLoadSavedState);
 
 public slots:
@@ -51,9 +51,9 @@ public slots:
     void loadLastSelectedNoteRequested();
     void onNotesListInFolderRequested(int parentID, bool isRecursive, bool newNote, int scrollToId);
     void onNotesListInTagsRequested(const QSet<int> &tagIds, bool newNote, int scrollToId);
-
+    void selectNotes(const QModelIndexList indexes);
 signals:
-    void showNoteInEditor(const NodeData& noteData);
+    void showNotesInEditor(const QVector<NodeData>& notesData);
     void requestAddTagDb(int noteId, int tagId);
     void requestRemoveTagDb(int noteId, int tagId);
     void requestRemoveNoteDb(const NodeData& noteData);
@@ -75,13 +75,13 @@ private slots:
     void loadNoteListModel(const QVector<NodeData>& noteList, const ListViewInfo& inf);
     void onAddTagRequest(const QModelIndex& index, int tagId);
     void onRemoveTagRequest(const QModelIndex& index, int tagId);
-    void onNotePressed(const QModelIndex& index);
+    void onNotePressed(const QModelIndexList &indexes);
     void deleteNoteRequestedI(const QModelIndexList& indexes);
     void restoreNotesRequestedI(const QModelIndexList& indexes);
     void updateListViewLabel();
     void onRowCountChanged();
     void onNoteDoubleClicked(const QModelIndex& index);
-    void onSetPinnedNoteRequested(int noteId, bool isPinned);
+    void onSetPinnedNoteRequested(const QModelIndexList &indexes, bool isPinned);
 
 private:
     NoteListView* m_listView;
@@ -95,7 +95,7 @@ private:
     QVector<QModelIndex> m_editorIndexes;
 
     int m_needLoadSavedState;
-    int m_lastSelectedNote;
+    QSet<int> m_lastSelectedNotes;
 };
 
 #endif // LISTVIEWLOGIC_H

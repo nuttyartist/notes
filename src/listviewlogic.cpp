@@ -10,6 +10,20 @@
 #include "tagpool.h"
 #include <QTimer>
 
+static bool isInvalidCurrentNotesId(const QSet<int>& currentNotesId) {
+    if (currentNotesId.isEmpty()) {
+        return true;
+    }
+    bool isInvalid = true;
+    for (const auto& id : QT_AS_CONST(currentNotesId)) {
+        if (id != SpecialNodeID::InvalidNodeId) {
+            isInvalid = false;
+        }
+    }
+    return isInvalid;
+}
+
+
 ListViewLogic::ListViewLogic(NoteListView* noteView,
                              NoteListModel* noteModel, QLineEdit *searchEdit, QToolButton *clearButton,
                              TagPool *tagPool,
@@ -22,7 +36,7 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
     m_dbManager{dbManager},
     m_tagPool{tagPool},
     m_needLoadSavedState{0},
-    m_lastSelectedNote{SpecialNodeID::InvalidNodeId}
+    m_lastSelectedNotes{}
 {
     m_listDelegate = new NoteListDelegate(m_listView, tagPool, m_listView);
     m_listView->setItemDelegate(m_listDelegate);
@@ -33,7 +47,7 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
     connect(m_listModel, &NoteListModel::rowsMovedC, m_listView, &NoteListView::rowsMoved);
     // note pressed
     connect(m_listView, &NoteListView::pressed, this, [this] (const QModelIndexList& indexes) {
-        onNotePressed(indexes.first());
+        onNotePressed(indexes);
     });
     connect(m_listView, &NoteListView::addTagRequested, this, &ListViewLogic::onAddTagRequest);
     connect(m_listView, &NoteListView::removeTagRequested, this, &ListViewLogic::onRemoveTagRequest);
@@ -77,11 +91,20 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
             this, &ListViewLogic::onSetPinnedNoteRequested);
     connect(m_listView, &NoteListView::pinnedCollapseChanged,
             this, &ListViewLogic::onRowCountChanged);
-    connect(m_listModel, &NoteListModel::pinnedChanged,
-            this, [this](const QModelIndex& index, bool) {
-        if (index.isValid()) {
-            m_listView->closePersistentEditorC(index);
-            m_listView->openPersistentEditorC(index);
+    connect(m_listModel, &NoteListModel::requestOpenNoteEditor,
+            this, [this](const QModelIndexList& indexes) {
+        for (const auto& index : indexes) {
+            if (index.isValid()) {
+                m_listView->openPersistentEditorC(index);
+            }
+        }
+    });
+    connect(m_listModel, &NoteListModel::requestCloseNoteEditor,
+            this, [this](const QModelIndexList& indexes) {
+        for (const auto& index : indexes) {
+            if (index.isValid()) {
+                m_listView->closePersistentEditorC(index);
+            }
         }
     });
     connect(m_listModel, &NoteListModel::setCurrentIndex,
@@ -98,6 +121,8 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
             m_dbManager, &DBManager::onNotesListInTagsRequested, Qt::QueuedConnection);
     connect(m_listModel, &NoteListModel::rowsInsertedC,
             m_listView, &NoteListView::onRowsInserted);
+    connect(m_listModel, &NoteListModel::selectNotes,
+            this, &ListViewLogic::selectNotes);
 }
 
 void ListViewLogic::selectNote(const QModelIndex &noteIndex)
@@ -107,7 +132,7 @@ void ListViewLogic::selectNote(const QModelIndex &noteIndex)
         m_listView->selectionModel()->select(noteIndex, QItemSelectionModel::ClearAndSelect);
         m_listView->setCurrentIndexC(noteIndex);
         m_listView->scrollTo(noteIndex);
-        emit showNoteInEditor(note);
+        emit showNotesInEditor({note});
     } else {
         qDebug() << __PRETTY_FUNCTION__ << "noteIndex is not valid";
     }
@@ -232,11 +257,12 @@ void ListViewLogic::onSearchEditTextChanged(const QString &keyword)
         clearSearch();
     } else {
         if (!m_listViewInfo.isInSearch) {
-            auto index = m_listView->currentIndex();
-            if (index.isValid()) {
-                m_listViewInfo.currentNoteId = index.data(NoteListModel::NoteID).toInt();
-            } else {
-                m_listViewInfo.currentNoteId = SpecialNodeID::InvalidNodeId;
+            auto indexes = m_listView->selectedIndex();
+            m_listViewInfo.currentNotesId.clear();
+            for (const auto& index : indexes) {
+                if (index.isValid()) {
+                    m_listViewInfo.currentNotesId.insert(index.data(NoteListModel::NoteID).toInt());
+                }
             }
         }
         m_clearButton->show();
@@ -254,7 +280,7 @@ void ListViewLogic::clearSearch(bool createNewNote, int scrollToId)
 
 void ListViewLogic::loadNoteListModel(const QVector<NodeData>& noteList, const ListViewInfo& inf)
 {
-    auto currentNoteId = m_listViewInfo.currentNoteId;
+    auto currentNotesId = m_listViewInfo.currentNotesId;
     m_listViewInfo = inf;
     if ((!m_listViewInfo.isInTag) && m_listViewInfo.parentFolderId == SpecialNodeID::RootFolder) {
         m_listDelegate->setIsInAllNotes(true);
@@ -284,31 +310,35 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData>& noteList, const L
         QTimer::singleShot(50, this, &ListViewLogic::requestNewNote);
     }
 
-    if (!m_listViewInfo.isInSearch && currentNoteId != SpecialNodeID::InvalidNodeId) {
-        bool sr = false;
+    if (!m_listViewInfo.isInSearch && !isInvalidCurrentNotesId(currentNotesId)) {
         if (m_listViewInfo.scrollToId != SpecialNodeID::InvalidNodeId) {
-            sr = true;
-            currentNoteId = m_listViewInfo.scrollToId;
+            currentNotesId = {m_listViewInfo.scrollToId};
             m_listViewInfo.scrollToId = SpecialNodeID::InvalidNodeId;
         }
-        auto index = m_listModel->getNoteIndex(currentNoteId);
-        if (index.isValid()) {
-            m_listView->selectionModel()->select(index, QItemSelectionModel::ClearAndSelect);
-            m_listView->setCurrentIndexC(index);
-            if (sr) {
-                m_listView->scrollTo(index, QAbstractItemView::PositionAtCenter);
+        if (!currentNotesId.isEmpty()) {
+            QModelIndexList indexes;
+            for (const auto& id : currentNotesId) {
+                if (id != SpecialNodeID::InvalidNodeId) {
+                    indexes.append(m_listModel->getNoteIndex(id));
+                }
             }
-            auto currentNote = m_listModel->getNote(index);
-            emit showNoteInEditor(currentNote);
-            return;
+            if (!indexes.isEmpty()) {
+                selectNotes(indexes);
+                return;
+            }
         }
     }
     if (m_needLoadSavedState > 0) {
         m_needLoadSavedState -= 1;
-        if (m_lastSelectedNote != SpecialNodeID::InvalidNodeId) {
-            auto index = m_listModel->getNoteIndex(m_lastSelectedNote);
-            if (index.isValid()) {
-                selectNote(index);
+        if (!m_lastSelectedNotes.isEmpty()) {
+            QModelIndexList indexes;
+            for (const auto& id : currentNotesId) {
+                if (id != SpecialNodeID::InvalidNodeId) {
+                    indexes.append(m_listModel->getNoteIndex(id));
+                }
+            }
+            if (!indexes.isEmpty()) {
+                selectNotes(indexes);
                 return;
             }
         }
@@ -373,13 +403,14 @@ void ListViewLogic::onNoteMovedOut(int nodeId, int targetId)
 
 void ListViewLogic::setLastSelectedNote()
 {
-    auto index = m_listView->currentIndex();
-    if (index.isValid()) {
-        auto id = index.data(NoteListModel::NoteID).toInt();
-        setLastSavedState(id, 0);
-    } else {
-        setLastSavedState(SpecialNodeID::InvalidNodeId, 0);
+    auto indexes = m_listView->selectedIndex();
+    QSet<int> ids;
+    for (const auto& index : QT_AS_CONST(indexes)) {
+        if (index.isValid()) {
+            ids.insert(index.data(NoteListModel::NoteID).toInt());
+        }
     }
+    setLastSavedState(ids, 0);
 }
 
 void ListViewLogic::loadLastSelectedNoteRequested()
@@ -391,7 +422,7 @@ void ListViewLogic::onNotesListInFolderRequested(int parentID, bool isRecursive,
 {
     if (m_listViewInfo.isInSearch && !m_searchEdit->text().isEmpty()) {
         m_listViewInfo.parentFolderId = parentID;
-        m_listViewInfo.currentNoteId = SpecialNodeID::InvalidNodeId;
+        m_listViewInfo.currentNotesId.clear();
         m_listViewInfo.isInTag = false;
         m_listViewInfo.needCreateNewNote = false;
         m_listViewInfo.currentTagList = {};
@@ -407,7 +438,7 @@ void ListViewLogic::onNotesListInTagsRequested(const QSet<int> &tagIds, bool new
 {
     if (m_listViewInfo.isInSearch && !m_searchEdit->text().isEmpty()) {
         m_listViewInfo.parentFolderId = SpecialNodeID::InvalidNodeId;
-        m_listViewInfo.currentNoteId = SpecialNodeID::InvalidNodeId;
+        m_listViewInfo.currentNotesId.clear();
         m_listViewInfo.isInTag = true;
         m_listViewInfo.needCreateNewNote = false;
         m_listViewInfo.currentTagList = tagIds;
@@ -415,6 +446,18 @@ void ListViewLogic::onNotesListInTagsRequested(const QSet<int> &tagIds, bool new
         emit requestSearchInDb(m_searchEdit->text(), m_listViewInfo);
     } else {
         emit requestNotesListInTags(tagIds, newNote, scrollToId);
+    }
+}
+
+void ListViewLogic::selectNotes(const QModelIndexList indexes)
+{
+    m_listView->clearSelection();
+    m_listView->setSelectionMode(QAbstractItemView::MultiSelection);
+    for (const auto index : QT_AS_CONST(indexes)) {
+        if (index.isValid()) {
+            m_listView->setCurrentIndex(index);
+            m_listView->selectionModel()->setCurrentIndex(index, QItemSelectionModel::SelectCurrent);
+        }
     }
 }
 
@@ -447,13 +490,19 @@ void ListViewLogic::onRemoveTagRequest(const QModelIndex &index, int tagId)
  * \param index
  */
 
-void ListViewLogic::onNotePressed(const QModelIndex &index)
+void ListViewLogic::onNotePressed(const QModelIndexList &indexes)
 {
-    if (index.isValid()) {
-        auto note = m_listModel->getNote(index);
-        m_listView->scrollTo(index);
-        emit showNoteInEditor(note);
+    QVector<NodeData> notes;
+    QModelIndex lastIndex;
+    for (const auto& index : indexes) {
+        if (index.isValid()) {
+            auto note = m_listModel->getNote(index);
+            notes.append(note);
+            lastIndex = index;
+        }
     }
+    m_listView->scrollTo(lastIndex);
+    emit showNotesInEditor(notes);
     m_listView->setCurrentRowActive(false);
 }
 
@@ -609,16 +658,9 @@ void ListViewLogic::onNoteDoubleClicked(const QModelIndex &index)
     clearSearch(false, id);
 }
 
-void ListViewLogic::onSetPinnedNoteRequested(int noteId, bool isPinned)
+void ListViewLogic::onSetPinnedNoteRequested(const QModelIndexList& indexes,  bool isPinned)
 {
-    auto index = m_listModel->getNoteIndex(noteId);
-    if (index.isValid()) {
-        if (index.data(NoteListModel::NoteIsPinned).toBool() != isPinned) {
-            m_listModel->setData(index, QVariant::fromValue(isPinned), NoteListModel::NoteIsPinned);
-        }
-        //        auto newIndex = m_listModel->getNoteIndex(noteId);
-        //        m_listModel->setCurrentIndex(newIndex);
-    }
+    m_listModel->setNotesIsPinned(indexes, isPinned);
 }
 
 void ListViewLogic::selectFirstNote()
@@ -628,7 +670,7 @@ void ListViewLogic::selectFirstNote()
         if (index.isValid()) {
             m_listView->setCurrentIndexC(index);
             auto firstNote = m_listModel->getNote(index);
-            emit showNoteInEditor(firstNote);
+            emit showNotesInEditor({firstNote});
         }
     } else {
         emit closeNoteEditor();
@@ -647,10 +689,10 @@ bool ListViewLogic::isAnimationRunning()
     return m_listDelegate->animationState() == QTimeLine::Running;
 }
 
-void ListViewLogic::setLastSavedState(int lastSelectedNote, int needLoadSavedState)
+void ListViewLogic::setLastSavedState(const QSet<int> &lastSelectedNotes, int needLoadSavedState)
 {
     m_needLoadSavedState = needLoadSavedState;
-    m_lastSelectedNote = lastSelectedNote;
+    m_lastSelectedNotes = lastSelectedNotes;
 }
 
 void ListViewLogic::requestLoadSavedState(int needLoadSavedState)

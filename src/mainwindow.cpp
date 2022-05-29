@@ -206,9 +206,13 @@ void MainWindow::saveExpandedFolder(const QStringList &folderPaths)
     m_settingsDatabase->setValue("currentExpandedFolder", folderPaths);
 }
 
-void MainWindow::saveLastSelectedNote(int noteId)
+void MainWindow::saveLastSelectedNote(const QSet<int>& notesId)
 {
-    m_settingsDatabase->setValue("currentSelectNoteId", noteId);
+    QStringList sl;
+    for (const auto& id: notesId) {
+        sl.append(QString::number(id));
+    }
+    m_settingsDatabase->setValue("currentSelectNotesId", sl);
 }
 
 /*!
@@ -661,8 +665,8 @@ void MainWindow::setupSignalsSlots()
     connect(this, &MainWindow::requestMigrateTrashFromV0_9_0,
             m_dbManager, &DBManager::onMigrateTrashFrom0_9_0Requested, Qt::BlockingQueuedConnection);
 
-    connect(m_listViewLogic, &ListViewLogic::showNoteInEditor,
-            m_noteEditorLogic, &NoteEditorLogic::showNoteInEditor);
+    connect(m_listViewLogic, &ListViewLogic::showNotesInEditor,
+            m_noteEditorLogic, &NoteEditorLogic::showNotesInEditor);
     connect(m_listViewLogic, &ListViewLogic::closeNoteEditor,
             m_noteEditorLogic, &NoteEditorLogic::closeEditor);
     connect(m_noteEditorLogic, &NoteEditorLogic::setVisibilityOfFrameRightNonEditor,
@@ -1263,8 +1267,12 @@ void MainWindow::restoreStates()
                                        currentSelectFolder,
                                        tags,
                                        expandedFolder);
-    auto currentSelectNote = m_settingsDatabase->value(QStringLiteral("currentSelectNoteId"), SpecialNodeID::InvalidNodeId).toInt();
-    m_listViewLogic->setLastSavedState(currentSelectNote);
+    auto currentSelectNotes = m_settingsDatabase->value(QStringLiteral("currentSelectNotesId"), QStringList{}).toStringList();
+    QSet<int> notesId;
+    for (const auto& id : QT_AS_CONST(currentSelectNotes)) {
+        notesId.insert(id.toInt());
+    }
+    m_listViewLogic->setLastSavedState(notesId);
 }
 
 /*!
@@ -1690,10 +1698,6 @@ void MainWindow::setTheme(Theme theme)
     }
 
     setSearchEditStyleSheet(false);
-
-    int verticalScrollBarValueToRestore = m_textEdit->verticalScrollBar()->value();
-    m_textEdit->setText(m_textEdit->toPlainText()); // TODO: Update the text color without setting the text
-    m_textEdit->verticalScrollBar()->setValue(verticalScrollBarValueToRestore);
     alignTextEditText();
     setupRightFrame();
 }
@@ -1765,10 +1769,10 @@ void MainWindow::createNewNote()
         newNoteIndex = m_listModel->insertNote(tmpNote, 0);
 
         // update the editor
-        m_noteEditorLogic->showNoteInEditor(tmpNote);
+        m_noteEditorLogic->showNotesInEditor({tmpNote});
     } else {
         newNoteIndex = m_listModel->getNoteIndex(
-                    m_noteEditorLogic->currentEditingNote().id());
+                    m_noteEditorLogic->currentEditingNoteId());
         m_listView->animateAddedRow({newNoteIndex});
     }
     // update the current selected index
@@ -1787,7 +1791,7 @@ void MainWindow::selectNoteDown()
  */
 void MainWindow::setFocusOnText()
 {
-    if(m_noteEditorLogic->currentEditingNote().id() != SpecialNodeID::InvalidNodeId && !m_textEdit->hasFocus()) {
+    if(m_noteEditorLogic->currentEditingNoteId() != SpecialNodeID::InvalidNodeId && !m_textEdit->hasFocus()) {
         m_listView->setCurrentRowActive(true);
         m_textEdit->setFocus();
     }

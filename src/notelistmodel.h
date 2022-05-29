@@ -58,9 +58,7 @@ public:
     QModelIndex getFirstPinnedNote() const;
     QModelIndex getFirstUnpinnedNote() const;
     bool hasPinnedNote() const;
-
-private slots:
-    void onPinnedChanged(const QModelIndex& index, bool isPinned);
+    void setNotesIsPinned(const QModelIndexList& indexes, bool isPinned);
 
 private:
     QVector<NodeData> m_noteList;
@@ -72,7 +70,6 @@ private:
 signals:
     void noteRemoved();
     void rowCountChanged();
-    void pinnedChanged(const QModelIndex& index, bool isPinned);
     void requestUpdatePinned(int noteId, bool isPinned);
     void requestUpdatePinnedAN(int noteId, bool isPinned);
     void requestUpdatePinnedRelPos(int noteId, int pos);
@@ -82,6 +79,9 @@ signals:
     void rowsInsertedC(const QModelIndexList& rows);
     void rowsAboutToBeMovedC(const QModelIndexList& source);
     void rowsMovedC(const QModelIndexList& dest);
+    void requestCloseNoteEditor(const QModelIndexList& indexes);
+    void requestOpenNoteEditor(const QModelIndexList& indexes);
+    void selectNotes(const QModelIndexList& indexes);
 
     // QAbstractItemModel interface
 public:

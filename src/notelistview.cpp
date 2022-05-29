@@ -56,22 +56,12 @@ NoteListView::NoteListView(QWidget *parent)
     pinNoteAction = new QAction(tr("Pin Note"), this);
     connect(pinNoteAction, &QAction::triggered, this, [this] {
         auto indexes = selectedIndexes();
-        for (const auto& index: QT_AS_CONST(indexes)) {
-            if (index.isValid()) {
-                auto id = index.data(NoteListModel::NoteID).toInt();
-                emit setPinnedNoteRequested(id, true);
-            }
-        }
+        emit setPinnedNoteRequested(indexes, true);
     });
     unpinNoteAction = new QAction(tr("Unpin Note"), this);
     connect(unpinNoteAction, &QAction::triggered, this, [this] {
         auto indexes = selectedIndexes();
-        for (const auto& index: QT_AS_CONST(indexes)) {
-            if (index.isValid()) {
-                auto id = index.data(NoteListModel::NoteID).toInt();
-                emit setPinnedNoteRequested(id, false);
-            }
-        }
+        emit setPinnedNoteRequested(indexes, false);
     });
 
     newNoteAction = new QAction(tr("New Note"), this);
@@ -611,11 +601,14 @@ void NoteListView::removeNotesFromTag(QSet<int> notesId, int tagId)
     }
 }
 
-void NoteListView::currentChanged(const QModelIndex &current, const QModelIndex &previous)
+void NoteListView::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
 {
-    QListView::currentChanged(current, previous);
-    auto id = current.data(NoteListModel::NoteID).toInt();
-    emit saveSelectedNote(id);
+    QListView::selectionChanged(selected, deselected);
+    QSet<int> ids;
+    for (const auto& index : selected.indexes()) {
+        ids.insert(index.data(NoteListModel::NoteID).toInt());
+    }
+    emit saveSelectedNote(ids);
 }
 
 /**

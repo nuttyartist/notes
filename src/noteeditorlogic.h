@@ -15,7 +15,7 @@ class TagListView;
 class TagListModel;
 class TagPool;
 class TagListDelegate;
-
+class QListWidget;
 class NoteEditorLogic : public QObject
 {
     Q_OBJECT
@@ -34,7 +34,7 @@ public:
     void highlightSearch() const;
     bool isTempNote() const;
     void saveNoteToDB();
-    NodeData currentEditingNote() const;
+    int currentEditingNoteId() const;
     void deleteCurrentNote();
 
     static QString getFirstLine(const QString &str);
@@ -42,7 +42,7 @@ public:
     void setTheme(Theme newTheme);
 
 public slots:
-    void showNoteInEditor(const NodeData& note);
+    void showNotesInEditor(const QVector<NodeData>& notes);
     void onTextEditTextChanged();
     void closeEditor();
     void onNoteTagListChanged(int noteId, const QSet<int> tagIds);
@@ -57,6 +57,7 @@ signals:
 private:
     static QDateTime getQDateTime(QString date);
     void showTagListForCurrentNote();
+    bool isInEditMode() const;
 
 private:
     CustomDocument* m_textEdit;
@@ -65,11 +66,12 @@ private:
     QLineEdit* m_searchEdit;
     TagListView* m_tagListView;
     DBManager* m_dbManager;
-    NodeData m_currentNote;
+    QVector<NodeData> m_currentNotes;
     bool m_isContentModified;
     QTimer m_autoSaveTimer;
     TagListDelegate* m_tagListDelegate;
     TagListModel* m_tagListModel;
+    QColor m_spacerColor;
 };
 
 #endif // NOTEEDITORLOGIC_H
