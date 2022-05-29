@@ -112,11 +112,13 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
             }
             if (i != notes.size() - 1) {
                 m_textEdit->textCursor().movePosition(QTextCursor::End);
-                QTextFrameFormat frameFormat;
-                frameFormat.setHeight(1);
-                frameFormat.setWidth(m_textEdit->width() - 100);
-                frameFormat.setBackground(m_spacerColor);
-                m_textEdit->textCursor().insertFrame(frameFormat);
+                {
+                    QTextFrameFormat frameFormat;
+                    frameFormat.setHeight(1);
+                    frameFormat.setWidth(m_textEdit->width() - 100);
+                    frameFormat.setBackground(m_spacerColor);
+                    m_textEdit->textCursor().insertFrame(frameFormat);
+                }
             }
             m_textEdit->setTextCursor(cursor);
         }
@@ -290,7 +292,6 @@ QString NoteEditorLogic::getSecondLine(const QString &str)
 void NoteEditorLogic::setTheme(Theme newTheme)
 {
     m_tagListDelegate->setTheme(newTheme);
-    m_tagListView->update();
     switch(newTheme){
     case Theme::Light:
     {
