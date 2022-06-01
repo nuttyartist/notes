@@ -710,16 +710,65 @@ void NoteListView::onCustomContextMenu(const QPoint &point)
             }
         }
         if (m_isInTrash) {
+            if (notes.size() > 1) {
+                restoreNoteAction->setText(tr("Restore Notes"));
+            } else {
+                restoreNoteAction->setText(tr("Restore Note"));
+            }
             contextMenu->addAction(restoreNoteAction);
+        }
+        if (notes.size() > 1) {
+            deleteNoteAction->setText(tr("Delete Notes"));
+        } else {
+            deleteNoteAction->setText(tr("Delete Note"));
         }
         contextMenu->addAction(deleteNoteAction);
         if ((!m_listViewInfo.isInTag) && (m_listViewInfo.parentFolderId != SpecialNodeID::TrashFolder)) {
             contextMenu->addSeparator();
-            auto isPinned = index.data(NoteListModel::NoteIsPinned).toBool();
-            if (!isPinned) {
-                contextMenu->addAction(pinNoteAction);
+            if (notes.size() > 1) {
+                pinNoteAction->setText(tr("Pin Notes"));
+                unpinNoteAction->setText(tr("Unpin Notes"));
+                enum class ShowAction {
+                    NotInit, ShowPin, ShowBoth, ShowUnpin
+                };
+                ShowAction a = ShowAction::NotInit;
+                for (const auto& idx : QT_AS_CONST(indexList)) {
+                    if (idx.data(NoteListModel::NoteIsPinned).toBool()) {
+                        if (a == ShowAction::ShowPin) {
+                            a = ShowAction::ShowBoth;
+                            break;
+                        } else {
+                            a = ShowAction::ShowUnpin;
+                        }
+                    } else {
+                        if (a == ShowAction::ShowUnpin) {
+                            a = ShowAction::ShowBoth;
+                            break;
+                        } else {
+                            a = ShowAction::ShowPin;
+                        }
+                    }
+                }
+                switch (a) {
+                case ShowAction::ShowPin:
+                    contextMenu->addAction(pinNoteAction);
+                    break;
+                case ShowAction::ShowUnpin:
+                    contextMenu->addAction(unpinNoteAction);
+                    break;
+                default:
+                    contextMenu->addAction(pinNoteAction);
+                    contextMenu->addAction(unpinNoteAction);
+                }
             } else {
-                contextMenu->addAction(unpinNoteAction);
+                pinNoteAction->setText(tr("Pin Note"));
+                unpinNoteAction->setText(tr("Unpin Note"));
+                auto isPinned = index.data(NoteListModel::NoteIsPinned).toBool();
+                if (!isPinned) {
+                    contextMenu->addAction(pinNoteAction);
+                } else {
+                    contextMenu->addAction(unpinNoteAction);
+                }
             }
         }
         contextMenu->addSeparator();
