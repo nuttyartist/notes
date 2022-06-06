@@ -179,7 +179,12 @@ QVariant NoteListModel::data(const QModelIndex &index, int role) const
     if(role == NoteID){
         return note.id();
     }else if(role == NoteFullTitle){
-        return note.fullTitle();
+        auto text = note.fullTitle().trimmed();
+        if (text.startsWith("#")) {
+            text.remove(0, 1);
+            text = text.trimmed();
+        }
+        return text;
     }else if(role == NoteCreationDateTime){
         return note.creationDateTime();
     }else if(role == NoteLastModificationDateTime){

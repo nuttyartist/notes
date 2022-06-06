@@ -256,9 +256,6 @@ void NoteEditorLogic::deleteCurrentNote()
 QString NoteEditorLogic::getFirstLine(const QString& str)
 {
     QString text = str.trimmed();
-    if (text.startsWith("#")) {
-        text.remove(0, 1);
-    }
     if (text.isEmpty()) {
         return "New Note";
     }

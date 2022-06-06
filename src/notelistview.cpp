@@ -228,7 +228,7 @@ void NoteListView::rowsMoved(const QModelIndexList& dest)
     NoteListDelegate* delegate = dynamic_cast<NoteListDelegate*>(itemDelegate());
     if (delegate) {
         if (m_animationEnabled){
-            delegate->setState(NoteListState::MoveIn, dest);
+            delegate->setState(NoteListState::Insert, dest);
         } else {
             delegate->setState(NoteListState::Normal, dest);
         }
