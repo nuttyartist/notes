@@ -267,6 +267,7 @@ void NoteListView::mouseMoveEvent(QMouseEvent* event)
 
 void NoteListView::mousePressEvent(QMouseEvent* e)
 {
+    Q_D(NoteListView);
     auto index = indexAt(e->pos());
     auto model = dynamic_cast<NoteListModel*>(this->model());
     if (model && model->isFirstPinnedNote(index)) {
@@ -303,6 +304,8 @@ void NoteListView::mousePressEvent(QMouseEvent* e)
             emit pressed({index});
         }
     }
+    QPoint offset = d->offset();
+    d->pressedPosition = e->pos() + offset;
 }
 
 void NoteListView::mouseReleaseEvent(QMouseEvent*e)
