@@ -161,8 +161,10 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
 {
     QSize result = QStyledItemDelegate::sizeHint(option, index);
     result.setWidth(option.rect.width());
-    auto id = index.data(NoteListModel::NoteID).toInt();
-    bool isHaveTags = index.data(NoteListModel::NoteTagsList).value<QSet<int>>().size() > 0;
+    auto model = dynamic_cast<NoteListModel*>(m_view->model());
+    const auto note = model->getNote(index);
+    auto id = note.id();
+    bool isHaveTags = note.tagIds().size() > 0;
 #if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
     if ((!m_animatedIndex.contains(index)) && isHaveTags) {
 #else
@@ -191,15 +193,8 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
     if (m_isInAllNotes) {
         result.setHeight(result.height() + 20);
     }
-    auto model = dynamic_cast<NoteListModel*>(m_view->model());
-    if (model) {
-        if (model->hasPinnedNote() &&
-                (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
-            result.setHeight(result.height() + 25);
-        }
-    }
     if (m_view->isPinnedNotesCollapsed()) {
-        auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
+        auto isPinned = note.isPinnedNote();
         if (isPinned) {
             if (model && model->isFirstPinnedNote(index)) {
                 result.setHeight(25);
@@ -207,7 +202,13 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
                 result.setHeight(0);
             }
         }
+    } else {
+        if (model->hasPinnedNote() &&
+                (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
+            result.setHeight(result.height() + 25);
+        }
     }
+
     return result;
 }
 
