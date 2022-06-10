@@ -369,10 +369,16 @@ QMimeData *NoteListModel::mimeData(const QModelIndexList &indexes) const
     if (indexes.isEmpty()) {
         return nullptr;
     }
+    QStringList d;
+    for (const auto& index : indexes) {
+        auto id = index.data(NoteListModel::NoteID).toInt();
+        d.append(QString::number(id));
+    }
+    if (d.isEmpty()) {
+        return nullptr;
+    }
     QMimeData *mimeData = new QMimeData;
-    const auto& current = indexes[0];
-    mimeData->setData(NOTE_MIME, QString::number(
-                          current.data(NoteListModel::NoteID).toInt()).toUtf8());
+    mimeData->setData(NOTE_MIME, d.join(QStringLiteral(PATH_SEPERATOR)).toUtf8());
     return mimeData;
 }
 

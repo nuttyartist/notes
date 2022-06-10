@@ -385,17 +385,20 @@ void NodeTreeView::dropEvent(QDropEvent *event)
         if (dropIndex.isValid()) {
             auto itemType = static_cast<NodeItem::Type>(dropIndex.data(NodeItem::Roles::ItemType).toInt());
             bool ok = false;
-            auto nodeId = QString::fromUtf8(
-                        event->mimeData()->data(NOTE_MIME)).toInt(&ok);
-            if (ok) {
-                if (itemType == NodeItem::Type::FolderItem) {
-                    emit moveNodeRequested(nodeId, dropIndex.data(NodeItem::NodeId).toInt());
-                    event->acceptProposedAction();
-                } else if (itemType == NodeItem::Type::TagItem) {
-                    emit addNoteToTag(nodeId, dropIndex.data(NodeItem::NodeId).toInt());
-                } else if (itemType == NodeItem::Type::TrashButton) {
-                    emit moveNodeRequested(nodeId, SpecialNodeID::TrashFolder);
-                    event->acceptProposedAction();
+            auto idl = QString::fromUtf8(event->mimeData()->data(NOTE_MIME))
+                    .split(QStringLiteral(PATH_SEPERATOR));
+            for (const auto& s : QT_AS_CONST(idl)) {
+                auto nodeId = s.toInt(&ok);
+                if (ok) {
+                    if (itemType == NodeItem::Type::FolderItem) {
+                        emit moveNodeRequested(nodeId, dropIndex.data(NodeItem::NodeId).toInt());
+                        event->acceptProposedAction();
+                    } else if (itemType == NodeItem::Type::TagItem) {
+                        emit addNoteToTag(nodeId, dropIndex.data(NodeItem::NodeId).toInt());
+                    } else if (itemType == NodeItem::Type::TrashButton) {
+                        emit moveNodeRequested(nodeId, SpecialNodeID::TrashFolder);
+                        event->acceptProposedAction();
+                    }
                 }
             }
         }

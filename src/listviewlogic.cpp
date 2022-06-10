@@ -46,7 +46,7 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
     connect(m_listModel, &NoteListModel::rowsAboutToBeMovedC, m_listView, &NoteListView::rowsAboutToBeMoved);
     connect(m_listModel, &NoteListModel::rowsMovedC, m_listView, &NoteListView::rowsMoved);
     // note pressed
-    connect(m_listView, &NoteListView::pressed, this, [this] (const QModelIndexList& indexes) {
+    connect(m_listView, &NoteListView::notePressed, this, [this] (const QModelIndexList& indexes) {
         onNotePressed(indexes);
     });
     connect(m_listView, &NoteListView::addTagRequested, this, &ListViewLogic::onAddTagRequest);

@@ -76,12 +76,13 @@ signals:
     void setPinnedNoteRequested(const QModelIndexList& indexes, bool isPinned);
     void saveSelectedNote(const QSet<int>& noteId);
     void pinnedCollapseChanged();
-    void pressed(const QModelIndexList& selected);
+    void notePressed(const QModelIndexList& selected);
 
 private:
     bool m_isScrollBarHidden;
     bool m_animationEnabled;
     bool m_isMousePressed;
+    bool m_mousePressHandled;
     int m_rowHeight;
     QColor m_currentBackgroundColor;
     QMenu* contextMenu;
@@ -113,7 +114,7 @@ private:
 
     // QAbstractItemView interface
 protected slots:
-    void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
+    void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected) override;
 };
 
 #endif // NOTELISTVIEW_H

@@ -26,6 +26,7 @@ NoteListView::NoteListView(QWidget *parent)
       m_isScrollBarHidden(true),
       m_animationEnabled(true),
       m_isMousePressed(false),
+      m_mousePressHandled(false),
       m_rowHeight(38),
       m_currentBackgroundColor(247, 247, 247),
       m_tagPool(nullptr),
@@ -282,6 +283,41 @@ void NoteListView::mousePressEvent(QMouseEvent* e)
     m_isMousePressed = true;
     if (e->button() == Qt::LeftButton) {
         m_dragStartPosition = e->pos();
+        auto oldIndexes = selectionModel()->selectedIndexes();
+        if (!oldIndexes.contains(index)) {
+            if (e->modifiers() == Qt::ControlModifier) {
+                setSelectionMode(QAbstractItemView::MultiSelection);
+                auto oldIndexes = selectionModel()->selectedIndexes();
+                if (oldIndexes.contains(index) && oldIndexes.size() > 1) {
+                    selectionModel()->select(index, QItemSelectionModel::Deselect);
+                } else {
+                    setCurrentIndex(index);
+                    selectionModel()->setCurrentIndex(index, QItemSelectionModel::SelectCurrent);
+                }
+                auto selectedIndexes = selectionModel()->selectedIndexes();
+                emit notePressed(selectedIndexes);
+            } else {
+                setCurrentIndexC(index);
+                emit notePressed({index});
+            }
+            m_mousePressHandled = true;
+        }
+    } else if (e->button() == Qt::RightButton) {
+        auto oldIndexes = selectionModel()->selectedIndexes();
+        if (!oldIndexes.contains(index)) {
+            setCurrentIndexC(index);
+            emit notePressed({index});
+        }
+    }
+    QPoint offset = d->offset();
+    d->pressedPosition = e->pos() + offset;
+}
+
+void NoteListView::mouseReleaseEvent(QMouseEvent*e)
+{
+    m_isMousePressed = false;
+    auto index = indexAt(e->pos());
+    if (e->button() == Qt::LeftButton && !m_mousePressHandled) {
         if (e->modifiers() == Qt::ControlModifier) {
             setSelectionMode(QAbstractItemView::MultiSelection);
             auto oldIndexes = selectionModel()->selectedIndexes();
@@ -292,25 +328,13 @@ void NoteListView::mousePressEvent(QMouseEvent* e)
                 selectionModel()->setCurrentIndex(index, QItemSelectionModel::SelectCurrent);
             }
             auto selectedIndexes = selectionModel()->selectedIndexes();
-            emit pressed(selectedIndexes);
+            emit notePressed(selectedIndexes);
         } else {
             setCurrentIndexC(index);
-            emit pressed({index});
-        }
-    } else if (e->button() == Qt::RightButton) {
-        auto oldIndexes = selectionModel()->selectedIndexes();
-        if (!oldIndexes.contains(index)) {
-            setCurrentIndexC(index);
-            emit pressed({index});
+            emit notePressed({index});
         }
     }
-    QPoint offset = d->offset();
-    d->pressedPosition = e->pos() + offset;
-}
-
-void NoteListView::mouseReleaseEvent(QMouseEvent*e)
-{
-    m_isMousePressed = false;
+    m_mousePressHandled = false;
     QListView::mouseReleaseEvent(e);
 }
 
@@ -418,15 +442,15 @@ void NoteListView::startDrag(Qt::DropActions supportedActions)
 {
     Q_UNUSED(supportedActions);
     Q_D(NoteListView);
-    auto current = currentIndex();
-    if (current.isValid()) {
-        auto indexes = QModelIndexList{current};
-        QMimeData *data = d->model->mimeData(QModelIndexList{indexes});
-        if (!data) {
-            return;
-        }
-        QRect rect;
-        QPixmap pixmap;
+    auto indexes = selectedIndexes();
+    QMimeData *data = d->model->mimeData(indexes);
+    if (!data) {
+        return;
+    }
+    QRect rect;
+    QPixmap pixmap;
+    if (indexes.size() == 1) {
+        auto current = indexes[0];
         auto id = current.data(NoteListModel::NoteID).toInt();
         if (m_openedEditor.contains(id)) {
             QItemViewPaintPairs paintPairs = d->draggablePaintPairs(indexes, &rect);
@@ -441,32 +465,35 @@ void NoteListView::startDrag(Qt::DropActions supportedActions)
             pixmap = d->renderToPixmap(indexes, &rect);
         }
         rect.adjust(horizontalOffset(), verticalOffset(), 0, 0);
-        QDrag *drag = new QDrag(this);
-        drag->setPixmap(pixmap);
-        drag->setMimeData(data);
-        drag->setHotSpot(d->pressedPosition - rect.topLeft());
-        auto openedEditors = m_openedEditor.keys();
-        m_isDragging = true;
-        Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
-        /// Delete later, if there is no drop event.
-        if(dropAction == Qt::IgnoreAction){
-            drag->deleteLater();
-            data->deleteLater();
-        }
-#if QT_VERSION > QT_VERSION_CHECK(5, 15, 0)
-        d->dropEventMoved = false;
-#endif
-        m_isDragging = false;
-        // Reset the drop indicator
-        d->dropIndicatorRect = QRect();
-        d->dropIndicatorPosition = OnItem;
-        closeAllEditor();
-        for (const auto& id : QT_AS_CONST(openedEditors)) {
-            auto index = dynamic_cast<NoteListModel*>(model())->getNoteIndex(id);
-            openPersistentEditorC(index);
-        }
-        openPersistentEditorC(current);
+    } else {
+        pixmap.load(":/images/notes_icon.ico");
+        rect = pixmap.rect();
     }
+    QDrag *drag = new QDrag(this);
+    drag->setPixmap(pixmap);
+    drag->setMimeData(data);
+    drag->setHotSpot(d->pressedPosition - rect.topLeft());
+    auto openedEditors = m_openedEditor.keys();
+    m_isDragging = true;
+    Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
+    /// Delete later, if there is no drop event.
+    if(dropAction == Qt::IgnoreAction){
+        drag->deleteLater();
+        data->deleteLater();
+    }
+#if QT_VERSION > QT_VERSION_CHECK(5, 15, 0)
+    d->dropEventMoved = false;
+#endif
+    m_isDragging = false;
+    // Reset the drop indicator
+    d->dropIndicatorRect = QRect();
+    d->dropIndicatorPosition = OnItem;
+    closeAllEditor();
+    for (const auto& id : QT_AS_CONST(openedEditors)) {
+        auto index = dynamic_cast<NoteListModel*>(model())->getNoteIndex(id);
+        openPersistentEditorC(index);
+    }
+    scrollContentsBy(0, 0);
 }
 
 void NoteListView::setCurrentRowActive(bool isActive)
