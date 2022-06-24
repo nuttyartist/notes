@@ -68,13 +68,11 @@ private:
     bool isInAllNote() const;
 
 signals:
-    void noteRemoved();
     void rowCountChanged();
     void requestUpdatePinned(int noteId, bool isPinned);
     void requestUpdatePinnedAN(int noteId, bool isPinned);
     void requestUpdatePinnedRelPos(int noteId, int pos);
     void requestUpdatePinnedRelPosAN(int noteId, int pos);
-    void setCurrentIndex(const QModelIndex& index);
     void requestRemoveNotes(QModelIndexList index);
     void rowsInsertedC(const QModelIndexList& rows);
     void rowsAboutToBeMovedC(const QModelIndexList& source);

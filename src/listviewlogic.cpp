@@ -107,10 +107,6 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
             }
         }
     });
-    connect(m_listModel, &NoteListModel::setCurrentIndex,
-            this, [this] (const QModelIndex& index) {
-        m_listView->setCurrentIndexC(index);
-    });
     connect(m_listDelegate, &NoteListDelegate::animationFinished,
             m_listView, &NoteListView::onAnimationFinished);
     connect(m_listModel, &NoteListModel::requestRemoveNotes,

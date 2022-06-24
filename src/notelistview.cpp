@@ -383,24 +383,10 @@ void NoteListView::dragEnterEvent(QDragEnterEvent *event)
 void NoteListView::dragMoveEvent(QDragMoveEvent *event)
 {
     if (event->mimeData()->hasFormat(NOTE_MIME)) {
-        bool ok = false;
-        auto nodeId = QString::fromUtf8(
-                    event->mimeData()->data(NOTE_MIME)).toInt(&ok);
-        if (ok) {
-            auto model = dynamic_cast<NoteListModel*>(this->model());
-            if (model) {
-                auto noteIndex = model->getNoteIndex(nodeId);
-                if (noteIndex.data(NoteListModel::NoteIsPinned).toBool()) {
-                    auto firstUnpinned = model->getFirstUnpinnedNote();
-                    if (event->pos().y() <= visualRect(firstUnpinned).y() - 25) {
-                        event->acceptProposedAction();
-                        setDropIndicatorShown(true);
-                        QListView::dragMoveEvent(event);
-                        return;
-                    }
-                }
-            }
-        }
+        event->acceptProposedAction();
+        setDropIndicatorShown(true);
+        QListView::dragMoveEvent(event);
+        return;
     } else {
         event->ignore();
     }
@@ -464,9 +450,35 @@ void NoteListView::startDrag(Qt::DropActions supportedActions)
         } else {
             pixmap = d->renderToPixmap(indexes, &rect);
         }
+        auto model = dynamic_cast<NoteListModel*>(this->model());
+        if (model && model->hasPinnedNote() &&
+                (model->isFirstPinnedNote(current) || model->isFirstUnpinnedNote(current))) {
+            QRect r(0, 25, rect.width(), rect.height() - 25);
+            pixmap = pixmap.copy(r);
+            rect.setHeight(rect.height() - 25);
+        }
         rect.adjust(horizontalOffset(), verticalOffset(), 0, 0);
     } else {
         pixmap.load(":/images/notes_icon.ico");
+        pixmap = pixmap.scaled(pixmap.width() / 3, pixmap.height() / 3,
+                               Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QPainter painter(&pixmap);
+        painter.setPen(Qt::red);
+        painter.drawText(0, 0, QString::number(indexes.size()));
+        QRect nameRect(pixmap.rect());
+        #ifdef __APPLE__
+        QFont m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto"));
+        #elif _WIN32
+        QFont m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI") : QStringLiteral("Roboto"));
+        #else
+        QFont m_displayFont(QStringLiteral("Roboto"));
+        #endif
+        m_displayFont.setPixelSize(18);
+
+        painter.setFont(m_displayFont);
+        painter.drawText(nameRect, Qt::AlignRight | Qt::AlignBottom,
+                         QString::number(indexes.size()));
+        painter.end();
         rect = pixmap.rect();
     }
     QDrag *drag = new QDrag(this);

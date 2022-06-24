@@ -405,24 +405,39 @@ bool NoteListModel::dropMimeData(const QMimeData *mime,
     if (row >= m_pinnedList.size()) {
         return false;
     }
-    bool ok = false;
-    auto nodeId = QString::fromUtf8(mime->data(NOTE_MIME)).toInt(&ok);
-    if (ok) {
-        beginResetModel();
+    auto idl = QString::fromUtf8(mime->data(NOTE_MIME))
+            .split(QStringLiteral(PATH_SEPERATOR));
+    QSet<int> movedIds;
+    QModelIndexList idxe;
+    for (const auto& id_s : QT_AS_CONST(idl)) {
+        auto nodeId = id_s.toInt();
+        idxe.append(getNoteIndex(nodeId));
+    }
+    emit rowsAboutToBeMovedC(idxe);
+    beginResetModel();
+    for (const auto& id_s : QT_AS_CONST(idl)) {
+        auto nodeId = id_s.toInt();
         for (int i = 0; i < m_pinnedList.size(); ++i) {
             if (m_pinnedList[i].id() == nodeId) {
                 vector_move(m_pinnedList, i, row);
                 break;
             }
         }
-
-        endResetModel();
-        emit setCurrentIndex(getNoteIndex(nodeId));
-        updatePinnedRelativePosition();
-        return true;
+        movedIds.insert(nodeId);
     }
-
-    return false;
+    endResetModel();
+    QModelIndexList destinations;
+    for (const auto& id : movedIds) {
+        auto index = getNoteIndex(id);
+        if (!index.isValid()) {
+            continue;
+        }
+        destinations.append(index);
+    }
+    emit selectNotes(destinations);
+    emit rowsMovedC(destinations);
+    updatePinnedRelativePosition();
+    return true;
 }
 
 QModelIndex NoteListModel::getFirstUnpinnedNote() const
