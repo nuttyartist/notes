@@ -270,6 +270,9 @@ void NoteListView::mousePressEvent(QMouseEvent* e)
 {
     Q_D(NoteListView);
     auto index = indexAt(e->pos());
+    if (!index.isValid()) {
+        return;
+    }
     auto model = dynamic_cast<NoteListModel*>(this->model());
     if (model && model->isFirstPinnedNote(index)) {
         auto rect = visualRect(index);
@@ -317,6 +320,9 @@ void NoteListView::mouseReleaseEvent(QMouseEvent*e)
 {
     m_isMousePressed = false;
     auto index = indexAt(e->pos());
+    if (!index.isValid()) {
+        return;
+    }
     if (e->button() == Qt::LeftButton && !m_mousePressHandled) {
         if (e->modifiers() == Qt::ControlModifier) {
             setSelectionMode(QAbstractItemView::MultiSelection);
@@ -352,14 +358,6 @@ bool NoteListView::viewportEvent(QEvent*e)
                     delegate->setHoveredIndex(QModelIndex());
                     viewport()->update(visualRect(index));
                 }
-            }
-            break;
-        }
-        case QEvent::MouseButtonPress:{
-            QPoint pt = mapFromGlobal(QCursor::pos());
-            QModelIndex index = indexAt(QPoint(10, pt.y()));
-            if(!index.isValid()) {
-                emit viewportPressed();
             }
             break;
         }

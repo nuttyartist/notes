@@ -629,13 +629,6 @@ void MainWindow::setupSignalsSlots()
     connect(m_searchEdit, &QLineEdit::textChanged, m_listViewLogic, &ListViewLogic::onSearchEditTextChanged);
     // line edit enter key pressed
     connect(m_searchEdit, &QLineEdit::returnPressed, this, &MainWindow::onSearchEditReturnPressed);
-    // noteView viewport pressed
-    connect(m_listView, &NoteListView::viewportPressed, this, [this](){
-        if (m_noteEditorLogic->isTempNote()) {
-            m_noteEditorLogic->closeEditor();
-        }
-        m_listViewLogic->selectFirstNote();
-    });
     // clear button
     connect(m_clearButton, &QToolButton::clicked, this, &MainWindow::onClearButtonClicked);
     // Restore Notes Action

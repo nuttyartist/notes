@@ -66,7 +66,6 @@ private slots:
     void init();
 
 signals:
-    void viewportPressed();
     void addTagRequested(const QModelIndex& index, int tadId);
     void removeTagRequested(const QModelIndex& index, int tadId);
     void deleteNoteRequested(const QModelIndexList& index);
