@@ -462,29 +462,39 @@ void NoteListView::startDrag(Qt::DropActions supportedActions)
         pixmap.load(":/images/notes_icon.ico");
         pixmap = pixmap.scaled(pixmap.width() / 3, pixmap.height() / 3,
                                Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        QPainter painter(&pixmap);
-        painter.setPen(Qt::red);
-        painter.drawText(0, 0, QString::number(indexes.size()));
-        QRect nameRect(pixmap.rect());
-        #ifdef __APPLE__
+#ifdef __APPLE__
         QFont m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto"));
-        #elif _WIN32
+#elif _WIN32
         QFont m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI") : QStringLiteral("Roboto"));
-        #else
+#else
         QFont m_displayFont(QStringLiteral("Roboto"));
-        #endif
-        m_displayFont.setPixelSize(18);
+#endif
+        m_displayFont.setPixelSize(16);
+        QFontMetrics fmContent(m_displayFont);
+        QString sz = QString::number(indexes.size());
+        QRect szRect = fmContent.boundingRect(sz);
+        QPixmap px(pixmap.width() + szRect.width(), pixmap.height());
+        px.fill(Qt::transparent);
 
+        QRect nameRect(px.rect());
+        QPainter painter(&px);
+        painter.setPen(Qt::red);
+        painter.drawPixmap(0, 0, pixmap);
         painter.setFont(m_displayFont);
         painter.drawText(nameRect, Qt::AlignRight | Qt::AlignBottom,
-                         QString::number(indexes.size()));
+                         sz);
         painter.end();
-        rect = pixmap.rect();
+        std::swap(pixmap, px);
+        rect = px.rect();
     }
     QDrag *drag = new QDrag(this);
     drag->setPixmap(pixmap);
     drag->setMimeData(data);
-    drag->setHotSpot(d->pressedPosition - rect.topLeft());
+    if (indexes.size() == 1) {
+        drag->setHotSpot(d->pressedPosition - rect.topLeft());
+    } else {
+        drag->setHotSpot({0, 0});
+    }
     auto openedEditors = m_openedEditor.keys();
     m_isDragging = true;
     Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
