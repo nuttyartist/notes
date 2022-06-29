@@ -388,6 +388,15 @@ bool NoteListModel::dropMimeData(const QMimeData *mime,
                                  const QModelIndex &parent)
 {
     Q_UNUSED(column);
+    auto getRef = [this] (int row) -> NodeData& {
+        NodeData note;
+        if (row < m_pinnedList.size()) {
+            return m_pinnedList[row];
+        } else {
+            row = row - m_pinnedList.size();
+            return m_noteList[row];
+        }
+    };
 
     if (!(mime->hasFormat(NOTE_MIME) &&
           action == Qt::MoveAction)) {
@@ -402,8 +411,11 @@ bool NoteListModel::dropMimeData(const QMimeData *mime,
             row = rowCount(parent);
         }
     }
+    bool toPinned = false;
     if (row >= m_pinnedList.size()) {
-        return false;
+        toPinned = false;
+    } else {
+        toPinned = true;
     }
     auto idl = QString::fromUtf8(mime->data(NOTE_MIME))
             .split(QStringLiteral(PATH_SEPERATOR));
@@ -415,16 +427,44 @@ bool NoteListModel::dropMimeData(const QMimeData *mime,
     }
     emit rowsAboutToBeMovedC(idxe);
     beginResetModel();
-    for (const auto& id_s : QT_AS_CONST(idl)) {
-        auto nodeId = id_s.toInt();
-        for (int i = 0; i < m_pinnedList.size(); ++i) {
-            if (m_pinnedList[i].id() == nodeId) {
-                vector_move(m_pinnedList, i, row);
-                break;
+    if (toPinned) {
+        for (const auto& index : QT_AS_CONST(idxe)) {
+            auto& note = getRef(index.row());
+            if (!note.isPinnedNote()) {
+                note.setIsPinnedNote(true);
+                m_pinnedList.prepend(m_noteList.takeAt(index.row() - m_pinnedList.size()));
             }
         }
-        movedIds.insert(nodeId);
+        for (const auto& id_s : QT_AS_CONST(idl)) {
+            auto nodeId = id_s.toInt();
+            for (int i = 0; i < m_pinnedList.size(); ++i) {
+                if (m_pinnedList[i].id() == nodeId) {
+                    vector_move(m_pinnedList, i, row);
+                    break;
+                }
+            }
+            movedIds.insert(nodeId);
+        }
+    } else {
+        for (const auto& index : QT_AS_CONST(idxe)) {
+            auto& note = getRef(index.row());
+            movedIds.insert(note.id());
+            if (!note.isPinnedNote()) {
+                continue;
+            }
+            note.setIsPinnedNote(false);
+            int destinationChild = 0;
+            auto lastMod = index.data(NoteCreationDateTime).toDateTime();
+            for (destinationChild = 0; destinationChild < m_noteList.size(); ++destinationChild) {
+                const auto& note = m_noteList[destinationChild];
+                if (note.lastModificationdateTime() <= lastMod) {
+                    break;
+                }
+            }
+            m_noteList.insert(destinationChild, m_pinnedList.takeAt(index.row()));
+        }
     }
+
     endResetModel();
     QModelIndexList destinations;
     for (const auto& id : movedIds) {
