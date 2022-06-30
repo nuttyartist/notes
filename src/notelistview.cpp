@@ -34,6 +34,7 @@ NoteListView::NoteListView(QWidget *parent)
       m_currentFolderId{SpecialNodeID::InvalidNodeId},
       m_isInTrash{false},
       m_isDragging{false},
+      m_isDraggingPinnedNotes{false},
       m_isPinnedNotesCollapsed{false}
 {
     this->setAttribute(Qt::WA_MacShowFocusRect, 0);
@@ -381,6 +382,15 @@ void NoteListView::dragEnterEvent(QDragEnterEvent *event)
 void NoteListView::dragMoveEvent(QDragMoveEvent *event)
 {
     if (event->mimeData()->hasFormat(NOTE_MIME)) {
+        auto index = indexAt(event->pos());
+        if (!index.isValid()) {
+            event->ignore();
+            return;
+        }
+        if (!m_isDraggingPinnedNotes && !index.data(NoteListModel::NoteIsPinned).toBool()) {
+            event->ignore();
+            return;
+        }
         event->acceptProposedAction();
         setDropIndicatorShown(true);
         QListView::dragMoveEvent(event);
@@ -484,6 +494,13 @@ void NoteListView::startDrag(Qt::DropActions supportedActions)
         painter.end();
         std::swap(pixmap, px);
         rect = px.rect();
+    }
+    m_isDraggingPinnedNotes = false;
+    for (const auto& index : QT_AS_CONST(indexes)) {
+        if (index.data(NoteListModel::NoteIsPinned).toBool()) {
+            m_isDraggingPinnedNotes = true;
+            break;
+        }
     }
     QDrag *drag = new QDrag(this);
     drag->setPixmap(pixmap);

@@ -102,6 +102,7 @@ private:
     QVector<int> m_needRemovedNotes;
     ListViewInfo m_listViewInfo;
     bool m_isDragging;
+    bool m_isDraggingPinnedNotes;
     bool m_isPinnedNotesCollapsed;
     void setupSignalsSlots();
     void setupStyleSheet();

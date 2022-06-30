@@ -86,7 +86,7 @@ NoteListDelegateEditor::NoteListDelegateEditor(const NoteListDelegate *delegate,
                 y += 25;
             }
         }
-        m_tagListView->setGeometry(10, y, rect().width() - 15, m_tagListView->height());
+        m_tagListView->setGeometry(10, y - 5, rect().width() - 15, m_tagListView->height());
     } else {
         int y = 70;
         auto model = dynamic_cast<NoteListModel*>(m_view->model());
@@ -97,7 +97,7 @@ NoteListDelegateEditor::NoteListDelegateEditor(const NoteListDelegate *delegate,
                 y += 25;
             }
         }
-        m_tagListView->setGeometry(10, y, rect().width() - 15, m_tagListView->height());
+        m_tagListView->setGeometry(10, y - 5, rect().width() - 15, m_tagListView->height());
     }
     connect(m_tagListView->verticalScrollBar(), &QScrollBar::valueChanged,
             this, [this] {
@@ -358,7 +358,7 @@ void NoteListDelegateEditor::resizeEvent(QResizeEvent *event)
                 y += 25;
             }
         }
-        m_tagListView->setGeometry(10, y, rect().width() - 15, m_tagListView->height());
+        m_tagListView->setGeometry(10, y - 5, rect().width() - 15, m_tagListView->height());
     } else {
         int y = 70;
         auto model = dynamic_cast<NoteListModel*>(m_view->model());
@@ -369,28 +369,15 @@ void NoteListDelegateEditor::resizeEvent(QResizeEvent *event)
                 y += 25;
             }
         }
-        m_tagListView->setGeometry(10, y, rect().width() - 15, m_tagListView->height());
+        m_tagListView->setGeometry(10, y - 5, rect().width() - 15, m_tagListView->height());
     }
     recalculateSize();
 }
 
 void NoteListDelegateEditor::dragEnterEvent(QDragEnterEvent *event)
 {
-    //    if (event->mimeData()->hasFormat(NOTE_MIME)) {
-    //        bool ok = false;
-    //        auto nodeId = QString::fromUtf8(
-    //                    event->mimeData()->data(NOTE_MIME)).toInt(&ok);
-    //        if (ok) {
-    //            auto model = dynamic_cast<NoteListModel*>(m_view->model());
-    //            if (model) {
-    //                auto noteIndex = model->getNoteIndex(nodeId);
-    //                if (noteIndex.data(NoteListModel::NoteIsPinned).toBool()) {
-    //                    m_containsMouse = true;
-    //                    event->accept();
-    //                }
-    //            }
-    //        }
-    //    }
+    Q_UNUSED(event);
+    m_containsMouse = true;
 }
 
 void NoteListDelegateEditor::dragLeaveEvent(QDragLeaveEvent *event)
