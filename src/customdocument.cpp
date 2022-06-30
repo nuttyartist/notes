@@ -22,3 +22,9 @@ void CustomDocument::setDocumentPadding(int left, int top, int right, int bottom
 {
     this->setViewportMargins(left, top, right, bottom);
 }
+
+void CustomDocument::resizeEvent(QResizeEvent *event)
+{
+    QTextEdit::resizeEvent(event);
+    emit resized();
+}

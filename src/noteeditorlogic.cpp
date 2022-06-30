@@ -32,6 +32,7 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit,
 {
     m_highlighter = new MarkdownHighlighter(m_textEdit->document());
     connect(m_textEdit, &QTextEdit::textChanged, this, &NoteEditorLogic::onTextEditTextChanged);
+    connect(m_textEdit, &CustomDocument::resized, this, &NoteEditorLogic::editorResized);
     connect(this, &NoteEditorLogic::requestCreateUpdateNote,
             m_dbManager, &DBManager::onCreateUpdateRequestedNoteContent, Qt::QueuedConnection);
     // auto save timer
@@ -96,6 +97,7 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
         m_textEdit->verticalScrollBar()->setValue(scrollbarPos);
         m_textEdit->blockSignals(false);
         m_textEdit->setReadOnly(false);
+        m_textEdit->setTextInteractionFlags(Qt::TextEditorInteraction);
         m_textEdit->setFocusPolicy(Qt::StrongFocus);
         highlightSearch();
     } else if (notes.size() > 1) {
@@ -103,27 +105,34 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
         m_tagListView->setVisible(false);
         m_textEdit->blockSignals(true);
         m_textEdit->clear();
+        QPixmap sep(QSize{m_textEdit->width() - 100, 9});
+        sep.fill(Qt::transparent);
+        QPainter painter(&sep);
+        painter.setPen(m_spacerColor);
+        painter.drawLine(0, 5, sep.width(), 5);
+        m_textEdit->document()->addResource(QTextDocument::ImageResource,
+                                            QUrl("mydata://sep.png"),
+                                            sep);
         for (int i = 0; i < notes.size(); ++i) {
-            auto cursor = m_textEdit->textCursor().currentFrame()
-                    ->lastCursorPosition();
-            cursor.insertText(notes[i].content());
-            if (i != 0 ) {
-                m_textEdit->append("");
+            auto cursor = m_textEdit->textCursor();
+            cursor.movePosition(QTextCursor::End);
+            if (!notes[i].content().endsWith("\n")) {
+                if (i != 0) {
+                    cursor.insertText("\n" + notes[i].content() + "\n");
+                } else {
+                    cursor.insertText(notes[i].content() + "\n");
+                }
+            } else {
+                cursor.insertText(notes[i].content());
             }
             if (i != notes.size() - 1) {
-                m_textEdit->textCursor().movePosition(QTextCursor::End);
-                {
-                    QTextFrameFormat frameFormat;
-                    frameFormat.setHeight(1);
-                    frameFormat.setWidth(m_textEdit->width() - 100);
-                    frameFormat.setBackground(m_spacerColor);
-                    m_textEdit->textCursor().insertFrame(frameFormat);
-                }
+                cursor.movePosition(QTextCursor::End);
+                cursor.insertImage("mydata://sep.png");
             }
-            m_textEdit->setTextCursor(cursor);
         }
         m_textEdit->blockSignals(false);
         m_textEdit->setReadOnly(true);
+        m_textEdit->setTextInteractionFlags(Qt::NoTextInteraction);
         m_textEdit->setFocusPolicy(Qt::NoFocus);
         highlightSearch();
     }
@@ -226,6 +235,19 @@ void NoteEditorLogic::onNoteTagListChanged(int noteId, const QSet<int> tagIds)
     if (currentEditingNoteId() == noteId) {
         m_currentNotes[0].setTagIds(tagIds);
         showTagListForCurrentNote();
+    }
+}
+
+void NoteEditorLogic::editorResized()
+{
+    if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId) {
+        int verticalScrollBarValueToRestore = m_textEdit->verticalScrollBar()->value();
+        m_textEdit->setText(m_textEdit->toPlainText());
+        m_textEdit->verticalScrollBar()->setValue(verticalScrollBarValueToRestore);
+    } else {
+        int verticalScrollBarValueToRestore = m_textEdit->verticalScrollBar()->value();
+        showNotesInEditor(m_currentNotes);
+        m_textEdit->verticalScrollBar()->setValue(verticalScrollBarValueToRestore);
     }
 }
 
