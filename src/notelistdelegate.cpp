@@ -269,6 +269,7 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
     QPainter bufferPainter{&buffer};
     bufferPainter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     QRect bufferRect = buffer.rect();
+    auto isPinned = index.data(NoteListModel::NoteIsPinned).toBool();
     auto model = dynamic_cast<NoteListModel*>(m_view->model());
     if (model && model->hasPinnedNote()
             && model->isFirstPinnedNote(index)
@@ -284,11 +285,13 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
         }else if(qApp->applicationState() == Qt::ApplicationInactive){
             bufferPainter.fillRect(bufferRect, QBrush(m_applicationInactiveColor));
         }
-    }else if((option.state & QStyle::State_MouseOver) == QStyle::State_MouseOver){
+    } else if((option.state & QStyle::State_MouseOver) == QStyle::State_MouseOver){
         if (dynamic_cast<NoteListView*>(m_view)->isDragging()) {
-            auto rect = bufferRect;
-            rect.setTop(rect.bottom() - 5);
-            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+            if (isPinned) {
+                auto rect = bufferRect;
+                rect.setTop(rect.bottom() - 5);
+                bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+            }
         } else {
             bufferPainter.fillRect(bufferRect, QBrush(m_hoverColor));
         }
@@ -302,6 +305,37 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
             bufferPainter.fillRect(bufferRect, QBrush(m_defaultColor));
         }
     }
+    if (dynamic_cast<NoteListView*>(m_view)->isDragging() && !isPinned) {
+        if (model && model->isFirstUnpinnedNote(index)) {
+            auto rect = bufferRect;
+            rect.setHeight(4);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+            rect = bufferRect;
+            rect.setWidth(3);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+            rect = bufferRect;
+            rect.setLeft(rect.right() - 3);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+        } else if (model && (index.row() == (model->rowCount() - 1))) {
+            auto rect = bufferRect;
+            rect.setTop(rect.bottom() - 3);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+            rect = bufferRect;
+            rect.setWidth(3);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+            rect = bufferRect;
+            rect.setLeft(rect.right() - 3);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+        } else {
+            auto rect = bufferRect;
+            rect.setWidth(3);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+            rect = bufferRect;
+            rect.setLeft(rect.right() - 3);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+        }
+    }
+
     if (model && shouldPaintSeparator(index, *model)) {
         paintSeparator(&bufferPainter, bufferRect, index);
     }

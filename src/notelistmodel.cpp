@@ -432,6 +432,7 @@ bool NoteListModel::dropMimeData(const QMimeData *mime,
             auto& note = getRef(index.row());
             if (!note.isPinnedNote()) {
                 note.setIsPinnedNote(true);
+                emit requestUpdatePinned(note.id(), true);
                 m_pinnedList.prepend(m_noteList.takeAt(index.row() - m_pinnedList.size()));
             }
         }
@@ -453,12 +454,23 @@ bool NoteListModel::dropMimeData(const QMimeData *mime,
                 continue;
             }
             note.setIsPinnedNote(false);
+            emit requestUpdatePinned(note.id(), false);
             int destinationChild = 0;
-            auto lastMod = index.data(NoteCreationDateTime).toDateTime();
-            for (destinationChild = 0; destinationChild < m_noteList.size(); ++destinationChild) {
-                const auto& note = m_noteList[destinationChild];
-                if (note.lastModificationdateTime() <= lastMod) {
-                    break;
+            if (m_listViewInfo.parentFolderId == SpecialNodeID::TrashFolder) {
+                auto lastMod = index.data(NoteDeletionDateTime).toDateTime();
+                for (destinationChild = 0; destinationChild < m_noteList.size(); ++destinationChild) {
+                    const auto& note = m_noteList[destinationChild];
+                    if (note.deletionDateTime() <= lastMod) {
+                        break;
+                    }
+                }
+            } else {
+                auto lastMod = index.data(NoteLastModificationDateTime).toDateTime();
+                for (destinationChild = 0; destinationChild < m_noteList.size(); ++destinationChild) {
+                    const auto& note = m_noteList[destinationChild];
+                    if (note.lastModificationdateTime() <= lastMod) {
+                        break;
+                    }
                 }
             }
             m_noteList.insert(destinationChild, m_pinnedList.takeAt(index.row()));
@@ -520,11 +532,7 @@ void NoteListModel::setNotesIsPinned(const QModelIndexList &indexes, bool isPinn
                 needMovingIds.insert(note.id());
                 needMovingIndexes.append(index);
                 note.setIsPinnedNote(isPinned);
-                if (isInAllNote()) {
-                    emit requestUpdatePinnedAN(note.id(), isPinned);
-                } else {
-                    emit requestUpdatePinned(note.id(), isPinned);
-                }
+                emit requestUpdatePinned(note.id(), isPinned);
             }
         }
     }
@@ -567,11 +575,21 @@ void NoteListModel::setNotesIsPinned(const QModelIndexList &indexes, bool isPinn
                 continue;
             }
             int destinationChild = 0;
-            auto lastMod = index.data(NoteCreationDateTime).toDateTime();
-            for (destinationChild = 0; destinationChild < m_noteList.size(); ++destinationChild) {
-                const auto& note = m_noteList[destinationChild];
-                if (note.lastModificationdateTime() <= lastMod) {
-                    break;
+            if (m_listViewInfo.parentFolderId == SpecialNodeID::TrashFolder) {
+                auto lastMod = index.data(NoteDeletionDateTime).toDateTime();
+                for (destinationChild = 0; destinationChild < m_noteList.size(); ++destinationChild) {
+                    const auto& note = m_noteList[destinationChild];
+                    if (note.deletionDateTime() <= lastMod) {
+                        break;
+                    }
+                }
+            } else {
+                auto lastMod = index.data(NoteLastModificationDateTime).toDateTime();
+                for (destinationChild = 0; destinationChild < m_noteList.size(); ++destinationChild) {
+                    const auto& note = m_noteList[destinationChild];
+                    if (note.lastModificationdateTime() <= lastMod) {
+                        break;
+                    }
                 }
             }
             m_noteList.insert(destinationChild, m_pinnedList.takeAt(index.row()));

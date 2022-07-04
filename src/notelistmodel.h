@@ -70,7 +70,6 @@ private:
 signals:
     void rowCountChanged();
     void requestUpdatePinned(int noteId, bool isPinned);
-    void requestUpdatePinnedAN(int noteId, bool isPinned);
     void requestUpdatePinnedRelPos(int noteId, int pos);
     void requestUpdatePinnedRelPosAN(int noteId, int pos);
     void requestRemoveNotes(QModelIndexList index);
