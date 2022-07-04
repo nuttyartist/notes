@@ -105,11 +105,11 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
         m_tagListView->setVisible(false);
         m_textEdit->blockSignals(true);
         m_textEdit->clear();
-        QPixmap sep(QSize{m_textEdit->width() - 100, 9});
+        QPixmap sep(QSize{m_textEdit->width() - 100, 19});
         sep.fill(Qt::transparent);
         QPainter painter(&sep);
         painter.setPen(m_spacerColor);
-        painter.drawLine(0, 5, sep.width(), 5);
+        painter.drawLine(0, 10, sep.width(), 10);
         m_textEdit->document()->addResource(QTextDocument::ImageResource,
                                             QUrl("mydata://sep.png"),
                                             sep);
