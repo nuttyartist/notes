@@ -35,7 +35,8 @@ NoteListView::NoteListView(QWidget *parent)
       m_isInTrash{false},
       m_isDragging{false},
       m_isDraggingPinnedNotes{false},
-      m_isPinnedNotesCollapsed{false}
+      m_isPinnedNotesCollapsed{false},
+      m_isDraggingInsidePinned{false}
 {
     this->setAttribute(Qt::WA_MacShowFocusRect, 0);
 
@@ -252,6 +253,11 @@ void NoteListView::init()
     setupSignalsSlots();
 }
 
+bool NoteListView::isDraggingInsidePinned() const
+{
+    return m_isDraggingInsidePinned;
+}
+
 void NoteListView::mouseMoveEvent(QMouseEvent* event)
 {
     if(!m_isMousePressed) {
@@ -383,14 +389,16 @@ void NoteListView::dragMoveEvent(QDragMoveEvent *event)
 {
     if (event->mimeData()->hasFormat(NOTE_MIME)) {
         auto index = indexAt(event->pos());
+        auto isPinned = index.data(NoteListModel::NoteIsPinned).toBool();
         if (!index.isValid()) {
             event->ignore();
             return;
         }
-        if (!m_isDraggingPinnedNotes && !index.data(NoteListModel::NoteIsPinned).toBool()) {
+        if (!m_isDraggingPinnedNotes && !isPinned) {
             event->ignore();
             return;
         }
+        m_isDraggingInsidePinned = isPinned;
         event->acceptProposedAction();
         setDropIndicatorShown(true);
         QListView::dragMoveEvent(event);

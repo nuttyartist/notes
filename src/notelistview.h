@@ -39,6 +39,8 @@ public:
     void setIsPinnedNotesCollapsed(bool newIsPinnedNotesCollapsed);
     void setCurrentIndexC(const QModelIndex& index);
     QModelIndexList selectedIndex() const;
+    bool isDraggingInsidePinned() const;
+
 public slots:
     void onCustomContextMenu(const QPoint& point);
     void onRemoveRowRequested(const QModelIndexList indexes);
@@ -104,6 +106,7 @@ private:
     bool m_isDragging;
     bool m_isDraggingPinnedNotes;
     bool m_isPinnedNotesCollapsed;
+    bool m_isDraggingInsidePinned;
     void setupSignalsSlots();
     void setupStyleSheet();
 
