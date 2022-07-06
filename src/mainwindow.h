@@ -281,6 +281,7 @@ private slots:
     void clearSearch();
     void showErrorMessage(const QString& title, const QString& content);
     void setNoteListLoading();
+    void selectAllNotesInList();
 
 signals:
     void requestNodesTree();

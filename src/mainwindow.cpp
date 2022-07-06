@@ -463,6 +463,7 @@ void MainWindow::setupKeyboardShortcuts()
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_J), this, SLOT(toggleNoteList()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S), this, SLOT(onStyleEditorButtonClicked()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_J), this, SLOT(toggleNodeTree()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_A), this, SLOT(selectAllNotesInList()));
 
     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
 #if defined(Q_OS_LINUX)
@@ -2598,6 +2599,11 @@ void MainWindow::setNoteListLoading()
 {
     ui->listviewLabel1->setText("Loading…");
     ui->listviewLabel2->setText("");
+}
+
+void MainWindow::selectAllNotesInList()
+{
+    m_listViewLogic->selectAllNotes();
 }
 
 /*!

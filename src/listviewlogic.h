@@ -35,7 +35,7 @@ public:
     bool isAnimationRunning();
     void setLastSavedState(const QSet<int>& lastSelectedNotes, int needLoadSavedState = 2);
     void requestLoadSavedState(int needLoadSavedState);
-
+    void selectAllNotes();
 public slots:
     void moveNoteToTop(const NodeData& note);
     void setNoteData(const NodeData& note);
