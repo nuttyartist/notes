@@ -307,7 +307,20 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
     }
     if (dynamic_cast<NoteListView*>(m_view)->isDragging() && !isPinned
             && !dynamic_cast<NoteListView*>(m_view)->isDraggingInsidePinned()) {
-        if (model && model->isFirstUnpinnedNote(index)) {
+        if (model && model->isFirstUnpinnedNote(index) && (index.row() == (model->rowCount() - 1))) {
+            auto rect = bufferRect;
+            rect.setHeight(4);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+            rect = bufferRect;
+            rect.setWidth(3);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+            rect = bufferRect;
+            rect.setLeft(rect.right() - 3);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+            rect = bufferRect;
+            rect.setTop(rect.bottom() - 3);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+        } else if (model && model->isFirstUnpinnedNote(index)) {
             auto rect = bufferRect;
             rect.setHeight(4);
             bufferPainter.fillRect(rect, QBrush("#d6d5d5"));

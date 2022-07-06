@@ -132,7 +132,7 @@ void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOpti
             (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
         bufferRect.setY(bufferRect.y() + 25);
     }
-
+    auto isPinned = index.data(NoteListModel::NoteIsPinned).toBool();
     if(m_view->selectionModel()->isSelected(index)){
         if(qApp->applicationState() == Qt::ApplicationActive){
             if(m_isActive){
@@ -148,9 +148,11 @@ void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOpti
         }
     }else if (underMouseC()){
         if (dynamic_cast<NoteListView*>(m_view)->isDragging()) {
-            auto rect = bufferRect;
-            rect.setTop(rect.bottom() - 5);
-            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+            if (isPinned) {
+                auto rect = bufferRect;
+                rect.setTop(rect.bottom() - 5);
+                bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+            }
         } else {
             bufferPainter.fillRect(bufferRect, QBrush(m_hoverColor));
             m_tagListView->setBackground(m_hoverColor);
@@ -164,6 +166,50 @@ void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOpti
         } else {
             bufferPainter.fillRect(bufferRect, QBrush(m_defaultColor));
             m_tagListView->setBackground(m_defaultColor);
+        }
+    }
+    if (dynamic_cast<NoteListView*>(m_view)->isDragging() && !isPinned
+            && !dynamic_cast<NoteListView*>(m_view)->isDraggingInsidePinned()) {
+        if (model && model->isFirstUnpinnedNote(index) && (index.row() == (model->rowCount() - 1))) {
+            auto rect = bufferRect;
+            rect.setHeight(4);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+            rect = bufferRect;
+            rect.setWidth(3);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+            rect = bufferRect;
+            rect.setLeft(rect.right() - 3);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+            rect = bufferRect;
+            rect.setTop(rect.bottom() - 3);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+        } else if (model && model->isFirstUnpinnedNote(index)) {
+            auto rect = bufferRect;
+            rect.setHeight(4);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+            rect = bufferRect;
+            rect.setWidth(3);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+            rect = bufferRect;
+            rect.setLeft(rect.right() - 3);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+        } else if (model && (index.row() == (model->rowCount() - 1))) {
+            auto rect = bufferRect;
+            rect.setTop(rect.bottom() - 3);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+            rect = bufferRect;
+            rect.setWidth(3);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+            rect = bufferRect;
+            rect.setLeft(rect.right() - 3);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+        } else {
+            auto rect = bufferRect;
+            rect.setWidth(3);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
+            rect = bufferRect;
+            rect.setLeft(rect.right() - 3);
+            bufferPainter.fillRect(rect, QBrush("#d6d5d5"));
         }
     }
     if (model && m_delegate && m_delegate->shouldPaintSeparator(index, *model)) {
