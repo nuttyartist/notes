@@ -124,7 +124,7 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
 void ListViewLogic::selectNote(const QModelIndex &noteIndex)
 {
     if (noteIndex.isValid()){
-        auto note = m_listModel->getNote(noteIndex);
+        const auto& note = m_listModel->getNote(noteIndex);
         m_listView->selectionModel()->select(noteIndex, QItemSelectionModel::ClearAndSelect);
         m_listView->setCurrentIndexC(noteIndex);
         m_listView->scrollTo(noteIndex);
@@ -492,7 +492,7 @@ void ListViewLogic::onNotePressed(const QModelIndexList &indexes)
     QModelIndex lastIndex;
     for (const auto& index : indexes) {
         if (index.isValid()) {
-            auto note = m_listModel->getNote(index);
+            const auto &note = m_listModel->getNote(index);
             notes.append(note);
             lastIndex = index;
         }
@@ -665,7 +665,7 @@ void ListViewLogic::selectFirstNote()
         QModelIndex index = m_listModel->index(0,0);
         if (index.isValid()) {
             m_listView->setCurrentIndexC(index);
-            auto firstNote = m_listModel->getNote(index);
+            const auto& firstNote = m_listModel->getNote(index);
             emit showNotesInEditor({firstNote});
         }
     } else {
@@ -698,18 +698,26 @@ void ListViewLogic::requestLoadSavedState(int needLoadSavedState)
 
 void ListViewLogic::selectAllNotes()
 {
-    m_listView->clearSelection();
-    m_listView->setSelectionMode(QAbstractItemView::MultiSelection);
-    QModelIndexList indexes;
-    for (int i = 0; i < m_listModel->rowCount(); ++i) {
-        auto index = m_listModel->index(i, 0);
-        if (index.isValid()) {
-            indexes.append(index);
-            m_listView->setCurrentIndex(index);
-            m_listView->selectionModel()->setCurrentIndex(index, QItemSelectionModel::SelectCurrent);
+    if (m_listModel->rowCount() > 50) {
+        auto btn = QMessageBox::question(nullptr, "Are you sure you want to select more than 50 notes?",
+                                         "Selecting more than 50 notes to show in the editor might cause the app to hang. Do you want to continue?");
+        if (btn != QMessageBox::Yes) {
+            return;
         }
     }
-    onNotePressed(indexes);
+    m_listView->clearSelection();
+    m_listView->setSelectionMode(QAbstractItemView::MultiSelection);
+    m_listView->selectAll();
+//    QModelIndexList indexes;
+//    for (int i = 0; i < m_listModel->rowCount(); ++i) {
+//        auto index = m_listModel->index(i, 0);
+//        if (index.isValid()) {
+//            indexes.append(index);
+//            m_listView->setCurrentIndex(index);
+//            m_listView->selectionModel()->setCurrentIndex(index, QItemSelectionModel::SelectCurrent);
+//        }
+//    }
+    onNotePressed(m_listView->selectedIndex());
 }
 
 const ListViewInfo &ListViewLogic::listViewInfo() const

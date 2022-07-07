@@ -64,7 +64,7 @@ QModelIndex NoteListModel::insertNote(const NodeData &note, int row)
     }
 }
 
-NodeData NoteListModel::getNote(const QModelIndex& index) const
+const NodeData& NoteListModel::getNote(const QModelIndex& index) const
 {
     auto row = index.row();
     if (row < m_pinnedList.size()) {
@@ -164,6 +164,9 @@ void NoteListModel::clearNotes()
 QVariant NoteListModel::data(const QModelIndex &index, int role) const
 {
     if (index.row() < 0 || index.row() >= (m_noteList.count() + m_pinnedList.count())) {
+        return QVariant();
+    }
+    if (role < NoteID || role > NoteIsPinned) {
         return QVariant();
     }
     auto getRef = [this] (int row) -> const NodeData& {

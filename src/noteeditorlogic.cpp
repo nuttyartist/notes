@@ -246,7 +246,7 @@ void NoteEditorLogic::editorResized()
         m_textEdit->verticalScrollBar()->setValue(verticalScrollBarValueToRestore);
     } else {
         int verticalScrollBarValueToRestore = m_textEdit->verticalScrollBar()->value();
-        showNotesInEditor(m_currentNotes);
+        //showNotesInEditor(m_currentNotes);
         m_textEdit->verticalScrollBar()->setValue(verticalScrollBarValueToRestore);
     }
 }

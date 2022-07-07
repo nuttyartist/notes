@@ -29,7 +29,7 @@ public:
 
     QModelIndex addNote(const NodeData& note);
     QModelIndex insertNote(const NodeData& note, int row);
-    NodeData getNote(const QModelIndex& index) const;
+    const NodeData &getNote(const QModelIndex& index) const;
     QModelIndex getNoteIndex(int id) const;
     void setListNote(const QVector<NodeData> notes, const ListViewInfo& inf);
     void removeNotes(const QModelIndexList &noteIndexes);

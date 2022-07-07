@@ -162,7 +162,7 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
     QSize result = QStyledItemDelegate::sizeHint(option, index);
     result.setWidth(option.rect.width());
     auto model = dynamic_cast<NoteListModel*>(m_view->model());
-    const auto note = model->getNote(index);
+    const auto& note = model->getNote(index);
     auto id = note.id();
     bool isHaveTags = note.tagIds().size() > 0;
 #if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
