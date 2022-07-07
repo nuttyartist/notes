@@ -141,8 +141,13 @@ void ListViewLogic::moveNoteToTop(const NodeData &note)
         m_listView->scrollToTop();
 
         // move the current selected note to the top
-        QModelIndex destinationIndex = m_listModel->index(0);
-        m_listModel->moveRow(noteIndex, noteIndex.row(), destinationIndex, 0);
+        QModelIndex destinationIndex;
+        if (note.isPinnedNote()) {
+            destinationIndex = m_listModel->index(0);
+        } else {
+            destinationIndex = m_listModel->index(m_listModel->getFirstUnpinnedNote().row());
+        }
+        m_listModel->moveRow(noteIndex, noteIndex.row(), destinationIndex, destinationIndex.row());
 
         // update the current item
         noteIndex = destinationIndex;

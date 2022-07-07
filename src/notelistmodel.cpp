@@ -144,7 +144,7 @@ bool NoteListModel::moveRow(const QModelIndex &sourceParent, int sourceRow, cons
             vector_move(m_noteList, sourceRow, destinationChild);
             endMoveRows();
             emit rowsAboutToBeMovedC({createIndex(sourceRow, 0)});
-            emit rowsMovedC({createIndex(destinationChild, 0)});
+            emit rowsMovedC({createIndex(destinationChild + 1, 0)});
             emit rowCountChanged();
             return true;
         }

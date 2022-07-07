@@ -201,6 +201,8 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
             } else {
                 result.setHeight(0);
             }
+        } else if (model->hasPinnedNote() && model->isFirstUnpinnedNote(index)) {
+            result.setHeight(result.height() + 25);
         }
     } else {
         if (model->hasPinnedNote() &&

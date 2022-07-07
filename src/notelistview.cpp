@@ -276,6 +276,7 @@ void NoteListView::mouseMoveEvent(QMouseEvent* event)
 void NoteListView::mousePressEvent(QMouseEvent* e)
 {
     Q_D(NoteListView);
+    m_isMousePressed = true;
     auto index = indexAt(e->pos());
     if (!index.isValid()) {
         return;
@@ -286,11 +287,11 @@ void NoteListView::mousePressEvent(QMouseEvent* e)
         auto iconRect = QRect(rect.right() - 25, rect.y() + 2, 20, 20);
         if (iconRect.contains(e->pos())) {
             setIsPinnedNotesCollapsed(!isPinnedNotesCollapsed());
+            m_mousePressHandled = true;
             return;
         }
     }
 
-    m_isMousePressed = true;
     if (e->button() == Qt::LeftButton) {
         m_dragStartPosition = e->pos();
         auto oldIndexes = selectionModel()->selectedIndexes();

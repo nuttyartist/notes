@@ -486,7 +486,9 @@ void NoteListDelegateEditor::recalculateSize()
                 } else {
                     result.setHeight(0);
                 }
-            }
+            } /*else if (model->hasPinnedNote() && model->isFirstUnpinnedNote(m_index)) {
+                result.setHeight(result.height() + 25);
+            }*/
         }
         emit updateSizeHint(m_id, result, m_index);
     }
