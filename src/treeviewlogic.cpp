@@ -22,7 +22,7 @@ TreeViewLogic::TreeViewLogic(NodeTreeView* treeView,
     m_isLastSelectFolder{true},
     m_lastSelectFolder{},
     m_lastSelectTags{},
-    m_expandedFolder{},
+    m_expandedFolder{}
 {
     m_treeDelegate = new NodeTreeDelegate(m_treeView, m_treeView);
     m_treeView->setItemDelegate(m_treeDelegate);
