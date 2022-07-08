@@ -3,7 +3,8 @@
 #include <QPoint>
 #include <QSize>
 #ifdef Q_OS_WIN
-#ifndef __MINGW32__
+#if defined(__MINGW32__) || defined(__GNUC__)
+#else
 #include <windows.h>
 #include <WinUser.h>
 #include <windowsx.h>

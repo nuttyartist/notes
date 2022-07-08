@@ -9,7 +9,8 @@
 //Github: https://github.com/Bringer-of-Light/Qt-Nice-Frameless-Window
 // Usage: use "CFramelessWindow" as base class instead of "QMainWindow", and enjoy
 #ifdef Q_OS_WIN
-#ifndef __MINGW32__
+#if defined(__MINGW32__) || defined(__GNUC__)
+#else
 #include <QWidget>
 #include <QList>
 #include <QMargins>

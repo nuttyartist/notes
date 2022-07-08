@@ -36,18 +36,8 @@
  * \brief MainWindow::MainWindow
  * \param parent
  */
-#if defined(Q_OS_LINUX)
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow (parent),
-    #else
-    #ifndef __MINGW32__
-MainWindow::MainWindow(QWidget *parent) :
-    CFramelessWindow (parent),
-    #else
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow (parent),
-    #endif
-    #endif
+    MainWindowBase (parent),
     ui (new Ui::MainWindow),
     m_settingsDatabase(Q_NULLPTR),
     m_clearButton(Q_NULLPTR),
