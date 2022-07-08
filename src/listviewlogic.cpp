@@ -704,8 +704,13 @@ void ListViewLogic::requestLoadSavedState(int needLoadSavedState)
 void ListViewLogic::selectAllNotes()
 {
     if (m_listModel->rowCount() > 50) {
+#ifdef Q_OS_MAC
+        auto btn = QMessageBox::question(nullptr, "Are you sure you want to select more than 50 notes?",
+                                         "Selecting more than 50 notes to show in the editor might cause the app to hang.  Do you want to continue?");
+#else
         auto btn = QMessageBox::question(nullptr, "Are you sure you want to select more than 50 notes?",
                                          "Selecting more than 50 notes to show in the editor might cause the app to hang. Do you want to continue?");
+#endif
         if (btn != QMessageBox::Yes) {
             return;
         }
