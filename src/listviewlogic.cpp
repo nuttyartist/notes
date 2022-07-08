@@ -130,7 +130,7 @@ void ListViewLogic::selectNote(const QModelIndex &noteIndex)
         m_listView->scrollTo(noteIndex);
         emit showNotesInEditor({note});
     } else {
-        qDebug() << __PRETTY_FUNCTION__ << "noteIndex is not valid";
+        qDebug() << __FUNCTION__ << "noteIndex is not valid";
     }
 }
 

@@ -22,7 +22,7 @@ TreeViewLogic::TreeViewLogic(NodeTreeView* treeView,
     m_isLastSelectFolder{true},
     m_lastSelectFolder{},
     m_lastSelectTags{},
-    m_expandedFolder{}
+    m_expandedFolder{},
 {
     m_treeDelegate = new NodeTreeDelegate(m_treeView, m_treeView);
     m_treeView->setItemDelegate(m_treeDelegate);
@@ -163,9 +163,9 @@ void TreeViewLogic::onAddFolderRequested(bool fromPlusButton)
         }
     }
     int parentId = SpecialNodeID::RootFolder;
-    NodeItem::Type currentType;
+    NodeItem::Type currentType = NodeItem::AllNoteButton;
     QString currentAbsPath;
-    int currentTagId;
+    int currentTagId = SpecialNodeID::InvalidNodeId;
     if (currentIndex.isValid() && !fromPlusButton) {
         auto type = static_cast<NodeItem::Type>(currentIndex.data(NodeItem::Roles::ItemType).toInt());
         if (type == NodeItem::FolderItem) {
