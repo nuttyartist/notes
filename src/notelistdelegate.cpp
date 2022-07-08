@@ -166,7 +166,7 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
     auto id = note.id();
     bool isHaveTags = note.tagIds().size() > 0;
 #if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
-    if ((!m_animatedIndex.contains(index)) && isHaveTags) {
+    if ((!m_animatedIndexes.contains(index)) && isHaveTags) {
 #else
     if (m_view->isPersistentEditorOpen(index) && (!m_animatedIndexes.contains(index)) && isHaveTags) {
 #endif
@@ -221,7 +221,7 @@ QSize NoteListDelegate::bufferSizeHint(const QStyleOptionViewItem &option, const
     auto id = index.data(NoteListModel::NoteID).toInt();
     bool isHaveTags = index.data(NoteListModel::NoteTagsList).value<QSet<int>>().size() > 0;
 #if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
-    if (index != m_animatedIndex && isHaveTags) {
+    if (!m_animatedIndexes.contains(index) && isHaveTags) {
 #else
     if (m_view->isPersistentEditorOpen(index) && (!m_animatedIndexes.contains(index)) && isHaveTags) {
 #endif
