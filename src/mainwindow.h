@@ -47,7 +47,11 @@ class TagPool;
 class SpliterStyle;
 
 #if defined(Q_OS_WINDOWS) || defined(Q_OS_MACOS) || defined(Q_OS_WIN)
+#ifndef __MINGW32__
 class MainWindow : public CFramelessWindow
+#else
+class MainWindow : public QMainWindow
+#endif
 #else
 class MainWindow : public QMainWindow
 #endif

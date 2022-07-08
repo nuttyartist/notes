@@ -40,8 +40,13 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow (parent),
     #else
+    #ifndef __MINGW32__
 MainWindow::MainWindow(QWidget *parent) :
     CFramelessWindow (parent),
+    #else
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow (parent),
+    #endif
     #endif
     ui (new Ui::MainWindow),
     m_settingsDatabase(Q_NULLPTR),

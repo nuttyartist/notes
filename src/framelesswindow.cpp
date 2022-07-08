@@ -3,7 +3,7 @@
 #include <QPoint>
 #include <QSize>
 #ifdef Q_OS_WIN
-
+#ifndef __MINGW32__
 #include <windows.h>
 #include <WinUser.h>
 #include <windowsx.h>
@@ -297,5 +297,5 @@ void CFramelessWindow::showFullScreen()
     }
     QMainWindow::showFullScreen();
 }
-
+#endif
 #endif //Q_OS_WIN
