@@ -9,6 +9,12 @@
 class QMenu;
 class QAction;
 class NodeTreeViewPrivate;
+struct NoteTreeConstant {
+    static constexpr int folderItemHeight = 30;
+    static constexpr int tagItemHeight = 30;
+    static constexpr int folderLabelHeight = 25;
+    static constexpr int tagLabelHeight = 25;
+};
 
 class NodeTreeView : public QTreeView
 {

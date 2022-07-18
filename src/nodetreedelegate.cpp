@@ -269,11 +269,20 @@ QSize NodeTreeDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
 {
     QSize result = QStyledItemDelegate::sizeHint(option, index);
     auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
-    if (itemType == NodeItem::Type::FolderSeparator || itemType == NodeItem::Type::TagSeparator) {
-        result.setHeight(25);
+    if (itemType == NodeItem::Type::FolderSeparator) {
+        result.setHeight(NoteTreeConstant::folderLabelHeight);
+    } else if (itemType == NodeItem::Type::TagSeparator) {
+        result.setHeight(NoteTreeConstant::tagLabelHeight);
+    } else if (itemType == NodeItem::Type::FolderItem ||
+               itemType == NodeItem::Type::TrashButton ||
+               itemType == NodeItem::Type::AllNoteButton) {
+        result.setHeight(NoteTreeConstant::folderItemHeight);
+    } else if (itemType == NodeItem::Type::TagItem) {
+        result.setHeight(NoteTreeConstant::tagItemHeight);
     } else {
         result.setHeight(30);
     }
+
     return result;
 }
 

@@ -198,8 +198,10 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
         if (isPinned) {
             if (model && model->isFirstPinnedNote(index)) {
                 result.setHeight(25);
+                return result;
             } else {
                 result.setHeight(0);
+                return result;
             }
         } else if (model->hasPinnedNote() && model->isFirstUnpinnedNote(index)) {
             result.setHeight(result.height() + 25);
@@ -210,7 +212,26 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
             result.setHeight(result.height() + 25);
         }
     }
+    int secondYOffset = 0;
+    if (index.row() > 0) {
+        secondYOffset = NoteListConstant::nextNoteOffset;
+    }
+    int thirdYOffset = 0;
+    if (model && model->isFirstPinnedNote(index)) {
+        thirdYOffset = NoteListConstant::pinnedHeaderToNoteSpace;
+    }
+    int fouthYOffset = 0;
+    if (model && model->isFirstUnpinnedNote(index)) {
+        fouthYOffset = NoteListConstant::unpinnedHeaderToNoteSpace;
+    }
+    int fifthYOffset = 0;
+    if (model && model->hasPinnedNote() && !m_view->isPinnedNotesCollapsed()
+            && model->isFirstUnpinnedNote(index)) {
+        fifthYOffset = NoteListConstant::lastPinnedToUnpinnedHeader;
+    }
 
+    int yOffsets = secondYOffset + thirdYOffset + fouthYOffset + fifthYOffset;
+    result.setHeight(result.height() - 10 + NoteListConstant::lastElSepSpace + yOffsets);
     return result;
 }
 
@@ -250,11 +271,33 @@ QSize NoteListDelegate::bufferSizeHint(const QStyleOptionViewItem &option, const
         if (isPinned) {
             if (model && model->isFirstPinnedNote(index)) {
                 result.setHeight(25);
+                return result;
             } else {
                 result.setHeight(0);
+                return result;
             }
         }
     }
+    int secondYOffset = 0;
+    if (index.row() > 0) {
+        secondYOffset = NoteListConstant::nextNoteOffset;
+    }
+    int thirdYOffset = 0;
+    if (model && model->isFirstPinnedNote(index)) {
+        thirdYOffset = NoteListConstant::pinnedHeaderToNoteSpace;
+    }
+    int fouthYOffset = 0;
+    if (model && model->isFirstUnpinnedNote(index)) {
+        fouthYOffset = NoteListConstant::unpinnedHeaderToNoteSpace;
+    }
+//    int fifthYOffset = 0;
+//    if (model && model->hasPinnedNote() && !m_view->isPinnedNotesCollapsed()
+//            && model->isFirstUnpinnedNote(index)) {
+//        fifthYOffset = NoteListConstant::lastPinnedToUnpinnedHeader;
+//    }
+
+    int yOffsets = secondYOffset + thirdYOffset + fouthYOffset;// + fifthYOffset;
+    result.setHeight(result.height() - 10 + NoteListConstant::lastElSepSpace + yOffsets);
     return result;
 }
 
@@ -435,19 +478,38 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
             }
         }
         double rowWidth = option.rect.width();
+        int secondYOffset = 0;
+        if (index.row() > 0) {
+            secondYOffset = NoteListConstant::nextNoteOffset;
+        }
+        int thirdYOffset = 0;
+        if (model && model->isFirstPinnedNote(index)) {
+            thirdYOffset = NoteListConstant::pinnedHeaderToNoteSpace;
+        }
+        int fouthYOffset = 0;
+        if (model && model->isFirstUnpinnedNote(index)) {
+            fouthYOffset = NoteListConstant::unpinnedHeaderToNoteSpace;
+        }
 
+        int fifthYOffset = 0;
+        if (model && model->hasPinnedNote() && !m_view->isPinnedNotesCollapsed()
+                && model->isFirstUnpinnedNote(index)) {
+            fifthYOffset = NoteListConstant::lastPinnedToUnpinnedHeader;
+        }
+
+        int yOffsets = secondYOffset + thirdYOffset + fouthYOffset + fifthYOffset;
         double titleRectPosX = rowPosX + NoteListConstant::leftOffsetX;
         double titleRectPosY = rowPosY;
         double titleRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
-        double titleRectHeight = fmRectTitle.height() + NoteListConstant::topOffsetY;
+        double titleRectHeight = fmRectTitle.height() + NoteListConstant::topOffsetY + yOffsets;
 
         double dateRectPosX = rowPosX + NoteListConstant::leftOffsetX;
-        double dateRectPosY = rowPosY + fmRectTitle.height() + NoteListConstant::topOffsetY;
+        double dateRectPosY = rowPosY + fmRectTitle.height() + NoteListConstant::topOffsetY + yOffsets;
         double dateRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
         double dateRectHeight = fmRectDate.height() + NoteListConstant::titleDateSpace;
 
         double contentRectPosX = rowPosX + NoteListConstant::leftOffsetX;
-        double contentRectPosY = rowPosY + fmRectTitle.height() + fmRectDate.height() + NoteListConstant::topOffsetY;
+        double contentRectPosY = rowPosY + fmRectTitle.height() + fmRectDate.height() + NoteListConstant::topOffsetY + yOffsets;
         double contentRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
         double contentRectHeight = fmRectContent.height() + NoteListConstant::dateDescSpace;
 
@@ -458,7 +520,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
 
         if (m_isInAllNotes) {
             folderNameRectPosX = rowPosX + NoteListConstant::leftOffsetX + 20;
-            folderNameRectPosY = rowPosY + fmRectContent.height() + fmRectTitle.height() + fmRectDate.height() + NoteListConstant::topOffsetY;
+            folderNameRectPosY = rowPosY + fmRectContent.height() + fmRectTitle.height() + fmRectDate.height() + NoteListConstant::topOffsetY + yOffsets;
             folderNameRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
             folderNameRectHeight = fmRectParentName.height() + NoteListConstant::descFolderSpace;
         }
@@ -534,7 +596,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
                 painter->setFont(m_headerFont);
                 painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Pinned");
             } else if (model->hasPinnedNote() && model->isFirstUnpinnedNote(index)) {
-                QRect headerRect(option.rect.x() + NoteListConstant::leftOffsetX, option.rect.y(),
+                QRect headerRect(option.rect.x() + NoteListConstant::leftOffsetX, option.rect.y() + fifthYOffset,
                                  option.rect.width() - NoteListConstant::leftOffsetX, 25);
                 painter->setPen(m_contentColor);
                 painter->setFont(m_headerFont);
@@ -563,6 +625,11 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
         double rowPosX = option.rect.x();
         double rowPosY = option.rect.y();
         auto model = dynamic_cast<NoteListModel*>(m_view->model());
+        int fifthYOffset = 0;
+        if (model && model->hasPinnedNote() && !m_view->isPinnedNotesCollapsed()
+                && model->isFirstUnpinnedNote(index)) {
+            fifthYOffset = NoteListConstant::lastPinnedToUnpinnedHeader;
+        }
         if (model) {
             if (model->isFirstPinnedNote(index)) {
                 QRect headerRect(rowPosX + NoteListConstant::leftOffsetX, rowPosY,
@@ -581,6 +648,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
                 painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Pinned");
                 rowPosY += 25;
             } else if (model->hasPinnedNote() && model->isFirstUnpinnedNote(index)) {
+                rowPosY += fifthYOffset;
                 QRect headerRect(rowPosX + NoteListConstant::leftOffsetX, rowPosY,
                                  option.rect.width() - NoteListConstant::leftOffsetX, 25);
                 painter->setPen(m_contentColor);
@@ -596,19 +664,33 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
             }
         }
         double rowWidth = option.rect.width();
+        int secondYOffset = 0;
+        if (index.row() > 0) {
+            secondYOffset = NoteListConstant::nextNoteOffset;
+        }
+        int thirdYOffset = 0;
+        if (model && model->isFirstPinnedNote(index)) {
+            thirdYOffset = NoteListConstant::pinnedHeaderToNoteSpace;
+        }
+        int fouthYOffset = 0;
+        if (model && model->isFirstUnpinnedNote(index)) {
+            fouthYOffset = NoteListConstant::unpinnedHeaderToNoteSpace;
+        }
+
+        int yOffsets = secondYOffset + thirdYOffset + fouthYOffset;
 
         double titleRectPosX = rowPosX + NoteListConstant::leftOffsetX;
         double titleRectPosY = rowPosY;
         double titleRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
-        double titleRectHeight = fmRectTitle.height() + NoteListConstant::topOffsetY;
+        double titleRectHeight = fmRectTitle.height() + NoteListConstant::topOffsetY + yOffsets;
 
         double dateRectPosX = rowPosX + NoteListConstant::leftOffsetX;
-        double dateRectPosY = rowPosY + fmRectTitle.height() + NoteListConstant::topOffsetY;
+        double dateRectPosY = rowPosY + fmRectTitle.height() + NoteListConstant::topOffsetY + yOffsets;
         double dateRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
         double dateRectHeight = fmRectDate.height() + NoteListConstant::titleDateSpace;
 
         double contentRectPosX = rowPosX + NoteListConstant::leftOffsetX;
-        double contentRectPosY = rowPosY + fmRectTitle.height() + fmRectDate.height() + NoteListConstant::topOffsetY;
+        double contentRectPosY = rowPosY + fmRectTitle.height() + fmRectDate.height() + NoteListConstant::topOffsetY + yOffsets;
         double contentRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
         double contentRectHeight = fmRectContent.height() + NoteListConstant::dateDescSpace;
 
@@ -619,7 +701,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
 
         if (isInAllNotes()) {
             folderNameRectPosX = rowPosX + NoteListConstant::leftOffsetX + 20;
-            folderNameRectPosY = rowPosY + fmRectContent.height() + fmRectTitle.height() + fmRectDate.height() + NoteListConstant::topOffsetY;
+            folderNameRectPosY = rowPosY + fmRectContent.height() + fmRectTitle.height() + fmRectDate.height() + NoteListConstant::topOffsetY + yOffsets;
             folderNameRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
             folderNameRectHeight = fmRectParentName.height() + NoteListConstant::descFolderSpace;
         }

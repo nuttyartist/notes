@@ -16,6 +16,11 @@ struct NoteListConstant {
     static constexpr int titleDateSpace = 1;  // space between title and date
     static constexpr int dateDescSpace = 4;  // space between date and description
     static constexpr int descFolderSpace = 9;  // space between description and folder name
+    static constexpr int lastElSepSpace = 10; // space between the last element and the seperator
+    static constexpr int nextNoteOffset = 0; // space between the seperator and the next note underneath it
+    static constexpr int pinnedHeaderToNoteSpace = 0; // space between Pinned label to the pinned list
+    static constexpr int unpinnedHeaderToNoteSpace = 0; // space between Notes label and the normal notes list
+    static constexpr int lastPinnedToUnpinnedHeader = 0; // space between the last pinned note to Notes label
 };
 
 class NoteListDelegateEditor : public QWidget
