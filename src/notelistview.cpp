@@ -681,7 +681,7 @@ void NoteListView::selectionChanged(const QItemSelection &selected, const QItemS
 {
     QListView::selectionChanged(selected, deselected);
     QSet<int> ids;
-    for (const auto& index : selected.indexes()) {
+    for (const auto& index : selectedIndexes()) {
         ids.insert(index.data(NoteListModel::NoteID).toInt());
     }
     emit saveSelectedNote(ids);
