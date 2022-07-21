@@ -460,6 +460,7 @@ void ListViewLogic::selectNotes(const QModelIndexList indexes)
             m_listView->selectionModel()->setCurrentIndex(index, QItemSelectionModel::SelectCurrent);
         }
     }
+    onNotePressed(indexes);
 }
 
 void ListViewLogic::onRemoveTagRequest(const QModelIndex &index, int tagId)
