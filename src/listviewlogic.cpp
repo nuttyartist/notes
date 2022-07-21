@@ -318,7 +318,7 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData>& noteList, const L
         }
         if (!currentNotesId.isEmpty()) {
             QModelIndexList indexes;
-            for (const auto& id : currentNotesId) {
+            for (const auto& id : QT_AS_CONST(currentNotesId)) {
                 if (id != SpecialNodeID::InvalidNodeId) {
                     indexes.append(m_listModel->getNoteIndex(id));
                 }
@@ -333,7 +333,7 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData>& noteList, const L
         m_needLoadSavedState -= 1;
         if (!m_lastSelectedNotes.isEmpty()) {
             QModelIndexList indexes;
-            for (const auto& id : currentNotesId) {
+            for (const auto& id : QT_AS_CONST(m_lastSelectedNotes)) {
                 if (id != SpecialNodeID::InvalidNodeId) {
                     indexes.append(m_listModel->getNoteIndex(id));
                 }
