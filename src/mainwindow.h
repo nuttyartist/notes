@@ -46,12 +46,14 @@ class NoteEditorLogic;
 class TagPool;
 class SpliterStyle;
 
-#if defined(Q_OS_WINDOWS) || defined(Q_OS_MACOS) || defined(Q_OS_WIN)
+#if defined(Q_OS_WINDOWS) || defined(Q_OS_WIN)
 #if defined(__MINGW32__) || defined(__GNUC__)
 using MainWindowBase = QMainWindow;
 #else
 using MainWindowBase = CFramelessWindow;
 #endif
+#elif defined(Q_OS_MACOS)
+using MainWindowBase = CFramelessWindow;
 #else
 using MainWindowBase = QMainWindow;
 #endif
