@@ -1427,7 +1427,7 @@ void MainWindow::onDotsButtonClicked()
 
     // Autostart
     QAction* autostartAction = mainMenu.addAction(tr("Start automatically"));
-    connect (autostartAction, &QAction::triggered, this, [&]() {
+    connect (autostartAction, &QAction::triggered, this, [=]() {
         m_autostart.setAutostart(autostartAction->isChecked());
     });
     autostartAction->setCheckable(true);
@@ -2866,7 +2866,7 @@ void MainWindow::setVisibilityOfFrameRightNonEditor(bool isVisible)
     // If the notes list is collapsed, hide the window buttons
     if(m_splitter != Q_NULLPTR) {
         QList<int> sizes = m_splitter->sizes();
-        if(sizes.at(0) == 0) {
+        if(sizes.at(0) == 0 && sizes.at(1) == 0) {
 #ifdef __APPLE__
 
             this->setStandardWindowButtonsMacVisibility(isVisible);
