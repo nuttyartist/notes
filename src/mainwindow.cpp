@@ -1413,15 +1413,13 @@ void MainWindow::onDotsButtonClicked()
     noteMarkdownVisibiltyAction->setShortcutVisibleInContextMenu(true);
 #endif
 
-    if(m_noteEditorLogic->markdownEnabled()){
-        connect(noteMarkdownVisibiltyAction, &QAction::triggered, m_noteEditorLogic, [this] {
+    connect(noteMarkdownVisibiltyAction, &QAction::triggered, m_noteEditorLogic, [this] {
+        if(m_noteEditorLogic->markdownEnabled()){
             m_noteEditorLogic->setMarkdownEnabled(false);
-        });
-    } else {
-        connect(noteMarkdownVisibiltyAction, &QAction::triggered, m_noteEditorLogic, [this] {
+        } else {
             m_noteEditorLogic->setMarkdownEnabled(true);
-        });
-    }
+        }
+    });
 
     // Check for update action
     QAction* checkForUpdatesAction = mainMenu.addAction(tr("Check For Updates"));

@@ -53,7 +53,7 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit,
 
 bool NoteEditorLogic::markdownEnabled() const
 {
-    return m_highlighter == nullptr;
+    return m_highlighter;
 }
 
 void NoteEditorLogic::setMarkdownEnabled(bool newMarkdownEnabled)
