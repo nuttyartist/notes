@@ -67,11 +67,11 @@ void NodeTreeDelegate::setTheme(Theme theme)
     {
         m_titleColor = QColor(204, 204, 204);
         m_dateColor = QColor(204, 204, 204);
-        m_defaultColor = QColor(26, 26, 26);
+        m_defaultColor = QColor(30, 30, 30);
         //        m_ActiveColor = QColor(0, 59, 148);
         m_notActiveColor = QColor(0, 59, 148);
         m_hoverColor = QColor(15, 45, 90);
-        m_currentBackgroundColor = QColor(26, 26, 26);
+        m_currentBackgroundColor = QColor(30, 30, 30);
         break;
     }
     case Theme::Sepia:
@@ -150,7 +150,7 @@ void NodeTreeDelegate::paint(QPainter *painter,
     }
     case NodeItem::Type::FolderItem: {
         paintBackgroundSelectable(painter, option, index);
-        auto iconRect = QRect(option.rect.x() + 5, option.rect.y() + (option.rect.height() - 20) / 2, 20, 20);
+        auto iconRect = QRect(option.rect.x() + 5, option.rect.y() + (option.rect.height() - 15) / 2, 15, 15);
         QString iconPath;
         if (m_theme == Theme::Dark) {
             if((option.state & QStyle::State_Open) == QStyle::State_Open) {

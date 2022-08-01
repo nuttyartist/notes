@@ -700,7 +700,7 @@ void NoteListView::setTheme(Theme theme)
     }
     case Theme::Dark:
     {
-        m_currentBackgroundColor = QColor(26, 26, 26);
+        m_currentBackgroundColor = QColor(30, 30, 30);
         break;
     }
     case Theme::Sepia:

@@ -40,7 +40,7 @@ NoteListDelegateEditor::NoteListDelegateEditor(const NoteListDelegate *delegate,
 
       #ifdef __APPLE__
       m_titleFont(m_displayFont, 13, 65),
-      m_titleSelectedFont(m_displayFont, 13),
+      m_titleSelectedFont(m_displayFont, 13, 65),
       m_dateFont(m_displayFont, 13),
       m_headerFont(m_displayFont, 10, 65),
       #else
@@ -622,7 +622,7 @@ void NoteListDelegateEditor::setTheme(Theme theme)
     {
         m_titleColor = QColor(204, 204, 204);
         m_dateColor = QColor(204, 204, 204);
-        m_defaultColor = QColor(26, 26, 26);
+        m_defaultColor = QColor(30, 30, 30);
         m_ActiveColor = QColor(0, 59, 148);
         m_notActiveColor = QColor(0, 59, 148);
         m_hoverColor = QColor(15, 45, 90);

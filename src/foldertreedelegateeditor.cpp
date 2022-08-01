@@ -41,8 +41,8 @@ FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
     layout->setSpacing(5);
     setLayout(layout);
     m_expandIcon = new QLabel(this);
-    m_expandIcon->setMinimumSize({20, 20});
-    m_expandIcon->setMaximumSize({20, 20});
+    m_expandIcon->setMinimumSize({15, 15});
+    m_expandIcon->setMaximumSize({15, 15});
     m_expanded.load(QStringLiteral(":/images/tree-node-expanded.png"));
     m_notExpanded.load(QStringLiteral(":/images/tree-node-normal.png"));
     m_expandIcon->setScaledContents(true);

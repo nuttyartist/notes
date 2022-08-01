@@ -945,15 +945,16 @@ void MainWindow::setupTextEdit()
     m_textEdit->setWordWrapMode(QTextOption::WordWrap);
 
 #ifdef __APPLE__
+    if(QFont("SF Pro Text").exactMatch()) {
+        m_listOfSansSerifFonts.push_front("SF Pro Text");
+    }
     if(QFont("Avenir Next").exactMatch()) {
         m_listOfSansSerifFonts.push_front("Avenir Next");
     } else if(QFont("Avenir").exactMatch()) {
         m_listOfSansSerifFonts.push_front("Avenir");
     }
 
-    if(QFont("SF Pro Text").exactMatch()) {
-        m_listOfSansSerifFonts.push_front("SF Pro Text");
-    } else if(QFont("Helvetica Neue").exactMatch()) {
+    if(QFont("Helvetica Neue").exactMatch()) {
         m_listOfSansSerifFonts.push_front("Helvetica Neue");
     } else if(QFont("Helvetica").exactMatch()) {
         m_listOfSansSerifFonts.push_front("Helvetica");
@@ -1653,7 +1654,7 @@ void MainWindow::setTheme(Theme theme)
     }
     case Theme::Dark:
     {
-        m_currentThemeBackgroundColor = QColor(26, 26, 26);
+        m_currentThemeBackgroundColor = QColor(30, 30, 30);
         m_currentEditorTextColor = QColor(204, 204, 204);
         m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
         m_currentRightFrameColor = m_currentThemeBackgroundColor;

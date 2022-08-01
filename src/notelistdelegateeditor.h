@@ -20,7 +20,7 @@ struct NoteListConstant {
     static constexpr int nextNoteOffset = 0; // space between the seperator and the next note underneath it
     static constexpr int pinnedHeaderToNoteSpace = 0; // space between Pinned label to the pinned list
     static constexpr int unpinnedHeaderToNoteSpace = 0; // space between Notes label and the normal notes list
-    static constexpr int lastPinnedToUnpinnedHeader = 0; // space between the last pinned note to Notes label
+    static constexpr int lastPinnedToUnpinnedHeader = 10; // space between the last pinned note to Notes label
 };
 
 class NoteListDelegateEditor : public QWidget
