@@ -159,7 +159,7 @@ void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
 
 QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    QSize result = QStyledItemDelegate::sizeHint(option, index);
+    QSize result;// = QStyledItemDelegate::sizeHint(option, index);
     result.setWidth(option.rect.width());
     auto model = dynamic_cast<NoteListModel*>(m_view->model());
     const auto& note = model->getNote(index);

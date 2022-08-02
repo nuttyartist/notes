@@ -454,10 +454,13 @@ void ListViewLogic::selectNotes(const QModelIndexList indexes)
 {
     m_listView->clearSelection();
     m_listView->setSelectionMode(QAbstractItemView::MultiSelection);
+    QModelIndex lastIdx;
     for (const auto index : QT_AS_CONST(indexes)) {
         if (index.isValid()) {
-            m_listView->setCurrentIndex(index);
-            m_listView->selectionModel()->setCurrentIndex(index, QItemSelectionModel::SelectCurrent);
+            lastIdx = index;
+            m_listView->selectionModel()->select(index, QItemSelectionModel::Select);
+            //m_listView->setCurrentIndex(index);
+            //m_listView->selectionModel()->setCurrentIndex(index, QItemSelectionModel::SelectCurrent);
         }
     }
     onNotePressed(indexes);

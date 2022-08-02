@@ -170,7 +170,6 @@ QVariant NoteListModel::data(const QModelIndex &index, int role) const
         return QVariant();
     }
     auto getRef = [this] (int row) -> const NodeData& {
-        NodeData note;
         if (row < m_pinnedList.size()) {
             return m_pinnedList[row];
         } else {
@@ -220,7 +219,6 @@ bool NoteListModel::setData(const QModelIndex &index, const QVariant &value, int
     }
 
     auto getRef = [this] (int row) -> NodeData& {
-        NodeData note;
         if (row < m_pinnedList.size()) {
             return m_pinnedList[row];
         } else {
@@ -392,7 +390,6 @@ bool NoteListModel::dropMimeData(const QMimeData *mime,
 {
     Q_UNUSED(column);
     auto getRef = [this] (int row) -> NodeData& {
-        NodeData note;
         if (row < m_pinnedList.size()) {
             return m_pinnedList[row];
         } else {
@@ -517,7 +514,6 @@ bool NoteListModel::hasPinnedNote() const
 void NoteListModel::setNotesIsPinned(const QModelIndexList &indexes, bool isPinned)
 {
     auto getRef = [this] (int row) -> NodeData& {
-        NodeData note;
         if (row < m_pinnedList.size()) {
             return m_pinnedList[row];
         } else {
@@ -635,8 +631,10 @@ bool NoteListModel::isFirstPinnedNote(const QModelIndex index) const
     if (!index.isValid()) {
         return false;
     }
+    if (index.row() > 0) {
+        return false;
+    }
     auto getRef = [this] (int row) -> const NodeData& {
-        NodeData note;
         if (row < m_pinnedList.size()) {
             return m_pinnedList[row];
         } else {
@@ -657,7 +655,6 @@ bool NoteListModel::isFirstUnpinnedNote(const QModelIndex index) const
         return false;
     }
     auto getRef = [this] (int row) -> const NodeData& {
-        NodeData note;
         if (row < m_pinnedList.size()) {
             return m_pinnedList[row];
         } else {
