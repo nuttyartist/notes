@@ -571,7 +571,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
             }
         } else {
             if (model && model->hasPinnedNote() && (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
-                painter->drawPixmap(QRect {option.rect.x(), option.rect.y() + 25, option.rect.width(), option.rect.height()},
+                painter->drawPixmap(QRect {option.rect.x(), option.rect.y() + 25, option.rect.width(), rowHeight},
                                     buffer,
                                     QRect {0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight});
             } else {
