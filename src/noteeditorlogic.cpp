@@ -49,6 +49,15 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit,
     connect(tagPool, &TagPool::dataUpdated, this, [this] (int) {
         showTagListForCurrentNote();
     });
+    connect(m_textEdit->verticalScrollBar(), &QScrollBar::valueChanged,
+            this, [this](int value) {
+        if (m_currentNotes.size() == 1 && m_currentNotes[0].id() != SpecialNodeID::InvalidNodeId ) {
+            m_currentNotes[0].setScrollBarPosition(value);
+            emit updateNoteDataInList(m_currentNotes[0]);
+            m_isContentModified = true;
+            m_autoSaveTimer.start();
+        }
+    });
 }
 
 bool NoteEditorLogic::markdownEnabled() const
