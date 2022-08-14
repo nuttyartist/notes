@@ -908,7 +908,8 @@ void MainWindow::setupTextEditStyleSheet(int paddingLeft, int paddingRight)
 void MainWindow::alignTextEditText()
 {
     if(m_textEdit->lineWrapMode() == QTextEdit::WidgetWidth){
-        setupTextEditStyleSheet(m_currentMinimumEditorPadding, m_currentMinimumEditorPadding);
+        setupTextEditStyleSheet(m_noteEditorLogic->currentMinimumEditorPadding(),
+                                m_noteEditorLogic->currentMinimumEditorPadding());
         return;
     }
 
@@ -916,15 +917,15 @@ void MainWindow::alignTextEditText()
     QString limitingStringSample = QString("The quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog");
     limitingStringSample.truncate(m_textEdit->lineWrapColumnOrWidth());
     qreal textSamplePixelsWidth = fm.width(limitingStringSample);
-    m_currentAdaptableEditorPadding = (m_textEdit->width() - textSamplePixelsWidth) / 2 - 10;
+    m_noteEditorLogic->setCurrentAdaptableEditorPadding((m_textEdit->width() - textSamplePixelsWidth) / 2 - 10);
 
 
-    if(m_textEdit->width() - m_currentMinimumEditorPadding*2 > textSamplePixelsWidth &&
-            m_currentAdaptableEditorPadding > 0 &&
-            m_currentAdaptableEditorPadding > m_currentMinimumEditorPadding) {
-        setupTextEditStyleSheet(m_currentAdaptableEditorPadding, m_currentAdaptableEditorPadding);
+    if(m_textEdit->width() - m_noteEditorLogic->currentMinimumEditorPadding()*2 > textSamplePixelsWidth &&
+            m_noteEditorLogic->currentAdaptableEditorPadding() > 0 &&
+            m_noteEditorLogic->currentAdaptableEditorPadding() > m_noteEditorLogic->currentMinimumEditorPadding()) {
+        setupTextEditStyleSheet(m_noteEditorLogic->currentAdaptableEditorPadding(), m_noteEditorLogic->currentAdaptableEditorPadding());
     } else {
-        setupTextEditStyleSheet(m_currentMinimumEditorPadding, m_currentMinimumEditorPadding);
+        setupTextEditStyleSheet(m_noteEditorLogic->currentMinimumEditorPadding(), m_noteEditorLogic->currentMinimumEditorPadding());
     }
 }
 
@@ -941,7 +942,7 @@ void MainWindow::setupTextEdit()
     m_textEdit->installEventFilter(this);
     m_textEdit->verticalScrollBar()->installEventFilter(this);
     m_textEdit->setCursorWidth(2);
-    setupTextEditStyleSheet(m_currentMinimumEditorPadding, m_currentMinimumEditorPadding);
+    setupTextEditStyleSheet(m_noteEditorLogic->currentMinimumEditorPadding(), m_noteEditorLogic->currentMinimumEditorPadding());
     m_textEdit->setWordWrapMode(QTextOption::WordWrap);
 
 #ifdef __APPLE__
@@ -1640,7 +1641,7 @@ void MainWindow::setTheme(Theme theme)
         m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
         this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(247, 247, 247); }"));
-        setupTextEditStyleSheet(m_currentMinimumEditorPadding, m_currentMinimumEditorPadding);
+        setupTextEditStyleSheet(m_noteEditorLogic->currentMinimumEditorPadding(), m_noteEditorLogic->currentMinimumEditorPadding());
         m_listViewLogic->setTheme(Theme::Light);
         m_styleEditorWindow.setTheme(Theme::Light, m_currentThemeBackgroundColor, m_currentEditorTextColor);
         m_aboutWindow.setTheme(m_currentThemeBackgroundColor, m_currentEditorTextColor);
@@ -1657,7 +1658,7 @@ void MainWindow::setTheme(Theme theme)
         m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
         this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(26, 26, 26); }"));
-        setupTextEditStyleSheet(m_currentMinimumEditorPadding, m_currentMinimumEditorPadding);
+        setupTextEditStyleSheet(m_noteEditorLogic->currentMinimumEditorPadding(), m_noteEditorLogic->currentMinimumEditorPadding());
         m_listViewLogic->setTheme(Theme::Dark);
         m_styleEditorWindow.setTheme(Theme::Dark, m_currentThemeBackgroundColor, m_currentEditorTextColor);
         m_aboutWindow.setTheme(m_currentThemeBackgroundColor, m_currentEditorTextColor);
@@ -1674,7 +1675,7 @@ void MainWindow::setTheme(Theme theme)
         m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
         this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(251, 240, 217); }"));
-        setupTextEditStyleSheet(m_currentMinimumEditorPadding, m_currentMinimumEditorPadding);
+        setupTextEditStyleSheet(m_noteEditorLogic->currentMinimumEditorPadding(), m_noteEditorLogic->currentMinimumEditorPadding());
         m_listViewLogic->setTheme(Theme::Sepia);
         m_styleEditorWindow.setTheme(Theme::Sepia, m_currentThemeBackgroundColor, QColor(26, 26, 26));
         m_aboutWindow.setTheme(m_currentThemeBackgroundColor, QColor(26, 26, 26));
@@ -3103,17 +3104,17 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
     }
     case QEvent::Resize:{
         if(m_textEdit->width() < m_smallEditorWidth) {
-            m_currentMinimumEditorPadding = 15;
+            m_noteEditorLogic->setCurrentMinimumEditorPadding(15);
         } else if(m_textEdit->width() > m_smallEditorWidth && m_textEdit->width() < 515) {
-            m_currentMinimumEditorPadding = 40;
+            m_noteEditorLogic->setCurrentMinimumEditorPadding(40);
         } else if(m_textEdit->width() > 515 && m_textEdit->width() < 755) {
-            m_currentMinimumEditorPadding = 50;
+            m_noteEditorLogic->setCurrentMinimumEditorPadding(50);
         } else if(m_textEdit->width() > 755 && m_textEdit->width() < 775) {
-            m_currentMinimumEditorPadding = 60;
+            m_noteEditorLogic->setCurrentMinimumEditorPadding(60);
         } else if(m_textEdit->width() > 775 && m_textEdit->width() < 800) {
-            m_currentMinimumEditorPadding = 70;
+            m_noteEditorLogic->setCurrentMinimumEditorPadding(70);
         } else if(m_textEdit->width() > 800) {
-            m_currentMinimumEditorPadding = 80;
+            m_noteEditorLogic->setCurrentMinimumEditorPadding(80);
         }
 
         setCurrentFontBasedOnTypeface(m_currentFontTypeface);

@@ -28,7 +28,9 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit,
     m_tagListView{tagListView},
     m_dbManager{dbManager},
     m_isContentModified{false},
-    m_spacerColor{26, 26, 26}
+    m_spacerColor{26, 26, 26},
+    m_currentAdaptableEditorPadding{0},
+    m_currentMinimumEditorPadding{0}
 {
     m_highlighter = new MarkdownHighlighter(m_textEdit->document());
     connect(m_textEdit, &QTextEdit::textChanged, this, &NoteEditorLogic::onTextEditTextChanged);
@@ -114,7 +116,9 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
         m_tagListView->setVisible(false);
         m_textEdit->blockSignals(true);
         m_textEdit->clear();
-        QPixmap sep(QSize{m_textEdit->width() - 100, 19});
+        auto padding = m_currentAdaptableEditorPadding > m_currentMinimumEditorPadding ?
+                    m_currentAdaptableEditorPadding : m_currentMinimumEditorPadding;
+        QPixmap sep(QSize{m_textEdit->width() - padding * 2, 19});
         sep.fill(Qt::transparent);
         QPainter painter(&sep);
         painter.setPen(m_spacerColor);
@@ -205,6 +209,26 @@ bool NoteEditorLogic::isInEditMode() const
         return true;
     }
     return false;
+}
+
+int NoteEditorLogic::currentMinimumEditorPadding() const
+{
+    return m_currentMinimumEditorPadding;
+}
+
+void NoteEditorLogic::setCurrentMinimumEditorPadding(int newCurrentMinimumEditorPadding)
+{
+    m_currentMinimumEditorPadding = newCurrentMinimumEditorPadding;
+}
+
+int NoteEditorLogic::currentAdaptableEditorPadding() const
+{
+    return m_currentAdaptableEditorPadding;
+}
+
+void NoteEditorLogic::setCurrentAdaptableEditorPadding(int newCurrentAdaptableEditorPadding)
+{
+    m_currentAdaptableEditorPadding = newCurrentAdaptableEditorPadding;
 }
 
 int NoteEditorLogic::currentEditingNoteId() const

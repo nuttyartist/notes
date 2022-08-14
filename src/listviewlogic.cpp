@@ -260,7 +260,7 @@ void ListViewLogic::onSearchEditTextChanged(const QString &keyword)
         if (!m_listViewInfo.isInSearch) {
             auto indexes = m_listView->selectedIndex();
             m_listViewInfo.currentNotesId.clear();
-            for (const auto& index : indexes) {
+            for (const auto& index : QT_AS_CONST(indexes)) {
                 if (index.isValid()) {
                     m_listViewInfo.currentNotesId.insert(index.data(NoteListModel::NoteID).toInt());
                 }

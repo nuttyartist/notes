@@ -165,8 +165,6 @@ private:
     int m_nodeTreeWidth;
     int m_smallEditorWidth;
     int m_largeEditorWidth;
-    int m_currentMinimumEditorPadding;
-    int m_currentAdaptableEditorPadding;
     bool m_canMoveWindow;
     bool m_canStretchWindow;
     bool m_isTemp;

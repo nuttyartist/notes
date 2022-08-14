@@ -41,6 +41,12 @@ public:
     static QString getSecondLine(const QString &str);
     void setTheme(Theme newTheme);
 
+    int currentAdaptableEditorPadding() const;
+    void setCurrentAdaptableEditorPadding(int newCurrentAdaptableEditorPadding);
+
+    int currentMinimumEditorPadding() const;
+    void setCurrentMinimumEditorPadding(int newCurrentMinimumEditorPadding);
+
 public slots:
     void showNotesInEditor(const QVector<NodeData>& notes);
     void onTextEditTextChanged();
@@ -73,6 +79,8 @@ private:
     TagListDelegate* m_tagListDelegate;
     TagListModel* m_tagListModel;
     QColor m_spacerColor;
+    int m_currentAdaptableEditorPadding;
+    int m_currentMinimumEditorPadding;
 };
 
 #endif // NOTEEDITORLOGIC_H
