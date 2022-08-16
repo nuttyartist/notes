@@ -118,9 +118,9 @@ MainWindow::MainWindow(QWidget *parent) :
     setupRightFrame();
     setupTitleBarButtons();
     setupSearchEdit();
-    setupTextEdit();
     setupDatabases();
     setupModelView();
+    setupTextEdit();
     restoreStates();
     setupSignalsSlots();
     autoCheckForUpdates();
