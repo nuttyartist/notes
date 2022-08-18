@@ -183,12 +183,23 @@ void ListViewLogic::setNoteData(const NodeData &note)
     }
 }
 
-void ListViewLogic::onNoteEditClosed(const NodeData &note)
+void ListViewLogic::onNoteEditClosed(const NodeData &note, bool selectNext)
 {
     if (note.isTempNote()) {
         QModelIndex noteIndex = m_listModel->getNoteIndex(note.id());
         if (noteIndex.isValid()) {
+            auto r = noteIndex.row();
             m_listModel->removeNotes({noteIndex});
+            if (selectNext) {
+                QModelIndex nextIndex = m_listView->model()->index(r + 1, 0);
+                if (!nextIndex.isValid()) {
+                    nextIndex = m_listView->model()->index(r - 1, 0);
+                    if (!nextIndex.isValid()) {
+                        nextIndex = m_listModel->index(0,0);
+                    }
+                }
+                selectNote(nextIndex);
+            }
         }
     }
 }
@@ -722,15 +733,15 @@ void ListViewLogic::selectAllNotes()
     m_listView->clearSelection();
     m_listView->setSelectionMode(QAbstractItemView::MultiSelection);
     m_listView->selectAll();
-//    QModelIndexList indexes;
-//    for (int i = 0; i < m_listModel->rowCount(); ++i) {
-//        auto index = m_listModel->index(i, 0);
-//        if (index.isValid()) {
-//            indexes.append(index);
-//            m_listView->setCurrentIndex(index);
-//            m_listView->selectionModel()->setCurrentIndex(index, QItemSelectionModel::SelectCurrent);
-//        }
-//    }
+    //    QModelIndexList indexes;
+    //    for (int i = 0; i < m_listModel->rowCount(); ++i) {
+    //        auto index = m_listModel->index(i, 0);
+    //        if (index.isValid()) {
+    //            indexes.append(index);
+    //            m_listView->setCurrentIndex(index);
+    //            m_listView->selectionModel()->setCurrentIndex(index, QItemSelectionModel::SelectCurrent);
+    //        }
+    //    }
     onNotePressed(m_listView->selectedIndex());
 }
 

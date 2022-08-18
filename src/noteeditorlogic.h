@@ -56,7 +56,7 @@ private slots:
     void editorResized();
 signals:
     void requestCreateUpdateNote(const NodeData& note);
-    void noteEditClosed(const NodeData& note);
+    void noteEditClosed(const NodeData& note, bool selectNext);
     void setVisibilityOfFrameRightNonEditor(bool);
     void moveNoteToListViewTop(const NodeData& note);
     void updateNoteDataInList(const NodeData& note);

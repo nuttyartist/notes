@@ -86,7 +86,7 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
     if (notes.size() == 1 && notes[0].id() != SpecialNodeID::InvalidNodeId ) {
         auto currentId = currentEditingNoteId();
         if (currentId != SpecialNodeID::InvalidNodeId && notes[0].id() != currentId) {
-            emit noteEditClosed(m_currentNotes[0]);
+            emit noteEditClosed(m_currentNotes[0], false);
         }
         m_textEdit->blockSignals(true);
         m_textEdit->setVisible(true);
@@ -252,7 +252,7 @@ void NoteEditorLogic::closeEditor()
 {
     if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId) {
         saveNoteToDB();
-        emit noteEditClosed(m_currentNotes[0]);
+        emit noteEditClosed(m_currentNotes[0], false);
     }
     m_currentNotes.clear();
 
@@ -287,7 +287,15 @@ void NoteEditorLogic::editorResized()
 
 void NoteEditorLogic::deleteCurrentNote()
 {
-    if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId) {
+    if (isTempNote()) {
+        auto noteNeedDeleted = m_currentNotes[0];
+        m_currentNotes.clear();
+        m_textEdit->blockSignals(true);
+        m_textEdit->clear();
+        m_textEdit->clearFocus();
+        m_textEdit->blockSignals(false);
+        emit noteEditClosed(noteNeedDeleted, true);
+    } else if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId) {
         auto noteNeedDeleted = m_currentNotes[0];
         saveNoteToDB();
         m_currentNotes.clear();
@@ -295,7 +303,7 @@ void NoteEditorLogic::deleteCurrentNote()
         m_textEdit->clear();
         m_textEdit->clearFocus();
         m_textEdit->blockSignals(false);
-        emit noteEditClosed(noteNeedDeleted);
+        emit noteEditClosed(noteNeedDeleted, false);
         emit deleteNoteRequested(noteNeedDeleted);
     }
 }

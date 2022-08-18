@@ -39,7 +39,7 @@ public:
 public slots:
     void moveNoteToTop(const NodeData& note);
     void setNoteData(const NodeData& note);
-    void onNoteEditClosed(const NodeData& note);
+    void onNoteEditClosed(const NodeData& note, bool selectNext);
     void deleteNoteRequested(const NodeData& note);
     void selectNoteUp();
     void selectNoteDown();
