@@ -87,6 +87,7 @@ public slots:
     void onMigrateNotesFromV0_9_0Requested(QVector<NodeData> &noteList);
     void onMigrateTrashFrom0_9_0Requested(QVector<NodeData>& noteList);
     void onMigrateNotesFrom1_5_0Requested(const QString& fileName);
+    void onChangeDatabasePathRequested(const QString& newPath);
 
     int addNode(const NodeData& node);
 

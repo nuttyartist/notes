@@ -2358,3 +2358,14 @@ void DBManager::onMigrateNotesFrom1_5_0Requested(const QString &fileName)
     recalculateChildNotesCount();
 }
 
+void DBManager::onChangeDatabasePathRequested(const QString &newPath)
+{
+    {
+        m_db.commit();
+        m_db.close();
+        m_db = QSqlDatabase::database();
+    }
+    QFile::rename(m_dbpath, newPath);
+    open(newPath, false);
+}
+

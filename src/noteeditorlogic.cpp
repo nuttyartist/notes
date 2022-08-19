@@ -118,11 +118,11 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
         m_textEdit->clear();
         auto padding = m_currentAdaptableEditorPadding > m_currentMinimumEditorPadding ?
                     m_currentAdaptableEditorPadding : m_currentMinimumEditorPadding;
-        QPixmap sep(QSize{m_textEdit->width() - padding * 2, 19});
+        QPixmap sep(QSize{m_textEdit->width() - padding * 2 - 20, 19});
         sep.fill(Qt::transparent);
         QPainter painter(&sep);
         painter.setPen(m_spacerColor);
-        painter.drawLine(0, 10, sep.width(), 10);
+        painter.drawLine(10, 10, sep.width(), 10);
         m_textEdit->document()->addResource(QTextDocument::ImageResource,
                                             QUrl("mydata://sep.png"),
                                             sep);

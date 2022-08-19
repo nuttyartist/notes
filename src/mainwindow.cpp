@@ -627,7 +627,7 @@ void MainWindow::setupSignalsSlots()
     connect(m_searchEdit, &QLineEdit::returnPressed, this, &MainWindow::onSearchEditReturnPressed);
     // clear button
     connect(m_clearButton, &QToolButton::clicked, this, &MainWindow::onClearButtonClicked);
-    // Restore Notes Action
+    // Restore Notes Actionm
     connect(m_restoreAction, &QAction::triggered, this, [this](){
         setMainWindowVisibility(isHidden()
                                 || windowState() == Qt::WindowMinimized
@@ -724,6 +724,8 @@ void MainWindow::setupSignalsSlots()
             m_listViewLogic, &ListViewLogic::onNotesListInFolderRequested);
     connect(m_treeView, &NodeTreeView::loadNotesInTagsRequested,
             m_listViewLogic, &ListViewLogic::onNotesListInTagsRequested);
+    connect(this, &MainWindow::requestChangeDatabasePath,
+            m_dbManager, &DBManager::onChangeDatabasePathRequested, Qt::QueuedConnection);
 }
 
 /*!
@@ -1035,8 +1037,20 @@ void MainWindow::setupDatabases()
     bool folderCreated = dir.mkpath(QStringLiteral("."));
     if(!folderCreated)
         qFatal("ERROR: Can't create settings folder : %s", dir.absolutePath().toStdString().c_str());
+    QString defaultDBPath = dir.path() + QDir::separator() + QStringLiteral("notes.db");
 
-    QString noteDBFilePath(dir.path() + QDir::separator() + QStringLiteral("notes.db"));
+    QString noteDBFilePath = m_settingsDatabase->value(
+                QStringLiteral("noteDBFilePath"), QString()).toString();
+    if (noteDBFilePath.isEmpty()) {
+        noteDBFilePath = defaultDBPath;
+    }
+    QFileInfo noteDBFilePathInf(noteDBFilePath);
+    QFileInfo defaultDBPathInf(defaultDBPath);
+    if ((!noteDBFilePathInf.exists()) && (defaultDBPathInf.exists())) {
+        QDir().mkpath(noteDBFilePathInf.absolutePath());
+        QFile defaultDBFile(defaultDBPath);
+        defaultDBFile.rename(noteDBFilePath);
+    }
     if (QFile::exists(noteDBFilePath) && needMigrateFromV1_5_0) {
         {
             auto m_db = QSqlDatabase::addDatabase("QSQLITE", DEFAULT_DATABASE_NAME);
@@ -1433,6 +1447,24 @@ void MainWindow::onDotsButtonClicked()
     });
     autostartAction->setCheckable(true);
     autostartAction->setChecked(m_autostart.isAutostart());
+
+    QAction* changeDBPathAction = mainMenu.addAction(tr("Change database path"));
+    connect (changeDBPathAction, &QAction::triggered, this, [=]() {
+        auto btn = QMessageBox::question(this, "Are you sure you want to change the database path?",
+                                         "Are you sure you want to change the database path?"
+                                         );
+        if (btn == QMessageBox::Yes) {
+            auto newDbPath = QFileDialog::getSaveFileName(this, "New Database path");
+            if (!newDbPath.isEmpty()) {
+                m_settingsDatabase->setValue(
+                            QStringLiteral("noteDBFilePath"),
+                            newDbPath);
+                QFileInfo noteDBFilePathInf(newDbPath);
+                QDir().mkpath(noteDBFilePathInf.absolutePath());
+                emit requestChangeDatabasePath(newDbPath);
+            }
+        }
+    });
 
     // About Notes
     QAction* aboutAction = mainMenu.addAction(tr("About Notes"));

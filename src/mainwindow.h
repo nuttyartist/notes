@@ -297,6 +297,7 @@ signals:
     void requestMigrateNotesFromV0_9_0(QVector<NodeData>& noteList);
     void requestMigrateTrashFromV0_9_0(QVector<NodeData>& noteList);
     void requestMigrateNotesFromV1_5_0(const QString& path);
+    void requestChangeDatabasePath(const QString& newPath);
 };
 
 #endif // MAINWINDOW_H
