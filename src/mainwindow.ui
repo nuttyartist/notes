@@ -26,15 +26,7 @@
    <string>Notes</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">#frameMiddle{
-background-color: rgb(255, 255, 255);
-}
-
-#frameLeft{
-background-color: rgb(255, 255, 255);
-}
-
-NoteData #container {
+   <string notr="true">NoteData #container {
   border: none;
   background-color: rgb(255, 255, 255);
 }
@@ -144,20 +136,29 @@ NoteData #dateLabel{
               <number>0</number>
              </property>
              <item>
-              <spacer name="verticalSpacer_2">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
+              <widget class="QWidget" name="verticalSpacer_upTreeView" native="true">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
                </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::Preferred</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
+               <property name="minimumSize">
                 <size>
                  <width>20</width>
                  <height>25</height>
                 </size>
                </property>
-              </spacer>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QWidget{\n    background-color: #ffffff;\n}</string>
+               </property>
+              </widget>
              </item>
              <item>
               <widget class="NodeTreeView" name="treeView"/>
@@ -229,20 +230,31 @@ NoteData #dateLabel{
               <enum>QLayout::SetNoConstraint</enum>
              </property>
              <item>
-              <spacer name="verticalSpacer_upSearchEdit">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
+              <widget class="QWidget" name="verticalSpacer_upSearchEdit" native="true">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
                </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::Minimum</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
+               <property name="minimumSize">
                 <size>
                  <width>20</width>
                  <height>25</height>
                 </size>
                </property>
-              </spacer>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QWidget{
+    background-color: #ffffff;
+}</string>
+               </property>
+              </widget>
              </item>
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout">
@@ -701,6 +713,7 @@ NoteData #dateLabel{
                   <property name="font">
                    <font>
                     <pointsize>10</pointsize>
+                    <weight>75</weight>
                     <bold>true</bold>
                    </font>
                   </property>
@@ -868,6 +881,7 @@ color: rgb(132, 132, 132);
              <property name="font">
               <font>
                <pointsize>11</pointsize>
+               <weight>50</weight>
                <italic>false</italic>
                <bold>false</bold>
               </font>
@@ -898,9 +912,9 @@ color: rgb(132, 132, 132);
              </property>
              <property name="html">
               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Arial'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Ubuntu'; font-size:14pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="placeholderText">
@@ -943,14 +957,14 @@ p, li { white-space: pre-wrap; }
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>NoteListView</class>
-   <extends>QListView</extends>
-   <header>notelistview.h</header>
-  </customwidget>
-  <customwidget>
    <class>CustomDocument</class>
    <extends>QTextEdit</extends>
    <header>customDocument.h</header>
+  </customwidget>
+  <customwidget>
+   <class>NoteListView</class>
+   <extends>QListView</extends>
+   <header>notelistview.h</header>
   </customwidget>
   <customwidget>
    <class>NodeTreeView</class>

@@ -1454,7 +1454,7 @@ void MainWindow::onDotsButtonClicked()
                                          "Are you sure you want to change the database path?"
                                          );
         if (btn == QMessageBox::Yes) {
-            auto newDbPath = QFileDialog::getSaveFileName(this, "New Database path");
+            auto newDbPath = QFileDialog::getSaveFileName(this, "New Database path", "notes.db");
             if (!newDbPath.isEmpty()) {
                 m_settingsDatabase->setValue(
                             QStringLiteral("noteDBFilePath"),
@@ -1673,6 +1673,8 @@ void MainWindow::setTheme(Theme theme)
         m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
         this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(247, 247, 247); }"));
+        ui->verticalSpacer_upSearchEdit->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(247, 247, 247);}"));
+        ui->verticalSpacer_upTreeView->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(247, 247, 247);}"));
         setupTextEditStyleSheet(m_noteEditorLogic->currentMinimumEditorPadding(), m_noteEditorLogic->currentMinimumEditorPadding());
         m_listViewLogic->setTheme(Theme::Light);
         m_styleEditorWindow.setTheme(Theme::Light, m_currentThemeBackgroundColor, m_currentEditorTextColor);
@@ -1690,6 +1692,8 @@ void MainWindow::setTheme(Theme theme)
         m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
         this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(26, 26, 26); }"));
+        ui->verticalSpacer_upSearchEdit->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(26, 26, 26);}"));
+        ui->verticalSpacer_upTreeView->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(26, 26, 26);}"));
         setupTextEditStyleSheet(m_noteEditorLogic->currentMinimumEditorPadding(), m_noteEditorLogic->currentMinimumEditorPadding());
         m_listViewLogic->setTheme(Theme::Dark);
         m_styleEditorWindow.setTheme(Theme::Dark, m_currentThemeBackgroundColor, m_currentEditorTextColor);
@@ -1707,6 +1711,8 @@ void MainWindow::setTheme(Theme theme)
         m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
         this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(251, 240, 217); }"));
+        ui->verticalSpacer_upSearchEdit->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(251, 240, 217);}"));
+        ui->verticalSpacer_upTreeView->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(251, 240, 217);}"));
         setupTextEditStyleSheet(m_noteEditorLogic->currentMinimumEditorPadding(), m_noteEditorLogic->currentMinimumEditorPadding());
         m_listViewLogic->setTheme(Theme::Sepia);
         m_styleEditorWindow.setTheme(Theme::Sepia, m_currentThemeBackgroundColor, QColor(26, 26, 26));
@@ -3260,10 +3266,8 @@ void MainWindow::adjustUpperWidgets(bool shouldPushUp)
     // Adjust space above search field
     const QSizePolicy policy = ui->verticalSpacer_upSearchEdit->sizePolicy();
     const int width = ui->verticalSpacer_upSearchEdit->sizeHint().width();
-    ui->verticalSpacer_upSearchEdit->changeSize(width,
-                                                shouldPushUp ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25,
-                                                policy.horizontalPolicy(),
-                                                policy.verticalPolicy());
+    ui->verticalSpacer_upSearchEdit->setMinimumSize(width,
+                                                shouldPushUp ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25);
     ui->verticalLayout_scrollArea->invalidate();
 
     // TODO: For some reason the layout update itself only when a button is being hovered upon
