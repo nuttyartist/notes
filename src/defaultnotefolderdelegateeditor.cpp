@@ -37,7 +37,7 @@ void DefaultNoteFolderDelegateEditor::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     auto iconRect = QRect(rect().x() + 5, rect().y() + (rect().height() - 20) / 2, 20, 20);
     QRect nameRect(rect());
-    nameRect.setLeft(iconRect.x() + iconRect.width() + 5);
+    nameRect.setLeft(iconRect.x() + iconRect.width());
     nameRect.setWidth(nameRect.width() - 5 - 40);
 
     auto displayName = m_index.data(NodeItem::Roles::DisplayText).toString();
