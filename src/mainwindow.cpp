@@ -1406,7 +1406,7 @@ void MainWindow::onDotsButtonClicked()
     // folder tree view visiblity action
     bool isFolderTreeCollapsed = (m_splitter->sizes().at(0) == 0);
     QString factionLabel = isFolderTreeCollapsed? tr("Show folders tree")
-                                               : tr("Hide folders tree");
+                                                : tr("Hide folders tree");
 
     QAction* folderTreeVisbilityAction = viewMenu->addAction(factionLabel);
     folderTreeVisbilityAction->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_J);
@@ -3263,12 +3263,16 @@ void MainWindow::askBeforeSettingNativeWindowFrame()
  */
 void MainWindow::adjustUpperWidgets(bool shouldPushUp)
 {
+
     // Adjust space above search field
     const QSizePolicy policy = ui->verticalSpacer_upSearchEdit->sizePolicy();
-    const int width = ui->verticalSpacer_upSearchEdit->sizeHint().width();
+    int width = ui->verticalSpacer_upSearchEdit->sizeHint().width();
     ui->verticalSpacer_upSearchEdit->setMinimumSize(width,
-                                                shouldPushUp ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25);
+                                                    shouldPushUp ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25);
     ui->verticalLayout_scrollArea->invalidate();
+    width = ui->verticalSpacer_upTreeView->sizeHint().width();
+    ui->verticalSpacer_upTreeView->setMinimumSize(width,
+                                                    shouldPushUp ? 9 : 25);
 
     // TODO: For some reason the layout update itself only when a button is being hovered upon
     // Adjust space above text editor
