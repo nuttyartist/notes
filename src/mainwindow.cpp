@@ -627,7 +627,7 @@ void MainWindow::setupSignalsSlots()
     connect(m_searchEdit, &QLineEdit::returnPressed, this, &MainWindow::onSearchEditReturnPressed);
     // clear button
     connect(m_clearButton, &QToolButton::clicked, this, &MainWindow::onClearButtonClicked);
-    // Restore Notes Actionm
+    // Restore Notes Action
     connect(m_restoreAction, &QAction::triggered, this, [this](){
         setMainWindowVisibility(isHidden()
                                 || windowState() == Qt::WindowMinimized
@@ -784,13 +784,13 @@ void MainWindow::setupSearchEdit()
     QToolButton *searchButton = new QToolButton(m_searchEdit);
     QPixmap newPixmap(QStringLiteral(":images/magnifyingGlass.png"));
     searchButton->setIcon(QIcon(newPixmap));
-    QSize searchSize(24, 25);
+    QSize searchSize(18, 18);
     searchButton->setIconSize(searchSize);
     searchButton->setCursor(Qt::ArrowCursor);
 
     // layout
     QBoxLayout* layout = new QBoxLayout(QBoxLayout::RightToLeft, m_searchEdit);
-    layout->setContentsMargins(0,0,3,0);
+    layout->setContentsMargins(2,0,3,0);
     layout->addWidget(m_clearButton);
     layout->addStretch();
     layout->addWidget(searchButton);
@@ -1672,8 +1672,9 @@ void MainWindow::setTheme(Theme theme)
         m_currentEditorTextColor = QColor(26, 26, 26);
         m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
-        this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(247, 247, 247); }"));
+        this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(247, 247, 247);}"));
         ui->verticalSpacer_upSearchEdit->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(247, 247, 247);}"));
+        ui->verticalSpacer_upSearchEdit2->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(247, 247, 247);}"));
         ui->verticalSpacer_upTreeView->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(247, 247, 247);}"));
         setupTextEditStyleSheet(m_noteEditorLogic->currentMinimumEditorPadding(), m_noteEditorLogic->currentMinimumEditorPadding());
         m_listViewLogic->setTheme(Theme::Light);
@@ -1693,6 +1694,7 @@ void MainWindow::setTheme(Theme theme)
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
         this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(26, 26, 26); }"));
         ui->verticalSpacer_upSearchEdit->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(26, 26, 26);}"));
+        ui->verticalSpacer_upSearchEdit2->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(26, 26, 26);}"));
         ui->verticalSpacer_upTreeView->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(26, 26, 26);}"));
         setupTextEditStyleSheet(m_noteEditorLogic->currentMinimumEditorPadding(), m_noteEditorLogic->currentMinimumEditorPadding());
         m_listViewLogic->setTheme(Theme::Dark);
@@ -1712,6 +1714,7 @@ void MainWindow::setTheme(Theme theme)
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
         this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(251, 240, 217); }"));
         ui->verticalSpacer_upSearchEdit->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(251, 240, 217);}"));
+        ui->verticalSpacer_upSearchEdit2->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(251, 240, 217);}"));
         ui->verticalSpacer_upTreeView->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(251, 240, 217);}"));
         setupTextEditStyleSheet(m_noteEditorLogic->currentMinimumEditorPadding(), m_noteEditorLogic->currentMinimumEditorPadding());
         m_listViewLogic->setTheme(Theme::Sepia);
@@ -3266,17 +3269,15 @@ void MainWindow::adjustUpperWidgets(bool shouldPushUp)
 
     // Adjust space above search field
     const QSizePolicy policy = ui->verticalSpacer_upSearchEdit->sizePolicy();
-    int width = ui->verticalSpacer_upSearchEdit->sizeHint().width();
-    ui->verticalSpacer_upSearchEdit->setMinimumSize(width,
+    ui->verticalSpacer_upSearchEdit->setMinimumSize(0,
                                                     shouldPushUp ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25);
     ui->verticalLayout_scrollArea->invalidate();
-    width = ui->verticalSpacer_upTreeView->sizeHint().width();
-    ui->verticalSpacer_upTreeView->setMinimumSize(width,
+    ui->verticalSpacer_upTreeView->setMinimumSize(0,
                                                     shouldPushUp ? 9 : 25);
 
     // TODO: For some reason the layout update itself only when a button is being hovered upon
     // Adjust space above text editor
-    ui->verticalSpacer_upEditorDateLabel->changeSize(width,
+    ui->verticalSpacer_upEditorDateLabel->changeSize(0,
                                                      shouldPushUp ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25,
                                                      policy.horizontalPolicy(),
                                                      policy.verticalPolicy());
@@ -3308,10 +3309,13 @@ void MainWindow::setUseNativeWindowFrame(bool useNativeWindowFrame)
     else
         flags |= Qt::FramelessWindowHint;
 #elif _WIN32
-    if (useNativeWindowFrame)
+    if (useNativeWindowFrame) {
         flags &= ~Qt::CustomizeWindowHint;
-    else
+        flags &= ~Qt::FramelessWindowHint;
+    } else {
         flags |= Qt::CustomizeWindowHint;
+        flags |= Qt::FramelessWindowHint;
+    }
 #endif
 
     setWindowFlags(flags);
