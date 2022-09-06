@@ -1378,6 +1378,18 @@ void MainWindow::onDotsButtonClicked()
     viewMenu->setToolTipsVisible(true);
     mainMenu.setToolTipsVisible(true);
 
+#if defined(Q_OS_WINDOWS) || defined(Q_OS_WIN)
+    mainMenu.setStyleSheet(QStringLiteral(
+                                   "QMenu { "
+                                   "  background-color: rgb(255, 255, 255); "
+                                   "  border: 1px solid #C7C7C7; "
+                                   "  }"
+                                   "QMenu::item:selected { "
+                                   "  background: 1px solid #308CC6; "
+                                   "}")
+                               );
+#endif
+
 #ifdef __APPLE__
     mainMenu.setFont(QFont(m_displayFont, 13));
     viewMenu->setFont(QFont(m_displayFont, 13));
