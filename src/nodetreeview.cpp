@@ -461,7 +461,7 @@ void NodeTreeView::setCurrentIndexNC(const QModelIndex &index)
 void NodeTreeView::setTheme(Theme theme)
 {
     m_theme = theme;
-#if defined(Q_OS_LINUX)
+#if defined(Q_OS_LINUX) || defined(Q_OS_WINDOWS) || defined(Q_OS_WIN)
     QString ss = QStringLiteral(
                 R"(QTreeView {)"
                 R"(    border-style: none;)"
