@@ -473,12 +473,11 @@ void NodeTreeView::setTheme(Theme theme)
                 R"(QTreeView::branch{)"
                 R"(    border-image: url(none.png);)"
                 R"(})"
-                R"(QScrollBar::handle:vertical:hover { background: rgb(170, 170, 171); } )"
-                R"(QScrollBar::handle:vertical:pressed { background: rgb(149, 149, 149); } )"
-                R"(QScrollBar::handle:vertical { border-radius: 4px; background: rgb(188, 188, 188); min-height: 20px; }  )"
-                R"(QScrollBar::vertical {border-radius: 4px; width: 8px; color: rgba(255, 255, 255,0);} )"
-                R"(QScrollBar {margin: 0; background: transparent;} )"
-                R"(QScrollBar:hover { background-color: rgb(217, 217, 217);})"
+                R"(QScrollBar::handle:vertical:hover { background: rgba(40, 40, 40, 0.5); } )"
+                R"(QScrollBar::handle:vertical:pressed { background: rgba(40, 40, 40, 0.5); } )"
+                R"(QScrollBar::handle:vertical { border-radius: 4px; background: rgba(100, 100, 100, 0.5); min-height: 20px; }  )"
+                R"(QScrollBar::vertical {border-radius: 6px; width: 10px; color: rgba(255, 255, 255,0);} )"
+                R"(QScrollBar {margin-right: 2px; background: transparent;} )"
                 R"(QScrollBar::add-line:vertical { width:0px; height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  )"
                 R"(QScrollBar::sub-line:vertical { width:0px; height: 0px; subcontrol-position: top; subcontrol-origin: margin; })");
 #else
