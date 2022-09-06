@@ -9,6 +9,8 @@
 //Github: https://github.com/Bringer-of-Light/Qt-Nice-Frameless-Window
 // Usage: use "CFramelessWindow" as base class instead of "QMainWindow", and enjoy
 #ifdef Q_OS_WIN
+#if defined(__MINGW32__) || defined(__GNUC__)
+#else
 #include <QWidget>
 #include <QList>
 #include <QMargins>
@@ -63,7 +65,7 @@ private:
 
     bool m_bResizeable;
 };
-
+#endif
 #elif defined Q_OS_MAC
 #include <QMouseEvent>
 #include <QResizeEvent>

@@ -41,6 +41,8 @@ QPushButton:pressed {
     font: 500 14px;
 }
 #UpdaterWindow {
-    color: rgb(26, 26, 26);
-    background-color: rgb(255, 255, 255);
+background-color: rgb(255, 255, 255);
+}
+#UpdaterWindow QLabel {
+color: rgb(26, 26, 26);
 }

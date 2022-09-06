@@ -62,11 +62,11 @@ void CFramelessWindow::initUI()
     m_bNativeSystemBtn = false;
 
     //如果当前osx版本老于10.9，则后续代码不可用。转为使用定制的系统按钮，不支持自由缩放窗口及窗口阴影
-    if (QSysInfo::MV_None == QSysInfo::macVersion())
-    {
-        if (QSysInfo::MV_None == QSysInfo::MacintoshVersion) {setWindowFlags(Qt::FramelessWindowHint); return;}
-    }
-    if (QSysInfo::MV_10_9 >= QSysInfo::MacintoshVersion) {setWindowFlags(Qt::FramelessWindowHint); return;}
+//    if (QSysInfo::MV_None == QSysInfo::macVersion())
+//    {
+//        if (QSysInfo::MV_None == QSysInfo::MacintoshVersion) {setWindowFlags(Qt::FramelessWindowHint); return;}
+//    }
+//    if (QSysInfo::MV_10_9 >= QSysInfo::MacintoshVersion) {setWindowFlags(Qt::FramelessWindowHint); return;}
 
     NSView* view = (NSView*)winId();
     if (0 == view) {setWindowFlags(Qt::FramelessWindowHint); return;}

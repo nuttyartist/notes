@@ -6,7 +6,6 @@
 
 #include "mainwindow.h"
 #include "singleinstance.h"
-
 #include <QApplication>
 #include <QFontDatabase>
 
@@ -14,10 +13,9 @@ int main(int argc, char *argv[])
 {
     QApplication::setDesktopSettingsAware(false);
     QApplication app (argc, argv);
-
     // Set application information
     app.setApplicationName ("Notes");
-    app.setApplicationVersion ("1.5.0");
+    app.setApplicationVersion ("2.0.0");
 
     // Load fonts from resources
     // Roboto
@@ -112,7 +110,7 @@ int main(int argc, char *argv[])
     w.show();
 
     // Bring the Notes window to the front
-    QObject::connect(&instance, &SingleInstance::newInstance, [&](){
+    QObject::connect(&instance, &SingleInstance::newInstance, &w, [&](){
         (&w)->setMainWindowVisibility(true);
     });
 
