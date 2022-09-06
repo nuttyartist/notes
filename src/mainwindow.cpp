@@ -948,19 +948,20 @@ void MainWindow::setupTextEdit()
     m_textEdit->setWordWrapMode(QTextOption::WordWrap);
 
 #ifdef __APPLE__
-    if(QFont("SF Pro Text").exactMatch()) {
-        m_listOfSansSerifFonts.push_front("SF Pro Text");
-    }
-    if(QFont("Avenir Next").exactMatch()) {
-        m_listOfSansSerifFonts.push_front("Avenir Next");
-    } else if(QFont("Avenir").exactMatch()) {
-        m_listOfSansSerifFonts.push_front("Avenir");
-    }
-
     if(QFont("Helvetica Neue").exactMatch()) {
         m_listOfSansSerifFonts.push_front("Helvetica Neue");
     } else if(QFont("Helvetica").exactMatch()) {
         m_listOfSansSerifFonts.push_front("Helvetica");
+    }
+
+    if(QFont("SF Pro Text").exactMatch()) {
+        m_listOfSansSerifFonts.push_front("SF Pro Text");
+    }
+
+    if(QFont("Avenir Next").exactMatch()) {
+        m_listOfSansSerifFonts.push_front("Avenir Next");
+    } else if(QFont("Avenir").exactMatch()) {
+        m_listOfSansSerifFonts.push_front("Avenir");
     }
 #elif _WIN32
     if(QFont("Calibri").exactMatch())
