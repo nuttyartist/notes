@@ -30,7 +30,7 @@ Our vision for the future on our [Wiki](https://github.com/nuttyartist/notes/wik
 
 ## Support the project
 
-If you use Notes daily, consider donating money so I can pay programmers to develop new features and fix bugs. I partner with [Patreon](https://www.patreon.com/rubymamis) to receive contributions (soon, I'll add Github Sponsors). You can also put a bounty on specific issues using Bountysource. I currently make a living from ads on the website, but I'd like to stop with that.
+If you use Notes daily, consider donating money so I can pay programmers to develop new features and fix bugs. I partner with [Github Sponsors](https://github.com/sponsors/nuttyartist) and [Patreon](https://www.patreon.com/rubymamis) to receive contributions. You can also put a bounty on specific issues using Bountysource. I currently make a living from ads on the website, but I'd like to stop with that.
 
 ## How to clone
 Use this command to clone the repository:
