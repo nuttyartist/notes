@@ -4,15 +4,15 @@
 #
 #-------------------------------------------------
 
-VERSION = 1.5.0
+VERSION = 2.0.0
 
 QT += core gui widgets network sql
-QT += gui-private
+QT += core-private gui-private widgets-private
 QT += concurrent
 
 TARGET    = Notes
 TEMPLATE  = app
-CONFIG   += c++11
+CONFIG   += c++14
 
 UI_DIR = uic
 MOC_DIR = moc
@@ -25,29 +25,88 @@ include ($$PWD/../3rdParty/qmarkdowntextedit/qmarkdowntextedit.pri)
 include ($$PWD/../3rdParty/qautostart/src/qautostart.pri)
 
 SOURCES += \
-    $$PWD/main.cpp\
-    $$PWD/mainwindow.cpp \
-    $$PWD/notedata.cpp \
-    $$PWD/notewidgetdelegate.cpp \
-    $$PWD/notemodel.cpp \
-    $$PWD/noteview.cpp \
-    $$PWD/singleinstance.cpp \
-    $$PWD/updaterwindow.cpp \
-    $$PWD/dbmanager.cpp
+    allnotebuttontreedelegateeditor.cpp \
+    customapplicationstyle.cpp \
+    defaultnotefolderdelegateeditor.cpp \
+    elidedlabel.cpp \
+    main.cpp\
+    mainwindow.cpp \
+    noteeditorlogic.cpp \
+    notelistdelegate.cpp \
+    notelistdelegateeditor.cpp \
+    notelistmodel.cpp \
+    notelistview.cpp \
+    singleinstance.cpp \
+    spliterstyle.cpp \
+    taglistdelegate.cpp \
+    taglistmodel.cpp \
+    taglistview.cpp \
+    tagpool.cpp \
+    tagtreedelegateeditor.cpp \
+    trashbuttondelegateeditor.cpp \
+    updaterwindow.cpp \
+    dbmanager.cpp \
+    aboutwindow.cpp \
+    customdocument.cpp \
+    editorsettingsbutton.cpp \
+    foldertreedelegateeditor.cpp \
+    labeledittype.cpp \
+    listviewlogic.cpp \
+    nodedata.cpp \
+    nodepath.cpp \
+    nodetreedelegate.cpp \
+    nodetreemodel.cpp \
+    nodetreeview.cpp \
+    pushbuttontype.cpp \
+    styleeditorwindow.cpp \
+    tagdata.cpp \
+    treeviewlogic.cpp
 
 HEADERS  += \
-    $$PWD/mainwindow.h \
-    $$PWD/notedata.h \
-    $$PWD/notewidgetdelegate.h \
-    $$PWD/notemodel.h \
-    $$PWD/noteview.h \
-    $$PWD/singleinstance.h \
-    $$PWD/updaterwindow.h \
-    $$PWD/dbmanager.h
+    allnotebuttontreedelegateeditor.h \
+    customapplicationstyle.h \
+    defaultnotefolderdelegateeditor.h \
+    elidedlabel.h \
+    mainwindow.h \
+    nodetreeview_p.h \
+    noteeditorlogic.h \
+    notelistdelegate.h \
+    notelistdelegateeditor.h \
+    notelistmodel.h \
+    notelistview.h \
+    notelistview_p.h \
+    singleinstance.h \
+    spliterstyle.h \
+    taglistdelegate.h \
+    taglistmodel.h \
+    taglistview.h \
+    tagpool.h \
+    tagtreedelegateeditor.h \
+    trashbuttondelegateeditor.h \
+    updaterwindow.h \
+    dbmanager.h \
+    aboutwindow.h \
+    customDocument.h \
+    editorsettingsbutton.h \
+    foldertreedelegateeditor.h \
+    framelesswindow.h \
+    labeledittype.h \
+    listviewlogic.h \
+    nodedata.h \
+    nodepath.h \
+    nodetreedelegate.h \
+    nodetreemodel.h \
+    nodetreeview.h \
+    pushbuttontype.h \
+    styleeditorwindow.h \
+    tagdata.h \
+    treeviewlogic.h
 
 FORMS += \
     $$PWD/mainwindow.ui \
-    $$PWD/updaterwindow.ui
+    $$PWD/updaterwindow.ui \
+    aboutwindow.ui \
+    styleeditorwindow.ui
 
 RESOURCES += \
     $$PWD/images.qrc \
@@ -79,7 +138,7 @@ linux:!android {
     Project = "$$TARGET-$$VERSION"
 
     AuthorEmail = \"awesomeness.notes@gmail.com\"
-    AuthorName = \"Nutty Artist\"
+    AuthorName = \"Ruby Mamistvalove\"
 
     deb.target   = deb
     deb.depends  = fix_deb_dependencies
@@ -129,9 +188,14 @@ linux:!android {
 macx {
     DESTDIR = $$PWD/../bin
     ICON = $$PWD/images\notes_icon.icns
+    OBJECTIVE_SOURCES += \
+                framelesswindow.mm
+    LIBS += -framework Cocoa
 }
 
 win32 {
     DESTDIR = $$PWD/../bin
     RC_FILE = $$PWD/images\notes.rc
+    SOURCES += \
+        framelesswindow.cpp
 }

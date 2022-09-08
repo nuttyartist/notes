@@ -1,8 +1,38 @@
 <RCC>
     <qresource prefix="/">
         <file>fonts/roboto-hinted/Roboto-Medium.ttf</file>
-        <file>fonts/arimo/Arimo-Regular.ttf</file>
         <file>fonts/roboto-hinted/Roboto-Bold.ttf</file>
         <file>fonts/roboto-hinted/Roboto-Regular.ttf</file>
+        <file>fonts/trykker/Trykker-Regular.ttf</file>
+        <file>fonts/mate/Mate-Regular.ttf</file>
+        <file>fonts/mate/Mate-Italic.ttf</file>
+        <file>fonts/iaduo/iAWriterDuoS-Bold.ttf</file>
+        <file>fonts/iaduo/iAWriterDuoS-BoldItalic.ttf</file>
+        <file>fonts/iaduo/iAWriterDuoS-Italic.ttf</file>
+        <file>fonts/iaduo/iAWriterDuoS-Regular.ttf</file>
+        <file>fonts/iamono/iAWriterMonoS-Bold.ttf</file>
+        <file>fonts/iamono/iAWriterMonoS-BoldItalic.ttf</file>
+        <file>fonts/iamono/iAWriterMonoS-Italic.ttf</file>
+        <file>fonts/iamono/iAWriterMonoS-Regular.ttf</file>
+        <file>fonts/iaquattro/iAWriterQuattroS-Bold.ttf</file>
+        <file>fonts/iaquattro/iAWriterQuattroS-BoldItalic.ttf</file>
+        <file>fonts/iaquattro/iAWriterQuattroS-Italic.ttf</file>
+        <file>fonts/iaquattro/iAWriterQuattroS-Regular.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-Black.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-BlackItalic.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-Bold.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-BoldItalic.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-ExtraLight.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-ExtraLightItalic.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-Italic.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-Light.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-LightItalic.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-Regular.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-SemiBold.ttf</file>
+        <file>fonts/sourcesanspro/SourceSansPro-SemiBoldItalic.ttf</file>
+        <file>fonts/ptserif/PTSerif-Bold.ttf</file>
+        <file>fonts/ptserif/PTSerif-BoldItalic.ttf</file>
+        <file>fonts/ptserif/PTSerif-Italic.ttf</file>
+        <file>fonts/ptserif/PTSerif-Regular.ttf</file>
     </qresource>
 </RCC>

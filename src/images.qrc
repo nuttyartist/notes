@@ -37,5 +37,32 @@
         <file>images/windows_minimize_hovered.png</file>
         <file>images/windows_minimize_pressed.png</file>
         <file>images/windows_minimize_regular.png</file>
+        <file>images/arrow-right.png</file>
+        <file>images/arrow-right-dark.png</file>
+        <file>images/plus.png</file>
+        <file>images/plus-dark.png</file>
+        <file>images/minus.png</file>
+        <file>images/minus-dark.png</file>
+        <file>images/decrease-width.png</file>
+        <file>images/decrease-width-dark.png</file>
+        <file>images/increase-width-dark.png</file>
+        <file>images/increase-width.png</file>
+        <file>images/all-notes-icon.png</file>
+        <file>images/notes_icon.icns</file>
+        <file>images/notes_icon.ico</file>
+        <file>images/notes.rc</file>
+        <file>images/trash-icon.png</file>
+        <file>images/tree-node-expanded.png</file>
+        <file>images/tree-node-normal.png</file>
+        <file>images/3dots_Highlighted.png</file>
+        <file>images/folder.png</file>
+        <file>images/drawer_icon.png</file>
+        <file>images/all-notes-icon-dark.png</file>
+        <file>images/trash-icon-dark.png</file>
+        <file>images/tree-node-expanded-dark.png</file>
+        <file>images/tree-node-normal-dark.png</file>
+        <file>images/pin.png</file>
+        <file>images/pinned-collasped.png</file>
+        <file>images/pinned-expand.png</file>
     </qresource>
 </RCC>

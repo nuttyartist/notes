@@ -4,18 +4,37 @@
 [![Build Status](https://travis-ci.org/nuttyartist/notes.svg?branch=dev)](https://travis-ci.org/nuttyartist/notes)
 [![Build status](https://ci.appveyor.com/api/projects/status/rgque4o6x2y0i92i?svg=true)](https://ci.appveyor.com/project/nuttyartist/notes)
 
-Notes is an open source, cross-platform note taking app which has the potential to be something much bigger, and much better at empowering the people using it.
-This is where you come into play. Be part of making Notes better.
+Notes is an open source and cross-platform note-taking app that is both beautiful and powerful.
 
-Next version: [1.5.0 (see project)](https://github.com/nuttyartist/notes/projects/7)  
-Our vision for the future on our [Wiki](https://github.com/nuttyartist/notes/wiki/Vision).  
-Website: <a href="http://get-notes.com" target="_blank">get-notes.com</a>
+Website: <a href="http://get-notes.com" target="_blank">get-notes.com</a>  
+Our vision for the future on our [Wiki](https://github.com/nuttyartist/notes/wiki/Vision).
 
-## Screenshot
-![notes_screenshot](https://user-images.githubusercontent.com/16375940/29837038-bc4e58a4-8cff-11e7-9fb1-692e9948c33c.png)
+## Screenshots
 
+![notes_screenshot_1](https://user-images.githubusercontent.com/16375940/188721143-df0a3584-011f-4ef0-a185-82066f9eb671.gif)
+![notes_screenshot_2](https://user-images.githubusercontent.com/16375940/188721215-943dff96-fd61-48ad-a2c0-fa059db72152.gif)
+
+## Features Overview
+
+- Native app (written in C++ with Qt).
+- Fast with a low memory footprint.
+- Fully open source and cross-platform (Linux, macOS, Windows).
+- Completely private - tracks nothing.
+- Beautiful and sleek looking, yet still powerful.
+- Folders and tags. Organize your ideas hierarchically using nested folders and universally using tags.
+- Markdown Support. Format text without lifting your hands from the keyboard.
+- Different themes. Switch between Light, Dark, and Sepia.
+- Feed View. Select multiple notes to see them all one after another in the editor.
+- Always runs in the background. Use the hotkey "Windows" + 'N' to summon Notes. "control" + "N" for macOS.
+- Keyboard shortcuts. Meant to have the option to be used solely with a keyboard (but more work needs to be done there).
+- What feature will you contribute?
+
+## Support the project
+
+If you use Notes daily, consider donating money so I can pay programmers to develop new features and fix bugs. I partner with [Github Sponsors](https://github.com/sponsors/nuttyartist) and [Patreon](https://www.patreon.com/rubymamis) to receive contributions. You can also put a bounty on specific issues using Bountysource. I currently make a living from ads on the website, but I'd like to stop with that.
 
 ## How to clone
+
 Use this command to clone the repository:
 
 ```shell
@@ -23,6 +42,7 @@ $> git clone --recursive  https://github.com/nuttyartist/notes.git
 ```
 
 ## Dependencies
+
 Make sure the Qt (>= 5.3) development libraries are installed:
 
 - Debian/Ubuntu : qt5-default build-essential qtbase5-private-dev sqlite3
@@ -36,13 +56,10 @@ $> qmake ../src
 $> make -j4
 ```
 
-## Notes
+## Database path
 
-The notes database and settings file are stored:
+The notes database and settings file are stored in:
 
-**Windows** : ```C:\Users\user\AppData\Roaming\Awesomeness```  
-**Linux** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: ```/home/user/.config/Awesomeness/``` **or** ```/home/snap/notes/x1/.config/Awesomeness``` **(using snap)**  
-**Mac** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: ```/home/.config/Awesomeness/```  
-
-## Contributors
-[![](https://sourcerer.io/fame/nuttyartist/nuttyartist/notes/images/0)](https://sourcerer.io/fame/nuttyartist/nuttyartist/notes/links/0)[![](https://sourcerer.io/fame/nuttyartist/nuttyartist/notes/images/1)](https://sourcerer.io/fame/nuttyartist/nuttyartist/notes/links/1)[![](https://sourcerer.io/fame/nuttyartist/nuttyartist/notes/images/2)](https://sourcerer.io/fame/nuttyartist/nuttyartist/notes/links/2)[![](https://sourcerer.io/fame/nuttyartist/nuttyartist/notes/images/3)](https://sourcerer.io/fame/nuttyartist/nuttyartist/notes/links/3)[![](https://sourcerer.io/fame/nuttyartist/nuttyartist/notes/images/4)](https://sourcerer.io/fame/nuttyartist/nuttyartist/notes/links/4)[![](https://sourcerer.io/fame/nuttyartist/nuttyartist/notes/images/5)](https://sourcerer.io/fame/nuttyartist/nuttyartist/notes/links/5)[![](https://sourcerer.io/fame/nuttyartist/nuttyartist/notes/images/6)](https://sourcerer.io/fame/nuttyartist/nuttyartist/notes/links/6)[![](https://sourcerer.io/fame/nuttyartist/nuttyartist/notes/images/7)](https://sourcerer.io/fame/nuttyartist/nuttyartist/notes/links/7)
+**Windows** : `C:\Users\user\AppData\Roaming\Awesomeness`  
+**Linux** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: `/home/user/.config/Awesomeness/` **or** `/home/snap/notes/x1/.config/Awesomeness` **(using snap)**  
+**Mac** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: `/home/.config/Awesomeness/`
