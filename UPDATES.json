@@ -2,19 +2,19 @@
   "updates": {
     "windows": {
       "open-url": "https://github.com/nuttyartist/notes/releases/download/v2.0.0/NotesSetup.exe",
-      "latest-version": "1.5.0",
+      "latest-version": "2.0.0",
       "download-url": "https://github.com/nuttyartist/notes/releases/download/v2.0.0/NotesSetup.exe",
       "changelog": "A new release is here with major new features and many bug fixes and improvements:\n\n• Folders and tags. Organize your ideas hierarchically using nested folders and universally using tags.\n• Pinned notes. Pin your most important notes at the top of each folder.\n• Different themes. Switch between Light, Dark, and Sepia.\n• Editor settings window. Change between different fonts and change the size/width of your text.\n• Feed View. Select multiple notes to see them all one after another in the editor.\n• Option to change the database path, so you can more easily sync your notes with a cloud provider.\n• Many bug fixes.\n\nAlso, we're happy to announce that Notes has been downloaded more than a million times! And counting! More than the numbers, it is the emails we get from people about how Notes been a great tool for them. This is what truly matters to us."
     },
     "osx": {
       "open-url": "https://github.com/nuttyartist/notes/releases/download/v2.0.0/Notes.dmg",
-      "latest-version": "1.5.0",
+      "latest-version": "2.0.0",
       "download-url": "https://github.com/nuttyartist/notes/releases/download/v2.0.0/Notes.dmg",
       "changelog": "A new release is here with major new features and many bug fixes and improvements:\n\n• Folders and tags. Organize your ideas hierarchically using nested folders and universally using tags.\n• Pinned notes. Pin your most important notes at the top of each folder.\n• Different themes. Switch between Light, Dark, and Sepia.\n• Editor settings window. Change between different fonts and change the size/width of your text.\n• Feed View. Select multiple notes to see them all one after another in the editor.\n• Option to change the database path, so you can more easily sync your notes with a cloud provider.\n• Many bug fixes.\n\nAlso, we're happy to announce that Notes has been downloaded more than a million times! And counting! More than the numbers, it is the emails we get from people about how Notes been a great tool for them. This is what truly matters to us."
     },
     "linux": {
       "open-url": "https://github.com/nuttyartist/notes/releases/download/v2.0.0/Notes-x86_64.appimage",
-      "latest-version": "1.5.0",
+      "latest-version": "2.0.0",
       "download-url": "https://github.com/nuttyartist/notes/releases/download/v2.0.0/Notes-x86_64.appimage",
       "changelog": "A new release is here with major new features and many bug fixes and improvements:\n\n• Folders and tags. Organize your ideas hierarchically using nested folders and universally using tags.\n• Pinned notes. Pin your most important notes at the top of each folder.\n• Different themes. Switch between Light, Dark, and Sepia.\n• Editor settings window. Change between different fonts and change the size/width of your text.\n• Feed View. Select multiple notes to see them all one after another in the editor.\n• Option to change the database path, so you can more easily sync your notes with a cloud provider.\n• Many bug fixes.\n\nAlso, we're happy to announce that Notes has been downloaded more than a million times! And counting! More than the numbers, it is the emails we get from people about how Notes been a great tool for them. This is what truly matters to us."
     }
