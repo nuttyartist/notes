@@ -69,6 +69,19 @@ int main(int argc, char *argv[])
     QFontDatabase::addApplicationFont (":/fonts/iaquattro/iAWriterQuattroS-BoldItalic.ttf");
 
 
+
+    // vazirmatn
+    QFontDatabase::addApplicationFont (":/fonts/vazirmatn/Vazirmatn-Black.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/vazirmatn/Vazirmatn-Bold.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/vazirmatn/Vazirmatn-ExtraBold.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/vazirmatn/Vazirmatn-ExtraLight.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/vazirmatn/Vazirmatn-Light.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/vazirmatn/Vazirmatn-Medium.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/vazirmatn/Vazirmatn-Regular.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/vazirmatn/Vazirmatn-SemiBold.ttf");
+    QFontDatabase::addApplicationFont (":/fonts/vazirmatn/Vazirmatn-Thin.ttf");
+
+
     // Prevent many instances of the app to be launched
     QString name = "com.awsomeness.notes";
     SingleInstance instance;
