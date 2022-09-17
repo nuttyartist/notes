@@ -3289,17 +3289,17 @@ void MainWindow::adjustUpperWidgets(bool shouldPushUp)
     const QSizePolicy policy = ui->verticalSpacer_upSearchEdit->sizePolicy();
     ui->verticalSpacer_upSearchEdit->setMinimumSize(0,
                                                     shouldPushUp ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25);
-    ui->verticalLayout_scrollArea->invalidate();
     ui->verticalSpacer_upTreeView->setMinimumSize(0,
                                                     shouldPushUp ? 9 : 25);
 
-    // TODO: For some reason the layout update itself only when a button is being hovered upon
-    // Adjust space above text editor
     ui->verticalSpacer_upEditorDateLabel->changeSize(0,
                                                      shouldPushUp ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25,
                                                      policy.horizontalPolicy(),
                                                      policy.verticalPolicy());
-    ui->verticalLayout_textEdit->invalidate();
+
+    // Force a full re-layout of the top right frame.
+    // This fixes some widgets not properly updating after switching between native and non-native window decoration modes.
+    ui->frameRightTop->setStyleSheet(ui->frameRightTop->styleSheet());
 }
 
 /*!
