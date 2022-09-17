@@ -2139,9 +2139,11 @@ void MainWindow::expandNodeTree()
 #ifdef __APPLE__
     this->setStandardWindowButtonsMacVisibility(true);
 #else
-    m_redCloseButton->setVisible(true);
-    m_yellowMinimizeButton->setVisible(true);
-    m_greenMaximizeButton->setVisible(true);
+    if (!m_useNativeWindowFrame) {
+        m_redCloseButton->setVisible(true);
+        m_yellowMinimizeButton->setVisible(true);
+        m_greenMaximizeButton->setVisible(true);
+    }
 #endif
 }
 
@@ -2202,9 +2204,11 @@ void MainWindow::expandNoteList()
 #ifdef __APPLE__
     this->setStandardWindowButtonsMacVisibility(true);
 #else
-    m_redCloseButton->setVisible(true);
-    m_yellowMinimizeButton->setVisible(true);
-    m_greenMaximizeButton->setVisible(true);
+    if (!m_useNativeWindowFrame) {
+        m_redCloseButton->setVisible(true);
+        m_yellowMinimizeButton->setVisible(true);
+        m_greenMaximizeButton->setVisible(true);
+    }
 #endif
 }
 
@@ -2968,9 +2972,11 @@ void MainWindow::setVisibilityOfFrameRightNonEditor(bool isVisible)
 
             this->setStandardWindowButtonsMacVisibility(isVisible);
 #else
-            m_redCloseButton->setVisible(isVisible);
-            m_yellowMinimizeButton->setVisible(isVisible);
-            m_greenMaximizeButton->setVisible(isVisible);
+            if (!m_useNativeWindowFrame) {
+                m_redCloseButton->setVisible(isVisible);
+                m_yellowMinimizeButton->setVisible(isVisible);
+                m_greenMaximizeButton->setVisible(isVisible);
+            }
 #endif
         }
 
