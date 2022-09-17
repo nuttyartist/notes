@@ -180,6 +180,10 @@ void UpdaterWindow::resetControls()
 
     /* Set installed version label */
     m_ui->installedVersion->setText(qApp->applicationVersion());
+ 
+
+    /*Set latest version label */
+    m_ui->latestVersion->setText(qApp->getLatestVersion);
 
     /* Set available version label */
     m_ui->availableVersion->setText(m_updater->getLatestVersion(UPDATES_URL));
