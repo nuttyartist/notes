@@ -268,6 +268,9 @@ private slots:
     void toggleNoteList();
     void collapseNodeTree();
     void expandNodeTree();
+    void makeBold();
+    void makeItalic();
+    void makeStrikethrough();
     void toggleNodeTree();
     void importNotesFile(const bool clicked);
     void exportNotesFile(const bool clicked);
