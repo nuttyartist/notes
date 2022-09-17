@@ -55,7 +55,7 @@ NoteListDelegate::NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject
     m_timeLine = new QTimeLine(300, this);
     m_timeLine->setFrameRange(0,m_maxFrame);
     m_timeLine->setUpdateInterval(10);
-    m_timeLine->setCurveShape(QTimeLine::EaseInCurve);
+    m_timeLine->easingCurve();
     m_folderIcon = QImage(":/images/folder.png");
     m_pinnedExpandIcon = QImage(":/images/pinned-expand.png");
     m_pinnedCollapseIcon = QImage(":/images/pinned-collasped.png");
