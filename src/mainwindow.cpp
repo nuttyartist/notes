@@ -459,6 +459,9 @@ void MainWindow::setupKeyboardShortcuts()
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S), this, SLOT(onStyleEditorButtonClicked()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_J), this, SLOT(toggleNodeTree()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_A), this, SLOT(selectAllNotesInList()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_B), this, SLOT(makeBold()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_I), this, SLOT(makeItalic()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), this, SLOT(makeStrikethrough()));
 
     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
 #if defined(Q_OS_LINUX)
@@ -1873,6 +1876,46 @@ void MainWindow::fullscreenWindow()
         showFullScreen();
     }
 #endif
+}
+
+/*!
+ * \brief MainWindow::makeBold
+ * Make selected text bold, or, if nothing selected insert formating char for bold
+ */
+void MainWindow::makeBold()
+{
+    QTextCursor cursor = ui->textEdit->textCursor();
+    cursor.insertText("**" + cursor.selectedText() + "**");
+    if(cursor.selectedText().isEmpty()){
+        ui->textEdit->moveCursor(QTextCursor::Left, QTextCursor::MoveAnchor);
+        ui->textEdit->moveCursor(QTextCursor::Left, QTextCursor::MoveAnchor);
+    }
+}
+
+/*!
+ * \brief MainWindow::makeItalic
+ * Italicize selected text, or, if nothing selected insert formating char for italics
+ */
+void MainWindow::makeItalic()
+{
+    QTextCursor cursor = ui->textEdit->textCursor();
+    cursor.insertText("*" + cursor.selectedText() + "*");
+    if(cursor.selectedText().isEmpty()){
+        ui->textEdit->moveCursor(QTextCursor::Left, QTextCursor::MoveAnchor);
+    }
+}
+
+/*!
+ * \brief MainWindow::makeStrikethrough
+ * Strikethrough selected text, or, if nothing selected insert the formatting char for strikethough
+ */
+void MainWindow::makeStrikethrough()
+{
+    QTextCursor cursor = ui->textEdit->textCursor();
+    cursor.insertText("~" + cursor.selectedText() + "~");
+    if(cursor.selectedText().isEmpty()){
+        ui->textEdit->moveCursor(QTextCursor::Left, QTextCursor::MoveAnchor);
+    }
 }
 
 /*!
