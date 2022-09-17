@@ -2466,7 +2466,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
         int newWidth = width();
         int newHeight = height();
 
-        int minY =  QApplication::desktop()->availableGeometry().y();
+        int minY = QGuiApplication::primaryScreen()->availableGeometry().y();
 
         switch (m_stretchSide) {
         case StretchSide::Right:
@@ -3179,6 +3179,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         setCurrentFontBasedOnTypeface(m_currentFontTypeface);
 
         //        alignTextEditText();
+        break;
     }
     case QEvent::Show:
         if(object == &m_updater){
