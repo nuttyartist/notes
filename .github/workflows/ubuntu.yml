@@ -8,7 +8,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-16.04, ubuntu-18.04, ubuntu-latest]
+        # https://github.com/actions/runner-images#available-images
+        os: [ubuntu-18.04, ubuntu-20.04, ubuntu-22.04]
     
     steps:
     - uses: actions/checkout@v1
