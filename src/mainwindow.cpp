@@ -459,9 +459,9 @@ void MainWindow::setupKeyboardShortcuts()
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S), this, SLOT(onStyleEditorButtonClicked()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_J), this, SLOT(toggleNodeTree()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_A), this, SLOT(selectAllNotesInList()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_B), this, [this](){applyFormat("**");});
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_I), this, [this](){applyFormat("*");});
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), this, [this](){applyFormat("~");});
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_B), this, SLOT(makeBold()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_I), this, SLOT(makeItalic()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), this, SLOT(makeStrikethrough()));
 
     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
 #if defined(Q_OS_LINUX)
@@ -1904,6 +1904,21 @@ void MainWindow::fullscreenWindow()
         showFullScreen();
     }
 #endif
+}
+
+void MainWindow::makeBold()
+{
+    applyFormat("**");
+}
+
+void MainWindow::makeItalic()
+{
+    applyFormat("*");
+}
+
+void MainWindow::makeStrikethrough()
+{
+    applyFormat("~");
 }
 
 /*!
