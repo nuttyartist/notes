@@ -459,9 +459,9 @@ void MainWindow::setupKeyboardShortcuts()
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S), this, SLOT(onStyleEditorButtonClicked()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_J), this, SLOT(toggleNodeTree()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_A), this, SLOT(selectAllNotesInList()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_B), this, [this](){insertFormat("**");});
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_I), this, [this](){insertFormat("*");});
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), this, [this](){insertFormat("~");});
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_B), this, [this](){applyFormat("**");});
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_I), this, [this](){applyFormat("*");});
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), this, [this](){applyFormat("~");});
 
     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
 #if defined(Q_OS_LINUX)
@@ -1302,6 +1302,34 @@ void MainWindow::setButtonsAndFieldsEnabled(bool doEnable)
 }
 
 /*!
+ * \brief MainWindow::resetFormat
+ * \param formatChars
+ * Removes applied formmatting: bold, italic, strikethrough
+ */
+void MainWindow::resetFormat(const QString &formatChars)
+{
+    QTextCursor cursor = m_textEdit->textCursor();
+    if(!cursor.hasSelection()){
+        cursor.select(QTextCursor::WordUnderCursor);
+        if(cursor.selectedText().contains(formatChars)){
+            cursor.deleteChar();
+            return;
+        }
+    }
+    QString selectedText = cursor.selectedText();
+    int start = cursor.selectionStart();
+    int end = cursor.selectionEnd();
+    cursor.beginEditBlock();
+    cursor.setPosition(start - formatChars.length(), QTextCursor::MoveAnchor);
+    cursor.setPosition(start, QTextCursor::KeepAnchor);
+    cursor.deleteChar();
+    cursor.setPosition(end - formatChars.length(), QTextCursor::MoveAnchor);
+    cursor.setPosition(end, QTextCursor::KeepAnchor);
+    cursor.deleteChar();
+    cursor.endEditBlock();
+}
+
+/*!
  * \brief MainWindow::onNewNoteButtonPressed
  * When the new-note button is pressed, set it's icon accordingly
  */
@@ -1879,12 +1907,17 @@ void MainWindow::fullscreenWindow()
 }
 
 /*!
- * \brief MainWindow::insertFormat
+ * \brief MainWindow::applyFormat
  * Make selected text bold, italic, or strikethrough it, by inserting the passed formatting char(s) before
  * and after the selection. If nothing is selected, insert formating char(s) before/after the word under the cursor
  */
-void MainWindow::insertFormat(const QString &formatChars)
+void MainWindow::applyFormat(const QString &formatChars)
 {
+    if(alreadyAppliedFormat(formatChars)){
+        resetFormat(formatChars);
+        return;
+    }
+
     QTextCursor cursor = m_textEdit->textCursor();
     bool selected = cursor.hasSelection();
     bool wordUnderCursor = false;
@@ -3269,6 +3302,29 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
     }
 
     return QObject::eventFilter(object, event);
+}
+
+/*!
+ * \brief MainWindow::alreadyAppliedFormat
+ * \param formatChars
+ * Checks whether the bold/italic/strikethrough formatting was already applied
+ */
+bool MainWindow::alreadyAppliedFormat(const QString &formatChars)
+{
+    QTextCursor cursor = m_textEdit->textCursor();
+    if(!cursor.hasSelection()){
+        cursor.select(QTextCursor::WordUnderCursor);
+        if(!cursor.hasSelection()){
+            return false;
+        }
+        if(cursor.selectedText().contains(formatChars)){
+            return true;
+        }
+    }
+    QString selectedText = cursor.selectedText();
+    QTextDocument *doc = m_textEdit->document();
+    QTextCursor found = doc->find(formatChars + selectedText + formatChars, cursor.selectionStart() - formatChars.length());
+    return found.hasSelection();
 }
 
 /*!
