@@ -1325,10 +1325,13 @@ void MainWindow::resetFormat(const QString &formatChars)
     QString selectedText = cursor.selectedText();
     int start = cursor.selectionStart();
     int end = cursor.selectionEnd();
-    if(cursor.selectedText().startsWith(formatChars) && cursor.selectedText().endsWith(formatChars)){
+    if(selectedText.startsWith(formatChars) && selectedText.endsWith(formatChars)){
+        if(selectedText.length() == formatChars.length()){
+            return;
+        }
         start += formatChars.length();
         end -= formatChars.length();
-    }else if(cursor.selectedText().startsWith(formatChars) || cursor.selectedText().endsWith(formatChars)){
+    }else if(selectedText.startsWith(formatChars) || selectedText.endsWith(formatChars)){
         return;
     }
     cursor.beginEditBlock();
