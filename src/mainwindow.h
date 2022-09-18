@@ -262,6 +262,7 @@ private slots:
     void selectNoteUp();
     void setFocusOnText();
     void fullscreenWindow();
+    void makeCode();
     void makeBold();
     void makeItalic();
     void makeStrikethrough();
