@@ -1312,13 +1312,15 @@ void MainWindow::resetFormat(const QString &formatChars)
     QTextCursor cursor = m_textEdit->textCursor();
     if(!cursor.hasSelection()){
         cursor.select(QTextCursor::WordUnderCursor);
-        if(cursor.selectedText().startsWith(formatChars + formatChars) || cursor.selectedText().endsWith(formatChars + formatChars)){
-            QTextDocument *doc = m_textEdit->document();
-            QTextCursor found = doc->find(formatChars + formatChars, cursor.selectionStart());
-            m_textEdit->setTextCursor(found);
-            cursor.deleteChar();
-            return;
-        } else if(cursor.selectedText().startsWith(formatChars) || cursor.selectedText().endsWith(formatChars)){
+        if (!cursor.hasSelection()) {
+            for (int i = 0; i < 2; ++i){
+                QTextDocument *doc = m_textEdit->document();
+                cursor = doc->find(QRegularExpression(QRegularExpression::escape(formatChars)), cursor.selectionStart(),
+                                   QTextDocument::FindBackward);
+                if (!cursor.isNull()) {
+                    cursor.deleteChar();
+                }
+            }
             return;
         }
     }
@@ -3350,7 +3352,17 @@ bool MainWindow::alreadyAppliedFormat(const QString &formatChars)
     if(!cursor.hasSelection()){
         cursor.select(QTextCursor::WordUnderCursor);
         if(!cursor.hasSelection()){
-            return false;
+            QTextDocument *doc = m_textEdit->document();
+            cursor = doc->find(QRegularExpression(QRegularExpression::escape(formatChars) + "[^ " +formatChars + "]+" +
+                                                  QRegularExpression::escape(formatChars) + "$"), cursor.selectionStart(),
+                               QTextDocument::FindBackward);
+            if (!cursor.isNull()) {
+                //m_textEdit->setTextCursor(cursor);
+                return true;
+            }
+            if(!cursor.hasSelection()){
+                return false;
+            }
         }
     }
     if(cursor.selectedText().contains(formatChars)){
@@ -3358,8 +3370,8 @@ bool MainWindow::alreadyAppliedFormat(const QString &formatChars)
     }
     QString selectedText = cursor.selectedText();
     QTextDocument *doc = m_textEdit->document();
-    QTextCursor found = doc->find(formatChars + selectedText + formatChars, cursor.selectionStart() - formatChars.length());
-    return found.hasSelection();
+    cursor = doc->find(formatChars + selectedText + formatChars, cursor.selectionStart() - formatChars.length());
+    return cursor.hasSelection();
 }
 
 /*!
