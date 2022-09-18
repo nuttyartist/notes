@@ -1311,14 +1311,14 @@ void MainWindow::resetFormat(const QString &formatChars)
     QTextCursor cursor = m_textEdit->textCursor();
     if(!cursor.hasSelection()){
         cursor.select(QTextCursor::WordUnderCursor);
-        if(cursor.selectedText().contains(formatChars)){
-            cursor.deleteChar();
-            return;
-        }
     }
     QString selectedText = cursor.selectedText();
     int start = cursor.selectionStart();
     int end = cursor.selectionEnd();
+    if(cursor.selectedText().startsWith(formatChars) && cursor.selectedText().endsWith(formatChars)){
+        start += formatChars.length();
+        end -= formatChars.length();
+    }
     cursor.beginEditBlock();
     cursor.setPosition(start - formatChars.length(), QTextCursor::MoveAnchor);
     cursor.setPosition(start, QTextCursor::KeepAnchor);
@@ -3317,9 +3317,9 @@ bool MainWindow::alreadyAppliedFormat(const QString &formatChars)
         if(!cursor.hasSelection()){
             return false;
         }
-        if(cursor.selectedText().contains(formatChars)){
-            return true;
-        }
+    }
+    if(cursor.selectedText().contains(formatChars)){
+        return true;
     }
     QString selectedText = cursor.selectedText();
     QTextDocument *doc = m_textEdit->document();
