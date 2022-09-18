@@ -459,9 +459,9 @@ void MainWindow::setupKeyboardShortcuts()
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S), this, SLOT(onStyleEditorButtonClicked()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_J), this, SLOT(toggleNodeTree()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_A), this, SLOT(selectAllNotesInList()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_B), this, SLOT(makeBold()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_I), this, SLOT(makeItalic()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), this, SLOT(makeStrikethrough()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_B), this, [this](){insertFormat("**");});
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_I), this, [this](){insertFormat("*");});
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), this, [this](){insertFormat("~");});
 
     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
 #if defined(Q_OS_LINUX)
@@ -1879,42 +1879,37 @@ void MainWindow::fullscreenWindow()
 }
 
 /*!
- * \brief MainWindow::makeBold
- * Make selected text bold, or, if nothing selected insert formating char for bold
+ * \brief MainWindow::insertFormat
+ * Make selected text bold, italic, or strikethrough it, by inserting the passed formatting char(s) before
+ * and after the selection. If nothing is selected, insert formating char(s) before/after the word under the cursor
  */
-void MainWindow::makeBold()
+void MainWindow::insertFormat(const QString &formatChars)
 {
-    QTextCursor cursor = ui->textEdit->textCursor();
-    cursor.insertText("**" + cursor.selectedText() + "**");
-    if(cursor.selectedText().isEmpty()){
-        ui->textEdit->moveCursor(QTextCursor::Left, QTextCursor::MoveAnchor);
-        ui->textEdit->moveCursor(QTextCursor::Left, QTextCursor::MoveAnchor);
+    QTextCursor cursor = m_textEdit->textCursor();
+    bool selected = cursor.hasSelection();
+    bool wordUnderCursor = false;
+    if(!selected){
+        cursor.select(QTextCursor::WordUnderCursor);
+        wordUnderCursor = cursor.hasSelection();
     }
-}
-
-/*!
- * \brief MainWindow::makeItalic
- * Italicize selected text, or, if nothing selected insert formating char for italics
- */
-void MainWindow::makeItalic()
-{
-    QTextCursor cursor = ui->textEdit->textCursor();
-    cursor.insertText("*" + cursor.selectedText() + "*");
-    if(cursor.selectedText().isEmpty()){
-        ui->textEdit->moveCursor(QTextCursor::Left, QTextCursor::MoveAnchor);
-    }
-}
-
-/*!
- * \brief MainWindow::makeStrikethrough
- * Strikethrough selected text, or, if nothing selected insert the formatting char for strikethough
- */
-void MainWindow::makeStrikethrough()
-{
-    QTextCursor cursor = ui->textEdit->textCursor();
-    cursor.insertText("~" + cursor.selectedText() + "~");
-    if(cursor.selectedText().isEmpty()){
-        ui->textEdit->moveCursor(QTextCursor::Left, QTextCursor::MoveAnchor);
+    QString selectedText = cursor.selectedText();
+    int start = cursor.selectionStart();
+    int end = cursor.selectionEnd();
+    cursor.setPosition(start, QTextCursor::MoveAnchor);
+    cursor.beginEditBlock();
+    cursor.insertText(formatChars);
+    cursor.setPosition(end + formatChars.length(), QTextCursor::MoveAnchor);
+    cursor.insertText(formatChars);
+    cursor.movePosition(QTextCursor::PreviousCharacter, QTextCursor::MoveAnchor, formatChars.length());
+    cursor.endEditBlock();
+    if(selected){
+        QTextDocument *doc = m_textEdit->document();
+        QTextCursor found = doc->find(selectedText, start);
+        m_textEdit->setTextCursor(found);
+    }else if(!wordUnderCursor){
+        for(int i = 0; i < formatChars.length(); ++i){
+            m_textEdit->moveCursor(QTextCursor::Left, QTextCursor::MoveAnchor);
+        }
     }
 }
 

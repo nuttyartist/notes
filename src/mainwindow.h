@@ -199,6 +199,7 @@ private:
     bool m_areNonEditorWidgetsVisible;
     bool m_isFrameRightTopWidgetsVisible;
 
+    void insertFormat(const QString &formatChars);
     void setupMainWindow();
     void setupFonts();
     void setupTrayIcon();
@@ -268,9 +269,6 @@ private slots:
     void toggleNoteList();
     void collapseNodeTree();
     void expandNodeTree();
-    void makeBold();
-    void makeItalic();
-    void makeStrikethrough();
     void toggleNodeTree();
     void importNotesFile(const bool clicked);
     void exportNotesFile(const bool clicked);
