@@ -199,6 +199,8 @@ private:
     bool m_areNonEditorWidgetsVisible;
     bool m_isFrameRightTopWidgetsVisible;
 
+    bool alreadyAppliedFormat(const QString &formatChars);
+    void applyFormat(const QString &formatChars);
     void setupMainWindow();
     void setupFonts();
     void setupTrayIcon();
@@ -220,6 +222,7 @@ private:
     void initializeSettingsDatabase();
     void setLayoutForScrollArea();
     void setButtonsAndFieldsEnabled(bool doEnable);
+    void resetFormat(const QString &formatChars);
     void restoreStates();
     void migrateFromV0_9_0();
     void executeImport(const bool replace);
@@ -259,6 +262,10 @@ private slots:
     void selectNoteUp();
     void setFocusOnText();
     void fullscreenWindow();
+    void makeCode();
+    void makeBold();
+    void makeItalic();
+    void makeStrikethrough();
     void maximizeWindow();
     void minimizeWindow();
     void QuitApplication();

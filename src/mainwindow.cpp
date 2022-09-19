@@ -459,6 +459,10 @@ void MainWindow::setupKeyboardShortcuts()
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S), this, SLOT(onStyleEditorButtonClicked()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_J), this, SLOT(toggleNodeTree()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_A), this, SLOT(selectAllNotesInList()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_QuoteLeft), this, SLOT(makeCode()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_B), this, SLOT(makeBold()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_I), this, SLOT(makeItalic()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), this, SLOT(makeStrikethrough()));
 
     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
 #if defined(Q_OS_LINUX)
@@ -1299,6 +1303,50 @@ void MainWindow::setButtonsAndFieldsEnabled(bool doEnable)
 }
 
 /*!
+ * \brief MainWindow::resetFormat
+ * \param formatChars
+ * Removes applied formmatting: bold, italic, strikethrough
+ */
+void MainWindow::resetFormat(const QString &formatChars)
+{
+    QTextCursor cursor = m_textEdit->textCursor();
+    if(!cursor.hasSelection()){
+        cursor.select(QTextCursor::WordUnderCursor);
+        if (!cursor.hasSelection()) {
+            for (int i = 0; i < 2; ++i){
+                QTextDocument *doc = m_textEdit->document();
+                cursor = doc->find(QRegularExpression(QRegularExpression::escape(formatChars)), cursor.selectionStart(),
+                                   QTextDocument::FindBackward);
+                if (!cursor.isNull()) {
+                    cursor.deleteChar();
+                }
+            }
+            return;
+        }
+    }
+    QString selectedText = cursor.selectedText();
+    int start = cursor.selectionStart();
+    int end = cursor.selectionEnd();
+    if(selectedText.startsWith(formatChars) && selectedText.endsWith(formatChars)){
+        if(selectedText.length() == formatChars.length()){
+            return;
+        }
+        start += formatChars.length();
+        end -= formatChars.length();
+    }else if(selectedText.startsWith(formatChars) || selectedText.endsWith(formatChars)){
+        return;
+    }
+    cursor.beginEditBlock();
+    cursor.setPosition(start - formatChars.length(), QTextCursor::MoveAnchor);
+    cursor.setPosition(start, QTextCursor::KeepAnchor);
+    cursor.deleteChar();
+    cursor.setPosition(end - formatChars.length(), QTextCursor::MoveAnchor);
+    cursor.setPosition(end, QTextCursor::KeepAnchor);
+    cursor.deleteChar();
+    cursor.endEditBlock();
+}
+
+/*!
  * \brief MainWindow::onNewNoteButtonPressed
  * When the new-note button is pressed, set it's icon accordingly
  */
@@ -1873,6 +1921,66 @@ void MainWindow::fullscreenWindow()
         showFullScreen();
     }
 #endif
+}
+
+void MainWindow::makeCode()
+{
+    applyFormat("`");
+}
+
+void MainWindow::makeBold()
+{
+    applyFormat("**");
+}
+
+void MainWindow::makeItalic()
+{
+    applyFormat("*");
+}
+
+void MainWindow::makeStrikethrough()
+{
+    applyFormat("~");
+}
+
+/*!
+ * \brief MainWindow::applyFormat
+ * Make selected text bold, italic, or strikethrough it, by inserting the passed formatting char(s) before
+ * and after the selection. If nothing is selected, insert formating char(s) before/after the word under the cursor
+ */
+void MainWindow::applyFormat(const QString &formatChars)
+{
+    if(alreadyAppliedFormat(formatChars)){
+        resetFormat(formatChars);
+        return;
+    }
+
+    QTextCursor cursor = m_textEdit->textCursor();
+    bool selected = cursor.hasSelection();
+    bool wordUnderCursor = false;
+    if(!selected){
+        cursor.select(QTextCursor::WordUnderCursor);
+        wordUnderCursor = cursor.hasSelection();
+    }
+    QString selectedText = cursor.selectedText();
+    int start = cursor.selectionStart();
+    int end = cursor.selectionEnd();
+    cursor.setPosition(start, QTextCursor::MoveAnchor);
+    cursor.beginEditBlock();
+    cursor.insertText(formatChars);
+    cursor.setPosition(end + formatChars.length(), QTextCursor::MoveAnchor);
+    cursor.insertText(formatChars);
+    cursor.movePosition(QTextCursor::PreviousCharacter, QTextCursor::MoveAnchor, formatChars.length());
+    cursor.endEditBlock();
+    if(selected){
+        QTextDocument *doc = m_textEdit->document();
+        QTextCursor found = doc->find(selectedText, start);
+        m_textEdit->setTextCursor(found);
+    }else if(!wordUnderCursor){
+        for(int i = 0; i < formatChars.length(); ++i){
+            m_textEdit->moveCursor(QTextCursor::Left, QTextCursor::MoveAnchor);
+        }
+    }
 }
 
 /*!
@@ -3231,6 +3339,39 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
     }
 
     return QObject::eventFilter(object, event);
+}
+
+/*!
+ * \brief MainWindow::alreadyAppliedFormat
+ * \param formatChars
+ * Checks whether the bold/italic/strikethrough formatting was already applied
+ */
+bool MainWindow::alreadyAppliedFormat(const QString &formatChars)
+{
+    QTextCursor cursor = m_textEdit->textCursor();
+    if(!cursor.hasSelection()){
+        cursor.select(QTextCursor::WordUnderCursor);
+        if(!cursor.hasSelection()){
+            QTextDocument *doc = m_textEdit->document();
+            cursor = doc->find(QRegularExpression(QRegularExpression::escape(formatChars) + "[^ " +formatChars + "]+" +
+                                                  QRegularExpression::escape(formatChars) + "$"), cursor.selectionStart(),
+                               QTextDocument::FindBackward);
+            if (!cursor.isNull()) {
+                //m_textEdit->setTextCursor(cursor);
+                return true;
+            }
+            if(!cursor.hasSelection()){
+                return false;
+            }
+        }
+    }
+    if(cursor.selectedText().contains(formatChars)){
+        return true;
+    }
+    QString selectedText = cursor.selectedText();
+    QTextDocument *doc = m_textEdit->document();
+    cursor = doc->find(formatChars + selectedText + formatChars, cursor.selectionStart() - formatChars.length());
+    return cursor.hasSelection();
 }
 
 /*!
