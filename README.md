@@ -1,8 +1,8 @@
 # Notes
 
 [![Join the chat at https://gitter.im/nuttyartist/notes](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/nuttyartist/notes?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![GitHub Actions status on Linux](https://github.com/nuttyartist/notes/actions/workflows/ubuntu.yml/badge.svg?branch=dev)](https://github.com/github/docs/actions/workflows/ubuntu.yml?query=branch%3Adev)
-[![GitHub Actions status on macOS](https://github.com/nuttyartist/notes/actions/workflows/macos.yml/badge.svg?branch=dev)](https://github.com/github/docs/actions/workflows/macos.yml?query=branch%3Adev)
+[![GitHub Actions status on Linux](https://github.com/nuttyartist/notes/actions/workflows/ubuntu.yml/badge.svg?branch=dev)](https://github.com/nuttyartist/notes/actions/workflows/ubuntu.yml?query=branch%3Adev)
+[![GitHub Actions status on macOS](https://github.com/nuttyartist/notes/actions/workflows/macos.yml/badge.svg?branch=dev)](https://github.com/nuttyartist/notes/actions/workflows/macos.yml?query=branch%3Adev)
 [![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/github/nuttyartist/notes?branch=dev&svg=true)](https://ci.appveyor.com/project/nuttyartist/notes)
 
 Notes is an open source and cross-platform note-taking app that is both beautiful and powerful.
