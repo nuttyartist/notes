@@ -230,6 +230,7 @@ private:
     void migrateTrashFromV0_9_0(QString trashPath);
     void setCurrentFontBasedOnTypeface(FontTypeface selectedFontTypeFace);
     void setVisibilityOfFrameRightNonEditor(bool isVisible);
+    void setWindowButtonsVisible(bool isVisible);
     void adjustUpperWidgets(bool shouldPushUp);
     void setSearchEditStyleSheet(bool isFocused);
 
@@ -269,16 +270,16 @@ private slots:
     void maximizeWindow();
     void minimizeWindow();
     void QuitApplication();
-    void checkForUpdates (const bool clicked);
+    void checkForUpdates();
     void collapseNoteList();
     void expandNoteList();
     void toggleNoteList();
     void collapseNodeTree();
     void expandNodeTree();
     void toggleNodeTree();
-    void importNotesFile(const bool clicked);
-    void exportNotesFile(const bool clicked);
-    void restoreNotesFile (const bool clicked);
+    void importNotesFile();
+    void exportNotesFile();
+    void restoreNotesFile();
     void stayOnTop(bool checked);
     void askBeforeSettingNativeWindowFrame();
     void setUseNativeWindowFrame(bool useNativeWindowFrame);
