@@ -2049,11 +2049,9 @@ void MainWindow::QuitApplication()
  * \brief MainWindow::checkForUpdates
  * Called when the "Check for Updates" menu item is clicked, this function
  * instructs the updater window to check if there are any updates available
- * \param clicked
  */
-void MainWindow::checkForUpdates(const bool clicked)
+void MainWindow::checkForUpdates()
 {
-    Q_UNUSED (clicked)
     m_updater.checkForUpdates(true);
 }
 
@@ -2063,11 +2061,9 @@ void MainWindow::checkForUpdates(const bool clicked)
  * prompt the user to select a file, attempt to load the file, and update the DB
  * if valid.
  * The user is presented with a dialog box if the upload/import fails for any reason.
- * \param clicked
  */
-void MainWindow::importNotesFile(const bool clicked)
+void MainWindow::importNotesFile()
 {
-    Q_UNUSED (clicked)
     executeImport(false);
 }
 
@@ -2077,12 +2073,9 @@ void MainWindow::importNotesFile(const bool clicked)
  * prompt the user to select a file, attempt to load the file, and update the DB
  * if valid.
  * The user is presented with a dialog box if the upload/import/restore fails for any reason.
- * \param clicked
  */
-void MainWindow::restoreNotesFile(const bool clicked)
+void MainWindow::restoreNotesFile()
 {
-    Q_UNUSED (clicked)
-
     if (m_listModel->rowCount() > 0) {
         QMessageBox msgBox;
         msgBox.setText(tr("Warning: All current notes will be lost. Make sure to create a backup copy before proceeding."));
@@ -2136,9 +2129,8 @@ void MainWindow::executeImport(const bool replace)
  * The user is presented with a dialog box if the file cannot be opened for any reason.
  * \param clicked
  */
-void MainWindow::exportNotesFile(const bool clicked)
+void MainWindow::exportNotesFile()
 {
-    Q_UNUSED (clicked)
     QString fileName = QFileDialog::getSaveFileName(this,
                                                     tr("Save Notes"), "notes.nbk",
                                                     tr("Notes Backup File (*.nbk)"));
@@ -2178,15 +2170,9 @@ void MainWindow::collapseNodeTree()
     sizes[2] = m_splitter->width() - sizes[0] - m_noteListWidth;
     m_splitter->setSizes(sizes);
     m_splitter->setCollapsible(0, false);
-    if(!m_isFrameRightTopWidgetsVisible) {
-#ifdef __APPLE__
-        this->setStandardWindowButtonsMacVisibility(false);
-#else
-        m_redCloseButton->setVisible(false);
-        m_yellowMinimizeButton->setVisible(false);
-        m_greenMaximizeButton->setVisible(false);
-#endif
-    }
+
+    if(!m_isFrameRightTopWidgetsVisible)
+        setWindowButtonsVisible(false);
 }
 
 void MainWindow::expandNodeTree()
@@ -2201,15 +2187,7 @@ void MainWindow::expandNodeTree()
     sizes[2] = m_splitter->width() - noteListWidth - nodeTreeWidth;
     m_splitter->setSizes(sizes);
 
-#ifdef __APPLE__
-    this->setStandardWindowButtonsMacVisibility(true);
-#else
-    if (!m_useNativeWindowFrame) {
-        m_redCloseButton->setVisible(true);
-        m_yellowMinimizeButton->setVisible(true);
-        m_greenMaximizeButton->setVisible(true);
-    }
-#endif
+    setWindowButtonsVisible(true);
 }
 
 void MainWindow::toggleNodeTree()
@@ -2237,15 +2215,9 @@ void MainWindow::collapseNoteList()
     m_splitter->setSizes(sizes);
     m_splitter->setCollapsible(1, false);
     m_splitter->setCollapsible(0, false);
-    if(!m_isFrameRightTopWidgetsVisible) {
-#ifdef __APPLE__
-        this->setStandardWindowButtonsMacVisibility(false);
-#else
-        m_redCloseButton->setVisible(false);
-        m_yellowMinimizeButton->setVisible(false);
-        m_greenMaximizeButton->setVisible(false);
-#endif
-    }
+
+    if(!m_isFrameRightTopWidgetsVisible)
+        setWindowButtonsVisible(false);
 }
 
 /*!
@@ -2266,15 +2238,8 @@ void MainWindow::expandNoteList()
     m_splitter->setSizes(sizes);
     m_splitter->setCollapsible(1, false);
     m_splitter->setCollapsible(0, false);
-#ifdef __APPLE__
-    this->setStandardWindowButtonsMacVisibility(true);
-#else
-    if (!m_useNativeWindowFrame) {
-        m_redCloseButton->setVisible(true);
-        m_yellowMinimizeButton->setVisible(true);
-        m_greenMaximizeButton->setVisible(true);
-    }
-#endif
+
+    setWindowButtonsVisible(true);
 }
 
 
@@ -3028,24 +2993,24 @@ void MainWindow::setVisibilityOfFrameRightNonEditor(bool isVisible)
         m_styleEditorButton->setVisible(false);
     }
 
-
     // If the notes list is collapsed, hide the window buttons
-    if(m_splitter != Q_NULLPTR) {
+    if(m_splitter) {
         QList<int> sizes = m_splitter->sizes();
-        if(sizes.at(0) == 0 && sizes.at(1) == 0) {
-#ifdef __APPLE__
-
-            this->setStandardWindowButtonsMacVisibility(isVisible);
-#else
-            if (!m_useNativeWindowFrame) {
-                m_redCloseButton->setVisible(isVisible);
-                m_yellowMinimizeButton->setVisible(isVisible);
-                m_greenMaximizeButton->setVisible(isVisible);
-            }
-#endif
-        }
-
+        if(sizes.at(0) == 0 && sizes.at(1) == 0)
+            setWindowButtonsVisible(isVisible);
     }
+}
+
+void MainWindow::setWindowButtonsVisible(bool isVisible)
+{
+#ifdef __APPLE__
+    setStandardWindowButtonsMacVisibility(isVisible);
+#else
+    bool visible = !m_useNativeWindowFrame && isVisible;
+    m_redCloseButton->setVisible(visible);
+    m_yellowMinimizeButton->setVisible(visible);
+    m_greenMaximizeButton->setVisible(visible);
+#endif
 }
 
 /*!
@@ -3415,7 +3380,7 @@ void MainWindow::askBeforeSettingNativeWindowFrame()
     }
 #endif
 
-    setUseNativeWindowFrame(m_useNativeWindowFrame ? false : true);
+    setUseNativeWindowFrame(!m_useNativeWindowFrame);
 }
 
 /*!
