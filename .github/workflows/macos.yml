@@ -1,20 +1,23 @@
-name: Default Qt on macos
+name: macOS
 
 on: [push, pull_request]
 
 jobs:
   build:
-
     runs-on: ${{ matrix.os }}
     strategy:
+      fast-fail: false
       matrix:
-        os: [macos-latest]
+        # https://github.com/actions/runner-images#available-images
+        os: ['macos-10.15', 'macos-11', 'macos-12']
     
     steps:
-    - uses: actions/checkout@v1
+    - name: Checkout repo
+      uses: actions/checkout@v1
       with:
         submodules: recursive
-    - name: install dependencies
+
+    - name: Install dependencies
       run: |
         brew install qt5
         echo 'export PATH="/usr/local/opt/qt/bin:$PATH"' >> ~/.bash_profile
@@ -22,7 +25,8 @@ jobs:
         export CPPFLAGS="-I/usr/local/opt/qt/include"
         source ~/.bash_profile
         ls /usr/local/opt/qt/bin
-    - name: build
+
+    - name: Build
       run: |
         mkdir build
         cd build
