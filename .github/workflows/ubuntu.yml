@@ -1,26 +1,34 @@
-name: Default Qt on ubuntu
+name: Ubuntu
 
 on: [push, pull_request]
 
 jobs:
   build:
-
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         # https://github.com/actions/runner-images#available-images
-        os: [ubuntu-18.04, ubuntu-20.04, ubuntu-22.04]
+        os: ['ubuntu-18.04', 'ubuntu-20.04', 'ubuntu-22.04']
 
     steps:
-    - uses: actions/checkout@v1
+    - name: Checkout repo
+      uses: actions/checkout@v1
       with:
         submodules: recursive
-    - name: install dependencies
-      run: |
-        sudo apt update
-        sudo apt install qt5-default qtbase5-private-dev
-    - name: build
+
+    - name: Update APT repo
+      run: sudo apt update
+
+    - name: "Install dependencies (Ubuntu 18.04, 20.04)"
+      run: sudo apt install qt5-default qtbase5-private-dev
+      if: ${{ matrix.os == 'ubuntu-18.04' || matrix.os == 'ubuntu-20.04' }}
+
+    - name: "Install dependencies (Ubuntu 22.04)"
+      run: sudo apt install qtbase5-dev qtbase5-private-dev
+      if: ${{ matrix.os == 'ubuntu-22.04' }}
+
+    - name: Build
       run: |
         mkdir build
         cd build
