@@ -438,6 +438,7 @@ void MainWindow::setupTrayIcon()
  */
 void MainWindow::setupKeyboardShortcuts()
 {
+    new QShortcut(QKeySequence(Qt::Key_F10), this, SLOT(onDotsButtonClicked()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_N), this, SLOT(onNewNoteButtonClicked()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_D), this, SLOT(deleteSelectedNote()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_F), m_searchEdit, SLOT(setFocus()));
@@ -1419,8 +1420,8 @@ void MainWindow::onDotsButtonClicked()
     m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Regular.png")));
 
     QMenu mainMenu;
-    QMenu* viewMenu = mainMenu.addMenu(tr("View"));
-    QMenu* importExportNotesMenu = mainMenu.addMenu(tr("Import/Export Notes"));
+    QMenu* viewMenu = mainMenu.addMenu(tr("&View"));
+    QMenu* importExportNotesMenu = mainMenu.addMenu(tr("&Import/Export Notes"));
     importExportNotesMenu->setToolTipsVisible(true);
     viewMenu->setToolTipsVisible(true);
     mainMenu.setToolTipsVisible(true);
@@ -1449,8 +1450,8 @@ void MainWindow::onDotsButtonClicked()
 
     // note list visiblity action
     bool isNoteListCollapsed = (m_splitter->sizes().at(1) == 0);
-    QString actionLabel = isNoteListCollapsed? tr("Show notes list")
-                                             : tr("Hide notes list");
+    QString actionLabel = isNoteListCollapsed? tr("&Show notes list")
+                                             : tr("&Hide notes list");
 
     QAction* noteListVisbilityAction = viewMenu->addAction(actionLabel);
     noteListVisbilityAction->setShortcut(Qt::CTRL + Qt::Key_J);
@@ -1465,8 +1466,8 @@ void MainWindow::onDotsButtonClicked()
 
     // folder tree view visiblity action
     bool isFolderTreeCollapsed = (m_splitter->sizes().at(0) == 0);
-    QString factionLabel = isFolderTreeCollapsed? tr("Show folders tree")
-                                                : tr("Hide folders tree");
+    QString factionLabel = isFolderTreeCollapsed? tr("&Show folders tree")
+                                                : tr("Hide &folders tree");
 
     QAction* folderTreeVisbilityAction = viewMenu->addAction(factionLabel);
     folderTreeVisbilityAction->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_J);
@@ -1480,8 +1481,8 @@ void MainWindow::onDotsButtonClicked()
     }
 
     // Enable or Disable markdown
-    QString markDownLabel = m_noteEditorLogic->markdownEnabled() ? tr("Disable Markdown")
-                                                                 : tr("Enable Markdown");
+    QString markDownLabel = m_noteEditorLogic->markdownEnabled() ? tr("&Disable Markdown")
+                                                                 : tr("&Enable Markdown");
 
     QAction* noteMarkdownVisibiltyAction = viewMenu->addAction(markDownLabel);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
@@ -1497,24 +1498,24 @@ void MainWindow::onDotsButtonClicked()
     });
 
     // Check for update action
-    QAction* checkForUpdatesAction = mainMenu.addAction(tr("Check For Updates"));
+    QAction* checkForUpdatesAction = mainMenu.addAction(tr("Check For &Updates"));
     connect (checkForUpdatesAction, &QAction::triggered, this, &MainWindow::checkForUpdates);
 
     // Autostart
-    QAction* autostartAction = mainMenu.addAction(tr("Start automatically"));
+    QAction* autostartAction = mainMenu.addAction(tr("&Start automatically"));
     connect (autostartAction, &QAction::triggered, this, [=]() {
         m_autostart.setAutostart(autostartAction->isChecked());
     });
     autostartAction->setCheckable(true);
     autostartAction->setChecked(m_autostart.isAutostart());
 
-    QAction* changeDBPathAction = mainMenu.addAction(tr("Change database path"));
+    QAction* changeDBPathAction = mainMenu.addAction(tr("&Change database path"));
     connect (changeDBPathAction, &QAction::triggered, this, [=]() {
         auto btn = QMessageBox::question(this, "Are you sure you want to change the database path?",
                                          "Are you sure you want to change the database path?"
                                          );
         if (btn == QMessageBox::Yes) {
-            auto newDbPath = QFileDialog::getSaveFileName(this, "New Database path", "notes.db");
+            auto newDbPath = QFileDialog::getSaveFileName(this, "&New Database path", "notes.db");
             if (!newDbPath.isEmpty()) {
                 m_settingsDatabase->setValue(
                             QStringLiteral("noteDBFilePath"),
@@ -1527,7 +1528,7 @@ void MainWindow::onDotsButtonClicked()
     });
 
     // About Notes
-    QAction* aboutAction = mainMenu.addAction(tr("About Notes"));
+    QAction* aboutAction = mainMenu.addAction(tr("&About Notes"));
     connect (aboutAction, &QAction::triggered, this, [&]() {
 
         m_aboutWindow.show();
@@ -1536,23 +1537,23 @@ void MainWindow::onDotsButtonClicked()
     mainMenu.addSeparator();
 
     // Close the app
-    QAction* quitAppAction = mainMenu.addAction(tr("Quit"));
+    QAction* quitAppAction = mainMenu.addAction(tr("&Quit"));
     connect (quitAppAction, &QAction::triggered, this, &MainWindow::QuitApplication);
 
     // Export notes action
-    QAction* exportNotesFileAction = importExportNotesMenu->addAction (tr("Export"));
+    QAction* exportNotesFileAction = importExportNotesMenu->addAction (tr("&Export"));
     exportNotesFileAction->setToolTip(tr("Save notes to a file"));
     connect (exportNotesFileAction, &QAction::triggered,
              this, &MainWindow::exportNotesFile);
 
     // Import notes action
-    QAction* importNotesFileAction = importExportNotesMenu->addAction (tr("Import"));
+    QAction* importNotesFileAction = importExportNotesMenu->addAction (tr("&Import"));
     importNotesFileAction->setToolTip(tr("Add notes from a file"));
     connect (importNotesFileAction, &QAction::triggered,
              this, &MainWindow::importNotesFile);
 
     // Restore notes action
-    QAction* restoreNotesFileAction = importExportNotesMenu->addAction (tr("Restore"));
+    QAction* restoreNotesFileAction = importExportNotesMenu->addAction (tr("&Restore"));
     restoreNotesFileAction->setToolTip(tr("Replace all notes with notes from a file"));
     connect (restoreNotesFileAction, &QAction::triggered,
              this, &MainWindow::restoreNotesFile);
@@ -1568,8 +1569,8 @@ void MainWindow::onDotsButtonClicked()
 
 #ifndef __APPLE__
     // Use native frame action
-    QAction* useNativeFrameAction = viewMenu->addAction(tr("Use native window frame"));
-    useNativeFrameAction->setToolTip(tr("Use the window frame provided by the window manager"));
+    QAction* useNativeFrameAction = viewMenu->addAction(tr("&Use native window frame"));
+    useNativeFrameAction->setToolTip(tr("Use the &window frame provided by the window manager"));
     useNativeFrameAction->setCheckable(true);
     useNativeFrameAction->setChecked(m_useNativeWindowFrame);
     connect(useNativeFrameAction, &QAction::triggered, this, &MainWindow::askBeforeSettingNativeWindowFrame);
