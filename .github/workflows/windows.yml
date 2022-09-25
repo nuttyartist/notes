@@ -1,0 +1,99 @@
+name: Windows
+on: [ push, pull_request ]
+jobs:
+  # NOTE: This job uses a fixed Qt version (set in the 'qt-version' key below)!
+  # So, remember to keep it updated whenever a new Qt version is available on aqtinstall.
+  build-aqtinstall:
+    name: Build (${{ matrix.arch }}, ${{ matrix.build-type }}, Qt ${{ matrix.qt-version }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [ x64, x86 ]
+        # If you want build artifacts with debug symbols, just add 'debug' to the 'build-type' key below.
+        build-type: [ release ]
+        os: [ windows-2019 ]
+        qt-version: [ 5.15.2 ]
+    outputs:
+      version: ${{ steps.vars.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Update version
+        run: |
+          (Get-Content src\Notes.pro) -Replace '^VERSION *= *(.+)$',"`$0-g$($env:GITHUB_SHA.Substring(0,7))" | Set-Content src\Notes.pro
+
+      - name: Setup variables
+        id: vars
+        run: |
+          $version = Select-String -Path src\Notes.pro -Pattern '^VERSION *= *(.+)$' | %{$_.Matches.Groups[1].value}
+          $artifact_name = "Notes_$version-${{ matrix.arch }}"
+          Write-Output "::set-output name=version::$version"
+          Write-Output "::set-output name=artifact_name::$artifact_name"
+
+      - name: Setup MSVC (${{ matrix.arch }})
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
+
+      - name: Install Qt ${{ matrix.qt-version }} (aqtinstall, ${{ matrix.arch }})
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: ${{ matrix.qt-version }}
+          cache: true
+          arch: ${{ matrix.arch == 'x86' && 'win32_msvc2019' || 'win64_msvc2019_64' }}
+
+      - name: Build (${{ matrix.build-type }}, ${{ matrix.arch }})
+        run: |
+          New-Item build -ItemType Directory
+          Set-Location build
+          qmake -config ${{ matrix.build-type }} ..\src\Notes.pro
+          nmake
+
+      - name: Deploy (${{ matrix.build-type }}, ${{ matrix.arch }})
+        run: |
+          windeployqt bin
+
+      - name: Include required runtime libraries (release-only, ${{ matrix.arch }})
+        if: matrix.build-type == 'release'
+        run: |
+          Set-Location bin
+          Copy-Item -Path $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\* -Include msvcp140.dll,msvcp140_1.dll,vcruntime140.dll,vcruntime140_1.dll
+          Remove-Item vc_redist.*.exe
+
+      - name: Upload artifacts (${{ matrix.build-type }}, ${{ matrix.arch }})
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.vars.outputs.artifact_name }}-${{ runner.os }}-Qt${{ matrix.qt-version }}-${{ matrix.build-type }}
+          path: bin
+
+  unified-installer:
+    name: Unified installer
+    needs: build-aqtinstall
+    runs-on: windows-2019
+    steps:
+      - name: Checkout code to grab the ISS script
+        uses: actions/checkout@v3
+
+      - name: Download build artifacts from previous job
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: Create installer
+        run: |
+          Set-Location artifacts
+          Copy-Item ..\packaging\windows\Notes_Inno_Script_Github.iss
+          Move-Item *x64*release* Notes64
+          Move-Item *x86*release* Notes32
+          $env:BUILD_VERSION = '${{ needs.build-aqtinstall.outputs.version }}'
+          iscc /Oinstaller Notes_Inno_Script_Github.iss
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: NotesSetup_${{ needs.build-aqtinstall.outputs.version }}-${{ runner.os }}-release
+          path: artifacts\installer
