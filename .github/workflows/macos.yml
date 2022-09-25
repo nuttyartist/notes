@@ -1,30 +1,109 @@
-name: Default Qt on macos
-
-on: [push, pull_request]
-
+name: macOS
+on: [ push, pull_request ]
 jobs:
-  build:
+  # This job is mainly to make sure Notes will compile with Qt 5 from homebrew's repository.
+  # So it doesn't make much sense to have different build types other than 'debug' here.
+  # The release dmg is built using aqtinstall instead (the job below this one).
+  build-homebrew:
+    name: Build (${{ matrix.build-type }}, homebrew, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        build-type: [ debug ]
+        os: [ macos-11 ]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
 
+      - name: Cache Qt 5 (homebrew)
+        id: cache-qt5
+        uses: actions/cache@v3
+        with:
+          path: /usr/local/Cellar/qt@5
+          key: qt5-homebrew
+
+      - name: Install Qt 5 (homebrew)
+        if: steps.cache-qt5.outputs.cache-hit != 'true'
+        run: |
+          brew update
+          brew install qt@5
+
+      - name: Configure Qt 5 (homebrew)
+        run: |
+          brew link qt@5
+          cat << EOF
+          LDFLAGS="-L/usr/local/opt/qt@5/lib"
+          export CPPFLAGS="-I/usr/local/opt/qt@5/include"
+          export PATH="/usr/local/opt/qt@5/bin:$PATH"
+          EOF >> ~/.bashrc
+
+      - name: Build (${{ matrix.build-type }})
+        run: |
+          mkdir build
+          cd build
+          qmake -config ${{ matrix.build-type }} ../src/Notes.pro
+          make -j$(sysctl -n hw.logicalcpu)
+
+  # Build the dmg disk image using the official Qt 5 release downloaded by aqtinstall.
+  # This is also done for Linux and Windows, just to make sure we use the exact same Qt version across all three OSes.
+  #
+  # NOTE: This job uses a fixed Qt version (set in the 'qt-version' key below)!
+  # So, remember to keep it updated whenever a new Qt version is available on aqtinstall.
+  dmg-aqtinstall:
+    name: dmg (${{ matrix.build-type }}, Qt ${{ matrix.qt-version }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest]
-    
+        # If you want build artifacts with debug symbols, just add 'debug' to the 'build-type' key below.
+        build-type: [ release ]
+        os: [ macos-11 ]
+        qt-version: [ 5.15.2 ]
     steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: recursive
-    - name: install dependencies
-      run: |
-        brew install qt5
-        echo 'export PATH="/usr/local/opt/qt/bin:$PATH"' >> ~/.bash_profile
-        export LDFLAGS="-L/usr/local/opt/qt/lib"
-        export CPPFLAGS="-I/usr/local/opt/qt/include"
-        source ~/.bash_profile
-        ls /usr/local/opt/qt/bin
-    - name: build
-      run: |
-        mkdir build
-        cd build
-         /usr/local/opt/qt/bin/qmake ../src
-        make -j8
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Update version
+        run: |
+          sed -i.bak "/^VERSION *=/ s/$/-g${GITHUB_SHA::7}/" src/Notes.pro
+
+      - name: Setup variables
+        id: vars
+        run: |
+          version=$(grep -m 1 VERSION src/Notes.pro | sed 's/^VERSION *= *//')
+          artifact_name="Notes_${version}-x86_64"
+          file_name="$artifact_name${{ matrix.build-type == 'debug' && '-debug.' || '.' }}dmg"
+          echo "::set-output name=version::$version"
+          echo "::set-output name=artifact_name::$artifact_name"
+          echo "::set-output name=file_name::$file_name"
+
+      - name: Install Qt ${{ matrix.qt-version }} (aqtinstall)
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: ${{ matrix.qt-version }}
+          cache: true
+
+      - name: Build (${{ matrix.build-type }})
+        run: |
+          mkdir build
+          cd build
+          qmake -config ${{ matrix.build-type }} ../src/Notes.pro
+          make -j$(sysctl -n hw.logicalcpu)
+
+      - name: Build dmg (${{ matrix.build-type }})
+        run: |
+          cd bin
+          plutil -insert NSRequiresAquaSystemAppearance -bool true Notes.app/Contents/Info.plist
+          plutil -insert CFBundleName -string Notes Notes.app/Contents/Info.plist
+          macdeployqt Notes.app -dmg
+          mv Notes.dmg '${{ steps.vars.outputs.file_name }}'
+
+      - name: Upload dmg artifact (${{ matrix.build-type }})
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.vars.outputs.artifact_name }}-${{ runner.os }}-Qt${{ matrix.qt-version }}-${{ matrix.build-type }}
+          path: bin/${{ steps.vars.outputs.file_name }}
