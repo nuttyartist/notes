@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
     QApplication app (argc, argv);
     // Set application information
     app.setApplicationName ("Notes");
-    app.setApplicationVersion ("2.0.0");
+    app.setApplicationVersion (APP_VERSION);
 
     // Load fonts from resources
     // Roboto
