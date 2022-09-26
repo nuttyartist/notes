@@ -463,8 +463,8 @@ void MainWindow::setupKeyboardShortcuts()
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_B), this, SLOT(makeBold()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_I), this, SLOT(makeItalic()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), this, SLOT(makeStrikethrough()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Minus), this, SLOT(decreaseHeading()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Equal), this, SLOT(increaseHeading()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Minus), this, SLOT(decreaseHeading()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Equal), this, SLOT(increaseHeading()));
     connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_0), this),  &QShortcut::activated, this, [=](){setHeading(0);});
     connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_1), this),  &QShortcut::activated, this, [=](){setHeading(1);});
     connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_2), this),  &QShortcut::activated, this, [=](){setHeading(2);});
