@@ -1426,6 +1426,10 @@ void MainWindow::onDotsButtonClicked()
     viewMenu->setToolTipsVisible(true);
     mainMenu.setToolTipsVisible(true);
 
+    QShortcut *closeMenu = new QShortcut(Qt::Key_F10, &mainMenu);
+    closeMenu->setContext(Qt::ApplicationShortcut);
+    connect(closeMenu, &QShortcut::activated, &mainMenu, &QMenu::close);
+
 #if defined(Q_OS_WINDOWS) || defined(Q_OS_WIN)
     mainMenu.setStyleSheet(QStringLiteral(
                                    "QMenu { "
