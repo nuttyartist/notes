@@ -140,7 +140,12 @@ NoteListDelegateEditor::NoteListDelegateEditor(const NoteListDelegate *delegate,
 
 NoteListDelegateEditor::~NoteListDelegateEditor()
 {
-    dynamic_cast<NoteListView*>(m_view)->unsetEditorWidget(m_id, nullptr);
+    NoteListView *nl_view = dynamic_cast<NoteListView*>(m_view);
+
+    if ( ! nl_view)
+        return;
+
+    nl_view->unsetEditorWidget(m_id, nullptr);
 }
 
 void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
