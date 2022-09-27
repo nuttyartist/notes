@@ -216,7 +216,7 @@ void MainWindow::saveLastSelectedNote(const QSet<int>& notesId)
  */
 void MainWindow::paintEvent(QPaintEvent* event)
 {
-#if !defined(__APPLE__) && !defined(Q_OS_LINUX)
+#if !defined(__APPLE__) && !defined(Q_OS_LINUX) && !defined(Q_OS_FREEBSD)
     if (!m_useNativeWindowFrame) {
         QPainter painter(this);
         painter.save();
@@ -280,7 +280,7 @@ MainWindow::~MainWindow()
  */
 void MainWindow::setupMainWindow()
 {
-#if defined(Q_OS_LINUX)
+#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
     this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     //    this->setAttribute(Qt::WA_TranslucentBackground);
 #elif _WIN32
@@ -320,7 +320,7 @@ void MainWindow::setupMainWindow()
     m_editorDateLabel = ui->editorDateLabel;
     m_splitter = ui->splitter;
 
-#if defined(Q_OS_LINUX)
+#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
     //    QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
     //    setMargins(margins);
     setMargins(QMargins(0,0,0,0));
@@ -465,7 +465,7 @@ void MainWindow::setupKeyboardShortcuts()
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), this, SLOT(makeStrikethrough()));
 
     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
-#if defined(Q_OS_LINUX)
+#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
     shortcut->setShortcut(QKeySequence(QStringLiteral("META+SHIFT+N")));
 #else
     shortcut->setShortcut(QKeySequence(QStringLiteral("META+N")));
@@ -883,7 +883,7 @@ void MainWindow::setupTextEditStyleSheet(int paddingLeft, int paddingRight)
 {
     m_textEdit->setDocumentPadding(paddingLeft, 0, paddingRight, 2);
 
-#if defined(Q_OS_LINUX)
+#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
     QString ss = QString("QTextEdit {background-color: %1;} "
                          "QTextEdit{selection-background-color: rgb(63, 99, 139);}"
                          "QTextEdit{color: %2}"
@@ -1166,7 +1166,7 @@ void MainWindow::restoreStates()
     if(m_settingsDatabase->value(QStringLiteral("editorSettingsWindowGeometry"), "NULL") != "NULL")
         m_styleEditorWindow.restoreGeometry(m_settingsDatabase->value(QStringLiteral("editorSettingsWindowGeometry")).toByteArray());
 
-#if defined(Q_OS_LINUX)
+#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
     /// Set margin to zero if the window is maximized
     //    if (isMaximized()) {
     //        setMargins(QMargins(0,0,0,0));
@@ -1557,7 +1557,7 @@ void MainWindow::onDotsButtonClicked()
     connect (restoreNotesFileAction, &QAction::triggered,
              this, &MainWindow::restoreNotesFile);
 
-#ifndef Q_OS_LINUX
+#if !defined (Q_OS_LINUX) && !defined(Q_OS_FREEBSD)
     // Stay on top action
     QAction* stayOnTopAction = viewMenu->addAction(tr("Always stay on top"));
     stayOnTopAction->setToolTip(tr("Always keep the notes application on top of all windows"));
@@ -1900,7 +1900,7 @@ void MainWindow::selectNoteUp()
  */
 void MainWindow::fullscreenWindow()
 {
-#if defined(Q_OS_LINUX)
+#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
     if(isFullScreen()){
         if(!isMaximized()) {
             m_noteListWidth = m_splitter->sizes().at(0) != 0 ? m_splitter->sizes().at(0) : m_noteListWidth;
@@ -1989,7 +1989,7 @@ void MainWindow::applyFormat(const QString &formatChars)
  */
 void MainWindow::maximizeWindow()
 {
-#if defined(Q_OS_LINUX)
+#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
     if(isMaximized()){
         if(!isFullScreen()){
             m_noteListWidth = m_splitter->sizes().at(0) != 0 ? m_splitter->sizes().at(0) : m_noteListWidth;
@@ -2025,7 +2025,7 @@ void MainWindow::maximizeWindow()
  */
 void MainWindow::minimizeWindow()
 {
-#if defined(Q_OS_LINUX)
+#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
     //    QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
     //    setMargins(margins);
 #endif
@@ -3428,7 +3428,7 @@ void MainWindow::setUseNativeWindowFrame(bool useNativeWindowFrame)
 
     auto flags = windowFlags();
 
-#if defined(Q_OS_LINUX)
+#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
     if (useNativeWindowFrame)
         flags &= ~Qt::FramelessWindowHint;
     else

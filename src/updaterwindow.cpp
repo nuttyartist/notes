@@ -20,7 +20,7 @@
 
 #include <QSimpleUpdater.h>
 
-#ifdef Q_OS_LINUX
+#if defined (Q_OS_LINUX) || defined (Q_OS_FREEBSD)
   #define UseXdgOpen
 #else
   #ifdef UseXdgOpen
@@ -98,7 +98,7 @@ UpdaterWindow::UpdaterWindow(QWidget *parent) :
     /* Remove window border */
 #if defined Q_OS_WIN
     setWindowFlags(Qt::CustomizeWindowHint);
-#elif defined Q_OS_MAC || defined Q_OS_LINUX
+#elif defined Q_OS_MAC || defined Q_OS_LINUX || defined Q_OS_FREEBSD
     setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
 #else
 #error "We don't support your OS yet..."
