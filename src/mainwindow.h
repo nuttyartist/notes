@@ -282,6 +282,9 @@ private slots:
     void restoreNotesFile();
     void stayOnTop(bool checked);
     void askBeforeSettingNativeWindowFrame();
+    void increaseHeading();
+    void decreaseHeading();
+    void setHeading(int level);
     void setUseNativeWindowFrame(bool useNativeWindowFrame);
     void toggleStayOnTop();
     void onSearchEditReturnPressed();

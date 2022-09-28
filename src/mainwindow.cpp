@@ -463,6 +463,15 @@ void MainWindow::setupKeyboardShortcuts()
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_B), this, SLOT(makeBold()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_I), this, SLOT(makeItalic()));
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), this, SLOT(makeStrikethrough()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Minus), this, SLOT(decreaseHeading()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Equal), this, SLOT(increaseHeading()));
+    connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_0), this),  &QShortcut::activated, this, [=](){setHeading(0);});
+    connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_1), this),  &QShortcut::activated, this, [=](){setHeading(1);});
+    connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_2), this),  &QShortcut::activated, this, [=](){setHeading(2);});
+    connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_3), this),  &QShortcut::activated, this, [=](){setHeading(3);});
+    connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_4), this),  &QShortcut::activated, this, [=](){setHeading(4);});
+    connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_5), this),  &QShortcut::activated, this, [=](){setHeading(5);});
+    connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_6), this),  &QShortcut::activated, this, [=](){setHeading(6);});
 
     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
 #if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
@@ -3381,6 +3390,59 @@ void MainWindow::askBeforeSettingNativeWindowFrame()
 #endif
 
     setUseNativeWindowFrame(!m_useNativeWindowFrame);
+}
+
+/*!
+ * \brief MainWindow::increaseHeading
+ * Increase markdown heading level
+ */
+void MainWindow::increaseHeading()
+{
+    QTextCursor cursor = m_textEdit->textCursor();
+    cursor.select(QTextCursor::BlockUnderCursor);
+    QString selected_text = cursor.selectedText().trimmed();
+    int count = QRegularExpression("^[#]*").match(selected_text).capturedLength();
+    if (count < 6){
+        setHeading(++count);
+    }
+}
+
+/*!
+ * \brief MainWindow::decreaseHeading
+ * Decrease markdown heading level
+ */
+void MainWindow::decreaseHeading()
+{
+    QTextCursor cursor = m_textEdit->textCursor();
+    cursor.select(QTextCursor::BlockUnderCursor);
+    QString selected_text = cursor.selectedText().trimmed();
+    int count = QRegularExpression("^[#]*").match(selected_text).capturedLength();
+    if (count > 0){
+        setHeading(--count);
+    }
+}
+
+/*!
+ * \brief MainWindow::setHeading
+ * Set markdown heading level
+ * \param level
+ */
+void MainWindow::setHeading(int level)
+{
+    QTextCursor cursor = m_textEdit->textCursor();
+    cursor.select(QTextCursor::BlockUnderCursor);
+    QString new_text = "\n";
+    if(cursor.hasSelection()){
+        QString selected_text = cursor.selectedText();
+        if(selected_text.front().unicode() != 8233){ // if it doesn't start with a paragraph delimiter (first line)
+            new_text.clear();
+        }
+        selected_text = selected_text.trimmed().remove(QRegularExpression("^#*\\s?"));
+        new_text += QString("#").repeated(level) + ((level == 0) ? "" : " ") + selected_text;
+    }else{
+        new_text = QString("#").repeated(level) + " ";
+    }
+    cursor.insertText(new_text);
 }
 
 /*!
