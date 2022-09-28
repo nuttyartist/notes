@@ -1519,7 +1519,7 @@ void MainWindow::onDotsButtonClicked()
                                          "Are you sure you want to change the database path?"
                                          );
         if (btn == QMessageBox::Yes) {
-            auto newDbPath = QFileDialog::getSaveFileName(this, "&New Database path", "notes.db");
+            auto newDbPath = QFileDialog::getSaveFileName(this, "New Database path", "notes.db");
             if (!newDbPath.isEmpty()) {
                 m_settingsDatabase->setValue(
                             QStringLiteral("noteDBFilePath"),
@@ -1574,7 +1574,7 @@ void MainWindow::onDotsButtonClicked()
 #ifndef __APPLE__
     // Use native frame action
     QAction* useNativeFrameAction = viewMenu->addAction(tr("&Use native window frame"));
-    useNativeFrameAction->setToolTip(tr("Use the &window frame provided by the window manager"));
+    useNativeFrameAction->setToolTip(tr("Use the window frame provided by the window manager"));
     useNativeFrameAction->setCheckable(true);
     useNativeFrameAction->setChecked(m_useNativeWindowFrame);
     connect(useNativeFrameAction, &QAction::triggered, this, &MainWindow::askBeforeSettingNativeWindowFrame);
