@@ -1454,8 +1454,8 @@ void MainWindow::onDotsButtonClicked()
 
     // note list visiblity action
     bool isNoteListCollapsed = (m_splitter->sizes().at(1) == 0);
-    QString actionLabel = isNoteListCollapsed? tr("&Show notes list")
-                                             : tr("&Hide notes list");
+    QString actionLabel = isNoteListCollapsed? tr("Show &notes list")
+                                             : tr("Hide &notes list");
 
     QAction* noteListVisbilityAction = viewMenu->addAction(actionLabel);
     noteListVisbilityAction->setShortcut(Qt::CTRL + Qt::Key_J);
@@ -1470,7 +1470,7 @@ void MainWindow::onDotsButtonClicked()
 
     // folder tree view visiblity action
     bool isFolderTreeCollapsed = (m_splitter->sizes().at(0) == 0);
-    QString factionLabel = isFolderTreeCollapsed? tr("&Show folders tree")
+    QString factionLabel = isFolderTreeCollapsed? tr("Show &folders tree")
                                                 : tr("Hide &folders tree");
 
     QAction* folderTreeVisbilityAction = viewMenu->addAction(factionLabel);
@@ -1485,8 +1485,8 @@ void MainWindow::onDotsButtonClicked()
     }
 
     // Enable or Disable markdown
-    QString markDownLabel = m_noteEditorLogic->markdownEnabled() ? tr("&Disable Markdown")
-                                                                 : tr("&Enable Markdown");
+    QString markDownLabel = m_noteEditorLogic->markdownEnabled() ? tr("Disable &Markdown")
+                                                                 : tr("Enable &Markdown");
 
     QAction* noteMarkdownVisibiltyAction = viewMenu->addAction(markDownLabel);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
