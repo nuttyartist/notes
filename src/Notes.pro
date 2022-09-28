@@ -24,6 +24,8 @@ include ($$PWD/../3rdParty/QSimpleUpdater/QSimpleUpdater.pri)
 include ($$PWD/../3rdParty/qmarkdowntextedit/qmarkdowntextedit.pri)
 include ($$PWD/../3rdParty/qautostart/src/qautostart.pri)
 
+DEFINES += APP_VERSION=\\\"$$VERSION\\\"
+
 SOURCES += \
     allnotebuttontreedelegateeditor.cpp \
     customapplicationstyle.cpp \
