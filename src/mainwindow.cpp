@@ -401,6 +401,7 @@ void MainWindow::setupMainWindow()
     ui->searchEdit->setFocus();
     QTimer::singleShot(16, ui->searchEdit, &QTextEdit::clearFocus);
 #endif
+    setWindowIcon(QIcon(QStringLiteral(":images/notes_icon.ico")));
 }
 
 /*!
