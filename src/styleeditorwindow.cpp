@@ -97,7 +97,7 @@ StyleEditorWindow::StyleEditorWindow(QWidget *parent) :
          childButton->installEventFilter(this);
     }
 
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S), this, SLOT(toggleWindowVisibility()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_S), this, SLOT(toggleWindowVisibility()));
 
     m_ui->decreaseButton->setIcon(QIcon(QStringLiteral(":images/minus.png")));
     m_ui->increaseButton->setIcon(QIcon(QStringLiteral(":images/plus.png")));

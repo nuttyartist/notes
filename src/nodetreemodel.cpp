@@ -105,7 +105,7 @@ void NodeTreeItem::setParentItem(NodeTreeItem *parentItem)
 
 void NodeTreeItem::moveChild(int from, int to)
 {
-    vector_move(m_childItems, from, to);
+    m_childItems.move(from, to);
 }
 
 void NodeTreeItem::recursiveSort()
@@ -122,7 +122,7 @@ void NodeTreeItem::recursiveSort()
         }
     } else if (type == NodeItem::Type::RootItem) {
         QVector<NodeTreeItem*> allNoteButton, trashFolder, folderSep, folderItems, tagSep, tagItems;
-        for (const auto child : QT_AS_CONST(m_childItems)) {
+        for (const auto child : qAsConst(m_childItems)) {
             auto childType = static_cast<NodeItem::Type>(
                         child->data(NodeItem::Roles::ItemType).toInt());
             if (childType == NodeItem::Type::AllNoteButton) {
@@ -333,7 +333,7 @@ QModelIndex NodeTreeModel::folderIndexFromIdPath(const NodePath &idPath)
     }
     auto ps = idPath.seperate();
     auto item = rootItem;
-    for (const auto& ite : QT_AS_CONST(ps)) {
+    for (const auto& ite : qAsConst(ps)) {
         bool ok = false;
         auto id = ite.toInt(&ok);
         if (!ok) {
@@ -782,7 +782,7 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime,
                 .split(QStringLiteral(PATH_SEPERATOR));
         beginResetModel();
         QSet<int> movedIds;
-        for (const auto& id_s : QT_AS_CONST(idl)) {
+        for (const auto& id_s : qAsConst(idl)) {
             auto id = id_s.toInt();
             for (int i = 0; i < rootItem->childCount(); ++i) {
                 auto child = rootItem->child(i);

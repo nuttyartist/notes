@@ -9,14 +9,6 @@
 #define TAG_MIME "application/x-tagnode"
 #define NOTE_MIME "application/x-notenode"
 
-template<typename T>
-void vector_move(QVector<T>& vec, int from, int to)
-{
-    vec.move(from, to);
-}
-
-#define QT_AS_CONST(x) qAsConst(x)
-
 class NodePath
 {
 public:

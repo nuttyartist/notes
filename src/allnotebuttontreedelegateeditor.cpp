@@ -19,9 +19,9 @@ AllNoteButtonTreeDelegateEditor::AllNoteButtonTreeDelegateEditor(QTreeView *view
     m_displayFont(QStringLiteral("Roboto")),
     #endif
     #ifdef __APPLE__
-    m_titleFont(m_displayFont, 13, 65),
+	m_titleFont(m_displayFont, 13, QFont::DemiBold),
     #else
-    m_titleFont(m_displayFont, 10, 60),
+	m_titleFont(m_displayFont, 10, QFont::DemiBold),
     #endif
     m_titleColor(26, 26, 26),
     m_titleSelectedColor(255, 255, 255),
@@ -36,7 +36,7 @@ AllNoteButtonTreeDelegateEditor::AllNoteButtonTreeDelegateEditor(QTreeView *view
 void AllNoteButtonTreeDelegateEditor::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
-    auto iconRect = QRect(rect().x() + 5, rect().y() + (rect().height() - 20) / 2, 18, 20);
+	auto iconRect = QRect(rect().x() + 5, rect().y() + (rect().height() - 20) / 2, 18, 20);
     auto iconPath = m_index.data(NodeItem::Roles::Icon).toString();
     auto displayName = m_index.data(NodeItem::Roles::DisplayText).toString();
     QRect nameRect(rect());

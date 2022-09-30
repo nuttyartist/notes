@@ -98,7 +98,7 @@ void NoteListModel::setListNote(const QVector<NodeData> notes, const ListViewInf
     m_noteList.clear();
     m_listViewInfo = inf;
     if ((!m_listViewInfo.isInTag) && (m_listViewInfo.parentFolderId != SpecialNodeID::TrashFolder)) {
-        for (const auto& note : QT_AS_CONST(notes)) {
+        for (const auto& note : qAsConst(notes)) {
             if (note.isPinnedNote()) {
                 m_pinnedList.append(note);
             } else {
@@ -129,7 +129,7 @@ bool NoteListModel::moveRow(const QModelIndex &sourceParent, int sourceRow, cons
     }
     if (sourceRow < m_pinnedList.size() && destinationChild < m_pinnedList.size()) {
         if (beginMoveRows(sourceParent,sourceRow,sourceRow,destinationParent,destinationChild)) {
-            vector_move(m_pinnedList, sourceRow, destinationChild);
+            m_pinnedList.move(sourceRow, destinationChild);
             endMoveRows();
             emit rowsAboutToBeMovedC({createIndex(sourceRow, 0)});
             emit rowsMovedC({createIndex(destinationChild, 0)});
@@ -141,7 +141,7 @@ bool NoteListModel::moveRow(const QModelIndex &sourceParent, int sourceRow, cons
         sourceRow = sourceRow - m_pinnedList.size();
         destinationChild = destinationChild - m_pinnedList.size();
         if (beginMoveRows(sourceParent,sourceRow,sourceRow,destinationParent,destinationChild)) {
-            vector_move(m_noteList, sourceRow, destinationChild);
+            m_noteList.move(sourceRow, destinationChild);
             endMoveRows();
             emit rowsAboutToBeMovedC({createIndex(sourceRow, 0)});
             emit rowsMovedC({createIndex(destinationChild + 1, 0)});
@@ -421,14 +421,14 @@ bool NoteListModel::dropMimeData(const QMimeData *mime,
             .split(QStringLiteral(PATH_SEPERATOR));
     QSet<int> movedIds;
     QModelIndexList idxe;
-    for (const auto& id_s : QT_AS_CONST(idl)) {
+    for (const auto& id_s : qAsConst(idl)) {
         auto nodeId = id_s.toInt();
         idxe.append(getNoteIndex(nodeId));
     }
     emit rowsAboutToBeMovedC(idxe);
     beginResetModel();
     if (toPinned) {
-        for (const auto& index : QT_AS_CONST(idxe)) {
+        for (const auto& index : qAsConst(idxe)) {
             auto& note = getRef(index.row());
             if (!note.isPinnedNote()) {
                 note.setIsPinnedNote(true);
@@ -436,18 +436,18 @@ bool NoteListModel::dropMimeData(const QMimeData *mime,
                 m_pinnedList.prepend(m_noteList.takeAt(index.row() - m_pinnedList.size()));
             }
         }
-        for (const auto& id_s : QT_AS_CONST(idl)) {
+        for (const auto& id_s : qAsConst(idl)) {
             auto nodeId = id_s.toInt();
             for (int i = 0; i < m_pinnedList.size(); ++i) {
                 if (m_pinnedList[i].id() == nodeId) {
-                    vector_move(m_pinnedList, i, row);
+                    m_pinnedList.move(i, row);
                     break;
                 }
             }
             movedIds.insert(nodeId);
         }
     } else {
-        for (const auto& index : QT_AS_CONST(idxe)) {
+        for (const auto& index : qAsConst(idxe)) {
             auto& note = getRef(index.row());
             movedIds.insert(note.id());
             if (!note.isPinnedNote()) {
@@ -540,7 +540,7 @@ void NoteListModel::setNotesIsPinned(const QModelIndexList &indexes, bool isPinn
         emit rowsAboutToBeMovedC(needMovingIndexes);
         int moved = 0;
         beginResetModel();
-        for (const auto& id : QT_AS_CONST(needMovingIds)) {
+        for (const auto& id : qAsConst(needMovingIds)) {
             auto index = getNoteIndex(id);
             if (!index.isValid()) {
                 continue;
@@ -568,7 +568,7 @@ void NoteListModel::setNotesIsPinned(const QModelIndexList &indexes, bool isPinn
     } else {
         emit rowsAboutToBeMovedC(needMovingIndexes);
         beginResetModel();
-        for (const auto& id : QT_AS_CONST(needMovingIds)) {
+        for (const auto& id : qAsConst(needMovingIds)) {
             auto index = getNoteIndex(id);
             if (!index.isValid()) {
                 continue;

@@ -23,11 +23,11 @@ NodeTreeDelegate::NodeTreeDelegate(QTreeView *view, QObject *parent):
     m_displayFont(QStringLiteral("Roboto")),
     #endif
     #ifdef __APPLE__
-    m_titleFont(m_displayFont, 13, 65),
+	m_titleFont(m_displayFont, 13, QFont::DemiBold),
     m_titleSelectedFont(m_displayFont, 13),
     m_dateFont(m_displayFont, 13),
     #else
-    m_titleFont(m_displayFont, 10, 60),
+	m_titleFont(m_displayFont, 10, QFont::DemiBold),
     m_titleSelectedFont(m_displayFont, 10),
     m_dateFont(m_displayFont, 10),
     #endif
