@@ -3440,7 +3440,7 @@ void MainWindow::setHeading(int level)
     QString new_text = "\n";
     if(cursor.hasSelection()){
         QString selected_text = cursor.selectedText();
-        if(selected_text.front().unicode() != 8233){ // if it doesn't start with a paragraph delimiter (first line)
+        if(selected_text.at(0).unicode() != 8233){ // if it doesn't start with a paragraph delimiter (first line)
             new_text.clear();
         }
         selected_text = selected_text.trimmed().remove(QRegularExpression("^#*\\s?"));
