@@ -474,6 +474,7 @@ void MainWindow::setupKeyboardShortcuts()
     connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_4), this),  &QShortcut::activated, this, [=](){setHeading(4);});
     connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_5), this),  &QShortcut::activated, this, [=](){setHeading(5);});
     connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_6), this),  &QShortcut::activated, this, [=](){setHeading(6);});
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space), this, SLOT(resetBlockFormat()));
 
     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
 #if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
@@ -1311,6 +1312,25 @@ void MainWindow::setButtonsAndFieldsEnabled(bool doEnable)
     m_textEdit->setEnabled(doEnable);
     m_dotsButton->setEnabled(doEnable);
     m_styleEditorButton->setEnabled(doEnable);
+}
+
+/*!
+ * \brief MainWindow::resetBlockFormat
+ * Removes applied formmatting: bold, italic, strikethrough, heading of the current line
+ * or selected text (selected text has to include the formatting chars)
+ */
+void MainWindow::resetBlockFormat()
+{
+    QTextCursor cursor = m_textEdit->textCursor();
+    if (!cursor.hasSelection()){
+        cursor.select(QTextCursor::BlockUnderCursor);
+        if(!cursor.hasSelection()){
+            return;
+        }
+    }
+    QString selectedText = cursor.selectedText();
+    selectedText.remove(QRegularExpression("`|\\*|~|#"));
+    cursor.insertText(selectedText);
 }
 
 /*!
