@@ -11,7 +11,6 @@
 
 int main(int argc, char *argv[])
 {
-    QApplication::setDesktopSettingsAware(false);
     QApplication app (argc, argv);
     // Set application information
     app.setApplicationName ("Notes");
