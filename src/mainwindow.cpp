@@ -474,7 +474,7 @@ void MainWindow::setupKeyboardShortcuts()
     connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_4), this),  &QShortcut::activated, this, [=](){setHeading(4);});
     connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_5), this),  &QShortcut::activated, this, [=](){setHeading(5);});
     connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_6), this),  &QShortcut::activated, this, [=](){setHeading(6);});
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space), this, SLOT(resetBlockFormat()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Backslash), this, SLOT(resetBlockFormat()));
 
     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
 #if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
