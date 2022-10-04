@@ -258,6 +258,7 @@ private slots:
     void onGreenMaximizeButtonClicked();
     void onYellowMinimizeButtonClicked();
     void onRedCloseButtonClicked();
+    void resetBlockFormat();
     void createNewNote();
     void selectNoteDown();
     void selectNoteUp();
