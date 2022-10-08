@@ -91,11 +91,9 @@ public:
         BottomRight
         };
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
     Q_ENUM(ShadowType)
     Q_ENUM(ShadowSide)
     Q_ENUM(StretchSide)
-#endif
 
     explicit MainWindow(QWidget *parent = Q_NULLPTR);
     ~MainWindow() Q_DECL_OVERRIDE;

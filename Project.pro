@@ -22,9 +22,9 @@ defineTest(minQtVersion) {
     return(false)
 }
 
-!minQtVersion(5, 3, 0) {
+!minQtVersion(5, 9, 5) {
     message("Cannot build Notes with Qt version $${QT_VERSION}")
-    error("Use at least Qt 5.3.0.")
+    error("Use at least Qt 5.9.5.")
 }
 
 TEMPLATE = subdirs

@@ -289,12 +289,10 @@ void UpdaterWindow::startDownload(const QUrl& url)
     }
 
     /* Start download */
-    m_startTime = QDateTime::currentDateTime().toTime_t();
+    m_startTime = QDateTime::currentDateTime().toSecsSinceEpoch();
     QNetworkRequest netReq(url);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     netReq.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
-#endif
 
     m_reply = m_manager->get(netReq);
 
@@ -497,7 +495,7 @@ void UpdaterWindow::updateProgress(qint64 received, qint64 total)
  */
 void UpdaterWindow::calculateTimeRemaining(qint64 received, qint64 total)
 {
-    uint difference = QDateTime::currentDateTime().toTime_t() - m_startTime;
+    uint difference = QDateTime::currentDateTime().toSecsSinceEpoch() - m_startTime;
 
     if(difference > 0){
         QString timeString;
