@@ -692,6 +692,11 @@ void ListViewLogic::onListViewClicked()
                 selectNoteUp();
             }
         }
+    } else {
+        QModelIndex index = m_listView->currentIndex();
+        if (m_listModel->data(index, NoteListModel::NoteIsTemp).toBool()) {
+            emit closeNoteEditor();
+        }
     }
 }
 
