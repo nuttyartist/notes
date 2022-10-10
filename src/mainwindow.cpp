@@ -1768,9 +1768,9 @@ void MainWindow::setTheme(Theme theme)
         m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
         this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(247, 247, 247);}"));
-        ui->verticalSpacer_upSearchEdit->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(247, 247, 247);}"));
-        ui->verticalSpacer_upSearchEdit2->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(247, 247, 247);}"));
-        ui->verticalSpacer_upTreeView->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(247, 247, 247);}"));
+        ui->verticalSpacer_upSearchEdit->setStyleSheet(QStringLiteral("QWidget{ background-color: %1;}").arg(m_currentThemeBackgroundColor.name()));
+        ui->verticalSpacer_upSearchEdit2->setStyleSheet(QStringLiteral("QWidget{ background-color: %1;}").arg(m_currentThemeBackgroundColor.name()));
+        ui->verticalSpacer_upTreeView->setStyleSheet(QStringLiteral("QWidget{ background-color: %1;}").arg(m_currentThemeBackgroundColor.name()));
         setupTextEditStyleSheet(m_noteEditorLogic->currentMinimumEditorPadding(), m_noteEditorLogic->currentMinimumEditorPadding());
         m_listViewLogic->setTheme(Theme::Light);
         m_styleEditorWindow.setTheme(Theme::Light, m_currentThemeBackgroundColor, m_currentEditorTextColor);
@@ -1788,9 +1788,9 @@ void MainWindow::setTheme(Theme theme)
         m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
         this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(26, 26, 26); }"));
-        ui->verticalSpacer_upSearchEdit->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(26, 26, 26);}"));
-        ui->verticalSpacer_upSearchEdit2->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(26, 26, 26);}"));
-        ui->verticalSpacer_upTreeView->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(26, 26, 26);}"));
+        ui->verticalSpacer_upSearchEdit->setStyleSheet(QStringLiteral("QWidget{ background-color: %1;}").arg(m_currentThemeBackgroundColor.name()));
+        ui->verticalSpacer_upSearchEdit2->setStyleSheet(QStringLiteral("QWidget{ background-color: %1;}").arg(m_currentThemeBackgroundColor.name()));
+        ui->verticalSpacer_upTreeView->setStyleSheet(QStringLiteral("QWidget{ background-color: %1;}").arg(m_currentThemeBackgroundColor.name()));
         setupTextEditStyleSheet(m_noteEditorLogic->currentMinimumEditorPadding(), m_noteEditorLogic->currentMinimumEditorPadding());
         m_listViewLogic->setTheme(Theme::Dark);
         m_styleEditorWindow.setTheme(Theme::Dark, m_currentThemeBackgroundColor, m_currentEditorTextColor);
@@ -1808,9 +1808,9 @@ void MainWindow::setTheme(Theme theme)
         m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
         this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(251, 240, 217); }"));
-        ui->verticalSpacer_upSearchEdit->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(251, 240, 217);}"));
-        ui->verticalSpacer_upSearchEdit2->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(251, 240, 217);}"));
-        ui->verticalSpacer_upTreeView->setStyleSheet(QStringLiteral("QWidget{ background-color: rgb(251, 240, 217);}"));
+        ui->verticalSpacer_upSearchEdit->setStyleSheet(QStringLiteral("QWidget{ background-color: %1;}").arg(m_currentThemeBackgroundColor.name()));
+        ui->verticalSpacer_upSearchEdit2->setStyleSheet(QStringLiteral("QWidget{ background-color: %1;}").arg(m_currentThemeBackgroundColor.name()));
+        ui->verticalSpacer_upTreeView->setStyleSheet(QStringLiteral("QWidget{ background-color: %1;}").arg(m_currentThemeBackgroundColor.name()));
         setupTextEditStyleSheet(m_noteEditorLogic->currentMinimumEditorPadding(), m_noteEditorLogic->currentMinimumEditorPadding());
         m_listViewLogic->setTheme(Theme::Sepia);
         m_styleEditorWindow.setTheme(Theme::Sepia, m_currentThemeBackgroundColor, QColor(26, 26, 26));
