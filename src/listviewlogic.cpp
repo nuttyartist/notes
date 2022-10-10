@@ -119,6 +119,8 @@ ListViewLogic::ListViewLogic(NoteListView* noteView,
             m_listView, &NoteListView::onRowsInserted);
     connect(m_listModel, &NoteListModel::selectNotes,
             this, &ListViewLogic::selectNotes);
+    connect(m_listView, &NoteListView::noteListViewClicked,
+            this, &ListViewLogic::onListViewClicked);
 }
 
 void ListViewLogic::selectNote(const QModelIndex &noteIndex)
@@ -677,6 +679,20 @@ void ListViewLogic::onNoteDoubleClicked(const QModelIndex &index)
 void ListViewLogic::onSetPinnedNoteRequested(const QModelIndexList& indexes,  bool isPinned)
 {
     m_listModel->setNotesIsPinned(indexes, isPinned);
+}
+
+void ListViewLogic::onListViewClicked()
+{
+    if (m_listModel->rowCount() > 1) {
+        QModelIndex index = m_listView->currentIndex();
+        if (m_listModel->data(index, NoteListModel::NoteIsTemp).toBool()) {
+            if (index.row() < m_listModel->rowCount() - 1) {
+                selectNoteDown();
+            } else {
+                selectNoteUp();
+            }
+        }
+    }
 }
 
 void ListViewLogic::selectFirstNote()

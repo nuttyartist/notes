@@ -279,6 +279,7 @@ void NoteListView::mousePressEvent(QMouseEvent* e)
     m_isMousePressed = true;
     auto index = indexAt(e->pos());
     if (!index.isValid()) {
+        emit noteListViewClicked();
         return;
     }
     auto model = dynamic_cast<NoteListModel*>(this->model());

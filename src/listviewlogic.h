@@ -82,6 +82,7 @@ private slots:
     void onRowCountChanged();
     void onNoteDoubleClicked(const QModelIndex& index);
     void onSetPinnedNoteRequested(const QModelIndexList &indexes, bool isPinned);
+    void onListViewClicked();
 
 private:
     NoteListView* m_listView;
