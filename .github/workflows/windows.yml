@@ -61,7 +61,13 @@ jobs:
         if: matrix.build-type == 'release'
         run: |
           Set-Location bin
-          Copy-Item -Path $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\* -Include msvcp140.dll,msvcp140_1.dll,vcruntime140.dll,vcruntime140_1.dll
+          Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\msvcp140.dll
+          Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\msvcp140_1.dll
+          Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\vcruntime140.dll
+          if ('${{ matrix.arch }}' -ieq 'x64') {
+              # Only 64-bit builds also need 'vcruntime140_1.dll' (tested on Windows 7)
+              Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\vcruntime140_1.dll
+          }
           Remove-Item vc_redist.*.exe
 
       - name: Upload artifacts (${{ matrix.build-type }}, ${{ matrix.arch }})
