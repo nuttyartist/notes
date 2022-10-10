@@ -88,6 +88,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_chosenSerifFontIndex(0),
     m_chosenSansSerifFontIndex(0),
     m_chosenMonoFontIndex(0),
+    m_isNoteListCollapsed(false),
+    m_isTreeCollapsed(false),
     m_currentCharsLimitPerFont({ 64    // Mono    TODO: is this the proper way to initialize?
                                , 80    // Serif
                                , 80}), // SansSerif
@@ -249,13 +251,7 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 {
     if(m_splitter != Q_NULLPTR){
         //restore note list width
-        QList<int> sizes = m_splitter->sizes();
-        if(sizes.at(0) != 0){
-            sizes[0] = m_noteListWidth;
-            sizes[1] = m_noteListWidth;
-            sizes[2] = m_splitter->width() - m_noteListWidth;
-            m_splitter->setSizes(sizes);
-        }
+        updateFrame();
     }
 
     QMainWindow::resizeEvent(event);
@@ -1022,6 +1018,8 @@ void MainWindow::initializeSettingsDatabase()
         m_noteListWidth = ui->frameMiddle->minimumWidth() != 0 ? ui->frameMiddle->minimumWidth() : m_noteListWidth;
         sizes[0] = m_noteListWidth;
         sizes[1] = m_splitter->width() - m_noteListWidth;
+        m_isTreeCollapsed = sizes[0] == 0;
+        m_isNoteListCollapsed = sizes[1] == 0;
         m_splitter->setSizes(sizes);
         m_settingsDatabase->setValue(QStringLiteral("splitterSizes"), m_splitter->saveState());
     }
@@ -1192,7 +1190,7 @@ void MainWindow::restoreStates()
     m_splitter->resize(width() - m_layoutMargin, height() - m_layoutMargin);
     if(m_settingsDatabase->value(QStringLiteral("splitterSizes"), "NULL") != "NULL")
         m_splitter->restoreState(m_settingsDatabase->value(QStringLiteral("splitterSizes")).toByteArray());
-    m_noteListWidth = m_splitter->sizes().at(0);
+    m_noteListWidth = m_splitter->sizes().at(1);
     m_splitter->setCollapsible(0, false);
 
     QString selectedFontTypefaceFromDatabase = m_settingsDatabase->value(QStringLiteral("selectedFontTypeface"), "NULL").toString();
@@ -1462,14 +1460,14 @@ void MainWindow::onDotsButtonClicked()
 
 #if defined(Q_OS_WINDOWS) || defined(Q_OS_WIN)
     mainMenu.setStyleSheet(QStringLiteral(
-                                   "QMenu { "
-                                   "  background-color: rgb(255, 255, 255); "
-                                   "  border: 1px solid #C7C7C7; "
-                                   "  }"
-                                   "QMenu::item:selected { "
-                                   "  background: 1px solid #308CC6; "
-                                   "}")
-                               );
+                               "QMenu { "
+                               "  background-color: rgb(255, 255, 255); "
+                               "  border: 1px solid #C7C7C7; "
+                               "  }"
+                               "QMenu::item:selected { "
+                               "  background: 1px solid #308CC6; "
+                               "}")
+                           );
 #endif
 
 #ifdef __APPLE__
@@ -2187,8 +2185,7 @@ void MainWindow::exportNotesFile()
  */
 void MainWindow::toggleNoteList()
 {
-    bool isCollapsed = (m_splitter->sizes().at(1) == 0);
-    if(isCollapsed) {
+    if(m_isNoteListCollapsed) {
         expandNoteList();
     } else {
         collapseNoteList();
@@ -2197,38 +2194,19 @@ void MainWindow::toggleNoteList()
 
 void MainWindow::collapseNodeTree()
 {
-    m_splitter->setCollapsible(0, true);
-    QList<int> sizes = m_splitter->sizes();
-    m_noteListWidth = sizes.at(1);
-    m_nodeTreeWidth = sizes.at(0);
-    sizes[0] = 0;
-    sizes[2] = m_splitter->width() - sizes[0] - m_noteListWidth;
-    m_splitter->setSizes(sizes);
-    m_splitter->setCollapsible(0, false);
-
-    if(!m_isFrameRightTopWidgetsVisible)
-        setWindowButtonsVisible(false);
+    m_isTreeCollapsed = true;
+    updateFrame();
 }
 
 void MainWindow::expandNodeTree()
 {
-    int minWidth = ui->frameMiddle->minimumWidth();
-    int noteListWidth = m_noteListWidth < minWidth ? minWidth : m_noteListWidth;
-    int nodeTreeWidth = m_nodeTreeWidth < ui->frameLeft->minimumWidth() ?
-                ui->frameLeft->minimumWidth() : m_nodeTreeWidth;
-    QList<int> sizes = m_splitter->sizes();
-    sizes[0] = nodeTreeWidth;
-    sizes[1] = noteListWidth;
-    sizes[2] = m_splitter->width() - noteListWidth - nodeTreeWidth;
-    m_splitter->setSizes(sizes);
-
-    setWindowButtonsVisible(true);
+    m_isTreeCollapsed = false;
+    updateFrame();
 }
 
 void MainWindow::toggleNodeTree()
 {
-    bool isCollapsed = (m_splitter->sizes().at(0) == 0);
-    if(isCollapsed) {
+    if(m_isTreeCollapsed) {
         expandNodeTree();
     } else {
         collapseNodeTree();
@@ -2240,19 +2218,8 @@ void MainWindow::toggleNodeTree()
  */
 void MainWindow::collapseNoteList()
 {
-    m_splitter->setCollapsible(1, true);
-    m_splitter->setCollapsible(0, true);
-    QList<int> sizes = m_splitter->sizes();
-    m_noteListWidth = sizes.at(1);
-    m_nodeTreeWidth = sizes.at(0);
-    sizes[1] = 0;
-    sizes[2] = m_splitter->width() - sizes[1] - m_nodeTreeWidth;
-    m_splitter->setSizes(sizes);
-    m_splitter->setCollapsible(1, false);
-    m_splitter->setCollapsible(0, false);
-
-    if(!m_isFrameRightTopWidgetsVisible)
-        setWindowButtonsVisible(false);
+    m_isNoteListCollapsed = true;
+    updateFrame();
 }
 
 /*!
@@ -2260,21 +2227,8 @@ void MainWindow::collapseNoteList()
  */
 void MainWindow::expandNoteList()
 {
-    int minWidth = ui->frameMiddle->minimumWidth();
-    int noteListWidth = m_noteListWidth < minWidth ? minWidth : m_noteListWidth;
-    int nodeTreeWidth = m_nodeTreeWidth == 0 ? 0 : m_nodeTreeWidth < ui->frameLeft->minimumWidth() ?
-                                                   ui->frameLeft->minimumWidth() : m_nodeTreeWidth;
-    QList<int> sizes = m_splitter->sizes();
-    sizes[0] = nodeTreeWidth;
-    sizes[1] = noteListWidth;
-    sizes[2] = m_splitter->width() - noteListWidth - nodeTreeWidth;
-    m_splitter->setCollapsible(1, true);
-    m_splitter->setCollapsible(0, true);
-    m_splitter->setSizes(sizes);
-    m_splitter->setCollapsible(1, false);
-    m_splitter->setCollapsible(0, false);
-
-    setWindowButtonsVisible(true);
+    m_isNoteListCollapsed = false;
+    updateFrame();
 }
 
 
@@ -2766,6 +2720,29 @@ void MainWindow::selectAllNotesInList()
     m_listViewLogic->selectAllNotes();
 }
 
+void MainWindow::updateFrame()
+{
+    int minWidth = ui->frameMiddle->minimumWidth();
+    int noteListWidth = m_isNoteListCollapsed ? 0 : m_noteListWidth < minWidth ? minWidth : m_noteListWidth;
+    minWidth = ui->frameLeft->minimumWidth();
+    int nodeTreeWidth = m_isTreeCollapsed ? 0 : m_nodeTreeWidth < minWidth ? minWidth : m_nodeTreeWidth;
+    QList<int> sizes = m_splitter->sizes();
+    sizes[0] = nodeTreeWidth;
+    sizes[1] = noteListWidth;
+    sizes[2] = m_splitter->width() - noteListWidth - nodeTreeWidth;
+    m_splitter->setCollapsible(1, true);
+    m_splitter->setCollapsible(0, true);
+    m_splitter->setSizes(sizes);
+    m_splitter->setCollapsible(1, false);
+    m_splitter->setCollapsible(0, false);
+
+    if(m_isNoteListCollapsed && m_isTreeCollapsed) {
+        setWindowButtonsVisible(false);
+    } else {
+        setWindowButtonsVisible(true);
+    }
+}
+
 /*!
  * \brief MainWindow::checkMigration
  */
@@ -3030,9 +3007,9 @@ void MainWindow::setVisibilityOfFrameRightNonEditor(bool isVisible)
 
     // If the notes list is collapsed, hide the window buttons
     if(m_splitter) {
-        QList<int> sizes = m_splitter->sizes();
-        if(sizes.at(0) == 0 && sizes.at(1) == 0)
+        if(m_isNoteListCollapsed && m_isTreeCollapsed) {
             setWindowButtonsVisible(isVisible);
+        }
     }
 }
 
@@ -3485,7 +3462,7 @@ void MainWindow::adjustUpperWidgets(bool shouldPushUp)
     ui->verticalSpacer_upSearchEdit->setMinimumSize(0,
                                                     shouldPushUp ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25);
     ui->verticalSpacer_upTreeView->setMinimumSize(0,
-                                                    shouldPushUp ? 9 : 25);
+                                                  shouldPushUp ? 9 : 25);
 
     ui->verticalSpacer_upEditorDateLabel->changeSize(0,
                                                      shouldPushUp ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25,

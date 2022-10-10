@@ -182,6 +182,8 @@ private:
     int m_chosenMonoFontIndex;
     int m_editorMediumFontSize;
     int m_currentFontPointSize;
+    bool m_isNoteListCollapsed;
+    bool m_isTreeCollapsed;
     struct m_charsLimitPerFont {
         int mono;
         int serif;
@@ -299,6 +301,7 @@ private slots:
     void showErrorMessage(const QString& title, const QString& content);
     void setNoteListLoading();
     void selectAllNotesInList();
+    void updateFrame();
 
 signals:
     void requestNodesTree();
