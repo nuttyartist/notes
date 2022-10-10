@@ -183,7 +183,7 @@ private:
     int m_editorMediumFontSize;
     int m_currentFontPointSize;
     bool m_isNoteListCollapsed;
-    bool m_isNoteTreeCollapsed;
+    bool m_isTreeCollapsed;
     struct m_charsLimitPerFont {
         int mono;
         int serif;
