@@ -790,6 +790,9 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime,
                             child->data(NodeItem::Roles::ItemType).toInt());
                 if (childType == NodeItem::Type::TagItem &&
                         child->data(NodeItem::Roles::NodeId).toInt() == id) {
+                    if (row >= rootItem->childCount()) {
+                        row = rootItem->childCount() - 1;
+                    }
                     rootItem->moveChild(i, row);
                     movedIds.insert(id);
                     break;
