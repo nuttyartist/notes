@@ -78,6 +78,7 @@ signals:
     void saveSelectedNote(const QSet<int>& noteId);
     void pinnedCollapseChanged();
     void notePressed(const QModelIndexList& selected);
+    void noteListViewClicked();
 
 private:
     bool m_isScrollBarHidden;
