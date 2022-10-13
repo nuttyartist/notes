@@ -923,13 +923,8 @@ QPixmap NoteListViewPrivate::renderToPixmap(const QModelIndexList &indexes, QRec
     QStyleOptionViewItem option = viewOptionsV1();
     option.state |= QStyle::State_Selected;
     for (int j = 0; j < paintPairs.count(); ++j) {
-#if QT_VERSION < QT_VERSION_CHECK(5, 7, 0)
-        option.rect = paintPairs.at(j).first.translated(-r->topLeft());
-        const QModelIndex &current = paintPairs.at(j).second;
-#else
         option.rect = paintPairs.at(j).rect.translated(-r->topLeft());
         const QModelIndex &current = paintPairs.at(j).index;
-#endif
         adjustViewOptionsForIndex(&option, current);
         delegateForIndex(current)->paint(&painter, option, current);
     }

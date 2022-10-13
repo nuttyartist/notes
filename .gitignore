@@ -8,6 +8,7 @@ bin*
 # OS generated files #
 ######################
 .DS_Store*
+.vscode/
 ehthumbs.db
 Thumbs.db
 Makefile

@@ -911,13 +911,7 @@ QList<NodeData> DBManager::readOldNBK(const QString fileName)
         QFile file(fileName);
         file.open(QIODevice::ReadOnly);
         QDataStream in(&file);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-        in.setVersion(QDataStream::Qt_5_6);
-#elif QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
-        in.setVersion(QDataStream::Qt_5_4);
-#elif QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
-        in.setVersion(QDataStream::Qt_5_2);
-#endif
+        in.setVersion(QDataStream::Qt_5_9);
 
         try {
             in >> noteList;
@@ -930,13 +924,8 @@ QList<NodeData> DBManager::readOldNBK(const QString fileName)
         QFile file(fileName);
         file.open(QIODevice::ReadOnly);
         QDataStream in(&file);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-        in.setVersion(QDataStream::Qt_5_6);
-#elif QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
-        in.setVersion(QDataStream::Qt_5_4);
-#elif QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
-        in.setVersion(QDataStream::Qt_5_2);
-#endif
+        in.setVersion(QDataStream::Qt_5_9);
+
         QList<NodeData*> nl;
         try {
             in >> nl;
