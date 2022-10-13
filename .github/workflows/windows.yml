@@ -45,6 +45,7 @@ jobs:
           version: ${{ matrix.qt-version }}
           cache: true
           arch: ${{ matrix.arch == 'x86' && 'win32_msvc2019' || 'win64_msvc2019_64' }}
+          tools: tools_openssl_${{ matrix.arch }}
 
       - name: Build (${{ matrix.build-type }}, ${{ matrix.arch }})
         run: |
@@ -57,12 +58,42 @@ jobs:
         run: |
           windeployqt bin
 
-      - name: Include required runtime libraries (release-only, ${{ matrix.arch }})
-        if: matrix.build-type == 'release'
+      - name: Include required runtime libraries (${{ matrix.build-type }}, ${{ matrix.arch }})
         run: |
           Set-Location bin
-          Copy-Item -Path $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\* -Include msvcp140.dll,msvcp140_1.dll,vcruntime140.dll,vcruntime140_1.dll
-          Remove-Item vc_redist.*.exe
+
+          if ('${{ matrix.arch }}' -ieq 'x64') {
+              $openssl_lib_suffix = '-x64'
+          } else {
+              $openssl_lib_suffix = ''
+          }
+
+          # Include OpenSSL libraries.
+          Copy-Item ..\..\Qt\Tools\OpenSSL\Win_${{ matrix.arch }}\bin\libcrypto-1_1$openssl_lib_suffix.dll
+          Copy-Item ..\..\Qt\Tools\OpenSSL\Win_${{ matrix.arch }}\bin\libssl-1_1$openssl_lib_suffix.dll
+          # NOTE: Due to OpenSSL libraries being built with MSVC 2010, we must also include 'msvcr100.dll'.
+          Copy-Item $env:WINDIR\${{ matrix.arch == 'x64' && 'System32' || 'SysWOW64' }}\msvcr100.dll
+
+          # Also include OpenSSL debug symbols (when building Notes in debug mode).
+          if ('${{ matrix.build-type }}' -ieq 'debug') {
+              Copy-Item ..\..\Qt\Tools\OpenSSL\Win_${{ matrix.arch }}\bin\libcrypto-1_1$openssl_lib_suffix.pdb
+              Copy-Item ..\..\Qt\Tools\OpenSSL\Win_${{ matrix.arch }}\bin\libssl-1_1$openssl_lib_suffix.pdb
+          }
+
+          # Include MSVC 2019 runtime libraries.
+          if ('${{ matrix.build-type }}' -ieq 'release') {
+              Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\msvcp140.dll
+              Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\msvcp140_1.dll
+              Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\vcruntime140.dll
+              if ('${{ matrix.arch }}' -ieq 'x64') {
+                  # Only 64-bit builds also need 'vcruntime140_1.dll' (tested on Windows 7)
+                  Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\vcruntime140_1.dll
+              }
+              Remove-Item vc_redist.*.exe
+          } else {
+              # On debug builds, the libraries above are included automatically, so we only need 'urtcbased.dll'.
+              Copy-Item $env:WindowsSdkBinPath\${{ matrix.arch }}\ucrt\ucrtbased.dll
+          }
 
       - name: Upload artifacts (${{ matrix.build-type }}, ${{ matrix.arch }})
         uses: actions/upload-artifact@v3

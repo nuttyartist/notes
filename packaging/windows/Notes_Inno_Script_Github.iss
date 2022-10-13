@@ -29,9 +29,13 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 ;x-64
 Source: "{#SourcePath}\Notes64\Notes.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: Is64BitInstallMode
+Source: "{#SourcePath}\Notes64\libcrypto-1_1-x64.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: Is64BitInstallMode
+Source: "{#SourcePath}\Notes64\libssl-1_1-x64.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: Is64BitInstallMode
 Source: "{#SourcePath}\Notes64\msvcp140.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: Is64BitInstallMode
 Source: "{#SourcePath}\Notes64\msvcp140_1.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: Is64BitInstallMode
+Source: "{#SourcePath}\Notes64\msvcr100.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: Is64BitInstallMode
 Source: "{#SourcePath}\Notes64\vcruntime140.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: Is64BitInstallMode
+Source: "{#SourcePath}\Notes64\vcruntime140_1.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: Is64BitInstallMode
 Source: "{#SourcePath}\Notes64\d3dcompiler_47.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: Is64BitInstallMode
 Source: "{#SourcePath}\Notes64\libEGL.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: Is64BitInstallMode
 Source: "{#SourcePath}\Notes64\libGLESV2.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: Is64BitInstallMode
@@ -51,8 +55,11 @@ Source: "{#SourcePath}\Notes64\styles\*"; DestDir: "{app}\translations"; Flags: 
 Source: "{#SourcePath}\Notes64\translations\*"; DestDir: "{app}\translations"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: Is64BitInstallMode
 ;x-86
 Source: "{#SourcePath}\Notes32\Notes.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: not Is64BitInstallMode
+Source: "{#SourcePath}\Notes32\libcrypto-1_1.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: not Is64BitInstallMode
+Source: "{#SourcePath}\Notes32\libssl-1_1.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: not Is64BitInstallMode
 Source: "{#SourcePath}\Notes32\msvcp140.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: not Is64BitInstallMode
 Source: "{#SourcePath}\Notes32\msvcp140_1.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: not Is64BitInstallMode
+Source: "{#SourcePath}\Notes32\msvcr100.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: not Is64BitInstallMode
 Source: "{#SourcePath}\Notes32\vcruntime140.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: not Is64BitInstallMode
 Source: "{#SourcePath}\Notes32\d3dcompiler_47.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: not Is64BitInstallMode
 Source: "{#SourcePath}\Notes32\libEGL.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: not Is64BitInstallMode
