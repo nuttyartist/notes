@@ -28,7 +28,7 @@ class NoteListDelegateEditor : public QWidget
     Q_OBJECT
 public:
     explicit NoteListDelegateEditor(const NoteListDelegate* delegate,
-                                    QListView *view,
+                                    NoteListView *view,
                                     const QStyleOptionViewItem &option,
                                     const QModelIndex &index,
                                     TagPool *tagPool,
@@ -58,7 +58,7 @@ private:
     const NoteListDelegate* m_delegate;
     QStyleOptionViewItem m_option;
     int m_id;
-    QListView *m_view;
+    NoteListView *m_view;
 
     TagPool* m_tagPool;
     QString m_displayFont;
