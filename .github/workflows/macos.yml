@@ -1,7 +1,9 @@
 name: macOS
-on: [ push, pull_request ]
+on:
+  push:
+  pull_request:
 jobs:
-  # This job is mainly to make sure Notes will compile with Qt 5 from homebrew's repository.
+  # This job is mainly to make sure Notes will compile with Qt from homebrew's repository.
   # So it doesn't make much sense to have different build types other than 'debug' here.
   # The release dmg is built using aqtinstall instead (the job below this one).
   build-homebrew:
@@ -10,8 +12,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build-type: [ debug ]
-        os: [ macos-11 ]
+        build-type:
+          - debug
+        os:
+          - macos-11
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -58,9 +62,12 @@ jobs:
     strategy:
       matrix:
         # If you want build artifacts with debug symbols, just add 'debug' to the 'build-type' key below.
-        build-type: [ release ]
-        os: [ macos-11 ]
-        qt-version: [ 5.15.2 ]
+        build-type:
+          - release
+        os:
+          - macos-11
+        qt-version:
+          - 5.15.2
     steps:
       - name: Checkout code
         uses: actions/checkout@v3

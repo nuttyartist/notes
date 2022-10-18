@@ -1,5 +1,7 @@
 name: Windows
-on: [ push, pull_request ]
+on:
+  push:
+  pull_request:
 jobs:
   # NOTE: This job uses a fixed Qt version (set in the 'qt-version' key below)!
   # So, remember to keep it updated whenever a new Qt version is available on aqtinstall.
@@ -9,11 +11,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [ x64, x86 ]
+        arch:
+          - x64
+          - x86
         # If you want build artifacts with debug symbols, just add 'debug' to the 'build-type' key below.
-        build-type: [ release ]
-        os: [ windows-2019 ]
-        qt-version: [ 5.15.2 ]
+        build-type:
+          - release
+        os:
+          - windows-2019
+        qt-version:
+          - 5.15.2
     outputs:
       version: ${{ steps.vars.outputs.version }}
     steps:

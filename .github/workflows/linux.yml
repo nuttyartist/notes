@@ -1,7 +1,9 @@
 name: Linux
-on: [ push, pull_request ]
+on:
+  push:
+  pull_request:
 jobs:
-  # This job is mainly to make sure Notes will compile with Qt 5 from Ubuntu's repository.
+  # This job is mainly to make sure Notes will compile with Qt from Ubuntu's repository.
   # So it doesn't make much sense to have different build types other than 'debug' here.
   # The release AppImage is built using aqtinstall instead (the job below this one).
   build-apt:
@@ -10,12 +12,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build-type: [ debug ]
+        build-type:
+          - debug
         # NOTE: Ubuntu 18.04 is deprecated and will be removed by GitHub in April, 2023.
         # Source: https://github.com/actions/runner-images/issues/6002#issuecomment-1251883705
         #
         # TODO: Replace 'ubuntu-18.04' by 'ubuntu-20.04' when the time comes.
-        os: [ ubuntu-18.04, ubuntu-latest ]
+        os:
+          - ubuntu-18.04
+          - ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -25,7 +30,7 @@ jobs:
       - name: Install Qt 5 (apt)
         run: |
           sudo apt update
-          sudo apt install qtbase5-private-dev qttools5-dev-tools
+          sudo apt install -y qtbase5-private-dev qttools5-dev-tools
 
       - name: Build (${{ matrix.build-type }})
         run: |
@@ -46,9 +51,12 @@ jobs:
     strategy:
       matrix:
         # If you want build artifacts with debug symbols, just add 'debug' to the 'build-type' key below.
-        build-type: [ release ]
-        os: [ ubuntu-18.04 ]
-        qt-version: [ 5.15.2 ]
+        build-type:
+          - release
+        os:
+          - ubuntu-18.04
+        qt-version:
+          - 5.15.2
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
