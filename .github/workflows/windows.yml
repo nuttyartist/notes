@@ -54,6 +54,9 @@ jobs:
           arch: ${{ matrix.arch == 'x86' && 'win32_msvc2019' || 'win64_msvc2019_64' }}
           tools: tools_openssl_${{ matrix.arch }}
 
+      - name: Setup MSVC problem matcher
+        uses: ammaraskar/msvc-problem-matcher@0.2.0
+
       - name: Build (${{ matrix.build-type }}, ${{ matrix.arch }})
         run: |
           New-Item build -ItemType Directory

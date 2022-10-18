@@ -52,6 +52,10 @@ jobs:
           sudo apt update
           sudo apt install -y qtbase5-private-dev qttools5-dev-tools
 
+      - name: Setup GCC problem matcher
+        if: matrix.build-type == 'debug'
+        uses: ammaraskar/gcc-problem-matcher@0.2.0
+
       - name: Build (${{ matrix.build-type }})
         run: |
           mkdir build

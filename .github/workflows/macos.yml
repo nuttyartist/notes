@@ -44,6 +44,11 @@ jobs:
           export PATH="/usr/local/opt/qt@5/bin:$PATH"
           EOF >> ~/.bashrc
 
+      - name: Setup CLang problem matcher
+        # Technically, this action only supports GCC, but it seems to work well for Clang too.
+        if: matrix.build-type == 'debug'
+        uses: ammaraskar/gcc-problem-matcher@0.2.0
+
       - name: Build (${{ matrix.build-type }})
         run: |
           mkdir build
