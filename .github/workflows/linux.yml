@@ -73,9 +73,9 @@ jobs:
           version=$(grep -m 1 VERSION src/Notes.pro | sed 's/^VERSION *= *//')
           artifact_name="Notes_${version}-x86_64"
           file_name="$artifact_name${{ matrix.build-type == 'debug' && '-debug.' || '.' }}AppImage"
-          echo "::set-output name=version::$version"
-          echo "::set-output name=artifact_name::$artifact_name"
-          echo "::set-output name=file_name::$file_name"
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "artifact_name=$artifact_name" >> $GITHUB_OUTPUT
+          echo "file_name=$file_name" >> $GITHUB_OUTPUT
 
       - name: Install Qt ${{ matrix.qt-version }} (aqtinstall)
         uses: jurplel/install-qt-action@v3

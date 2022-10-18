@@ -38,8 +38,8 @@ jobs:
         run: |
           $version = Select-String -Path src\Notes.pro -Pattern '^VERSION *= *(.+)$' | %{$_.Matches.Groups[1].value}
           $artifact_name = "Notes_$version-${{ matrix.arch }}"
-          Write-Output "::set-output name=version::$version"
-          Write-Output "::set-output name=artifact_name::$artifact_name"
+          Write-Output "version=$version" >> $env:GITHUB_OUTPUT
+          Write-Output "artifact_name=$artifact_name" >> $env:GITHUB_OUTPUT
 
       - name: Setup MSVC (${{ matrix.arch }})
         uses: ilammy/msvc-dev-cmd@v1
