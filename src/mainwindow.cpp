@@ -58,7 +58,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_quitAction(new QAction(tr("&Quit"), this)),
     m_trayIconMenu(new QMenu(this)),
     m_listView(Q_NULLPTR),
-    m_listModel(new NoteListModel(this)),
+    m_listModel(Q_NULLPTR),
     m_listViewLogic(Q_NULLPTR),
     m_treeView(Q_NULLPTR),
     m_treeModel(new NodeTreeModel(this)),
@@ -1134,8 +1134,9 @@ void MainWindow::setupDatabases()
  */
 void MainWindow::setupModelView()
 {
-    m_listView = static_cast<NoteListView*>(ui->listView);
+    m_listView = ui->listView;
     m_tagPool = new TagPool(m_dbManager);
+    m_listModel = new NoteListModel(m_listView);
     m_listView->setTagPool(m_tagPool);
     m_listView->setModel(m_listModel);
     m_listViewLogic = new ListViewLogic(m_listView,

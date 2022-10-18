@@ -38,7 +38,7 @@ NoteListView::NoteListView(QWidget *parent)
       m_isPinnedNotesCollapsed{false},
       m_isDraggingInsidePinned{false}
 {
-    this->setAttribute(Qt::WA_MacShowFocusRect, 0);
+    setAttribute(Qt::WA_MacShowFocusRect, false);
 
     QTimer::singleShot(0, this, SLOT(init()));
     setContextMenuPolicy(Qt::CustomContextMenu);
@@ -80,6 +80,8 @@ NoteListView::NoteListView(QWidget *parent)
 
 NoteListView::~NoteListView()
 {
+    // Make sure any editors are closed before the view is destroyed
+    closeAllEditor();
 }
 
 void NoteListView::animateAddedRow(const QModelIndexList& indexes)
