@@ -7,21 +7,41 @@ jobs:
   # So it doesn't make much sense to have different build types other than 'debug' here.
   # The release AppImage is built using aqtinstall instead (the job below this one).
   build-apt:
-    name: Build (${{ matrix.build-type }}, apt, ${{ matrix.os }})
+    name: Build (${{ matrix.build-type }}, apt, ${{ matrix.container != '' && matrix.container || matrix.os }})
     runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
     strategy:
       fail-fast: false
       matrix:
-        build-type:
-          - debug
-        # NOTE: Ubuntu 18.04 is deprecated and will be removed by GitHub in April, 2023.
-        # Source: https://github.com/actions/runner-images/issues/6002#issuecomment-1251883705
-        #
-        # TODO: Replace 'ubuntu-18.04' by 'ubuntu-20.04' when the time comes.
-        os:
-          - ubuntu-18.04
-          - ubuntu-latest
+        include:
+          - os: ubuntu-20.04
+            # TODO: Replace 'ubuntu:18.04' by 'ubuntu:20.04' when:
+            # - Ubuntu 18.04 officially reaches EOL (scheduled to April, 2023 - https://wiki.ubuntu.com/Releases)
+            # - A new build of linuxdeployqt allows us to build on Ubuntu 20.04, without having to use -unsupported-allow-new-glibc.
+            container: ubuntu:18.04
+            build-type: debug
+          - os: ubuntu-latest
+            build-type: debug
     steps:
+      - name: Install newer git in docker container
+        # A more recent version of git is required by the checkout action: https://github.com/actions/checkout/issues/758
+        # TODO: Once we upgrade to Ubuntu 20.04, remove this and install git normally through apt.
+        if: matrix.container != ''
+        run: |
+          apt update
+          apt install -y ca-certificates curl gnupg
+          # Add the git PPA manually (https://launchpad.net/~git-core/+archive/ubuntu/ppa), because 'add-apt-repository' pulls a bunch of unnecessary dependencies.
+          curl -fL --retry 10 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xE1DD270288B4E6030699E45FA1715D88E1DF1F24' | gpg --dearmor > /etc/apt/trusted.gpg.d/git.gpg
+          echo 'deb https://ppa.launchpadcontent.net/git-core/ppa/ubuntu bionic main' > /etc/apt/sources.list.d/git.list
+          apt update
+          apt install -y git
+
+      - name: Install other dependencies in docker container
+        # - sudo: Used by most GitHub actions to install things.
+        if: matrix.container != ''
+        run: |
+          apt install -y sudo
+
       - name: Checkout code
         uses: actions/checkout@v3
         with:
@@ -40,30 +60,54 @@ jobs:
           qmake -config ${{ matrix.build-type }} ../src/Notes.pro
           make -j$(nproc)
 
-  # Build the AppImage using the official Qt 5 release downloaded by aqtinstall.
+  # Build the AppImage using official Qt releases, downloaded by aqtinstall.
   # This is also done for macOS and Windows, just to make sure we use the exact same Qt version across all three OSes.
   #
   # NOTE: This job uses a fixed Qt version (set in the 'qt-version' key below)!
   # So, remember to keep it updated whenever a new Qt version is available on aqtinstall.
   appimage-aqtinstall:
-    name: AppImage (${{ matrix.build-type }}, Qt ${{ matrix.qt-version }}, ${{ matrix.os }})
+    name: AppImage (${{ matrix.build-type }}, Qt ${{ matrix.qt-version }}, ${{ matrix.container != '' && matrix.container || matrix.os }})
     runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
     strategy:
       matrix:
-        # If you want build artifacts with debug symbols, just add 'debug' to the 'build-type' key below.
-        build-type:
-          - release
-        os:
-          - ubuntu-18.04
-        qt-version:
-          - 5.15.2
+        include:
+          - os: ubuntu-20.04
+            container: ubuntu:18.04
+            build-type: release
+            qt-version: 5.15.2
     steps:
+      - name: Install newer git in docker container
+        # A more recent version of git is required by the checkout action: https://github.com/actions/checkout/issues/758
+        # TODO: Once we upgrade to Ubuntu 20.04, remove this and install git normally through apt.
+        if: matrix.container != ''
+        run: |
+          apt update
+          apt install -y ca-certificates curl gnupg
+          # Add the git PPA manually (https://launchpad.net/~git-core/+archive/ubuntu/ppa), because 'add-apt-repository' pulls a bunch of unnecessary dependencies.
+          curl -fL --retry 10 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xE1DD270288B4E6030699E45FA1715D88E1DF1F24' | gpg --dearmor > /etc/apt/trusted.gpg.d/git.gpg
+          echo 'deb https://ppa.launchpadcontent.net/git-core/ppa/ubuntu bionic main' > /etc/apt/sources.list.d/git.list
+          apt update
+          apt install -y git
+
+      - name: Install other dependencies in docker container
+        # - curl: Used to download the linuxdeployqt AppImage tool.
+        # - libfontconfig1: Used as dependency of the resulting AppImage.
+        # - python3/python3-pip: Used by aqtinstall.
+        # - sudo: Used by most GitHub actions to install things.
+        if: matrix.container != ''
+        run: |
+          apt install -y libfontconfig1 python3 python3-pip sudo
+          # Upgrade to the latest setuptools, as Ubuntu's python3-setuptools package has compatibility issues with aqtinstall.
+          python3 -m pip install --upgrade setuptools
+
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           submodules: recursive
 
       - name: Update version
+        shell: bash
         run: |
           sed -i.bak "/^VERSION *=/ s/$/-g${GITHUB_SHA::7}/" src/Notes.pro
 
@@ -81,6 +125,8 @@ jobs:
         uses: jurplel/install-qt-action@v3
         with:
           version: ${{ matrix.qt-version }}
+          # Prevents the installation of a custom Python build, potentially linked against an unsupported version of glibc.
+          setup-python: false
           cache: true
 
       - name: Build (${{ matrix.build-type }})
@@ -94,17 +140,25 @@ jobs:
         if: matrix.build-type == 'release'
         run: strip -s build/notes
 
+      - name: Setup linuxdeployqt tool
+        run: |
+          cd build
+          curl -fL --retry 10 https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage -o linuxdeployqt.AppImage
+          chmod +x linuxdeployqt.AppImage
+          # Extract the AppImage before running it, as we might not have FUSE setup.
+          # https://github.com/AppImage/AppImageKit/wiki/FUSE
+          ./linuxdeployqt.AppImage --appimage-extract
+          mv squashfs-root linuxdeployqt
+
       - name: Build AppImage (${{ matrix.build-type }})
         run: |
           cd build
-          curl -LO https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage --retry 3 --retry-delay 20
-          chmod +x linuxdeployqt*
           install -Dm755 -t Notes/usr/bin notes
           install -Dm755 -t Notes/usr/share/applications ../packaging/linux/common/notes.desktop
           mkdir -p Notes/usr/share/icons/hicolor
           cp -r ../packaging/linux/common/icons/* Notes/usr/share/icons/hicolor
           export VERSION='${{ steps.vars.outputs.version }}'
-          ./linuxdeployqt* Notes/usr/share/applications/notes.desktop -appimage -exclude-libs=libqsqlibase,libqsqlodbc,libqsqlpsql,libqsqltds
+          ./linuxdeployqt/AppRun Notes/usr/share/applications/notes.desktop -appimage -exclude-libs=libqsqlibase,libqsqlodbc,libqsqlpsql,libqsqltds
           mv Notes*.AppImage '${{ steps.vars.outputs.file_name }}'
 
       - name: Upload AppImage artifact (${{ matrix.build-type }})
