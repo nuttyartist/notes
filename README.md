@@ -1,6 +1,6 @@
 # Notes
 
-[![Join the chat at https://gitter.im/nuttyartist/notes](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/nuttyartist/notes?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Discord](https://dcbadge.vercel.app/api/server/Yy4QBcV2?style=flat)](https://discord.gg/Yy4QBcV2)
 [![GitHub Actions status on Linux](https://github.com/nuttyartist/notes/actions/workflows/linux.yml/badge.svg?branch=dev)](https://github.com/nuttyartist/notes/actions/workflows/linux.yml?query=branch%3Adev)
 [![GitHub Actions status on macOS](https://github.com/nuttyartist/notes/actions/workflows/macos.yml/badge.svg?branch=dev)](https://github.com/nuttyartist/notes/actions/workflows/macos.yml?query=branch%3Adev)
 [![GitHub Actions status on Windows](https://github.com/nuttyartist/notes/actions/workflows/windows.yml/badge.svg?branch=dev)](https://github.com/nuttyartist/notes/actions/workflows/windows.yml?query=branch%3Adev)
