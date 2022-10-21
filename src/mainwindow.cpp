@@ -306,7 +306,7 @@ void MainWindow::setupMainWindow()
 
 #ifdef _WIN32
     m_trafficLightLayout.setSpacing(0);
-    m_trafficLightLayout.setMargin(0);
+    m_trafficLightLayout.setContentsMargins(QMargins(0, 0, 0, 0));
     m_trafficLightLayout.setGeometry(QRect(2,2,90,16));
 #endif
 

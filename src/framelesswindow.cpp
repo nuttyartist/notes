@@ -107,8 +107,8 @@ bool CFramelessWindow::nativeEvent(const QByteArray &eventType, void *message, l
     case WM_NCCALCSIZE:
     {
         NCCALCSIZE_PARAMS& params = *reinterpret_cast<NCCALCSIZE_PARAMS*>(msg->lParam);
-     if (params.rgrc[0].top != 0)
-        params.rgrc[0].top -= 1;
+        if (params.rgrc[0].top != 0)
+            params.rgrc[0].top -= 1;
 
         //this kills the window frame and title bar we added with WS_THICKFRAME and WS_CAPTION
         *result = WVR_REDRAW;

@@ -71,10 +71,9 @@ int main(int argc, char *argv[])
     // Prevent many instances of the app to be launched
     QString name = "com.awsomeness.notes";
     SingleInstance instance;
-// temp: commented for testing
-//    if (instance.hasPrevious (name)){
-//        return EXIT_SUCCESS;
-//    }
+    if (instance.hasPrevious (name)){
+        return EXIT_SUCCESS;
+    }
 
     instance.listen (name);
 
