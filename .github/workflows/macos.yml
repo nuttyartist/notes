@@ -7,41 +7,37 @@ jobs:
   # So it doesn't make much sense to have different build types other than 'debug' here.
   # The release dmg is built using aqtinstall instead (the job below this one).
   build-homebrew:
-    name: Build (${{ matrix.build-type }}, homebrew, ${{ matrix.os }})
+    name: Build (${{ matrix.build-type }}, homebrew (qt${{ matrix.qt-version-major }}), ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        build-type:
-          - debug
-        os:
-          - macos-11
+        include:
+          - os: macos-11
+            qt-version-major: 5
+            build-type: debug
+
+          - os: macos-11
+            qt-version-major: 6
+            build-type: debug
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           submodules: recursive
 
-      - name: Cache Qt 5 (homebrew)
-        id: cache-qt5
-        uses: actions/cache@v3
-        with:
-          path: /usr/local/Cellar/qt@5
-          key: qt5-homebrew
-
-      - name: Install Qt 5 (homebrew)
-        if: steps.cache-qt5.outputs.cache-hit != 'true'
+      - name: Install Qt ${{ matrix.qt-version-major }} (homebrew)
         run: |
           brew update
-          brew install qt@5
+          brew install qt@${{ matrix.qt-version-major }}
 
-      - name: Configure Qt 5 (homebrew)
+      - name: Configure Qt ${{ matrix.qt-version-major }} (homebrew)
         run: |
-          brew link qt@5
+          brew link qt@${{ matrix.qt-version-major }}
           cat << EOF
-          LDFLAGS="-L/usr/local/opt/qt@5/lib"
-          export CPPFLAGS="-I/usr/local/opt/qt@5/include"
-          export PATH="/usr/local/opt/qt@5/bin:$PATH"
+          LDFLAGS="-L/usr/local/opt/qt@${{ matrix.qt-version-major }}/lib"
+          export CPPFLAGS="-I/usr/local/opt/qt@${{ matrix.qt-version-major }}/include"
+          export PATH="/usr/local/opt/qt@${{ matrix.qt-version-major }}/bin:$PATH"
           EOF >> ~/.bashrc
 
       - name: Setup CLang problem matcher
@@ -66,13 +62,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        # If you want build artifacts with debug symbols, just add 'debug' to the 'build-type' key below.
-        build-type:
-          - release
-        os:
-          - macos-11
-        qt-version:
-          - 5.15.2
+        include:
+          - os: macos-11
+            qt-version: 5.15.2
+            build-type: release
+
+          - os: macos-11
+            qt-version: 6.2.4
+            build-type: release
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -87,7 +84,7 @@ jobs:
         id: vars
         run: |
           version=$(grep -m 1 VERSION src/Notes.pro | sed 's/^VERSION *= *//')
-          artifact_name="Notes_${version}-x86_64"
+          artifact_name="Notes_${version}-x86_64-Qt${{ matrix.qt-version }}"
           file_name="$artifact_name${{ matrix.build-type == 'debug' && '-debug.' || '.' }}dmg"
           echo "version=$version" >> $GITHUB_OUTPUT
           echo "artifact_name=$artifact_name" >> $GITHUB_OUTPUT
@@ -117,5 +114,5 @@ jobs:
       - name: Upload dmg artifact (${{ matrix.build-type }})
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ steps.vars.outputs.artifact_name }}-${{ runner.os }}-Qt${{ matrix.qt-version }}-${{ matrix.build-type }}
+          name: ${{ steps.vars.outputs.artifact_name }}-${{ runner.os }}-${{ matrix.build-type }}
           path: bin/${{ steps.vars.outputs.file_name }}
