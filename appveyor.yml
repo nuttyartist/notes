@@ -22,12 +22,6 @@ environment:
     compiler: mingw53_32
     tools: mingw530_32
 
-  # MSVC x64 (QT6)
-  - name: win64_64
-    platformEnv: amd64
-    qt: 6.4
-    compiler: msvc2015_64
-
 configuration: Release
 
 clone_folder: c:\ci\notes
