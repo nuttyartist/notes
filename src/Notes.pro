@@ -40,7 +40,7 @@ SOURCES += \
     notelistmodel.cpp \
     notelistview.cpp \
     singleinstance.cpp \
-    spliterstyle.cpp \
+    splitterstyle.cpp \
     taglistdelegate.cpp \
     taglistmodel.cpp \
     taglistview.cpp \
@@ -79,7 +79,7 @@ HEADERS  += \
     notelistview.h \
     notelistview_p.h \
     singleinstance.h \
-    spliterstyle.h \
+    splitterstyle.h \
     taglistdelegate.h \
     taglistmodel.h \
     taglistview.h \

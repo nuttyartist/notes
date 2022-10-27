@@ -13,7 +13,7 @@
 #include "listviewlogic.h"
 #include "noteeditorlogic.h"
 #include "tagpool.h"
-#include "spliterstyle.h"
+#include "splitterstyle.h"
 
 #include <QScrollBar>
 #include <QShortcut>
@@ -392,8 +392,8 @@ void MainWindow::setupMainWindow()
     ui->listviewLabel2->setFont(m_titleFont);
     ui->listviewLabel1->setStyleSheet("QLabel { color :  rgb(0, 0, 0); }");
     ui->listviewLabel2->setStyleSheet("QLabel { color :  rgb(132, 132, 132); }");
-    m_spliterStyle = new SpliterStyle();
-    m_splitter->setStyle(m_spliterStyle);
+	m_splitterStyle = new SplitterStyle();
+	m_splitter->setStyle(m_splitterStyle);
     m_splitter->setHandleWidth(0);
     setNoteListLoading();
 #ifdef __APPLE__
