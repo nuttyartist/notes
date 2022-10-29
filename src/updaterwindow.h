@@ -55,7 +55,7 @@ protected:
     void mouseReleaseEvent (QMouseEvent *event) Q_DECL_OVERRIDE;
 
 private:
-    qreal round (const qreal& input);
+    qreal round (qreal input);
 
 private:
     QString m_fileName;

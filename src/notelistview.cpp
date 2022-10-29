@@ -715,7 +715,7 @@ void NoteListView::setTheme(Theme theme)
     setupStyleSheet();
 }
 
-void NoteListView::onCustomContextMenu(const QPoint &point)
+void NoteListView::onCustomContextMenu(QPoint point)
 {
     QModelIndex index = indexAt(point);
     if (index.isValid()) {

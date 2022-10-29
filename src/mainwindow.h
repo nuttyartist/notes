@@ -235,7 +235,7 @@ private:
     void setSearchEditStyleSheet(bool isFocused);
 
     void dropShadow(QPainter& painter, ShadowType type, ShadowSide side);
-    void fillRectWithGradient(QPainter& painter, const QRect& rect, QGradient& gradient);
+    void fillRectWithGradient(QPainter& painter, QRect rect, QGradient& gradient);
     double gaussianDist(double x, const double center, double sigma) const;
 
     void setMargins(QMargins margins);

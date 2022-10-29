@@ -2932,7 +2932,7 @@ void MainWindow::dropShadow(QPainter& painter, ShadowType type, MainWindow::Shad
  * \param rect
  * \param gradient
  */
-void MainWindow::fillRectWithGradient(QPainter& painter, const QRect& rect, QGradient& gradient)
+void MainWindow::fillRectWithGradient(QPainter& painter, QRect rect, QGradient& gradient)
 {
     double variance = 0.2;
     double xMax = 1.10;

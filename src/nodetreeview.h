@@ -38,7 +38,7 @@ public:
     const QModelIndex &currentEditingIndex() const;
 
 public slots:
-    void onCustomContextMenu(const QPoint& point);
+    void onCustomContextMenu(QPoint point);
     void onChangeTagColorAction();
     void onRequestExpand(const QString& folderPath);
     void onUpdateAbsPath(const QString& oldPath, const QString& newPath);
@@ -91,7 +91,7 @@ private:
     bool m_ignoreThisCurrentLoad;
     QString m_lastSelectFolder;
     bool m_isLastSelectedFolder;
-    void updateEditingIndex(const QPoint &pos);
+    void updateEditingIndex(QPoint pos);
     void closeCurrentEditor();
 
     // QAbstractItemView interface

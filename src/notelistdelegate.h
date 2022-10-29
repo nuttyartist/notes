@@ -47,7 +47,7 @@ public:
     void clearSizeMap();
 
 public slots:
-    void updateSizeMap(int id, const QSize& sz, const QModelIndex& index);
+    void updateSizeMap(int id, QSize sz, const QModelIndex& index);
     void editorDestroyed(int id, const QModelIndex& index);
 
     // QAbstractItemDelegate interface
@@ -63,7 +63,7 @@ signals:
 private:
     void paintBackground(QPainter* painter, const QStyleOptionViewItem &option, const QModelIndex &index)const;
     void paintLabels(QPainter* painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
-    void paintSeparator(QPainter *painter, const QRect &rect, const QModelIndex &index) const;
+    void paintSeparator(QPainter *painter, QRect rect, const QModelIndex &index) const;
     void paintTagList(int top, QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     QString parseDateTime(const QDateTime& dateTime) const;
     void setStateI(NoteListState NewState , const QModelIndexList &indexes);

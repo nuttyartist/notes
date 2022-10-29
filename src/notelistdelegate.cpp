@@ -727,7 +727,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
     }
 }
 
-void NoteListDelegate::paintSeparator(QPainter*painter, const QRect& rect, const QModelIndex&index) const
+void NoteListDelegate::paintSeparator(QPainter*painter, QRect rect, const QModelIndex&index) const
 {
     Q_UNUSED(index);
     painter->setPen(QPen(m_separatorColor));
@@ -891,7 +891,7 @@ void NoteListDelegate::clearSizeMap()
     szMap.clear();
 }
 
-void NoteListDelegate::updateSizeMap(int id, const QSize &sz, const QModelIndex &index)
+void NoteListDelegate::updateSizeMap(int id, QSize sz, const QModelIndex &index)
 {
     szMap[id] = sz;
     emit sizeHintChanged(index);

@@ -601,7 +601,7 @@ void UpdaterWindow::mouseReleaseEvent(QMouseEvent *event)
 /**
  * Rounds the given \a input to two decimal places
  */
-qreal UpdaterWindow::round(const qreal& input)
+qreal UpdaterWindow::round(qreal input)
 {
     return qreal(roundf(float(input * 100))/100);
 }
