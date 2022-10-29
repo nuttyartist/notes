@@ -36,7 +36,7 @@ private slots:
     void onChangeTagColorRequested(const QModelIndex& index);
     void onDeleteTagRequested(const QModelIndex& index);
     void onChildNotesCountChangedTag(int tagId, int notesCount);
-    void onChildNoteCountChangedFolder(int folderId, const QString absPath, int notesCount);
+    void onChildNoteCountChangedFolder(int folderId, const QString &absPath, int notesCount);
 
 signals:
     void requestRenameNodeInDB(int id, const QString& newName);

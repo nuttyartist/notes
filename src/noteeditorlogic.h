@@ -30,7 +30,7 @@ public:
 
     bool markdownEnabled() const;
     void setMarkdownEnabled(bool newMarkdownEnabled);
-    static QString getNoteDateEditor(QString dateEdited);
+    static QString getNoteDateEditor(const QString &dateEdited);
     void highlightSearch() const;
     bool isTempNote() const;
     void saveNoteToDB();
@@ -51,7 +51,7 @@ public slots:
     void showNotesInEditor(const QVector<NodeData>& notes);
     void onTextEditTextChanged();
     void closeEditor();
-    void onNoteTagListChanged(int noteId, const QSet<int> tagIds);
+    void onNoteTagListChanged(int noteId, const QSet<int> &tagIds);
 private slots:
     void editorResized();
 signals:
@@ -62,7 +62,7 @@ signals:
     void updateNoteDataInList(const NodeData& note);
     void deleteNoteRequested(const NodeData& note);
 private:
-    static QDateTime getQDateTime(QString date);
+    static QDateTime getQDateTime(const QString &date);
     void showTagListForCurrentNote();
     bool isInEditMode() const;
 

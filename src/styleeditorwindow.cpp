@@ -176,7 +176,7 @@ void StyleEditorWindow::buttonClicked(QPushButton* button)
  * \param selectedFontType
  * \param selectedFontName
  */
-void StyleEditorWindow::changeSelectedFont(FontTypeface selectedFontType, QString selectedFontName)
+void StyleEditorWindow::changeSelectedFont(FontTypeface selectedFontType, const QString &selectedFontName)
 {
     switch(selectedFontType) {
     case FontTypeface::Mono:

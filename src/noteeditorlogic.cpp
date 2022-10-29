@@ -183,7 +183,7 @@ void NoteEditorLogic::onTextEditTextChanged()
     }
 }
 
-QDateTime NoteEditorLogic::getQDateTime(QString date)
+QDateTime NoteEditorLogic::getQDateTime(const QString &date)
 {
     QDateTime dateTime = QDateTime::fromString(date, Qt::ISODate);
     return dateTime;
@@ -263,7 +263,7 @@ void NoteEditorLogic::closeEditor()
     m_tagListModel->setModelData({});
 }
 
-void NoteEditorLogic::onNoteTagListChanged(int noteId, const QSet<int> tagIds)
+void NoteEditorLogic::onNoteTagListChanged(int noteId, const QSet<int> &tagIds)
 {
     if (currentEditingNoteId() == noteId) {
         m_currentNotes[0].setTagIds(tagIds);
@@ -380,7 +380,7 @@ void NoteEditorLogic::setTheme(Theme newTheme)
     }
 }
 
-QString NoteEditorLogic::getNoteDateEditor(QString dateEdited)
+QString NoteEditorLogic::getNoteDateEditor(const QString &dateEdited)
 {
     QDateTime dateTimeEdited(getQDateTime(dateEdited));
     QLocale usLocale(QLocale(QStringLiteral("en_US")));

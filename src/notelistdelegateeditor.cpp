@@ -353,7 +353,7 @@ void NoteListDelegateEditor::paintLabels(QPainter* painter, const QStyleOptionVi
         folderNameRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
         folderNameRectHeight = fmRectParentName.height() + NoteListConstant::descFolderSpace;
     }
-    auto drawStr = [painter](double posX, double posY, double width, double height, QColor color, QFont font, QString str){
+    auto drawStr = [painter](double posX, double posY, double width, double height, QColor color, const QFont &font, const QString &str){
         QRectF rect(posX, posY, width, height);
         painter->setPen(color);
         painter->setFont(font);

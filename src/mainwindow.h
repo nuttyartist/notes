@@ -226,8 +226,8 @@ private:
     void restoreStates();
     void migrateFromV0_9_0();
     void executeImport(const bool replace);
-    void migrateNoteFromV0_9_0(QString notePath);
-    void migrateTrashFromV0_9_0(QString trashPath);
+    void migrateNoteFromV0_9_0(const QString &notePath);
+    void migrateTrashFromV0_9_0(const QString &trashPath);
     void setCurrentFontBasedOnTypeface(FontTypeface selectedFontTypeFace);
     void setVisibilityOfFrameRightNonEditor(bool isVisible);
     void setWindowButtonsVisible(bool isVisible);

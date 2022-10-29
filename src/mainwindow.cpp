@@ -2767,7 +2767,7 @@ void MainWindow::migrateFromV0_9_0()
  * \brief MainWindow::migrateNote
  * \param notePath
  */
-void MainWindow::migrateNoteFromV0_9_0(QString notePath)
+void MainWindow::migrateNoteFromV0_9_0(const QString &notePath)
 {
     QSettings notesIni(notePath, QSettings::IniFormat);
     QStringList dbKeys = notesIni.allKeys();
@@ -2802,7 +2802,7 @@ void MainWindow::migrateNoteFromV0_9_0(QString notePath)
  * \brief MainWindow::migrateTrash
  * \param trashPath
  */
-void MainWindow::migrateTrashFromV0_9_0(QString trashPath)
+void MainWindow::migrateTrashFromV0_9_0(const QString &trashPath)
 {
     QSettings trashIni(trashPath, QSettings::IniFormat);
     QStringList dbKeys = trashIni.allKeys();

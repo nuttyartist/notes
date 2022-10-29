@@ -123,7 +123,7 @@ QModelIndexList NoteListView::selectedIndex() const
     return selectedIndexes();
 }
 
-void NoteListView::onRemoveRowRequested(const QModelIndexList indexes)
+void NoteListView::onRemoveRowRequested(const QModelIndexList &indexes)
 {
     if (!indexes.isEmpty()) {
         for (const auto index : QT_AS_CONST(indexes)) {
@@ -583,7 +583,7 @@ void NoteListView::setupSignalsSlots()
     });
 
     // row was entered
-    connect(this, &NoteListView::entered, this, [this](QModelIndex index){
+    connect(this, &NoteListView::entered, this, [this](const QModelIndex &index){
         if(model() != Q_NULLPTR){
             if(index.row() > 1){
                 QModelIndex prevPrevIndex = model()->index(index.row()-2, 0);

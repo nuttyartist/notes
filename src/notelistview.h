@@ -43,7 +43,7 @@ public:
 
 public slots:
     void onCustomContextMenu(const QPoint& point);
-    void onRemoveRowRequested(const QModelIndexList indexes);
+    void onRemoveRowRequested(const QModelIndexList &indexes);
     void onAnimationFinished(NoteListState state);
 
 protected:

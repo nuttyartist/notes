@@ -463,7 +463,7 @@ void ListViewLogic::onNotesListInTagsRequested(const QSet<int> &tagIds, bool new
     }
 }
 
-void ListViewLogic::selectNotes(const QModelIndexList indexes)
+void ListViewLogic::selectNotes(const QModelIndexList &indexes)
 {
     m_listView->clearSelection();
     m_listView->setSelectionMode(QAbstractItemView::MultiSelection);

@@ -22,7 +22,7 @@ void TagListModel::setTagPool(TagPool *tagPool)
     endResetModel();
 }
 
-void TagListModel::setModelData(QSet<int> data)
+void TagListModel::setModelData(const QSet<int> &data)
 {
     if (!m_tagPool) {
         qDebug() << __FUNCTION__ << "Tag pool is not init yet";

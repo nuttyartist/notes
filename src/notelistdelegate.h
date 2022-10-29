@@ -66,7 +66,7 @@ private:
     void paintSeparator(QPainter *painter, const QRect &rect, const QModelIndex &index) const;
     void paintTagList(int top, QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     QString parseDateTime(const QDateTime& dateTime) const;
-    void setStateI(NoteListState NewState , QModelIndexList indexes);
+    void setStateI(NoteListState NewState , const QModelIndexList &indexes);
 
     NoteListView* m_view;
     TagPool* m_tagPool;
