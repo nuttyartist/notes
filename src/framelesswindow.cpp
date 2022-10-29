@@ -272,7 +272,11 @@ QMargins CFramelessWindow::contentsMargins() const
 }
 void CFramelessWindow::getContentsMargins(int *left, int *top, int *right, int *bottom) const
 {
-    QMainWindow::getContentsMargins(left,top,right,bottom);
+    QMargins margins = QMainWindow::contentsMargins();
+    *left = margins.left();
+    *top = margins.top();
+    *right = margins.right();
+    *bottom = margins.bottom();
     if (!(left&&top&&right&&bottom)) return;
     if (isMaximized())
     {
