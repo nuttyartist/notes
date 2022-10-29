@@ -71,6 +71,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_layoutMargin(10),
     m_shadowWidth(10),
     m_noteListWidth(200),
+    m_nodeTreeWidth(0),
     m_smallEditorWidth(420),
     m_largeEditorWidth(1250),
     m_canMoveWindow(false),
@@ -1171,7 +1172,7 @@ void MainWindow::setupModelView()
 
 /*!
  * \brief MainWindow::restoreStates
- * Restore the latest sates (if there are any) of the window and the splitter from
+ * Restore the latest states (if there are any) of the window and the splitter from
  * the settings database
  */
 void MainWindow::restoreStates()
