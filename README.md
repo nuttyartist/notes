@@ -54,7 +54,7 @@ Make sure the Qt (>= 5.9) development libraries are installed:
 ```shell
 $> mkdir build
 $> cd build
-$> qmake ../src
+$> cmake .. -DCMAKE_BUILD_TYPE=Release
 $> make -j4
 ```
 

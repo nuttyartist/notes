@@ -9,6 +9,7 @@ bin*
 ######################
 .DS_Store*
 .vscode/
+.cache/
 ehthumbs.db
 Thumbs.db
 Makefile

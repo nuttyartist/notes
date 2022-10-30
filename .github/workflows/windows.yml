@@ -36,12 +36,12 @@ jobs:
 
       - name: Update version
         run: |
-          (Get-Content src\Notes.pro) -Replace '^VERSION *= *(.+)$',"`$0-g$($env:GITHUB_SHA.Substring(0,7))" | Set-Content src\Notes.pro
+          (Get-Content CMakeLists.txt) -Replace ("[^_]PROJECT_VERSION *[^)]+", "`$0-g$($env:GITHUB_SHA.Substring(0,7))") | Set-Content CMakeLists.txt
 
       - name: Setup variables
         id: vars
         run: |
-          $version = Select-String -Path src\Notes.pro -Pattern '^VERSION *= *(.+)$' | %{$_.Matches.Groups[1].value}
+          $version = Select-String -Path CMakeLists.txt -Pattern '[^_]PROJECT_VERSION *([^)]+)' | %{$_.Matches.Groups[1].value}
           $artifact_name = "Notes_$version-${{ matrix.arch }}-Qt${{ matrix.qt-version }}"
           Write-Output "version=$version" >> $env:GITHUB_OUTPUT
           Write-Output "artifact_name=$artifact_name" >> $env:GITHUB_OUTPUT
@@ -64,18 +64,16 @@ jobs:
 
       - name: Build (${{ matrix.build-type }}, ${{ matrix.arch }})
         run: |
-          New-Item build -ItemType Directory
-          Set-Location build
-          qmake -config ${{ matrix.build-type }} ..\src\Notes.pro
-          nmake
+          cmake . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
+          cmake --build build
 
       - name: Deploy (${{ matrix.build-type }}, ${{ matrix.arch }})
         run: |
-          windeployqt bin
+          windeployqt build
 
       - name: Include required runtime libraries (${{ matrix.build-type }}, ${{ matrix.arch }})
         run: |
-          Set-Location bin
+          Set-Location build
 
           if ('${{ matrix.arch }}' -ieq 'x64') {
               $openssl_lib_suffix = '-x64'
@@ -114,7 +112,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.vars.outputs.artifact_name }}-${{ runner.os }}-${{ matrix.build-type }}
-          path: bin
+          path: build
 
   unified-installer:
     name: Unified x64-x86 Installer (Qt 5 only)
