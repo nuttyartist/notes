@@ -226,8 +226,8 @@ private:
     void restoreStates();
     void migrateFromV0_9_0();
     void executeImport(const bool replace);
-    void migrateNoteFromV0_9_0(QString notePath);
-    void migrateTrashFromV0_9_0(QString trashPath);
+    void migrateNoteFromV0_9_0(const QString &notePath);
+    void migrateTrashFromV0_9_0(const QString &trashPath);
     void setCurrentFontBasedOnTypeface(FontTypeface selectedFontTypeFace);
     void setVisibilityOfFrameRightNonEditor(bool isVisible);
     void setWindowButtonsVisible(bool isVisible);
@@ -235,7 +235,7 @@ private:
     void setSearchEditStyleSheet(bool isFocused);
 
     void dropShadow(QPainter& painter, ShadowType type, ShadowSide side);
-    void fillRectWithGradient(QPainter& painter, const QRect& rect, QGradient& gradient);
+    void fillRectWithGradient(QPainter& painter, QRect rect, QGradient& gradient);
     double gaussianDist(double x, const double center, double sigma) const;
 
     void setMargins(QMargins margins);

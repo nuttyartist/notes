@@ -20,7 +20,7 @@ int NodeData::id() const
     return m_id;
 }
 
-void NodeData::setId(const int &id)
+void NodeData::setId(int id)
 {
     m_id = id;
 }

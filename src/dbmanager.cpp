@@ -904,7 +904,7 @@ bool DBManager::updateNoteContent(const NodeData& note)
     return (query.numRowsAffected() == 1);
 }
 
-QList<NodeData> DBManager::readOldNBK(const QString fileName)
+QList<NodeData> DBManager::readOldNBK(const QString &fileName)
 {
     QList<NodeData> noteList;
     {
@@ -1711,7 +1711,7 @@ void DBManager::onNotesListInTagsRequested(const QSet<int> &tagIds, bool newNote
  * \param path
  * \param doCreate
  */
-void DBManager::onOpenDBManagerRequested(QString path, bool doCreate)
+void DBManager::onOpenDBManagerRequested(const QString &path, bool doCreate)
 {
     open(path, doCreate);
 }

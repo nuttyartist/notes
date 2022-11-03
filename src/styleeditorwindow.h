@@ -50,7 +50,7 @@ class StyleEditorWindow : public QWidget
 public:
     explicit StyleEditorWindow (QWidget *parent = 0);
     ~StyleEditorWindow();
-    void changeSelectedFont(FontTypeface selectedFontType, QString selectedFontName);
+    void changeSelectedFont(FontTypeface selectedFontType, const QString &selectedFontName);
     void setTheme(Theme theme, QColor themeColor, QColor textColor);
     void restoreSelectedOptions(bool isTextFullWidth, FontTypeface selectedFontTypeface, Theme selectedTheme);
 

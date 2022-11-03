@@ -11,8 +11,8 @@ class SingleInstance : public QObject
 public:
     explicit SingleInstance(QObject *parent = 0);
 
-    void listen(QString name);
-    bool hasPrevious(QString name);
+    void listen(const QString &name);
+    bool hasPrevious(const QString &name);
 
 signals:
     void newInstance();

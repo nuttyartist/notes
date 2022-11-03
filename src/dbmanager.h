@@ -49,7 +49,7 @@ private:
     QVector<TagData> getAllTagInfo();
     QSet<int> getAllTagForNote(int noteId);
     bool updateNoteContent(const NodeData &note);
-    QList<NodeData> readOldNBK(const QString fileName);
+    QList<NodeData> readOldNBK(const QString &fileName);
     int nextAvailablePosition(int parentId, NodeData::Type nodeType);
     int addNodePreComputed(const NodeData& node);
     void recalculateChildNotesCount();
@@ -79,7 +79,7 @@ public slots:
                                       bool newNote = false, int scrollToId = SpecialNodeID::InvalidNodeId);
     void onNotesListInTagsRequested(const QSet<int>& tagIds,
                                     bool newNote = false, int scrollToId = SpecialNodeID::InvalidNodeId);
-    void onOpenDBManagerRequested(QString path, bool doCreate);
+    void onOpenDBManagerRequested(const QString &path, bool doCreate);
     void onCreateUpdateRequestedNoteContent(const NodeData& note);
     void onImportNotesRequested(const QString& fileName);
     void onRestoreNotesRequested(const QString& fileName);

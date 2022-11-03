@@ -50,7 +50,7 @@ public:
     int childCount() const;
     int columnCount() const;
     int recursiveNodeCount() const;
-    void recursiveUpdateFolderPath(const QString& oldP, const QString newP);
+    void recursiveUpdateFolderPath(const QString& oldP, const QString &newP);
     QVariant data(NodeItem::Roles role) const;
     void setData(NodeItem::Roles role, const QVariant& d);
     int row() const;

@@ -31,7 +31,7 @@ public:
     QModelIndex insertNote(const NodeData& note, int row);
     const NodeData &getNote(const QModelIndex& index) const;
     QModelIndex getNoteIndex(int id) const;
-    void setListNote(const QVector<NodeData> notes, const ListViewInfo& inf);
+    void setListNote(const QVector<NodeData> &notes, const ListViewInfo& inf);
     void removeNotes(const QModelIndexList &noteIndexes);
     bool moveRow(const QModelIndex& sourceParent,
                  int sourceRow,
@@ -52,9 +52,9 @@ public:
     virtual QMimeData *mimeData(const QModelIndexList &indexes) const override;
     virtual bool dropMimeData(const QMimeData *mime, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
 
-    bool noteIsHaveTag(const QModelIndex index) const;
-    bool isFirstPinnedNote(const QModelIndex index) const;
-    bool isFirstUnpinnedNote(const QModelIndex index) const;
+    bool noteIsHaveTag(const QModelIndex &index) const;
+    bool isFirstPinnedNote(const QModelIndex &index) const;
+    bool isFirstUnpinnedNote(const QModelIndex &index) const;
     QModelIndex getFirstPinnedNote() const;
     QModelIndex getFirstUnpinnedNote() const;
     bool hasPinnedNote() const;

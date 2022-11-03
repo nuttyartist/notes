@@ -25,7 +25,7 @@ public:
     };
 
     int id() const;
-    void setId(const int& id);
+    void setId(int id);
 
     QString fullTitle() const;
     void setFullTitle(const QString &fullTitle);

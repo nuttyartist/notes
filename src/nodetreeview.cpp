@@ -230,7 +230,7 @@ void NodeTreeView::onUpdateAbsPath(const QString &oldPath, const QString &newPat
     });
 }
 
-void NodeTreeView::updateEditingIndex(const QPoint& pos)
+void NodeTreeView::updateEditingIndex(QPoint pos)
 {
     auto index = indexAt(pos);
     if(indexAt(pos) != m_currentEditingIndex && !m_isContextMenuOpened && !m_isEditing) {
@@ -514,7 +514,7 @@ void NodeTreeView::setTheme(Theme theme)
 
 }
 
-void NodeTreeView::onCustomContextMenu(const QPoint &point)
+void NodeTreeView::onCustomContextMenu(QPoint point)
 {
     QModelIndex index = indexAt(point);
     if (index.isValid()) {

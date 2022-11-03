@@ -66,7 +66,7 @@ int NodeTreeItem::recursiveNodeCount() const
     return res;
 }
 
-void NodeTreeItem::recursiveUpdateFolderPath(const QString &oldP, const QString newP)
+void NodeTreeItem::recursiveUpdateFolderPath(const QString &oldP, const QString &newP)
 {
     {
         auto type = static_cast<NodeItem::Type>(

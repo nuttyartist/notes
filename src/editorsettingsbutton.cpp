@@ -83,7 +83,7 @@ void EditorSettingsButton::paintEvent(QPaintEvent *p)
  * \param fontTypeface
  * \param fontColor
  */
-void EditorSettingsButton::changeFont(QString fontName, QString fontTypeface, QColor fontColor)
+void EditorSettingsButton::changeFont(const QString &fontName, const QString &fontTypeface, QColor fontColor)
 {
     m_currentFontName = fontName;
     m_currentFontTypeface = fontTypeface;

@@ -51,7 +51,7 @@ public slots:
     void loadLastSelectedNoteRequested();
     void onNotesListInFolderRequested(int parentID, bool isRecursive, bool newNote, int scrollToId);
     void onNotesListInTagsRequested(const QSet<int> &tagIds, bool newNote, int scrollToId);
-    void selectNotes(const QModelIndexList indexes);
+    void selectNotes(const QModelIndexList &indexes);
 signals:
     void showNotesInEditor(const QVector<NodeData>& notesData);
     void requestAddTagDb(int noteId, int tagId);

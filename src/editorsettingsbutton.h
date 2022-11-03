@@ -10,7 +10,7 @@ class EditorSettingsButton : public QPushButton
 public:
     EditorSettingsButton(QWidget *parent = Q_NULLPTR);
     void paintEvent(QPaintEvent *p);
-    void changeFont(QString fontName, QString fontTypeface, QColor fontColor);
+    void changeFont(const QString &fontName, const QString &fontTypeface, QColor fontColor);
     void setTheme(Theme theme);
 
 private:

@@ -353,7 +353,7 @@ void TreeViewLogic::onChildNotesCountChangedTag(int tagId, int notesCount)
     }
 }
 
-void TreeViewLogic::onChildNoteCountChangedFolder(int folderId, const QString absPath, int notesCount)
+void TreeViewLogic::onChildNoteCountChangedFolder(int folderId, const QString &absPath, int notesCount)
 {
     QModelIndex index;
     if (folderId == SpecialNodeID::RootFolder) {

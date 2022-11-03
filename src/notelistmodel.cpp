@@ -91,7 +91,7 @@ QModelIndex NoteListModel::getNoteIndex(int id) const
     return QModelIndex{};
 }
 
-void NoteListModel::setListNote(const QVector<NodeData> notes, const ListViewInfo& inf)
+void NoteListModel::setListNote(const QVector<NodeData> &notes, const ListViewInfo& inf)
 {
     beginResetModel();
     m_pinnedList.clear();
@@ -610,7 +610,7 @@ void NoteListModel::setNotesIsPinned(const QModelIndexList &indexes, bool isPinn
 }
 
 
-bool NoteListModel::noteIsHaveTag(const QModelIndex index) const
+bool NoteListModel::noteIsHaveTag(const QModelIndex &index) const
 {
     if (index.row() < 0 || index.row() >= (m_noteList.count() + m_pinnedList.count())) {
         return false;
@@ -626,7 +626,7 @@ bool NoteListModel::noteIsHaveTag(const QModelIndex index) const
     return !note.tagIds().empty();
 }
 
-bool NoteListModel::isFirstPinnedNote(const QModelIndex index) const
+bool NoteListModel::isFirstPinnedNote(const QModelIndex &index) const
 {
     if (!index.isValid()) {
         return false;
@@ -649,7 +649,7 @@ bool NoteListModel::isFirstPinnedNote(const QModelIndex index) const
     return false;
 }
 
-bool NoteListModel::isFirstUnpinnedNote(const QModelIndex index) const
+bool NoteListModel::isFirstUnpinnedNote(const QModelIndex &index) const
 {
     if (!index.isValid()) {
         return false;

@@ -42,8 +42,8 @@ public:
     bool isDraggingInsidePinned() const;
 
 public slots:
-    void onCustomContextMenu(const QPoint& point);
-    void onRemoveRowRequested(const QModelIndexList indexes);
+    void onCustomContextMenu(QPoint point);
+    void onRemoveRowRequested(const QModelIndexList &indexes);
     void onAnimationFinished(NoteListState state);
 
 protected:

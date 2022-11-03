@@ -17,7 +17,7 @@ public:
     };
     TagListModel(QObject *parent = nullptr);
     void setTagPool(TagPool* tagPool);
-    void setModelData(QSet<int> data);
+    void setModelData(const QSet<int> &data);
     void addTag(int tagId);
     int rowCount(const QModelIndex & parent = QModelIndex()) const;
     QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;

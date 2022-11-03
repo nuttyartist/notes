@@ -2767,7 +2767,7 @@ void MainWindow::migrateFromV0_9_0()
  * \brief MainWindow::migrateNote
  * \param notePath
  */
-void MainWindow::migrateNoteFromV0_9_0(QString notePath)
+void MainWindow::migrateNoteFromV0_9_0(const QString &notePath)
 {
     QSettings notesIni(notePath, QSettings::IniFormat);
     QStringList dbKeys = notesIni.allKeys();
@@ -2802,7 +2802,7 @@ void MainWindow::migrateNoteFromV0_9_0(QString notePath)
  * \brief MainWindow::migrateTrash
  * \param trashPath
  */
-void MainWindow::migrateTrashFromV0_9_0(QString trashPath)
+void MainWindow::migrateTrashFromV0_9_0(const QString &trashPath)
 {
     QSettings trashIni(trashPath, QSettings::IniFormat);
     QStringList dbKeys = trashIni.allKeys();
@@ -2932,7 +2932,7 @@ void MainWindow::dropShadow(QPainter& painter, ShadowType type, MainWindow::Shad
  * \param rect
  * \param gradient
  */
-void MainWindow::fillRectWithGradient(QPainter& painter, const QRect& rect, QGradient& gradient)
+void MainWindow::fillRectWithGradient(QPainter& painter, QRect rect, QGradient& gradient)
 {
     double variance = 0.2;
     double xMax = 1.10;

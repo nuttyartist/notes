@@ -525,7 +525,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
             folderNameRectHeight = fmRectParentName.height() + NoteListConstant::descFolderSpace;
         }
 
-        auto drawStr = [&bufferPainter](double posX, double posY, double width, double height, QColor color, QFont font, QString str){
+        auto drawStr = [&bufferPainter](double posX, double posY, double width, double height, QColor color, const QFont &font, const QString &str){
             QRectF rect(posX, posY, width, height);
             bufferPainter.setPen(color);
             bufferPainter.setFont(font);
@@ -705,7 +705,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
             folderNameRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
             folderNameRectHeight = fmRectParentName.height() + NoteListConstant::descFolderSpace;
         }
-        auto drawStr = [painter](double posX, double posY, double width, double height, QColor color, QFont font, QString str){
+        auto drawStr = [painter](double posX, double posY, double width, double height, QColor color, const QFont &font, const QString &str){
             QRectF rect(posX, posY, width, height);
             painter->setPen(color);
             painter->setFont(font);
@@ -727,7 +727,7 @@ void NoteListDelegate::paintLabels(QPainter* painter, const QStyleOptionViewItem
     }
 }
 
-void NoteListDelegate::paintSeparator(QPainter*painter, const QRect& rect, const QModelIndex&index) const
+void NoteListDelegate::paintSeparator(QPainter*painter, QRect rect, const QModelIndex&index) const
 {
     Q_UNUSED(index);
     painter->setPen(QPen(m_separatorColor));
@@ -832,7 +832,7 @@ QString NoteListDelegate::parseDateTime(const QDateTime &dateTime) const
     return dateTime.date().toString("M/d/yy");
 }
 
-void NoteListDelegate::setStateI(NoteListState NewState, QModelIndexList indexes)
+void NoteListDelegate::setStateI(NoteListState NewState, const QModelIndexList &indexes)
 {
     m_animatedIndexes = indexes;
 
@@ -891,7 +891,7 @@ void NoteListDelegate::clearSizeMap()
     szMap.clear();
 }
 
-void NoteListDelegate::updateSizeMap(int id, const QSize &sz, const QModelIndex &index)
+void NoteListDelegate::updateSizeMap(int id, QSize sz, const QModelIndex &index)
 {
     szMap[id] = sz;
     emit sizeHintChanged(index);
