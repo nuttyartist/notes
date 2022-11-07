@@ -1,10 +1,7 @@
 #include "pushbuttontype.h"
 #include <QEvent>
 
-PushButtonType::PushButtonType(QWidget *parent) : QPushButton(parent)
-{
-
-}
+PushButtonType::PushButtonType(QWidget *parent) : QPushButton(parent) { }
 
 bool PushButtonType::event(QEvent *event)
 {
@@ -22,7 +19,7 @@ bool PushButtonType::event(QEvent *event)
         setIcon(hoveredIcon);
     }
 
-    if (event->type() == QEvent::Leave){
+    if (event->type() == QEvent::Leave) {
         setIcon(normalIcon);
     }
     return QPushButton::event(event);

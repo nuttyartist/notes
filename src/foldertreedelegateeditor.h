@@ -15,10 +15,8 @@ class FolderTreeDelegateEditor : public QWidget
 {
     Q_OBJECT
 public:
-    explicit FolderTreeDelegateEditor(QTreeView* view,
-                                      const QStyleOptionViewItem &option,
-                                      const QModelIndex &index,
-                                      QWidget *parent = nullptr);
+    explicit FolderTreeDelegateEditor(QTreeView *view, const QStyleOptionViewItem &option,
+                                      const QModelIndex &index, QWidget *parent = nullptr);
 
 private:
     QStyleOptionViewItem m_option;
@@ -29,12 +27,12 @@ private:
     QColor m_titleSelectedColor;
     QColor m_activeColor;
     QColor m_hoverColor;
-    QTreeView* m_view;
-    LabelEditType* m_label;
+    QTreeView *m_view;
+    LabelEditType *m_label;
     QPixmap m_expanded;
     QPixmap m_notExpanded;
-    QLabel* m_expandIcon;
-    PushButtonType* m_contextButton;
+    QLabel *m_expandIcon;
+    PushButtonType *m_contextButton;
     void updateDelegate();
 
     // QWidget interface

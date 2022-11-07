@@ -12,8 +12,10 @@ public:
 
     // QAbstractItemDelegate interface
 public:
-    virtual void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
-    virtual QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+    virtual void paint(QPainter *painter, const QStyleOptionViewItem &option,
+                       const QModelIndex &index) const override;
+    virtual QSize sizeHint(const QStyleOptionViewItem &option,
+                           const QModelIndex &index) const override;
     void setTheme(Theme newTheme);
 
 private:
@@ -24,7 +26,5 @@ private:
     QColor m_titleColor;
     Theme m_theme;
 };
-
-
 
 #endif // TAGLISTDELEGATE_H

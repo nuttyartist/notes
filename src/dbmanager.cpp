@@ -15,10 +15,9 @@
  * \brief DBManager::DBManager
  * \param parent
  */
-DBManager::DBManager(QObject *parent)
-    : QObject(parent)
+DBManager::DBManager(QObject *parent) : QObject(parent)
 {
-    qRegisterMetaType<QList<NodeData*>>("QList<NodeData*>");
+    qRegisterMetaType<QList<NodeData *>>("QList<NodeData*>");
     qRegisterMetaType<QVector<NodeData>>("QVector<NodeData>");
     qRegisterMetaType<NodeTagTreeData>("NodeTagTreeData");
     qRegisterMetaType<QSet<int>>("QSet<int>");
@@ -36,13 +35,13 @@ void DBManager::open(const QString &path, bool doCreate)
     m_db = QSqlDatabase::addDatabase("QSQLITE", DEFAULT_DATABASE_NAME);
     m_dbpath = path;
     m_db.setDatabaseName(path);
-    if(!m_db.open()){
+    if (!m_db.open()) {
         qDebug() << "Error: connection with database fail";
-    }else{
+    } else {
         qDebug() << "Database: connection ok";
     }
-    
-    if(doCreate) {
+
+    if (doCreate) {
         createTables();
     }
     recalculateChildNotesCount();
@@ -159,12 +158,13 @@ void DBManager::createTables()
  * \param note
  * \return
  */
-bool DBManager::isNodeExist(const NodeData& node)
+bool DBManager::isNodeExist(const NodeData &node)
 {
     QSqlQuery query(m_db);
 
     int id = node.id();
-    QString queryStr = QStringLiteral("SELECT EXISTS(SELECT 1 FROM node_table WHERE id = :id LIMIT 1 )");
+    QString queryStr =
+            QStringLiteral("SELECT EXISTS(SELECT 1 FROM node_table WHERE id = :id LIMIT 1 )");
     query.prepare(queryStr);
     query.bindValue(":id", id);
     bool status = query.exec();
@@ -174,7 +174,6 @@ bool DBManager::isNodeExist(const NodeData& node)
     query.next();
     return query.value(0).toInt() == 1;
 }
-
 
 QVector<NodeData> DBManager::getAllFolders()
 {
@@ -193,17 +192,17 @@ QVector<NodeData> DBManager::getAllFolders()
                   R"("relative_position",)"
                   R"("absolute_path", )"
                   R"("child_notes_count" )"
-                  R"(FROM node_table WHERE node_type=:node_type;)"
-                );
+                  R"(FROM node_table WHERE node_type=:node_type;)");
     query.bindValue(":node_type", static_cast<int>(NodeData::Type::Folder));
     bool status = query.exec();
-    if(status) {
-        while(query.next()) {
+    if (status) {
+        while (query.next()) {
             NodeData node;
             node.setId(query.value(0).toInt());
             node.setFullTitle(query.value(1).toString());
             node.setCreationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(2).toLongLong()));
-            node.setLastModificationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(3).toLongLong()));
+            node.setLastModificationDateTime(
+                    QDateTime::fromMSecsSinceEpoch(query.value(3).toLongLong()));
             node.setDeletionDateTime(QDateTime::fromMSecsSinceEpoch(query.value(4).toLongLong()));
             node.setContent(query.value(5).toString());
             node.setNodeType(static_cast<NodeData::Type>(query.value(6).toInt()));
@@ -228,10 +227,11 @@ QVector<TagData> DBManager::getAllTagInfo()
     QVector<TagData> tagList;
 
     QSqlQuery query(m_db);
-    query.prepare(R"(SELECT "id","name","color","relative_position","child_notes_count" FROM tag_table;)");
+    query.prepare(
+            R"(SELECT "id","name","color","relative_position","child_notes_count" FROM tag_table;)");
     bool status = query.exec();
-    if(status) {
-        while(query.next()) {
+    if (status) {
+        while (query.next()) {
             TagData tag;
             tag.setId(query.value(0).toInt());
             tag.setName(query.value(1).toString());
@@ -254,8 +254,8 @@ QSet<int> DBManager::getAllTagForNote(int noteId)
     query.prepare(R"(SELECT "tag_id" FROM tag_relationship WHERE node_id = :node_id;)");
     query.bindValue(":node_id", noteId);
     bool status = query.exec();
-    if(status) {
-        while(query.next()) {
+    if (status) {
+        while (query.next()) {
             tagIds.insert(query.value(0).toInt());
         }
     } else {
@@ -269,17 +269,13 @@ int DBManager::addNode(const NodeData &node)
     QSqlQuery query(m_db);
     QString emptyStr;
 
-    qint64 epochTimeDateCreated = node.creationDateTime()
-            .toMSecsSinceEpoch();
-    QString content = node.content()
-            .replace("'","''")
-            .replace(QChar('\x0'), emptyStr);
-    QString fullTitle = node.fullTitle()
-            .replace("'","''")
-            .replace(QChar('\x0'), emptyStr);
+    qint64 epochTimeDateCreated = node.creationDateTime().toMSecsSinceEpoch();
+    QString content = node.content().replace("'", "''").replace(QChar('\x0'), emptyStr);
+    QString fullTitle = node.fullTitle().replace("'", "''").replace(QChar('\x0'), emptyStr);
 
-    qint64 epochTimeDateLastModified = node.lastModificationdateTime().isNull() ? epochTimeDateCreated
-                                                                                : node.lastModificationdateTime().toMSecsSinceEpoch();
+    qint64 epochTimeDateLastModified = node.lastModificationdateTime().isNull()
+            ? epochTimeDateCreated
+            : node.lastModificationdateTime().toMSecsSinceEpoch();
 
     int relationalPosition = 0;
     if (node.parentId() != -1) {
@@ -288,8 +284,8 @@ int DBManager::addNode(const NodeData &node)
         query.bindValue(":parent_id", node.parentId());
         query.bindValue(":node_type", static_cast<int>(node.nodeType()));
         bool status = query.exec();
-        if(status) {
-            while(query.next()) {
+        if (status) {
+            while (query.next()) {
                 if (relationalPosition <= query.value(0).toInt()) {
                     relationalPosition = query.value(0).toInt() + 1;
                 }
@@ -305,9 +301,10 @@ int DBManager::addNode(const NodeData &node)
         absolutePath = getNodeAbsolutePath(node.parentId()).path();
     }
     absolutePath += PATH_SEPERATOR + QString::number(nodeId);
-    QString queryStr = R"(INSERT INTO "node_table")"
-                       R"(("id", "title", "creation_date", "modification_date", "deletion_date", "content", "node_type", "parent_id", "relative_position", "scrollbar_position", "absolute_path", "is_pinned_note", "relative_position_an", "child_notes_count"))"
-                       R"(VALUES (:id, :title, :creation_date, :modification_date, :deletion_date, :content, :node_type, :parent_id, :relative_position, :scrollbar_position, :absolute_path, :is_pinned_note, :relative_position_an, :child_notes_count);)";
+    QString queryStr =
+            R"(INSERT INTO "node_table")"
+            R"(("id", "title", "creation_date", "modification_date", "deletion_date", "content", "node_type", "parent_id", "relative_position", "scrollbar_position", "absolute_path", "is_pinned_note", "relative_position_an", "child_notes_count"))"
+            R"(VALUES (:id, :title, :creation_date, :modification_date, :deletion_date, :content, :node_type, :parent_id, :relative_position, :scrollbar_position, :absolute_path, :is_pinned_note, :relative_position_an, :child_notes_count);)";
 
     query.prepare(queryStr);
     query.bindValue(":id", nodeId);
@@ -351,24 +348,21 @@ int DBManager::addNodePreComputed(const NodeData &node)
     QSqlQuery query(m_db);
     QString emptyStr;
 
-    qint64 epochTimeDateCreated = node.creationDateTime()
-            .toMSecsSinceEpoch();
-    QString content = node.content()
-            .replace("'","''")
-            .replace(QChar('\x0'), emptyStr);
-    QString fullTitle = node.fullTitle()
-            .replace("'","''")
-            .replace(QChar('\x0'), emptyStr);
+    qint64 epochTimeDateCreated = node.creationDateTime().toMSecsSinceEpoch();
+    QString content = node.content().replace("'", "''").replace(QChar('\x0'), emptyStr);
+    QString fullTitle = node.fullTitle().replace("'", "''").replace(QChar('\x0'), emptyStr);
 
-    qint64 epochTimeDateLastModified = node.lastModificationdateTime().isNull() ? epochTimeDateCreated
-                                                                                : node.lastModificationdateTime().toMSecsSinceEpoch();
+    qint64 epochTimeDateLastModified = node.lastModificationdateTime().isNull()
+            ? epochTimeDateCreated
+            : node.lastModificationdateTime().toMSecsSinceEpoch();
 
     int relationalPosition = node.relativePosition();
     int nodeId = node.id();
     QString absolutePath = node.absolutePath();
-    QString queryStr = R"(INSERT INTO "node_table" )"
-                       R"(("id", "title", "creation_date", "modification_date", "deletion_date", "content", "node_type", "parent_id", "relative_position", "scrollbar_position", "absolute_path", "is_pinned_note", "relative_position_an", "child_notes_count") )"
-                       R"(VALUES (:id, :title, :creation_date, :modification_date, :deletion_date, :content, :node_type, :parent_id, :relative_position, :scrollbar_position, :absolute_path, :is_pinned_note, :relative_position_an, :child_notes_count);)";
+    QString queryStr =
+            R"(INSERT INTO "node_table" )"
+            R"(("id", "title", "creation_date", "modification_date", "deletion_date", "content", "node_type", "parent_id", "relative_position", "scrollbar_position", "absolute_path", "is_pinned_note", "relative_position_an", "child_notes_count") )"
+            R"(VALUES (:id, :title, :creation_date, :modification_date, :deletion_date, :content, :node_type, :parent_id, :relative_position, :scrollbar_position, :absolute_path, :is_pinned_note, :relative_position_an, :child_notes_count);)";
 
     query.prepare(queryStr);
     query.bindValue(":id", nodeId);
@@ -407,14 +401,14 @@ void DBManager::recalculateChildNotesCount()
     query.prepare(R"(SELECT id FROM "tag_table")");
     bool status = query.exec();
     if (status) {
-        while(query.next()) {
+        while (query.next()) {
             tagIds.insert(query.value(0).toInt());
         }
     } else {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
     query.clear();
-    for (const auto& id: qAsConst(tagIds)) {
+    for (const auto &id : qAsConst(tagIds)) {
         query.prepare("SELECT count(*) FROM tag_relationship WHERE tag_id=:id");
         query.bindValue(QStringLiteral(":id"), id);
         status = query.exec();
@@ -439,12 +433,11 @@ void DBManager::recalculateChildNotesCount()
     query.clear();
     QMap<int, QString> folderIds;
     query.prepare(R"(SELECT id, absolute_path )"
-                  R"(FROM node_table WHERE node_type=:node_type;)"
-                );
+                  R"(FROM node_table WHERE node_type=:node_type;)");
     query.bindValue(":node_type", static_cast<int>(NodeData::Type::Folder));
     status = query.exec();
-    if(status) {
-        while(query.next()) {
+    if (status) {
+        while (query.next()) {
             auto id = query.value(0).toInt();
             if (id != SpecialNodeID::RootFolder) {
                 folderIds[id] = query.value(1).toString();
@@ -453,10 +446,9 @@ void DBManager::recalculateChildNotesCount()
     } else {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
-    for (const auto& id: folderIds.keys()) {
+    for (const auto &id : folderIds.keys()) {
         query.prepare(R"(SELECT count(*) FROM node_table )"
-                      R"(WHERE node_type = (:node_type) AND parent_id = (:parent_id);)"
-                    );
+                      R"(WHERE node_type = (:node_type) AND parent_id = (:parent_id);)");
         query.bindValue(QStringLiteral(":parent_id"), id);
         query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
         status = query.exec();
@@ -485,8 +477,7 @@ void DBManager::recalculateChildNotesCountFolder(int folderId)
 {
     QSqlQuery query(m_db);
     query.prepare(R"(SELECT count(*) FROM node_table )"
-                  R"(WHERE node_type = (:node_type) AND parent_id = (:parent_id);)"
-                );
+                  R"(WHERE node_type = (:node_type) AND parent_id = (:parent_id);)");
     query.bindValue(QStringLiteral(":parent_id"), folderId);
     query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
     bool status = query.exec();
@@ -506,7 +497,8 @@ void DBManager::recalculateChildNotesCountFolder(int folderId)
     if (!status) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
-    emit childNotesCountUpdatedFolder(folderId, getNodeAbsolutePath(folderId).path(), childNotesCount);
+    emit childNotesCountUpdatedFolder(folderId, getNodeAbsolutePath(folderId).path(),
+                                      childNotesCount);
 }
 
 void DBManager::recalculateChildNotesCountTag(int tagId)
@@ -538,8 +530,7 @@ void DBManager::recalculateChildNotesCountAllNotes()
 {
     QSqlQuery query(m_db);
     query.prepare(R"(SELECT count(*) FROM node_table )"
-                  R"(WHERE node_type = (:node_type) AND parent_id != (:parent_id);)"
-                );
+                  R"(WHERE node_type = (:node_type) AND parent_id != (:parent_id);)");
     query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
     query.bindValue(QStringLiteral(":parent_id"), static_cast<int>(SpecialNodeID::TrashFolder));
     bool status = query.exec();
@@ -571,7 +562,7 @@ void DBManager::increaseChildNotesCountTag(int tagId)
     query.bindValue(QStringLiteral(":id"), tagId);
     bool status = query.exec();
     int childNotesCount = 0;
-    if(status) {
+    if (status) {
         query.next();
         childNotesCount = query.value(0).toInt();
     } else {
@@ -586,7 +577,7 @@ void DBManager::increaseChildNotesCountTag(int tagId)
     query.bindValue(QStringLiteral(":id"), tagId);
     query.bindValue(QStringLiteral(":child_notes_count"), childNotesCount);
     status = query.exec();
-    if(!status) {
+    if (!status) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
     emit childNotesCountUpdatedTag(tagId, childNotesCount);
@@ -599,7 +590,7 @@ void DBManager::decreaseChildNotesCountTag(int tagId)
     query.bindValue(QStringLiteral(":id"), tagId);
     bool status = query.exec();
     int childNoteCount = 0;
-    if(status) {
+    if (status) {
         query.next();
         childNoteCount = query.value(0).toInt();
     } else {
@@ -617,7 +608,7 @@ void DBManager::decreaseChildNotesCountTag(int tagId)
     query.bindValue(QStringLiteral(":id"), tagId);
     query.bindValue(QStringLiteral(":child_notes_count"), childNoteCount);
     status = query.exec();
-    if(!status) {
+    if (!status) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
     emit childNotesCountUpdatedTag(tagId, childNoteCount);
@@ -647,7 +638,7 @@ void DBManager::increaseChildNotesCountFolder(int folderId)
     query.bindValue(QStringLiteral(":id"), folderId);
     query.bindValue(QStringLiteral(":child_notes_count"), childNotesCount);
     status = query.exec();
-    if(!status) {
+    if (!status) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
     emit childNotesCountUpdatedFolder(folderId, absPath, childNotesCount);
@@ -661,7 +652,7 @@ void DBManager::decreaseChildNotesCountFolder(int folderId)
     bool status = query.exec();
     int childNotesCount = 0;
     QString absPath;
-    if(status) {
+    if (status) {
         query.next();
         childNotesCount = query.value(0).toInt();
         absPath = query.value(1).toString();
@@ -680,7 +671,7 @@ void DBManager::decreaseChildNotesCountFolder(int folderId)
     query.bindValue(QStringLiteral(":id"), folderId);
     query.bindValue(QStringLiteral(":child_notes_count"), childNotesCount);
     status = query.exec();
-    if(!status) {
+    if (!status) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
     emit childNotesCountUpdatedFolder(folderId, absPath, childNotesCount);
@@ -693,8 +684,8 @@ int DBManager::addTag(const TagData &tag)
     int relationalPosition = 0;
     query.prepare(R"(SELECT relative_position FROM "tag_table" )");
     bool status = query.exec();
-    if(status) {
-        while(query.next()) {
+    if (status) {
+        while (query.next()) {
             if (relationalPosition <= query.value(0).toInt()) {
                 relationalPosition = query.value(0).toInt() + 1;
             }
@@ -733,7 +724,8 @@ int DBManager::addTag(const TagData &tag)
 void DBManager::addNoteToTag(int noteId, int tagId)
 {
     QSqlQuery query(m_db);
-    query.prepare(R"(INSERT OR IGNORE INTO "tag_relationship" ("node_id","tag_id") VALUES (:note_id, :tag_id);)");
+    query.prepare(
+            R"(INSERT OR IGNORE INTO "tag_relationship" ("node_id","tag_id") VALUES (:note_id, :tag_id);)");
     query.bindValue(":note_id", noteId);
     query.bindValue(":tag_id", tagId);
     if (!query.exec()) {
@@ -826,8 +818,7 @@ void DBManager::removeNote(const NodeData &note)
     if (note.parentId() == SpecialNodeID::TrashFolder) {
         QSqlQuery query(m_db);
         query.prepare(R"(DELETE FROM "node_table" )"
-                      R"(WHERE id = (:id) AND node_type = (:node_type);)"
-                        );
+                      R"(WHERE id = (:id) AND node_type = (:node_type);)");
         query.bindValue(QStringLiteral(":id"), note.id());
         query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
         if (!query.exec()) {
@@ -835,8 +826,7 @@ void DBManager::removeNote(const NodeData &note)
         }
         query.clear();
         query.prepare(R"(DELETE FROM "tag_relationship" )"
-                      R"(WHERE node_id = (:id);)"
-                        );
+                      R"(WHERE node_id = (:id);)");
         query.bindValue(QStringLiteral(":id"), note.id());
         if (!query.exec()) {
             qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
@@ -854,16 +844,14 @@ void DBManager::removeTag(int tagId)
 {
     QSqlQuery query(m_db);
     query.prepare(R"(DELETE FROM "tag_table" )"
-                  R"(WHERE id = (:id);)"
-                    );
+                  R"(WHERE id = (:id);)");
     query.bindValue(QStringLiteral(":id"), tagId);
     if (!query.exec()) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
     query.clear();
     query.prepare(R"(DELETE FROM "tag_relationship" )"
-                  R"(WHERE tag_id = (:id);)"
-                    );
+                  R"(WHERE tag_id = (:id);)");
     query.bindValue(QStringLiteral(":id"), tagId);
     if (!query.exec()) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
@@ -876,7 +864,7 @@ void DBManager::removeTag(int tagId)
  * \param note
  * \return
  */
-bool DBManager::updateNoteContent(const NodeData& note)
+bool DBManager::updateNoteContent(const NodeData &note)
 {
     QSqlQuery query(m_db);
     QString emptyStr;
@@ -889,9 +877,11 @@ bool DBManager::updateNoteContent(const NodeData& note)
     qint64 epochTimeDateModified = note.lastModificationdateTime().toMSecsSinceEpoch();
     QString content = note.content().replace(QChar('\x0'), emptyStr);
     QString fullTitle = note.fullTitle().replace(QChar('\x0'), emptyStr);
-    
-    query.prepare(QStringLiteral("UPDATE node_table SET modification_date = :modification_date, content = :content, "
-                                 "title = :title, scrollbar_position = :scrollbar_position WHERE id = :id AND node_type = :node_type;"));
+
+    query.prepare(QStringLiteral(
+            "UPDATE node_table SET modification_date = :modification_date, content = :content, "
+            "title = :title, scrollbar_position = :scrollbar_position WHERE id = :id AND node_type "
+            "= :node_type;"));
     query.bindValue(QStringLiteral(":modification_date"), epochTimeDateModified);
     query.bindValue(QStringLiteral(":content"), content);
     query.bindValue(QStringLiteral(":title"), fullTitle);
@@ -916,7 +906,8 @@ QList<NodeData> DBManager::readOldNBK(const QString &fileName)
         try {
             in >> noteList;
         } catch (...) {
-            // Any exception deserializing will result in an empty note list and  the user will be notified
+            // Any exception deserializing will result in an empty note list and  the user will be
+            // notified
         }
         file.close();
     }
@@ -926,14 +917,15 @@ QList<NodeData> DBManager::readOldNBK(const QString &fileName)
         QDataStream in(&file);
         in.setVersion(QDataStream::Qt_5_6);
 
-        QList<NodeData*> nl;
+        QList<NodeData *> nl;
         try {
             in >> nl;
         } catch (...) {
-            // Any exception deserializing will result in an empty note list and  the user will be notified
+            // Any exception deserializing will result in an empty note list and  the user will be
+            // notified
         }
         if (!nl.isEmpty()) {
-            for (const auto& n : qAsConst(nl)) {
+            for (const auto &n : qAsConst(nl)) {
                 noteList.append(*n);
             }
         }
@@ -953,8 +945,8 @@ int DBManager::nextAvailablePosition(int parentId, NodeData::Type nodeType)
         query.bindValue(":parent_id", parentId);
         query.bindValue(":node_type", static_cast<int>(nodeType));
         bool status = query.exec();
-        if(status) {
-            while(query.next()) {
+        if (status) {
+            while (query.next()) {
                 if (relationalPosition <= query.value(0).toInt()) {
                     relationalPosition = query.value(0).toInt() + 1;
                 }
@@ -999,17 +991,17 @@ NodeData DBManager::getNode(int nodeId)
                   R"("is_pinned_note", )"
                   R"("relative_position_an", )"
                   R"("child_notes_count" )"
-                  R"(FROM node_table WHERE id=:id LIMIT 1;)"
-                );
+                  R"(FROM node_table WHERE id=:id LIMIT 1;)");
     query.bindValue(":id", nodeId);
     bool status = query.exec();
-    if(status) {
+    if (status) {
         query.next();
         NodeData node;
         node.setId(query.value(0).toInt());
         node.setFullTitle(query.value(1).toString());
         node.setCreationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(2).toLongLong()));
-        node.setLastModificationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(3).toLongLong()));
+        node.setLastModificationDateTime(
+                QDateTime::fromMSecsSinceEpoch(query.value(3).toLongLong()));
         node.setDeletionDateTime(QDateTime::fromMSecsSinceEpoch(query.value(4).toLongLong()));
         node.setContent(query.value(5).toString());
         node.setNodeType(static_cast<NodeData::Type>(query.value(6).toInt()));
@@ -1024,12 +1016,11 @@ NodeData DBManager::getNode(int nodeId)
             node.setTagIds(getAllTagForNote(node.id()));
             QSqlQuery query2(m_db);
             query2.prepare(R"(SELECT)"
-                          R"("title" )"
-                          R"(FROM node_table WHERE id=:id LIMIT 1;)"
-                        );
+                           R"("title" )"
+                           R"(FROM node_table WHERE id=:id LIMIT 1;)");
             query2.bindValue(":id", node.parentId());
             bool status = query2.exec();
-            if(status) {
+            if (status) {
                 query2.next();
                 node.setParentName(query2.value(0).toString());
             } else {
@@ -1050,14 +1041,13 @@ void DBManager::moveFolderToTrash(const NodeData &node)
     QSqlQuery query(m_db);
     QString parentPath = node.absolutePath() + PATH_SEPERATOR;
     query.prepare(R"(SELECT id FROM "node_table" )"
-                  R"(WHERE absolute_path like (:path_expr) || '%' AND node_type = (:node_type);)"
-                    );
+                  R"(WHERE absolute_path like (:path_expr) || '%' AND node_type = (:node_type);)");
     query.bindValue(QStringLiteral(":path_expr"), parentPath);
     query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
     bool status = query.exec();
     QSet<int> childIds;
     if (status) {
-        while(query.next()) {
+        while (query.next()) {
             childIds.insert(query.value(0).toInt());
         }
     } else {
@@ -1065,26 +1055,24 @@ void DBManager::moveFolderToTrash(const NodeData &node)
     }
     query.clear();
     auto trashFolder = getNode(SpecialNodeID::TrashFolder);
-    for (const auto& id : childIds) {
+    for (const auto &id : childIds) {
         moveNode(id, trashFolder);
     }
     query.prepare(R"(DELETE FROM "node_table" )"
-                  R"(WHERE absolute_path like (:path_expr) || '%' AND node_type = (:node_type);)"
-                    );
+                  R"(WHERE absolute_path like (:path_expr) || '%' AND node_type = (:node_type);)");
     query.bindValue(QStringLiteral(":path_expr"), parentPath);
     query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Folder));
     status = query.exec();
-    if(!status) {
+    if (!status) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
     query.clear();
     query.prepare(R"(DELETE FROM "node_table" )"
-                  R"(WHERE absolute_path like (:path_expr) AND node_type = (:node_type);)"
-                    );
+                  R"(WHERE absolute_path like (:path_expr) AND node_type = (:node_type);)");
     query.bindValue(QStringLiteral(":path_expr"), node.absolutePath());
     query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Folder));
     status = query.exec();
-    if(!status) {
+    if (!status) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
 }
@@ -1093,11 +1081,12 @@ FolderListType DBManager::getFolderList()
 {
     QMap<int, QString> result;
     QSqlQuery query(m_db);
-    query.prepare(R"(SELECT "id", "title" FROM node_table WHERE id > 0 AND node_type = :node_type;)");
+    query.prepare(
+            R"(SELECT "id", "title" FROM node_table WHERE id > 0 AND node_type = :node_type;)");
     query.bindValue(":node_type", NodeData::Folder);
     bool status = query.exec();
-    if(status) {
-        while(query.next()) {
+    if (status) {
+        while (query.next()) {
             result[query.value(0).toInt()] = query.value(1).toString();
         }
     } else {
@@ -1118,22 +1107,25 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
     QString newAbsolutePath = target.absolutePath() + PATH_SEPERATOR + QString::number(nodeId);
     if (target.id() == SpecialNodeID::TrashFolder) {
         qint64 deletionTime = QDateTime::currentMSecsSinceEpoch();
-        query.prepare(QStringLiteral("UPDATE node_table SET parent_id = :parent_id, absolute_path = :absolute_path, is_pinned_note = :is_pinned_note, deletion_date = :deletion_date "
-                                     "WHERE id = :id;"));
+        query.prepare(QStringLiteral(
+                "UPDATE node_table SET parent_id = :parent_id, absolute_path = :absolute_path, "
+                "is_pinned_note = :is_pinned_note, deletion_date = :deletion_date "
+                "WHERE id = :id;"));
         query.bindValue(QStringLiteral(":parent_id"), target.id());
         query.bindValue(QStringLiteral(":absolute_path"), newAbsolutePath);
         query.bindValue(QStringLiteral(":is_pinned_note"), false);
         query.bindValue(QStringLiteral(":deletion_date"), deletionTime);
         query.bindValue(QStringLiteral(":id"), nodeId);
-    } else{
-        query.prepare(QStringLiteral("UPDATE node_table SET parent_id = :parent_id, absolute_path = :absolute_path "
-                                     "WHERE id = :id;"));
+    } else {
+        query.prepare(QStringLiteral(
+                "UPDATE node_table SET parent_id = :parent_id, absolute_path = :absolute_path "
+                "WHERE id = :id;"));
         query.bindValue(QStringLiteral(":parent_id"), target.id());
         query.bindValue(QStringLiteral(":absolute_path"), newAbsolutePath);
         query.bindValue(QStringLiteral(":id"), nodeId);
     }
     bool status = query.exec();
-    if(!status) {
+    if (!status) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError() << query.lastQuery();
     }
 
@@ -1145,8 +1137,8 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
                       R"(WHERE absolute_path like (:path_expr) || '%';)");
         query.bindValue(QStringLiteral(":path_expr"), oldAbsolutePath);
         bool status = query.exec();
-        if(status) {
-            while(query.next()) {
+        if (status) {
+            while (query.next()) {
                 if (query.value(0).toInt() != node.id()) {
                     childs[query.value(0).toInt()] = query.value(1).toString();
                 }
@@ -1154,15 +1146,16 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
         } else {
             qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
         }
-        for (const auto id: childs.keys()) {
+        for (const auto id : childs.keys()) {
             QString oldP = childs[id];
-            QString newP = oldP.replace(oldP.indexOf(oldAbsolutePath),
-                                        oldAbsolutePath.size(),
+            QString newP = oldP.replace(oldP.indexOf(oldAbsolutePath), oldAbsolutePath.size(),
                                         newAbsolutePath);
             if (target.id() == SpecialNodeID::TrashFolder) {
                 qint64 deletionTime = QDateTime::currentMSecsSinceEpoch();
-                query.prepare(QStringLiteral("UPDATE node_table SET absolute_path = :absolute_path, is_pinned_note = :is_pinned_note, deletion_date = :deletion_date "
-                                             "WHERE id = :id;"));
+                query.prepare(QStringLiteral(
+                        "UPDATE node_table SET absolute_path = :absolute_path, is_pinned_note = "
+                        ":is_pinned_note, deletion_date = :deletion_date "
+                        "WHERE id = :id;"));
                 query.bindValue(QStringLiteral(":absolute_path"), newP);
                 query.bindValue(QStringLiteral(":id"), id);
                 query.bindValue(QStringLiteral(":is_pinned_note"), false);
@@ -1174,25 +1167,25 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
                 query.bindValue(QStringLiteral(":id"), id);
             }
             bool status = query.exec();
-            if(!status) {
+            if (!status) {
                 qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
             }
         }
         recalculateChildNotesCount();
     } else {
         decreaseChildNotesCountFolder(node.parentId());
-        if (node.parentId() != SpecialNodeID::TrashFolder &&
-                target.id() == SpecialNodeID::TrashFolder) {
+        if (node.parentId() != SpecialNodeID::TrashFolder
+            && target.id() == SpecialNodeID::TrashFolder) {
             decreaseChildNotesCountFolder(SpecialNodeID::RootFolder);
             auto allTagInNote = getAllTagForNote(node.id());
-            for (const auto& tagId: qAsConst(allTagInNote)) {
+            for (const auto &tagId : qAsConst(allTagInNote)) {
                 decreaseChildNotesCountTag(tagId);
             }
-        } else if (node.parentId() == SpecialNodeID::TrashFolder &&
-                   target.id() != SpecialNodeID::TrashFolder) {
+        } else if (node.parentId() == SpecialNodeID::TrashFolder
+                   && target.id() != SpecialNodeID::TrashFolder) {
             increaseChildNotesCountFolder(SpecialNodeID::RootFolder);
             auto allTagInNote = getAllTagForNote(node.id());
-            for (const auto& tagId: qAsConst(allTagInNote)) {
+            for (const auto &tagId : qAsConst(allTagInNote)) {
                 increaseChildNotesCountTag(tagId);
             }
         }
@@ -1222,21 +1215,23 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
                       R"("child_notes_count" )"
                       R"(FROM node_table )"
                       R"(WHERE node_type = (:node_type) AND parent_id != (:parent_id) )"
-                      R"(AND content like  '%' || (:search_expr) || '%';)"
-                    );
+                      R"(AND content like  '%' || (:search_expr) || '%';)");
         query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
         query.bindValue(QStringLiteral(":parent_id"), static_cast<int>(SpecialNodeID::TrashFolder));
         query.bindValue(QStringLiteral(":search_expr"), keyword);
 
         bool status = query.exec();
-        if(status) {
-            while(query.next()) {
+        if (status) {
+            while (query.next()) {
                 NodeData node;
                 node.setId(query.value(0).toInt());
                 node.setFullTitle(query.value(1).toString());
-                node.setCreationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(2).toLongLong()));
-                node.setLastModificationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(3).toLongLong()));
-                node.setDeletionDateTime(QDateTime::fromMSecsSinceEpoch(query.value(4).toLongLong()));
+                node.setCreationDateTime(
+                        QDateTime::fromMSecsSinceEpoch(query.value(2).toLongLong()));
+                node.setLastModificationDateTime(
+                        QDateTime::fromMSecsSinceEpoch(query.value(3).toLongLong()));
+                node.setDeletionDateTime(
+                        QDateTime::fromMSecsSinceEpoch(query.value(4).toLongLong()));
                 node.setContent(query.value(5).toString());
                 node.setNodeType(static_cast<NodeData::Type>(query.value(6).toInt()));
                 node.setParentId(query.value(7).toInt());
@@ -1272,21 +1267,23 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
                       R"("child_notes_count" )"
                       R"(FROM node_table )"
                       R"(WHERE node_type = (:node_type) AND parent_id == (:parent_id) )"
-                      R"(AND content like  '%' || (:search_expr) || '%';)"
-                    );
+                      R"(AND content like  '%' || (:search_expr) || '%';)");
         query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
         query.bindValue(QStringLiteral(":parent_id"), static_cast<int>(inf.parentFolderId));
         query.bindValue(QStringLiteral(":search_expr"), keyword);
 
         bool status = query.exec();
-        if(status) {
-            while(query.next()) {
+        if (status) {
+            while (query.next()) {
                 NodeData node;
                 node.setId(query.value(0).toInt());
                 node.setFullTitle(query.value(1).toString());
-                node.setCreationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(2).toLongLong()));
-                node.setLastModificationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(3).toLongLong()));
-                node.setDeletionDateTime(QDateTime::fromMSecsSinceEpoch(query.value(4).toLongLong()));
+                node.setCreationDateTime(
+                        QDateTime::fromMSecsSinceEpoch(query.value(2).toLongLong()));
+                node.setLastModificationDateTime(
+                        QDateTime::fromMSecsSinceEpoch(query.value(3).toLongLong()));
+                node.setDeletionDateTime(
+                        QDateTime::fromMSecsSinceEpoch(query.value(4).toLongLong()));
                 node.setContent(query.value(5).toString());
                 node.setNodeType(static_cast<NodeData::Type>(query.value(6).toInt()));
                 node.setParentId(query.value(7).toInt());
@@ -1306,14 +1303,14 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
         }
     } else if (inf.isInTag) {
         QVector<QSet<int>> nds;
-        for (const auto& tagId : inf.currentTagList) {
+        for (const auto &tagId : inf.currentTagList) {
             QSet<int> nd;
             QSqlQuery query(m_db);
             query.prepare(R"(SELECT "node_id" FROM tag_relationship WHERE tag_id = :tag_id;)");
             query.bindValue(QStringLiteral(":tag_id"), tagId);
             bool status = query.exec();
-            if(status) {
-                while(query.next()) {
+            if (status) {
+                while (query.next()) {
                     nd.insert(query.value(0).toInt());
                 }
             } else {
@@ -1346,11 +1343,10 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
                 noteIds.insert(id);
             }
         }
-        for (const auto& id : noteIds) {
+        for (const auto &id : noteIds) {
             NodeData node = getNode(id);
-            if (node.id() != SpecialNodeID::InvalidNodeId &&
-                    node.nodeType() == NodeData::Note &&
-                    node.content().contains(keyword)) {
+            if (node.id() != SpecialNodeID::InvalidNodeId && node.nodeType() == NodeData::Note
+                && node.content().contains(keyword)) {
                 nodeList.append(node);
             } else {
                 qDebug() << __FUNCTION__ << "Note with id" << id << "is not valid";
@@ -1361,7 +1357,7 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
     }
     ListViewInfo _inf = inf;
     _inf.isInSearch = true;
-    std::sort(nodeList.begin(), nodeList.end(), [] (const NodeData& a, const NodeData& b) ->bool{
+    std::sort(nodeList.begin(), nodeList.end(), [](const NodeData &a, const NodeData &b) -> bool {
         return a.lastModificationdateTime() > b.lastModificationdateTime();
     });
     emit notesListReceived(nodeList, _inf);
@@ -1373,9 +1369,11 @@ void DBManager::clearSearch(const ListViewInfo &inf)
         onNotesListInTagsRequested(inf.currentTagList, inf.needCreateNewNote, inf.scrollToId);
     } else {
         if (inf.parentFolderId == SpecialNodeID::RootFolder) {
-            onNotesListInFolderRequested(inf.parentFolderId, true, inf.needCreateNewNote, inf.scrollToId);
+            onNotesListInFolderRequested(inf.parentFolderId, true, inf.needCreateNewNote,
+                                         inf.scrollToId);
         } else {
-            onNotesListInFolderRequested(inf.parentFolderId, false, inf.needCreateNewNote, inf.scrollToId);
+            onNotesListInFolderRequested(inf.parentFolderId, false, inf.needCreateNewNote,
+                                         inf.scrollToId);
         }
     }
 }
@@ -1388,7 +1386,7 @@ void DBManager::updateRelPosNode(int nodeId, int relPos)
     query.bindValue(QStringLiteral(":relative_position"), relPos);
     query.bindValue(QStringLiteral(":id"), nodeId);
     bool status = query.exec();
-    if(!status) {
+    if (!status) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
 }
@@ -1401,7 +1399,7 @@ void DBManager::updateRelPosTag(int tagId, int relPos)
     query.bindValue(QStringLiteral(":relative_position"), relPos);
     query.bindValue(QStringLiteral(":id"), tagId);
     bool status = query.exec();
-    if(!status) {
+    if (!status) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
 }
@@ -1415,7 +1413,7 @@ void DBManager::updateRelPosPinnedNote(int nodeId, int relPos)
     query.bindValue(QStringLiteral(":id"), nodeId);
     query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Type::Note));
     bool status = query.exec();
-    if(!status) {
+    if (!status) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
 }
@@ -1423,13 +1421,14 @@ void DBManager::updateRelPosPinnedNote(int nodeId, int relPos)
 void DBManager::updateRelPosPinnedNoteAN(int nodeId, int relPos)
 {
     QSqlQuery query(m_db);
-    query.prepare(QStringLiteral("UPDATE node_table SET relative_position_an = :relative_position_an "
-                                 "WHERE id = :id AND node_type=:node_type;"));
+    query.prepare(
+            QStringLiteral("UPDATE node_table SET relative_position_an = :relative_position_an "
+                           "WHERE id = :id AND node_type=:node_type;"));
     query.bindValue(QStringLiteral(":relative_position_an"), relPos);
     query.bindValue(QStringLiteral(":id"), nodeId);
     query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Type::Note));
     bool status = query.exec();
-    if(!status) {
+    if (!status) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
 }
@@ -1443,7 +1442,7 @@ void DBManager::setNoteIsPinned(int noteId, bool isPinned)
     query.bindValue(QStringLiteral(":id"), noteId);
     query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Type::Note));
     bool status = query.exec();
-    if(!status) {
+    if (!status) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
 }
@@ -1482,7 +1481,8 @@ void DBManager::onNodeTagTreeRequested()
 /*!
  * \brief DBManager::onNotesListRequested
  */
-void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive, bool newNote, int scrollToId)
+void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive, bool newNote,
+                                             int scrollToId)
 {
     QVector<NodeData> nodeList;
     QSqlQuery query(m_db);
@@ -1503,20 +1503,22 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive, boo
                       R"("relative_position_an", )"
                       R"("child_notes_count" )"
                       R"(FROM node_table )"
-                      R"(WHERE node_type = (:node_type) AND parent_id != (:parent_id);)"
-                    );
+                      R"(WHERE node_type = (:node_type) AND parent_id != (:parent_id);)");
         query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
         query.bindValue(QStringLiteral(":parent_id"), static_cast<int>(SpecialNodeID::TrashFolder));
 
         bool status = query.exec();
-        if(status) {
-            while(query.next()) {
+        if (status) {
+            while (query.next()) {
                 NodeData node;
                 node.setId(query.value(0).toInt());
                 node.setFullTitle(query.value(1).toString());
-                node.setCreationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(2).toLongLong()));
-                node.setLastModificationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(3).toLongLong()));
-                node.setDeletionDateTime(QDateTime::fromMSecsSinceEpoch(query.value(4).toLongLong()));
+                node.setCreationDateTime(
+                        QDateTime::fromMSecsSinceEpoch(query.value(2).toLongLong()));
+                node.setLastModificationDateTime(
+                        QDateTime::fromMSecsSinceEpoch(query.value(3).toLongLong()));
+                node.setDeletionDateTime(
+                        QDateTime::fromMSecsSinceEpoch(query.value(4).toLongLong()));
                 node.setContent(query.value(5).toString());
                 node.setNodeType(static_cast<NodeData::Type>(query.value(6).toInt()));
                 node.setParentId(query.value(7).toInt());
@@ -1551,19 +1553,21 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive, boo
                       R"("relative_position_an", )"
                       R"("child_notes_count" )"
                       R"(FROM node_table )"
-                      R"(WHERE parent_id = (:parent_id) AND node_type = (:node_type);)"
-                    );
+                      R"(WHERE parent_id = (:parent_id) AND node_type = (:node_type);)");
         query.bindValue(QStringLiteral(":parent_id"), parentID);
         query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
         bool status = query.exec();
-        if(status) {
-            while(query.next()) {
+        if (status) {
+            while (query.next()) {
                 NodeData node;
                 node.setId(query.value(0).toInt());
                 node.setFullTitle(query.value(1).toString());
-                node.setCreationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(2).toLongLong()));
-                node.setLastModificationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(3).toLongLong()));
-                node.setDeletionDateTime(QDateTime::fromMSecsSinceEpoch(query.value(4).toLongLong()));
+                node.setCreationDateTime(
+                        QDateTime::fromMSecsSinceEpoch(query.value(2).toLongLong()));
+                node.setLastModificationDateTime(
+                        QDateTime::fromMSecsSinceEpoch(query.value(3).toLongLong()));
+                node.setDeletionDateTime(
+                        QDateTime::fromMSecsSinceEpoch(query.value(4).toLongLong()));
                 node.setContent(query.value(5).toString());
                 node.setNodeType(static_cast<NodeData::Type>(query.value(6).toInt()));
                 node.setParentId(query.value(7).toInt());
@@ -1581,36 +1585,39 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive, boo
         }
     } else {
         auto parentPath = getNodeAbsolutePath(parentID).path() + PATH_SEPERATOR;
-        query.prepare(R"(SELECT )"
-                      R"("id",)"
-                      R"("title",)"
-                      R"("creation_date",)"
-                      R"("modification_date",)"
-                      R"("deletion_date",)"
-                      R"("content",)"
-                      R"("node_type",)"
-                      R"("parent_id",)"
-                      R"("relative_position", )"
-                      R"("scrollbar_position",)"
-                      R"("absolute_path", )"
-                      R"("is_pinned_note", )"
-                      R"("relative_position_an", )"
-                      R"("child_notes_count" )"
-                      R"(FROM node_table )"
-                      R"(WHERE absolute_path like (:path_expr) || '%' AND node_type = (:node_type);)"
-                    );
+        query.prepare(
+                R"(SELECT )"
+                R"("id",)"
+                R"("title",)"
+                R"("creation_date",)"
+                R"("modification_date",)"
+                R"("deletion_date",)"
+                R"("content",)"
+                R"("node_type",)"
+                R"("parent_id",)"
+                R"("relative_position", )"
+                R"("scrollbar_position",)"
+                R"("absolute_path", )"
+                R"("is_pinned_note", )"
+                R"("relative_position_an", )"
+                R"("child_notes_count" )"
+                R"(FROM node_table )"
+                R"(WHERE absolute_path like (:path_expr) || '%' AND node_type = (:node_type);)");
         query.bindValue(QStringLiteral(":path_expr"), parentPath);
         query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Note));
 
         bool status = query.exec();
-        if(status) {
-            while(query.next()) {
+        if (status) {
+            while (query.next()) {
                 NodeData node;
                 node.setId(query.value(0).toInt());
                 node.setFullTitle(query.value(1).toString());
-                node.setCreationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(2).toLongLong()));
-                node.setLastModificationDateTime(QDateTime::fromMSecsSinceEpoch(query.value(3).toLongLong()));
-                node.setDeletionDateTime(QDateTime::fromMSecsSinceEpoch(query.value(4).toLongLong()));
+                node.setCreationDateTime(
+                        QDateTime::fromMSecsSinceEpoch(query.value(2).toLongLong()));
+                node.setLastModificationDateTime(
+                        QDateTime::fromMSecsSinceEpoch(query.value(3).toLongLong()));
+                node.setDeletionDateTime(
+                        QDateTime::fromMSecsSinceEpoch(query.value(4).toLongLong()));
                 node.setContent(query.value(5).toString());
                 node.setNodeType(static_cast<NodeData::Type>(query.value(6).toInt()));
                 node.setParentId(query.value(7).toInt());
@@ -1631,10 +1638,10 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive, boo
     inf.isInSearch = false;
     inf.isInTag = false;
     inf.parentFolderId = parentID;
-    inf.currentNotesId = {SpecialNodeID::InvalidNodeId};
+    inf.currentNotesId = { SpecialNodeID::InvalidNodeId };
     inf.needCreateNewNote = newNote;
     inf.scrollToId = scrollToId;
-    std::sort(nodeList.begin(), nodeList.end(), [] (const NodeData& a, const NodeData& b) ->bool{
+    std::sort(nodeList.begin(), nodeList.end(), [](const NodeData &a, const NodeData &b) -> bool {
         return a.lastModificationdateTime() > b.lastModificationdateTime();
     });
     emit notesListReceived(nodeList, inf);
@@ -1648,17 +1655,17 @@ void DBManager::onNotesListInTagsRequested(const QSet<int> &tagIds, bool newNote
     inf.isInSearch = false;
     inf.isInTag = true;
     inf.currentTagList = tagIds;
-    inf.currentNotesId = {SpecialNodeID::InvalidNodeId};
+    inf.currentNotesId = { SpecialNodeID::InvalidNodeId };
     inf.needCreateNewNote = newNote;
     inf.scrollToId = scrollToId;
-    for (const auto& tagId : tagIds) {
+    for (const auto &tagId : tagIds) {
         QSet<int> nd;
         QSqlQuery query(m_db);
         query.prepare(R"(SELECT "node_id" FROM tag_relationship WHERE tag_id = :tag_id;)");
         query.bindValue(QStringLiteral(":tag_id"), tagId);
         bool status = query.exec();
-        if(status) {
-            while(query.next()) {
+        if (status) {
+            while (query.next()) {
                 nd.insert(query.value(0).toInt());
             }
         } else {
@@ -1691,16 +1698,15 @@ void DBManager::onNotesListInTagsRequested(const QSet<int> &tagIds, bool newNote
             noteIds.insert(id);
         }
     }
-    for (const auto& id : noteIds) {
+    for (const auto &id : noteIds) {
         NodeData node = getNode(id);
-        if (node.id() != SpecialNodeID::InvalidNodeId &&
-                node.nodeType() == NodeData::Note) {
+        if (node.id() != SpecialNodeID::InvalidNodeId && node.nodeType() == NodeData::Note) {
             nodeList.append(node);
         } else {
             qDebug() << __FUNCTION__ << "Note with id" << id << "is not valid";
         }
     }
-    std::sort(nodeList.begin(), nodeList.end(), [] (const NodeData& a, const NodeData& b) ->bool{
+    std::sort(nodeList.begin(), nodeList.end(), [](const NodeData &a, const NodeData &b) -> bool {
         return a.lastModificationdateTime() > b.lastModificationdateTime();
     });
     emit notesListReceived(nodeList, inf);
@@ -1727,14 +1733,13 @@ void DBManager::onCreateUpdateRequestedNoteContent(const NodeData &note)
         return;
     }
     bool exists = isNodeExist(note);
-    
-    if(exists) {
+
+    if (exists) {
         updateNoteContent(note);
     } else {
         addNode(note);
     }
 }
-
 
 /*!
  * \brief DBManager::onImportNotesRequested
@@ -1750,10 +1755,10 @@ void DBManager::onImportNotesRequested(const QString &fileName)
     auto magic_header = file.read(16);
     file.close();
     if (QString::fromUtf8(magic_header).startsWith(QStringLiteral("SQLite format 3"))) {
-        qDebug() << __FUNCTION__ ;
+        qDebug() << __FUNCTION__;
         auto outside_db = QSqlDatabase::addDatabase("QSQLITE", OUTSIDE_DATABASE_NAME);
         outside_db.setDatabaseName(fileName);
-        if(!outside_db.open()){
+        if (!outside_db.open()) {
             qDebug() << __FUNCTION__ << "Error: connection with database fail";
             return;
         } else {
@@ -1764,10 +1769,11 @@ void DBManager::onImportNotesRequested(const QString &fileName)
         {
             QVector<TagData> tagList;
             QSqlQuery out_qr(outside_db);
-            out_qr.prepare(R"(SELECT "id","name","color","relative_position","child_notes_count" FROM tag_table;)");
+            out_qr.prepare(
+                    R"(SELECT "id","name","color","relative_position","child_notes_count" FROM tag_table;)");
             bool status = out_qr.exec();
-            if(status) {
-                while(out_qr.next()) {
+            if (status) {
+                while (out_qr.next()) {
                     TagData tag;
                     tag.setId(out_qr.value(0).toInt());
                     tag.setName(out_qr.value(1).toString());
@@ -1780,18 +1786,17 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                 qDebug() << __FUNCTION__ << __LINE__ << out_qr.lastError();
             }
             out_qr.finish();
-            std::sort(tagList.begin(), tagList.end(), [] (auto a, auto b) {
-                return a.relativePosition() < b.relativePosition();
-            });
-            for (const auto& tag : qAsConst(tagList)) {
+            std::sort(tagList.begin(), tagList.end(),
+                      [](auto a, auto b) { return a.relativePosition() < b.relativePosition(); });
+            for (const auto &tag : qAsConst(tagList)) {
                 QSqlQuery qr(m_db);
                 qr.prepare(R"(SELECT "id" FROM tag_table WHERE name = :name AND color = :color;)");
                 qr.bindValue(QStringLiteral(":name"), tag.name());
                 qr.bindValue(QStringLiteral(":color"), tag.color());
                 QVector<int> ids;
                 bool status = qr.exec();
-                if(status) {
-                    while(qr.next()) {
+                if (status) {
+                    while (qr.next()) {
                         ids.append(qr.value(0).toInt());
                     }
                 } else {
@@ -1810,29 +1815,31 @@ void DBManager::onImportNotesRequested(const QString &fileName)
             folderIdMap[SpecialNodeID::DefaultNotesFolder] = SpecialNodeID::DefaultNotesFolder;
             QSqlQuery out_qr(outside_db);
             out_qr.prepare(R"(SELECT)"
-                          R"("id",)"
-                          R"("title",)"
-                          R"("creation_date",)"
-                          R"("modification_date",)"
-                          R"("deletion_date",)"
-                          R"("content",)"
-                          R"("node_type",)"
-                          R"("parent_id",)"
-                          R"("relative_position",)"
-                          R"("absolute_path" )"
-                          R"(FROM node_table WHERE node_type=:node_type;)"
-                        );
+                           R"("id",)"
+                           R"("title",)"
+                           R"("creation_date",)"
+                           R"("modification_date",)"
+                           R"("deletion_date",)"
+                           R"("content",)"
+                           R"("node_type",)"
+                           R"("parent_id",)"
+                           R"("relative_position",)"
+                           R"("absolute_path" )"
+                           R"(FROM node_table WHERE node_type=:node_type;)");
             out_qr.bindValue(":node_type", static_cast<int>(NodeData::Type::Folder));
             bool status = out_qr.exec();
             QMap<int, NodeData> nodeList;
-            if(status) {
-                while(out_qr.next()) {
+            if (status) {
+                while (out_qr.next()) {
                     NodeData node;
                     node.setId(out_qr.value(0).toInt());
                     node.setFullTitle(out_qr.value(1).toString());
-                    node.setCreationDateTime(QDateTime::fromMSecsSinceEpoch(out_qr.value(2).toLongLong()));
-                    node.setLastModificationDateTime(QDateTime::fromMSecsSinceEpoch(out_qr.value(3).toLongLong()));
-                    node.setDeletionDateTime(QDateTime::fromMSecsSinceEpoch(out_qr.value(4).toLongLong()));
+                    node.setCreationDateTime(
+                            QDateTime::fromMSecsSinceEpoch(out_qr.value(2).toLongLong()));
+                    node.setLastModificationDateTime(
+                            QDateTime::fromMSecsSinceEpoch(out_qr.value(3).toLongLong()));
+                    node.setDeletionDateTime(
+                            QDateTime::fromMSecsSinceEpoch(out_qr.value(4).toLongLong()));
                     node.setContent(out_qr.value(5).toString());
                     node.setNodeType(static_cast<NodeData::Type>(out_qr.value(6).toInt()));
                     node.setParentId(out_qr.value(7).toInt());
@@ -1840,7 +1847,7 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                     node.setAbsolutePath(out_qr.value(9).toString());
                     nodeList[node.id()] = node;
                 }
-                auto matchFolderFunc = [&] (int id, const auto& matchFolderFunctor) {
+                auto matchFolderFunc = [&](int id, const auto &matchFolderFunctor) {
                     if (!nodeList.contains(id)) {
                         qDebug() << __FUNCTION__ << __LINE__ << "node not found";
                         return;
@@ -1851,14 +1858,16 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                     auto node = nodeList[id];
                     if (folderIdMap.contains(node.parentId())) {
                         QSqlQuery qr(m_db);
-                        qr.prepare(R"(SELECT "id" FROM node_table WHERE title = :title AND node_type = :node_type AND parent_id = :parent_id;)");
+                        qr.prepare(
+                                R"(SELECT "id" FROM node_table WHERE title = :title AND node_type = :node_type AND parent_id = :parent_id;)");
                         qr.bindValue(QStringLiteral(":title"), node.fullTitle());
-                        qr.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Folder));
+                        qr.bindValue(QStringLiteral(":node_type"),
+                                     static_cast<int>(NodeData::Folder));
                         qr.bindValue(QStringLiteral(":parent_id"), folderIdMap[node.parentId()]);
                         QVector<int> ids;
                         bool status = qr.exec();
-                        if(status) {
-                            while(qr.next()) {
+                        if (status) {
+                            while (qr.next()) {
                                 ids.append(qr.value(0).toInt());
                             }
                         } else {
@@ -1874,20 +1883,21 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                         }
                     } else {
                         auto prL = NodePath(node.absolutePath()).seperate();
-                        for (const auto& pr : qAsConst(prL)) {
+                        for (const auto &pr : qAsConst(prL)) {
                             matchFolderFunctor(pr.toInt(), matchFolderFunctor);
                         }
                     }
                 };
 
-                struct Folder {
+                struct Folder
+                {
                     int id;
                     int parentId;
-                    std::vector<Folder*> children;
+                    std::vector<Folder *> children;
                 };
-                Folder* rootFolder = nullptr;
+                Folder *rootFolder = nullptr;
                 QHash<int, Folder> needImportFolderMap;
-                for (const auto& node: qAsConst(nodeList)) {
+                for (const auto &node : qAsConst(nodeList)) {
                     Folder f;
                     f.id = node.id();
                     f.parentId = node.parentId();
@@ -1897,25 +1907,27 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                     }
                 }
                 if (rootFolder) {
-                    for (const auto& folder: qAsConst(needImportFolderMap)) {
+                    for (const auto &folder : qAsConst(needImportFolderMap)) {
                         if (folder.id != SpecialNodeID::RootFolder) {
                             needImportFolderMap[folder.parentId].children.push_back(
-                                        &needImportFolderMap[folder.id]);
+                                    &needImportFolderMap[folder.id]);
                         }
                     }
-                    auto sortChildFunc = [&] (Folder* f) {
-                        std::sort(f->children.begin(), f->children.end(), [&] (Folder* f1, Folder* f2) {
-                            return nodeList[f1->id].relativePosition() < nodeList[f2->id].relativePosition();
-                        });
+                    auto sortChildFunc = [&](Folder *f) {
+                        std::sort(f->children.begin(), f->children.end(),
+                                  [&](Folder *f1, Folder *f2) {
+                                      return nodeList[f1->id].relativePosition()
+                                              < nodeList[f2->id].relativePosition();
+                                  });
                     };
-                    auto sortFunc = [&] (Folder* f, const auto& sf) ->void {
+                    auto sortFunc = [&](Folder *f, const auto &sf) -> void {
                         sortChildFunc(f);
                         for (auto c : f->children) {
                             sf(c, sf);
                         }
                     };
                     sortFunc(rootFolder, sortFunc);
-                    auto matchFunc = [&] (Folder* f, const auto& mf) ->void {
+                    auto matchFunc = [&](Folder *f, const auto &mf) -> void {
                         matchFolderFunc(f->id, matchFolderFunc);
                         for (auto c : f->children) {
                             mf(c, mf);
@@ -1924,7 +1936,7 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                     matchFunc(rootFolder, matchFunc);
                 } else {
                     qDebug() << __FUNCTION__ << "Error while keeping folder position";
-                    for (const auto& node: qAsConst(nodeList)) {
+                    for (const auto &node : qAsConst(nodeList)) {
                         matchFolderFunc(node.id(), matchFolderFunc);
                     }
                 }
@@ -1935,27 +1947,26 @@ void DBManager::onImportNotesRequested(const QString &fileName)
         {
             QSqlQuery out_qr(outside_db);
             out_qr.prepare(R"(SELECT)"
-                          R"("id",)"
-                          R"("title",)"
-                          R"("creation_date",)"
-                          R"("modification_date",)"
-                          R"("deletion_date",)"
-                          R"("content",)"
-                          R"("node_type",)"
-                          R"("parent_id",)"
-                          R"("relative_position",)"
-                          R"("scrollbar_position",)"
-                          R"("absolute_path", )"
-                          R"("is_pinned_note", )"
-                          R"("relative_position_an" )"
-                          R"(FROM node_table WHERE node_type=:node_type;)"
-                        );
+                           R"("id",)"
+                           R"("title",)"
+                           R"("creation_date",)"
+                           R"("modification_date",)"
+                           R"("deletion_date",)"
+                           R"("content",)"
+                           R"("node_type",)"
+                           R"("parent_id",)"
+                           R"("relative_position",)"
+                           R"("scrollbar_position",)"
+                           R"("absolute_path", )"
+                           R"("is_pinned_note", )"
+                           R"("relative_position_an" )"
+                           R"(FROM node_table WHERE node_type=:node_type;)");
 
             out_qr.bindValue(":node_type", static_cast<int>(NodeData::Type::Note));
             bool status = out_qr.exec();
             QVector<NodeData> nodeList;
             QMap<int, std::pair<NodeData, int>> parents;
-            for (const auto& id: qAsConst(folderIdMap)) {
+            for (const auto &id : qAsConst(folderIdMap)) {
                 if (parents.contains(id)) {
                     continue;
                 }
@@ -1963,14 +1974,17 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                 auto rel = nextAvailablePosition(id, NodeData::Note);
                 parents[id] = std::make_pair(node, rel);
             }
-            if(status) {
-                while(out_qr.next()) {
+            if (status) {
+                while (out_qr.next()) {
                     NodeData node;
                     node.setId(out_qr.value(0).toInt());
                     node.setFullTitle(out_qr.value(1).toString());
-                    node.setCreationDateTime(QDateTime::fromMSecsSinceEpoch(out_qr.value(2).toLongLong()));
-                    node.setLastModificationDateTime(QDateTime::fromMSecsSinceEpoch(out_qr.value(3).toLongLong()));
-                    node.setDeletionDateTime(QDateTime::fromMSecsSinceEpoch(out_qr.value(4).toLongLong()));
+                    node.setCreationDateTime(
+                            QDateTime::fromMSecsSinceEpoch(out_qr.value(2).toLongLong()));
+                    node.setLastModificationDateTime(
+                            QDateTime::fromMSecsSinceEpoch(out_qr.value(3).toLongLong()));
+                    node.setDeletionDateTime(
+                            QDateTime::fromMSecsSinceEpoch(out_qr.value(4).toLongLong()));
                     node.setContent(out_qr.value(5).toString());
                     node.setNodeType(static_cast<NodeData::Type>(out_qr.value(6).toInt()));
                     node.setParentId(out_qr.value(7).toInt());
@@ -1986,14 +2000,15 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                 m_db.transaction();
                 auto nodeId = nextAvailableNodeId();
                 for (auto node : qAsConst(nodeList)) {
-                    if (folderIdMap.contains(node.parentId()) &&
-                            parents.contains(folderIdMap[node.parentId()])) {
+                    if (folderIdMap.contains(node.parentId())
+                        && parents.contains(folderIdMap[node.parentId()])) {
                         auto parentId = folderIdMap[node.parentId()];
                         auto parent = parents[parentId].first;
                         auto oldId = node.id();
                         node.setId(nodeId);
                         node.setRelativePosition(parents[parentId].second);
-                        node.setAbsolutePath(parent.absolutePath() + PATH_SEPERATOR + QString::number(nodeId));
+                        node.setAbsolutePath(parent.absolutePath() + PATH_SEPERATOR
+                                             + QString::number(nodeId));
                         node.setParentId(parentId);
                         addNodePreComputed(node);
                         ++nodeId;
@@ -2004,7 +2019,8 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                     }
                 }
                 QSqlQuery query(m_db);
-                query.prepare(R"(UPDATE "metadata" SET "value"=:value WHERE "key"='next_node_id';)");
+                query.prepare(
+                        R"(UPDATE "metadata" SET "value"=:value WHERE "key"='next_node_id';)");
                 query.bindValue(":value", nodeId + 1);
                 if (!query.exec()) {
                     qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
@@ -2019,13 +2035,13 @@ void DBManager::onImportNotesRequested(const QString &fileName)
             out_qr.prepare(R"(SELECT "tag_id", "node_id" FROM tag_relationship)");
             bool status = out_qr.exec();
             QVector<std::pair<int, int>> tagRela;
-            if(status) {
-                while(out_qr.next()) {
-                    tagRela.append(std::make_pair(out_qr.value(0).toInt(),
-                                                  out_qr.value(1).toInt()));
+            if (status) {
+                while (out_qr.next()) {
+                    tagRela.append(
+                            std::make_pair(out_qr.value(0).toInt(), out_qr.value(1).toInt()));
                 }
                 m_db.transaction();
-                for (const auto& rel : qAsConst(tagRela)) {
+                for (const auto &rel : qAsConst(tagRela)) {
                     if (tagIdMap.contains(rel.first) && noteIdMap.contains(rel.second)) {
                         addNoteToTag(noteIdMap[rel.second], tagIdMap[rel.first]);
                     } else {
@@ -2044,15 +2060,14 @@ void DBManager::onImportNotesRequested(const QString &fileName)
     } else {
         auto noteList = readOldNBK(fileName);
         if (noteList.isEmpty()) {
-            emit showErrorMessage(tr("Invalid file"),
-                                  "Please select a valid notes export file");
+            emit showErrorMessage(tr("Invalid file"), "Please select a valid notes export file");
         } else {
             auto defaultNoteFolder = getNode(SpecialNodeID::DefaultNotesFolder);
             int nodeId = nextAvailableNodeId();
             int notePos = nextAvailablePosition(defaultNoteFolder.id(), NodeData::Note);
             QString parentAbsPath = defaultNoteFolder.absolutePath();
             m_db.transaction();
-            for (auto& note : noteList) {
+            for (auto &note : noteList) {
                 note.setId(nodeId);
                 note.setRelativePosition(notePos);
                 note.setAbsolutePath(parentAbsPath + PATH_SEPERATOR + QString::number(nodeId));
@@ -2104,8 +2119,7 @@ void DBManager::onRestoreNotesRequested(const QString &fileName)
     } else {
         auto noteList = readOldNBK(fileName);
         if (noteList.isEmpty()) {
-            emit showErrorMessage(tr("Invalid file"),
-                                  "Please select a valid notes export file");
+            emit showErrorMessage(tr("Invalid file"), "Please select a valid notes export file");
         } else {
             {
                 m_db.close();
@@ -2119,7 +2133,7 @@ void DBManager::onRestoreNotesRequested(const QString &fileName)
             int notePos = nextAvailablePosition(defaultNoteFolder.id(), NodeData::Note);
             QString parentAbsPath = defaultNoteFolder.absolutePath();
             m_db.transaction();
-            for (auto& note : noteList) {
+            for (auto &note : noteList) {
                 note.setId(nodeId);
                 note.setRelativePosition(notePos);
                 note.setAbsolutePath(parentAbsPath + PATH_SEPERATOR + QString::number(nodeId));
@@ -2151,7 +2165,7 @@ void DBManager::onRestoreNotesRequested(const QString &fileName)
 void DBManager::onExportNotesRequested(const QString &fileName)
 {
     QSqlQuery query(m_db);
-    query.prepare( "BEGIN IMMEDIATE;");
+    query.prepare("BEGIN IMMEDIATE;");
     bool status = query.exec();
     if (!status) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
@@ -2161,7 +2175,7 @@ void DBManager::onExportNotesRequested(const QString &fileName)
         qDebug() << __FUNCTION__ << "Can't export notes";
     };
 
-    query.prepare( "ROLLBACK;");
+    query.prepare("ROLLBACK;");
     status = query.exec();
     if (!status) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
@@ -2172,7 +2186,7 @@ void DBManager::onExportNotesRequested(const QString &fileName)
  * \brief DBManager::onMigrateNotesRequested
  * \param noteList
  */
-void DBManager::onMigrateNotesFromV0_9_0Requested(QVector<NodeData>& noteList)
+void DBManager::onMigrateNotesFromV0_9_0Requested(QVector<NodeData> &noteList)
 {
     auto defaultNoteFolder = getNode(SpecialNodeID::DefaultNotesFolder);
     int nodeId = nextAvailableNodeId();
@@ -2180,7 +2194,7 @@ void DBManager::onMigrateNotesFromV0_9_0Requested(QVector<NodeData>& noteList)
     QString parentAbsPath = defaultNoteFolder.absolutePath();
 
     m_db.transaction();
-    for (auto& note: noteList) {
+    for (auto &note : noteList) {
         note.setId(nodeId);
         note.setRelativePosition(notePos);
         note.setAbsolutePath(parentAbsPath + PATH_SEPERATOR + QString::number(nodeId));
@@ -2214,7 +2228,7 @@ void DBManager::onMigrateTrashFrom0_9_0Requested(QVector<NodeData> &noteList)
     QString parentAbsPath = trashFolder.absolutePath();
 
     m_db.transaction();
-    for (auto& note: noteList) {
+    for (auto &note : noteList) {
         note.setId(nodeId);
         note.setRelativePosition(notePos);
         note.setAbsolutePath(parentAbsPath + PATH_SEPERATOR + QString::number(nodeId));
@@ -2240,7 +2254,7 @@ void DBManager::onMigrateNotesFrom1_5_0Requested(const QString &fileName)
 {
     auto old_db = QSqlDatabase::addDatabase("QSQLITE", OUTSIDE_DATABASE_NAME);
     old_db.setDatabaseName(fileName);
-    if(!old_db.open()){
+    if (!old_db.open()) {
         qDebug() << __FUNCTION__ << "Error: connection with database fail";
         return;
     } else {
@@ -2249,16 +2263,18 @@ void DBManager::onMigrateNotesFrom1_5_0Requested(const QString &fileName)
     QVector<NodeData> notes, trash;
     {
         QSqlQuery query(old_db);
-        query.prepare(R"(SELECT "id", "creation_date", "modification_date", "content", "full_title" FROM "active_notes")");
+        query.prepare(
+                R"(SELECT "id", "creation_date", "modification_date", "content", "full_title" FROM "active_notes")");
         bool status = query.exec();
-        if(status) {
-            while(query.next()) {
+        if (status) {
+            while (query.next()) {
                 NodeData node;
-                int id =  query.value(0).toInt();
+                int id = query.value(0).toInt();
                 qint64 epochDateTimeCreation = query.value(1).toLongLong();
                 QDateTime dateTimeCreation = QDateTime::fromMSecsSinceEpoch(epochDateTimeCreation);
-                qint64 epochDateTimeModification= query.value(2).toLongLong();
-                QDateTime dateTimeModification = QDateTime::fromMSecsSinceEpoch(epochDateTimeModification);
+                qint64 epochDateTimeModification = query.value(2).toLongLong();
+                QDateTime dateTimeModification =
+                        QDateTime::fromMSecsSinceEpoch(epochDateTimeModification);
                 QString content = query.value(3).toString();
                 QString fullTitle = query.value(4).toString();
 
@@ -2273,17 +2289,19 @@ void DBManager::onMigrateNotesFrom1_5_0Requested(const QString &fileName)
             qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
         }
         query.clear();
-        query.prepare(R"(SELECT "id", "creation_date", "modification_date", "deletion_date", "content", "full_title" FROM "deleted_notes")");
+        query.prepare(
+                R"(SELECT "id", "creation_date", "modification_date", "deletion_date", "content", "full_title" FROM "deleted_notes")");
         status = query.exec();
-        if(status) {
-            while(query.next()) {
+        if (status) {
+            while (query.next()) {
                 NodeData node;
-                int id =  query.value(0).toInt();
+                int id = query.value(0).toInt();
                 qint64 epochDateTimeCreation = query.value(1).toLongLong();
                 QDateTime dateTimeCreation = QDateTime::fromMSecsSinceEpoch(epochDateTimeCreation);
-                qint64 epochDateTimeModification= query.value(2).toLongLong();
-                QDateTime dateTimeModification = QDateTime::fromMSecsSinceEpoch(epochDateTimeModification);
-                qint64 epochDateTimeDeletion= query.value(3).toLongLong();
+                qint64 epochDateTimeModification = query.value(2).toLongLong();
+                QDateTime dateTimeModification =
+                        QDateTime::fromMSecsSinceEpoch(epochDateTimeModification);
+                qint64 epochDateTimeDeletion = query.value(3).toLongLong();
                 QDateTime dateTimeDeletion = QDateTime::fromMSecsSinceEpoch(epochDateTimeDeletion);
                 QString content = query.value(4).toString();
                 QString fullTitle = query.value(5).toString();
@@ -2306,7 +2324,7 @@ void DBManager::onMigrateNotesFrom1_5_0Requested(const QString &fileName)
     int notePos = nextAvailablePosition(defaultNoteFolder.id(), NodeData::Note);
     QString parentAbsPath = defaultNoteFolder.absolutePath();
     m_db.transaction();
-    for (auto& note: notes) {
+    for (auto &note : notes) {
         note.setId(nodeId);
         note.setRelativePosition(notePos);
         note.setAbsolutePath(parentAbsPath + PATH_SEPERATOR + QString::number(nodeId));
@@ -2320,7 +2338,7 @@ void DBManager::onMigrateNotesFrom1_5_0Requested(const QString &fileName)
     }
     notePos = nextAvailablePosition(trashFolder.id(), NodeData::Note);
     parentAbsPath = trashFolder.absolutePath();
-    for (auto& note: trash) {
+    for (auto &note : trash) {
         note.setId(nodeId);
         note.setRelativePosition(notePos);
         note.setAbsolutePath(parentAbsPath + PATH_SEPERATOR + QString::number(nodeId));
@@ -2357,4 +2375,3 @@ void DBManager::onChangeDatabasePathRequested(const QString &newPath)
     QFile::rename(m_dbpath, newPath);
     open(newPath, false);
 }
-

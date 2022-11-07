@@ -9,7 +9,8 @@ class CustomApplicationStyle : public QProxyStyle
 public:
     CustomApplicationStyle();
 
-    void drawPrimitive(PrimitiveElement element, const QStyleOption *option, QPainter *painter, const QWidget *widget) const;
+    void drawPrimitive(PrimitiveElement element, const QStyleOption *option, QPainter *painter,
+                       const QWidget *widget) const;
     void setTheme(Theme newTheme);
 
 private:

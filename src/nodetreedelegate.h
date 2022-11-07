@@ -10,7 +10,7 @@ class NodeTreeDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
 public:
-    explicit NodeTreeDelegate(QTreeView* view, QObject *parent = Q_NULLPTR);
+    explicit NodeTreeDelegate(QTreeView *view, QObject *parent = Q_NULLPTR);
     void setTheme(Theme theme);
 signals:
     void addFolderRequested();
@@ -18,13 +18,18 @@ signals:
 
     // QAbstractItemDelegate interface
 public:
-    virtual void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
-    virtual QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
-    virtual QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
-    virtual void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+    virtual void paint(QPainter *painter, const QStyleOptionViewItem &option,
+                       const QModelIndex &index) const override;
+    virtual QSize sizeHint(const QStyleOptionViewItem &option,
+                           const QModelIndex &index) const override;
+    virtual QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
+                                  const QModelIndex &index) const override;
+    virtual void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option,
+                                      const QModelIndex &index) const override;
 
 private:
-    void paintBackgroundSelectable(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    void paintBackgroundSelectable(QPainter *painter, const QStyleOptionViewItem &option,
+                                   const QModelIndex &index) const;
 
 private:
     QString m_displayFont;
@@ -42,7 +47,7 @@ private:
     QColor m_defaultColor;
     QColor m_separatorTextColor;
     QColor m_currentBackgroundColor;
-    QTreeView* m_view;
+    QTreeView *m_view;
     Theme m_theme;
 };
 

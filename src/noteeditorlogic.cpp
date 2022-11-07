@@ -15,45 +15,37 @@
 
 #define FIRST_LINE_MAX 80
 
-
-NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit,
-                                 QLabel* editorDateLabel,
-                                 QLineEdit* searchEdit,
-                                 TagListView *tagListView, TagPool *tagPool,
-                                 DBManager *dbManager,
-                                 QObject *parent) : QObject(parent),
-    m_textEdit{textEdit},
-    m_editorDateLabel{editorDateLabel},
-    m_searchEdit{searchEdit},
-    m_tagListView{tagListView},
-    m_dbManager{dbManager},
-    m_isContentModified{false},
-    m_spacerColor{26, 26, 26},
-    m_currentAdaptableEditorPadding{0},
-    m_currentMinimumEditorPadding{0}
+NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLabel,
+                                 QLineEdit *searchEdit, TagListView *tagListView, TagPool *tagPool,
+                                 DBManager *dbManager, QObject *parent)
+    : QObject(parent),
+      m_textEdit{ textEdit },
+      m_editorDateLabel{ editorDateLabel },
+      m_searchEdit{ searchEdit },
+      m_tagListView{ tagListView },
+      m_dbManager{ dbManager },
+      m_isContentModified{ false },
+      m_spacerColor{ 26, 26, 26 },
+      m_currentAdaptableEditorPadding{ 0 },
+      m_currentMinimumEditorPadding{ 0 }
 {
     m_highlighter = new MarkdownHighlighter(m_textEdit->document());
     connect(m_textEdit, &QTextEdit::textChanged, this, &NoteEditorLogic::onTextEditTextChanged);
     connect(m_textEdit, &CustomDocument::resized, this, &NoteEditorLogic::editorResized);
-    connect(this, &NoteEditorLogic::requestCreateUpdateNote,
-            m_dbManager, &DBManager::onCreateUpdateRequestedNoteContent, Qt::QueuedConnection);
+    connect(this, &NoteEditorLogic::requestCreateUpdateNote, m_dbManager,
+            &DBManager::onCreateUpdateRequestedNoteContent, Qt::QueuedConnection);
     // auto save timer
     m_autoSaveTimer.setSingleShot(true);
     m_autoSaveTimer.setInterval(50);
-    connect(&m_autoSaveTimer, &QTimer::timeout, this, [this]() {
-        saveNoteToDB();
-    });
-    m_tagListModel = new TagListModel{this};
+    connect(&m_autoSaveTimer, &QTimer::timeout, this, [this]() { saveNoteToDB(); });
+    m_tagListModel = new TagListModel{ this };
     m_tagListModel->setTagPool(tagPool);
     m_tagListView->setModel(m_tagListModel);
-    m_tagListDelegate = new TagListDelegate{this};
+    m_tagListDelegate = new TagListDelegate{ this };
     m_tagListView->setItemDelegate(m_tagListDelegate);
-    connect(tagPool, &TagPool::dataUpdated, this, [this] (int) {
-        showTagListForCurrentNote();
-    });
-    connect(m_textEdit->verticalScrollBar(), &QScrollBar::valueChanged,
-            this, [this](int value) {
-        if (m_currentNotes.size() == 1 && m_currentNotes[0].id() != SpecialNodeID::InvalidNodeId ) {
+    connect(tagPool, &TagPool::dataUpdated, this, [this](int) { showTagListForCurrentNote(); });
+    connect(m_textEdit->verticalScrollBar(), &QScrollBar::valueChanged, this, [this](int value) {
+        if (m_currentNotes.size() == 1 && m_currentNotes[0].id() != SpecialNodeID::InvalidNodeId) {
             m_currentNotes[0].setScrollBarPosition(value);
             emit updateNoteDataInList(m_currentNotes[0]);
             m_isContentModified = true;
@@ -83,7 +75,7 @@ void NoteEditorLogic::setMarkdownEnabled(bool newMarkdownEnabled)
 
 void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
 {
-    if (notes.size() == 1 && notes[0].id() != SpecialNodeID::InvalidNodeId ) {
+    if (notes.size() == 1 && notes[0].id() != SpecialNodeID::InvalidNodeId) {
         auto currentId = currentEditingNoteId();
         if (currentId != SpecialNodeID::InvalidNodeId && notes[0].id() != currentId) {
             emit noteEditClosed(m_currentNotes[0], false);
@@ -93,7 +85,7 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
         m_currentNotes = notes;
         showTagListForCurrentNote();
         //     fixing bug #202
-        m_textEdit->setTextBackgroundColor(QColor(247,247,247, 0));
+        m_textEdit->setTextBackgroundColor(QColor(247, 247, 247, 0));
 
         QString content = notes[0].content();
         QDateTime dateTime = notes[0].lastModificationdateTime();
@@ -116,15 +108,15 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
         m_tagListView->setVisible(false);
         m_textEdit->blockSignals(true);
         m_textEdit->clear();
-        auto padding = m_currentAdaptableEditorPadding > m_currentMinimumEditorPadding ?
-                    m_currentAdaptableEditorPadding : m_currentMinimumEditorPadding;
-        QPixmap sep(QSize{m_textEdit->width() - padding * 2 - 20, 19});
+        auto padding = m_currentAdaptableEditorPadding > m_currentMinimumEditorPadding
+                ? m_currentAdaptableEditorPadding
+                : m_currentMinimumEditorPadding;
+        QPixmap sep(QSize{ m_textEdit->width() - padding * 2 - 20, 19 });
         sep.fill(Qt::transparent);
         QPainter painter(&sep);
         painter.setPen(m_spacerColor);
         painter.drawLine(10, 10, sep.width(), 10);
-        m_textEdit->document()->addResource(QTextDocument::ImageResource,
-                                            QUrl("mydata://sep.png"),
+        m_textEdit->document()->addResource(QTextDocument::ImageResource, QUrl("mydata://sep.png"),
                                             sep);
         for (int i = 0; i < notes.size(); ++i) {
             auto cursor = m_textEdit->textCursor();
@@ -156,7 +148,7 @@ void NoteEditorLogic::onTextEditTextChanged()
     if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId) {
         m_textEdit->blockSignals(true);
         QString content = m_currentNotes[0].content();
-        if(m_textEdit->toPlainText() != content){
+        if (m_textEdit->toPlainText() != content) {
             // move note to the top of the list
             emit moveNoteToListViewTop(m_currentNotes[0]);
 
@@ -241,8 +233,8 @@ int NoteEditorLogic::currentEditingNoteId() const
 
 void NoteEditorLogic::saveNoteToDB()
 {
-    if(currentEditingNoteId() != SpecialNodeID::InvalidNodeId
-            && m_isContentModified && !m_currentNotes[0].isTempNote()) {
+    if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId && m_isContentModified
+        && !m_currentNotes[0].isTempNote()) {
         emit requestCreateUpdateNote(m_currentNotes[0]);
         m_isContentModified = false;
     }
@@ -284,7 +276,6 @@ void NoteEditorLogic::editorResized()
     }
 }
 
-
 void NoteEditorLogic::deleteCurrentNote()
 {
     if (isTempNote()) {
@@ -316,7 +307,7 @@ void NoteEditorLogic::deleteCurrentNote()
  * \param str
  * \return
  */
-QString NoteEditorLogic::getFirstLine(const QString& str)
+QString NoteEditorLogic::getFirstLine(const QString &str)
 {
     QString text = str.trimmed();
     if (text.isEmpty()) {
@@ -352,26 +343,24 @@ QString NoteEditorLogic::getSecondLine(const QString &str)
 void NoteEditorLogic::setTheme(Theme newTheme)
 {
     m_tagListDelegate->setTheme(newTheme);
-    switch(newTheme){
-    case Theme::Light:
-    {
+    switch (newTheme) {
+    case Theme::Light: {
         m_spacerColor = QColor(26, 26, 26);
         break;
     }
-    case Theme::Dark:
-    {
+    case Theme::Dark: {
         m_spacerColor = QColor(204, 204, 204);
         break;
     }
-    case Theme::Sepia:
-    {
+    case Theme::Sepia: {
         m_spacerColor = QColor(26, 26, 26);
         break;
     }
     }
     if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId) {
         int verticalScrollBarValueToRestore = m_textEdit->verticalScrollBar()->value();
-        m_textEdit->setText(m_textEdit->toPlainText()); // TODO: Update the text color without setting the text
+        m_textEdit->setText(
+                m_textEdit->toPlainText()); // TODO: Update the text color without setting the text
         m_textEdit->verticalScrollBar()->setValue(verticalScrollBarValueToRestore);
     } else {
         int verticalScrollBarValueToRestore = m_textEdit->verticalScrollBar()->value();
@@ -402,7 +391,7 @@ void NoteEditorLogic::highlightSearch() const
     highlightFormat.setBackground(Qt::yellow);
 
     while (m_textEdit->find(searchString))
-        extraSelections.append({ m_textEdit->textCursor(), highlightFormat});
+        extraSelections.append({ m_textEdit->textCursor(), highlightFormat });
 
     if (!extraSelections.isEmpty()) {
         m_textEdit->setTextCursor(extraSelections.first().cursor);

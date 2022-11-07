@@ -8,7 +8,7 @@ class TagListView : public QListView
     Q_OBJECT
 public:
     explicit TagListView(QWidget *parent = nullptr);
-    void setBackground(const QColor& color);
+    void setBackground(const QColor &color);
 signals:
     // QAbstractItemView interface
 public slots:
@@ -21,6 +21,7 @@ protected:
     virtual void mouseReleaseEvent(QMouseEvent *event) override;
     virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
     virtual void mouseMoveEvent(QMouseEvent *event) override;
+
 private:
     QColor m_backgroundColor;
 };

@@ -3,16 +3,15 @@
 #include <QResizeEvent>
 #include <QTimer>
 
-ElidedLabel::ElidedLabel(QWidget *parent, Qt::WindowFlags f) :
-    QLabel(parent, f)
+ElidedLabel::ElidedLabel(QWidget *parent, Qt::WindowFlags f) : QLabel(parent, f)
 {
     defaultType = Qt::ElideRight;
     eliding = false;
     original = "";
 }
 
-ElidedLabel::ElidedLabel(const QString &text, QWidget *parent, Qt::WindowFlags f) :
-    QLabel(text, parent, f)
+ElidedLabel::ElidedLabel(const QString &text, QWidget *parent, Qt::WindowFlags f)
+    : QLabel(text, parent, f)
 {
     defaultType = Qt::ElideRight;
     eliding = false;
