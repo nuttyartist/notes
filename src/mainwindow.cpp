@@ -13,7 +13,7 @@
 #include "listviewlogic.h"
 #include "noteeditorlogic.h"
 #include "tagpool.h"
-#include "spliterstyle.h"
+#include "splitterstyle.h"
 
 #include <QScrollBar>
 #include <QShortcut>
@@ -21,7 +21,6 @@
 #include <QScrollArea>
 #include <QtConcurrent>
 #include <QProgressDialog>
-#include <QDesktopWidget>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QList>
@@ -72,6 +71,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_layoutMargin(10),
     m_shadowWidth(10),
     m_noteListWidth(200),
+    m_nodeTreeWidth(0),
     m_smallEditorWidth(420),
     m_largeEditorWidth(1250),
     m_canMoveWindow(false),
@@ -157,7 +157,11 @@ void MainWindow::InitData()
             setButtonsAndFieldsEnabled(true);
         });
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        QFuture<void> migration = QtConcurrent::run(&MainWindow::migrateFromV0_9_0, this);
+#else
         QFuture<void> migration = QtConcurrent::run(this, &MainWindow::migrateFromV0_9_0);
+#endif
         watcher->setFuture(migration);
     }
     /// Check if it is running with an argument (ex. hide)
@@ -303,7 +307,7 @@ void MainWindow::setupMainWindow()
 
 #ifdef _WIN32
     m_trafficLightLayout.setSpacing(0);
-    m_trafficLightLayout.setMargin(0);
+    m_trafficLightLayout.setContentsMargins(QMargins(0, 0, 0, 0));
     m_trafficLightLayout.setGeometry(QRect(2,2,90,16));
 #endif
 
@@ -331,7 +335,7 @@ void MainWindow::setupMainWindow()
     ui->frameRightTop->setMouseTracking(true);
     this->setMouseTracking(true);
     QPalette pal(palette());
-    pal.setColor(QPalette::Background, QColor(248, 248, 248));
+    pal.setColor(QPalette::Window, QColor(248, 248, 248));
     this->setAutoFillBackground(true);
     this->setPalette(pal);
 
@@ -381,16 +385,16 @@ void MainWindow::setupMainWindow()
     QString m_displayFont(QStringLiteral("Roboto"));
 #endif
 #ifdef __APPLE__
-    QFont m_titleFont(m_displayFont, 13, 65);
+    QFont m_titleFont(m_displayFont, 13, QFont::DemiBold);
 #else
-    QFont m_titleFont(m_displayFont, 10, 60);
+    QFont m_titleFont(m_displayFont, 10, QFont::DemiBold);
 #endif
     ui->listviewLabel1->setFont(m_titleFont);
     ui->listviewLabel2->setFont(m_titleFont);
     ui->listviewLabel1->setStyleSheet("QLabel { color :  rgb(0, 0, 0); }");
     ui->listviewLabel2->setStyleSheet("QLabel { color :  rgb(132, 132, 132); }");
-    m_spliterStyle = new SpliterStyle();
-    m_splitter->setStyle(m_spliterStyle);
+	m_splitterStyle = new SplitterStyle();
+	m_splitter->setStyle(m_splitterStyle);
     m_splitter->setHandleWidth(0);
     setNoteListLoading();
 #ifdef __APPLE__
@@ -407,7 +411,7 @@ void MainWindow::setupFonts()
 {
 #ifdef __APPLE__
     m_searchEdit->setFont(QFont(m_displayFont, 12));
-    m_editorDateLabel->setFont(QFont(m_displayFont, 12, 65));
+    m_editorDateLabel->setFont(QFont(m_displayFont, 12, QFont::Bold));
 #else
     m_searchEdit->setFont(QFont(m_displayFont, 10));
     m_editorDateLabel->setFont(QFont(m_displayFont, 10, QFont::Bold));
@@ -436,47 +440,47 @@ void MainWindow::setupTrayIcon()
 void MainWindow::setupKeyboardShortcuts()
 {
     new QShortcut(QKeySequence(Qt::Key_F10), this, SLOT(onDotsButtonClicked()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_N), this, SLOT(onNewNoteButtonClicked()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_D), this, SLOT(deleteSelectedNote()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_F), m_searchEdit, SLOT(setFocus()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_E), m_searchEdit, SLOT(clear()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Down), this, SLOT(selectNoteDown()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Up), this, SLOT(selectNoteUp()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_N), this, SLOT(onNewNoteButtonClicked()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_D), this, SLOT(deleteSelectedNote()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), m_searchEdit, SLOT(setFocus()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_E), m_searchEdit, SLOT(clear()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Down), this, SLOT(selectNoteDown()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Up), this, SLOT(selectNoteUp()));
     new QShortcut(QKeySequence(Qt::Key_Down), this, SLOT(selectNoteDown()));
     new QShortcut(QKeySequence(Qt::Key_Up), this, SLOT(selectNoteUp()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Enter), this, SLOT(setFocusOnText()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Return), this, SLOT(setFocusOnText()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Enter), this, SLOT(setFocusOnText()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Return), this, SLOT(setFocusOnText()));
     //new QShortcut(QKeySequence(Qt::Key_Enter), this, SLOT(setFocusOnText()));
     //new QShortcut(QKeySequence(Qt::Key_Return), this, SLOT(setFocusOnText()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_F), this, SLOT(fullscreenWindow()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_L), this, SLOT(maximizeWindow()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_M), this, SLOT(minimizeWindow()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q), this, SLOT(QuitApplication()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_K), this, SLOT(toggleStayOnTop()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_J), this, SLOT(toggleNoteList()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S), this, SLOT(onStyleEditorButtonClicked()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_J), this, SLOT(toggleNodeTree()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_A), this, SLOT(selectAllNotesInList()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_QuoteLeft), this, SLOT(makeCode()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_B), this, SLOT(makeBold()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_I), this, SLOT(makeItalic()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), this, SLOT(makeStrikethrough()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Minus), this, SLOT(decreaseHeading()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Equal), this, SLOT(increaseHeading()));
-    connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_0), this),  &QShortcut::activated, this, [=](){setHeading(0);});
-    connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_1), this),  &QShortcut::activated, this, [=](){setHeading(1);});
-    connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_2), this),  &QShortcut::activated, this, [=](){setHeading(2);});
-    connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_3), this),  &QShortcut::activated, this, [=](){setHeading(3);});
-    connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_4), this),  &QShortcut::activated, this, [=](){setHeading(4);});
-    connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_5), this),  &QShortcut::activated, this, [=](){setHeading(5);});
-    connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_6), this),  &QShortcut::activated, this, [=](){setHeading(6);});
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Backslash), this, SLOT(resetBlockFormat()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_F), this, SLOT(fullscreenWindow()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_L), this, SLOT(maximizeWindow()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_M), this, SLOT(minimizeWindow()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q), this, SLOT(QuitApplication()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_K), this, SLOT(toggleStayOnTop()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_J), this, SLOT(toggleNoteList()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_S), this, SLOT(onStyleEditorButtonClicked()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_J), this, SLOT(toggleNodeTree()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_A), this, SLOT(selectAllNotesInList()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_QuoteLeft), this, SLOT(makeCode()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_B), this, SLOT(makeBold()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_I), this, SLOT(makeItalic()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_S), this, SLOT(makeStrikethrough()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_Minus), this, SLOT(decreaseHeading()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_Equal), this, SLOT(increaseHeading()));
+    connect(new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_0), this),  &QShortcut::activated, this, [=](){setHeading(0);});
+    connect(new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_1), this),  &QShortcut::activated, this, [=](){setHeading(1);});
+    connect(new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_2), this),  &QShortcut::activated, this, [=](){setHeading(2);});
+    connect(new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_3), this),  &QShortcut::activated, this, [=](){setHeading(3);});
+    connect(new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_4), this),  &QShortcut::activated, this, [=](){setHeading(4);});
+    connect(new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_5), this),  &QShortcut::activated, this, [=](){setHeading(5);});
+    connect(new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_6), this),  &QShortcut::activated, this, [=](){setHeading(6);});
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Backslash), this, SLOT(resetBlockFormat()));
 
     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
 #if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
-    shortcut->setShortcut(QKeySequence(QStringLiteral("META+SHIFT+N")));
+    shortcut->setShortcut(QKeySequence(Qt::META | Qt::SHIFT | Qt::Key_N));
 #else
-    shortcut->setShortcut(QKeySequence(QStringLiteral("META+N")));
+    shortcut->setShortcut(QKeySequence(Qt::META | Qt::Key_N));
 #endif
     connect(shortcut, &QxtGlobalShortcut::activated, this, [=]() {
         // workaround prevent textEdit and searchEdit
@@ -929,7 +933,11 @@ void MainWindow::alignTextEditText()
     QFontMetricsF fm(m_currentSelectedFont);
     QString limitingStringSample = QString("The quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog");
     limitingStringSample.truncate(m_textEdit->lineWrapColumnOrWidth());
+#if QT_VERSION < QT_VERSION_CHECK(5, 11, 0)
     qreal textSamplePixelsWidth = fm.width(limitingStringSample);
+#else 
+    qreal textSamplePixelsWidth = fm.horizontalAdvance(limitingStringSample);
+#endif
     m_noteEditorLogic->setCurrentAdaptableEditorPadding((m_textEdit->width() - textSamplePixelsWidth) / 2 - 10);
 
 
@@ -1006,7 +1014,7 @@ void MainWindow::initializeSettingsDatabase()
     if(m_settingsDatabase->value(QStringLiteral("windowGeometry"), "NULL") == "NULL"){
         int initWidth = 870;
         int initHeight = 630;
-        QPoint center = qApp->desktop()->geometry().center();
+        QPoint center = qApp->primaryScreen()->geometry().center();
         QRect rect(center.x() - initWidth/2, center.y() - initHeight/2, initWidth, initHeight);
         setGeometry(rect);
         m_settingsDatabase->setValue(QStringLiteral("windowGeometry"), saveGeometry());
@@ -1164,7 +1172,7 @@ void MainWindow::setupModelView()
 
 /*!
  * \brief MainWindow::restoreStates
- * Restore the latest sates (if there are any) of the window and the splitter from
+ * Restore the latest states (if there are any) of the window and the splitter from
  * the settings database
  */
 void MainWindow::restoreStates()
@@ -1281,7 +1289,7 @@ void MainWindow::restoreStates()
     auto currentSelectFolder = m_settingsDatabase->value(QStringLiteral("currentSelectFolder"), QString{}).toString();
     auto currentSelectTagsId = m_settingsDatabase->value(QStringLiteral("currentSelectTagsId"), QStringList{}).toStringList();
     QSet<int> tags;
-    for (const auto& tagId : QT_AS_CONST(currentSelectTagsId)) {
+    for (const auto& tagId : qAsConst(currentSelectTagsId)) {
         tags.insert(tagId.toInt());
     }
     m_treeViewLogic->setLastSavedState(isSelectingFolder,
@@ -1290,7 +1298,7 @@ void MainWindow::restoreStates()
                                        expandedFolder);
     auto currentSelectNotes = m_settingsDatabase->value(QStringLiteral("currentSelectNotesId"), QStringList{}).toStringList();
     QSet<int> notesId;
-    for (const auto& id : QT_AS_CONST(currentSelectNotes)) {
+    for (const auto& id : qAsConst(currentSelectNotes)) {
         notesId.insert(id.toInt());
     }
     m_listViewLogic->setLastSavedState(notesId);
@@ -1487,7 +1495,7 @@ void MainWindow::onDotsButtonClicked()
                                              : tr("Hide &notes list");
 
     QAction* noteListVisbilityAction = viewMenu->addAction(actionLabel);
-    noteListVisbilityAction->setShortcut(Qt::CTRL + Qt::Key_J);
+    noteListVisbilityAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_J));
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
     noteListVisbilityAction->setShortcutVisibleInContextMenu(true);
 #endif
@@ -1503,7 +1511,7 @@ void MainWindow::onDotsButtonClicked()
                                                 : tr("Hide &folders tree");
 
     QAction* folderTreeVisbilityAction = viewMenu->addAction(factionLabel);
-    folderTreeVisbilityAction->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_J);
+    folderTreeVisbilityAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_J));
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
     folderTreeVisbilityAction->setShortcutVisibleInContextMenu(true);
 #endif
@@ -2400,8 +2408,8 @@ void MainWindow::closeEvent(QCloseEvent* event)
  */
 void MainWindow::mousePressEvent(QMouseEvent* event)
 {
-    m_mousePressX = event->x();
-    m_mousePressY = event->y();
+    m_mousePressX = event->pos().x();
+    m_mousePressY = event->pos().y();
 
     if(event->buttons() == Qt::LeftButton){
         if(m_mousePressX < this->width() - m_layoutMargin
@@ -2462,8 +2470,8 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
 {
 #ifndef __APPLE__
     if(!m_canStretchWindow && !m_canMoveWindow){
-        m_mousePressX = event->x();
-        m_mousePressY = event->y();
+        m_mousePressX = event->pos().x();
+        m_mousePressY = event->pos().y();
 
         if((m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin)
                 && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)){
@@ -2529,15 +2537,15 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
         int newWidth = width();
         int newHeight = height();
 
-        int minY = QGuiApplication::primaryScreen()->availableGeometry().y();
+        int minY =  QApplication::primaryScreen()->availableGeometry().y();
 
         switch (m_stretchSide) {
         case StretchSide::Right:
-            newWidth = abs(event->globalX()-this->x()+1);
+            newWidth = abs(event->globalPos().x()-this->x()+1);
             newWidth = newWidth < minimumWidth() ? minimumWidth() : newWidth;
             break;
         case StretchSide::Left:
-            newX = event->globalX() - m_mousePressX;
+            newX = event->globalPos().x() - m_mousePressX;
             newX = newX > 0 ? newX : 0;
             newX = newX > geometry().bottomRight().x() - minimumWidth() ? geometry().bottomRight().x() - minimumWidth() : newX;
             newWidth = geometry().topRight().x() - newX + 1;
@@ -2557,7 +2565,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
 
             break;
         case StretchSide::TopLeft:
-            newX = event->globalX() - m_mousePressX;
+            newX = event->globalPos().x() - m_mousePressX;
             newX = newX < 0 ? 0: newX;
             newX = newX > geometry().bottomRight().x() - minimumWidth() ? geometry().bottomRight().x()-minimumWidth() : newX;
 
@@ -2573,7 +2581,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
 
             break;
         case StretchSide::BottomLeft:
-            newX = event->globalX() - m_mousePressX;
+            newX = event->globalPos().x() - m_mousePressX;
             newX = newX < 0 ? 0: newX;
             newX = newX > geometry().bottomRight().x() - minimumWidth() ? geometry().bottomRight().x()-minimumWidth() : newX;
 
@@ -2589,7 +2597,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
             newY = newY > geometry().bottomRight().y() - minimumHeight() ? geometry().bottomRight().y() - minimumHeight() : newY;
             newY = newY < minY ? minY : newY;
 
-            newWidth = event->globalX() - x() + 1;
+            newWidth = event->globalPos().x() - x() + 1;
             newWidth = newWidth < minimumWidth() ? minimumWidth() : newWidth;
 
             newHeight = geometry().bottomRight().y() - newY + 1;
@@ -2597,7 +2605,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
 
             break;
         case StretchSide::BottomRight:
-            newWidth = event->globalX() - x() + 1;
+            newWidth = event->globalPos().x() - x() + 1;
             newWidth = newWidth < minimumWidth() ? minimumWidth() : newWidth;
 
             newHeight = event->globalY() - y() + 1;
@@ -2647,8 +2655,8 @@ void MainWindow::mousePressEvent(QMouseEvent* event)
                 && event->pos().y() > 5){
 
             m_canMoveWindow = true;
-            m_mousePressX = event->x();
-            m_mousePressY = event->y();
+            m_mousePressX = event->pos().x();
+            m_mousePressY = event->pos().y();
         }
     }
 
@@ -2664,7 +2672,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
 {
     if(m_canMoveWindow){
         //        this->setCursor(Qt::ClosedHandCursor);
-        int dx = event->globalX() - m_mousePressX;
+        int dx = event->globalPos().x() - m_mousePressX;
         int dy = event->globalY() - m_mousePressY;
         move (dx, dy);
 
@@ -3286,7 +3294,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         // from the top part of the window
         if(object == ui->frame){
             QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
-            if(mouseEvent->y() >= ui->searchEdit->y()){
+            if(mouseEvent->pos().y() >= ui->searchEdit->y()){
                 return true;
             }
         }

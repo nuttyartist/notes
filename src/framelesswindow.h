@@ -43,7 +43,11 @@ protected:
     //we can fix this by add "label1" to a ignorelist, just call addIgnoreWidget(label1)
     void addIgnoreWidget(QWidget* widget);
 
-    bool nativeEvent(const QByteArray &eventType, void *message, long *result);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	bool nativeEvent(const QByteArray &eventType, void *message, qintptr *result);
+#else
+	bool nativeEvent(const QByteArray &eventType, void *message, long *result);
+#endif
 private slots:
     void onTitleBarDestroyed();
 public:

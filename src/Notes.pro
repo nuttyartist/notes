@@ -25,7 +25,7 @@ include ($$PWD/../3rdParty/qmarkdowntextedit/qmarkdowntextedit.pri)
 include ($$PWD/../3rdParty/qautostart/src/qautostart.pri)
 
 DEFINES += APP_VERSION=\\\"$$VERSION\\\" \
-           QT_DISABLE_DEPRECATED_BEFORE=0x050905
+           QT_DISABLE_DEPRECATED_BEFORE=0x050900
 
 SOURCES += \
     allnotebuttontreedelegateeditor.cpp \
@@ -40,7 +40,7 @@ SOURCES += \
     notelistmodel.cpp \
     notelistview.cpp \
     singleinstance.cpp \
-    spliterstyle.cpp \
+    splitterstyle.cpp \
     taglistdelegate.cpp \
     taglistmodel.cpp \
     taglistview.cpp \
@@ -79,7 +79,7 @@ HEADERS  += \
     notelistview.h \
     notelistview_p.h \
     singleinstance.h \
-    spliterstyle.h \
+    splitterstyle.h \
     taglistdelegate.h \
     taglistmodel.h \
     taglistview.h \

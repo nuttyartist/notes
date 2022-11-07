@@ -138,7 +138,7 @@ void TreeViewLogic::loadTreeModel(const NodeTagTreeData &treeData)
                 m_treeView->setCurrentIndexC(m_treeModel->getAllNotesButtonIndex());
             }
         } else {
-            for (const auto& id: QT_AS_CONST(m_lastSelectTags)) {
+            for (const auto& id: qAsConst(m_lastSelectTags)) {
                 m_treeView->setCurrentIndexNC(m_treeModel->tagIndexFromId(id));
             }
         }

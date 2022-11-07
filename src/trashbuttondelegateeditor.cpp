@@ -19,9 +19,9 @@ TrashButtonDelegateEditor::TrashButtonDelegateEditor(QTreeView *view, const QSty
     m_displayFont(QStringLiteral("Roboto")),
     #endif
     #ifdef __APPLE__
-    m_titleFont(m_displayFont, 13, 65),
+	m_titleFont(m_displayFont, 13, QFont::DemiBold),
     #else
-    m_titleFont(m_displayFont, 10, 60),
+	m_titleFont(m_displayFont, 10, QFont::DemiBold),
     #endif
     m_titleColor(26, 26, 26),
     m_titleSelectedColor(255, 255, 255),

@@ -414,7 +414,7 @@ void DBManager::recalculateChildNotesCount()
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
     query.clear();
-    for (const auto& id: QT_AS_CONST(tagIds)) {
+    for (const auto& id: qAsConst(tagIds)) {
         query.prepare("SELECT count(*) FROM tag_relationship WHERE tag_id=:id");
         query.bindValue(QStringLiteral(":id"), id);
         status = query.exec();
@@ -911,7 +911,7 @@ QList<NodeData> DBManager::readOldNBK(const QString &fileName)
         QFile file(fileName);
         file.open(QIODevice::ReadOnly);
         QDataStream in(&file);
-        in.setVersion(QDataStream::Qt_5_9);
+        in.setVersion(QDataStream::Qt_5_6);
 
         try {
             in >> noteList;
@@ -924,7 +924,7 @@ QList<NodeData> DBManager::readOldNBK(const QString &fileName)
         QFile file(fileName);
         file.open(QIODevice::ReadOnly);
         QDataStream in(&file);
-        in.setVersion(QDataStream::Qt_5_9);
+        in.setVersion(QDataStream::Qt_5_6);
 
         QList<NodeData*> nl;
         try {
@@ -933,7 +933,7 @@ QList<NodeData> DBManager::readOldNBK(const QString &fileName)
             // Any exception deserializing will result in an empty note list and  the user will be notified
         }
         if (!nl.isEmpty()) {
-            for (const auto& n : QT_AS_CONST(nl)) {
+            for (const auto& n : qAsConst(nl)) {
                 noteList.append(*n);
             }
         }
@@ -1185,14 +1185,14 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
                 target.id() == SpecialNodeID::TrashFolder) {
             decreaseChildNotesCountFolder(SpecialNodeID::RootFolder);
             auto allTagInNote = getAllTagForNote(node.id());
-            for (const auto& tagId: QT_AS_CONST(allTagInNote)) {
+            for (const auto& tagId: qAsConst(allTagInNote)) {
                 decreaseChildNotesCountTag(tagId);
             }
         } else if (node.parentId() == SpecialNodeID::TrashFolder &&
                    target.id() != SpecialNodeID::TrashFolder) {
             increaseChildNotesCountFolder(SpecialNodeID::RootFolder);
             auto allTagInNote = getAllTagForNote(node.id());
-            for (const auto& tagId: QT_AS_CONST(allTagInNote)) {
+            for (const auto& tagId: qAsConst(allTagInNote)) {
                 increaseChildNotesCountTag(tagId);
             }
         }
@@ -1332,7 +1332,7 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
                 nds_id = i;
             }
         }
-        for (const int id : QT_AS_CONST(nds[nds_id])) {
+        for (const int id : qAsConst(nds[nds_id])) {
             bool ok = true;
             for (int i = 0; i < nds.size(); ++i) {
                 if (i == nds_id) {
@@ -1677,7 +1677,7 @@ void DBManager::onNotesListInTagsRequested(const QSet<int> &tagIds, bool newNote
             nds_id = i;
         }
     }
-    for (const int id : QT_AS_CONST(nds[nds_id])) {
+    for (const int id : qAsConst(nds[nds_id])) {
         bool ok = true;
         for (int i = 0; i < nds.size(); ++i) {
             if (i == nds_id) {
@@ -1783,7 +1783,7 @@ void DBManager::onImportNotesRequested(const QString &fileName)
             std::sort(tagList.begin(), tagList.end(), [] (auto a, auto b) {
                 return a.relativePosition() < b.relativePosition();
             });
-            for (const auto& tag : QT_AS_CONST(tagList)) {
+            for (const auto& tag : qAsConst(tagList)) {
                 QSqlQuery qr(m_db);
                 qr.prepare(R"(SELECT "id" FROM tag_table WHERE name = :name AND color = :color;)");
                 qr.bindValue(QStringLiteral(":name"), tag.name());
@@ -1874,7 +1874,7 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                         }
                     } else {
                         auto prL = NodePath(node.absolutePath()).seperate();
-                        for (const auto& pr : QT_AS_CONST(prL)) {
+                        for (const auto& pr : qAsConst(prL)) {
                             matchFolderFunctor(pr.toInt(), matchFolderFunctor);
                         }
                     }
@@ -1887,7 +1887,7 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                 };
                 Folder* rootFolder = nullptr;
                 QHash<int, Folder> needImportFolderMap;
-                for (const auto& node: QT_AS_CONST(nodeList)) {
+                for (const auto& node: qAsConst(nodeList)) {
                     Folder f;
                     f.id = node.id();
                     f.parentId = node.parentId();
@@ -1897,7 +1897,7 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                     }
                 }
                 if (rootFolder) {
-                    for (const auto& folder: QT_AS_CONST(needImportFolderMap)) {
+                    for (const auto& folder: qAsConst(needImportFolderMap)) {
                         if (folder.id != SpecialNodeID::RootFolder) {
                             needImportFolderMap[folder.parentId].children.push_back(
                                         &needImportFolderMap[folder.id]);
@@ -1924,7 +1924,7 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                     matchFunc(rootFolder, matchFunc);
                 } else {
                     qDebug() << __FUNCTION__ << "Error while keeping folder position";
-                    for (const auto& node: QT_AS_CONST(nodeList)) {
+                    for (const auto& node: qAsConst(nodeList)) {
                         matchFolderFunc(node.id(), matchFolderFunc);
                     }
                 }
@@ -1955,7 +1955,7 @@ void DBManager::onImportNotesRequested(const QString &fileName)
             bool status = out_qr.exec();
             QVector<NodeData> nodeList;
             QMap<int, std::pair<NodeData, int>> parents;
-            for (const auto& id: QT_AS_CONST(folderIdMap)) {
+            for (const auto& id: qAsConst(folderIdMap)) {
                 if (parents.contains(id)) {
                     continue;
                 }
@@ -1985,7 +1985,7 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                 }
                 m_db.transaction();
                 auto nodeId = nextAvailableNodeId();
-                for (auto node : QT_AS_CONST(nodeList)) {
+                for (auto node : qAsConst(nodeList)) {
                     if (folderIdMap.contains(node.parentId()) &&
                             parents.contains(folderIdMap[node.parentId()])) {
                         auto parentId = folderIdMap[node.parentId()];
@@ -2025,7 +2025,7 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                                                   out_qr.value(1).toInt()));
                 }
                 m_db.transaction();
-                for (const auto& rel : QT_AS_CONST(tagRela)) {
+                for (const auto& rel : qAsConst(tagRela)) {
                     if (tagIdMap.contains(rel.first) && noteIdMap.contains(rel.second)) {
                         addNoteToTag(noteIdMap[rel.second], tagIdMap[rel.first]);
                     } else {

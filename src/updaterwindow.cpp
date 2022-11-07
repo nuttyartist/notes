@@ -15,7 +15,6 @@
 #include <QMouseEvent>
 #include <QNetworkReply>
 #include <QDesktopServices>
-#include <QNetworkConfiguration>
 #include <QNetworkAccessManager>
 
 #include <QSimpleUpdater.h>
@@ -292,8 +291,9 @@ void UpdaterWindow::startDownload(const QUrl& url)
     m_startTime = QDateTime::currentDateTime().toSecsSinceEpoch();
     QNetworkRequest netReq(url);
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     netReq.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
-
+#endif
     m_reply = m_manager->get(netReq);
 
     /* Set file name */
@@ -560,16 +560,15 @@ void UpdaterWindow::onDownloadFinished()
 void UpdaterWindow::mousePressEvent(QMouseEvent* event)
 {
     if(event->button()== Qt::LeftButton){
-        if(event->pos().x()< width() - 5
-                && event->pos().x()>5
+        if(event->x()< width() - 5
+                && event->x()>5
                 && event->pos().y()< height() - 5
                 && event->pos().y()> 5){
             m_canMoveWindow = true;
             m_mousePressX = event->x();
-            m_mousePressY = event->y();
+            m_mousePressY = event->pos().y();
         }
     }
-
     event->accept();
 }
 

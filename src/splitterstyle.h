@@ -1,16 +1,16 @@
-#ifndef SPLITERSTYLE_H
-#define SPLITERSTYLE_H
+#ifndef SPLITTERSTYLE_H
+#define SPLITTERSTYLE_H
 
 #include <QProxyStyle>
 
-class SpliterStyle : public QProxyStyle
+class SplitterStyle : public QProxyStyle
 {
 public:
-    SpliterStyle();
+	SplitterStyle();
 
     // QStyle interface
 public:
     virtual void drawControl(ControlElement element, const QStyleOption *opt, QPainter *p, const QWidget *w) const override;
 };
 
-#endif // SPLITERSTYLE_H
+#endif // SPLITTERSTYLE_H

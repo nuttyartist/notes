@@ -39,15 +39,15 @@ NoteListDelegateEditor::NoteListDelegateEditor(const NoteListDelegate *delegate,
       #endif
 
       #ifdef __APPLE__
-      m_titleFont(m_displayFont, 13, 65),
-      m_titleSelectedFont(m_displayFont, 13, 65),
+      m_titleFont(m_displayFont, 13, QFont::DemiBold),
+      m_titleSelectedFont(m_displayFont, 13, QFont::DemiBold),
       m_dateFont(m_displayFont, 13),
-      m_headerFont(m_displayFont, 10, 65),
+      m_headerFont(m_displayFont, 10, QFont::DemiBold),
       #else
-      m_titleFont(m_displayFont, 10, 60),
+      m_titleFont(m_displayFont, 10, QFont::DemiBold),
       m_titleSelectedFont(m_displayFont, 10),
       m_dateFont(m_displayFont, 10),
-      m_headerFont(m_displayFont, 10, 60),
+      m_headerFont(m_displayFont, 10, QFont::DemiBold),
       #endif
       m_titleColor(26, 26, 26),
       m_dateColor(26, 26, 26),
@@ -503,7 +503,11 @@ void NoteListDelegateEditor::dragLeaveEvent(QDragLeaveEvent *event)
     Q_UNUSED(event);
 }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+void NoteListDelegateEditor::enterEvent(QEnterEvent *event)
+#else
 void NoteListDelegateEditor::enterEvent(QEvent *event)
+#endif
 {
     m_containsMouse = true;
     QWidget::enterEvent(event);

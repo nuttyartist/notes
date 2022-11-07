@@ -161,7 +161,7 @@ void NodeTreeView::onTagsDropSuccessfull(const QSet<int> &ids)
     setCurrentIndex(QModelIndex());
     clearSelection();
     setSelectionMode(QAbstractItemView::MultiSelection);
-    for (const auto& id: QT_AS_CONST(ids)) {
+    for (const auto& id: qAsConst(ids)) {
         auto index = m_model->tagIndexFromId(id);
         if (index.isValid()) {
             setCurrentIndex(index);
@@ -262,7 +262,7 @@ void NodeTreeView::selectionChanged(const QItemSelection &selected, const QItemS
     }
     auto indexes = selectedIndexes();
     QSet<int> tagIds;
-    for (const auto index : QT_AS_CONST(indexes)) {
+    for (const auto index : qAsConst(indexes)) {
         auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
         switch (itemType) {
         case NodeItem::Type::RootItem:
@@ -387,7 +387,7 @@ void NodeTreeView::dropEvent(QDropEvent *event)
             bool ok = false;
             auto idl = QString::fromUtf8(event->mimeData()->data(NOTE_MIME))
                     .split(QStringLiteral(PATH_SEPERATOR));
-            for (const auto& s : QT_AS_CONST(idl)) {
+            for (const auto& s : qAsConst(idl)) {
                 auto nodeId = s.toInt(&ok);
                 if (ok) {
                     if (itemType == NodeItem::Type::FolderItem) {
@@ -545,11 +545,11 @@ void NodeTreeView::onCustomContextMenu(QPoint point)
 void NodeTreeView::setTreeSeparator(const QVector<QModelIndex> &newTreeSeparator,
                                     const QModelIndex& defaultNotesIndex)
 {
-    for (const auto& sep : QT_AS_CONST(m_treeSeparator)) {
+    for (const auto& sep : qAsConst(m_treeSeparator)) {
         closePersistentEditor(sep);
     }
     m_treeSeparator = newTreeSeparator;
-    for (const auto& sep : QT_AS_CONST(m_treeSeparator)) {
+    for (const auto& sep : qAsConst(m_treeSeparator)) {
         openPersistentEditor(sep);
     }
     m_defaultNotesIndex = defaultNotesIndex;
@@ -608,7 +608,7 @@ void NodeTreeView::mousePressEvent(QMouseEvent *event)
             }
             case NodeItem::Type::TagItem: {
                 auto oldIndexes = selectionModel()->selectedIndexes();
-                for (const auto& ix : QT_AS_CONST(oldIndexes)) {
+                for (const auto& ix : qAsConst(oldIndexes)) {
                     auto itemType = static_cast<NodeItem::Type>(ix.data(NodeItem::Roles::ItemType).toInt());
                     if (itemType != NodeItem::Type::TagItem) {
                         setCurrentIndex(QModelIndex());

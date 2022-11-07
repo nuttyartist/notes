@@ -44,7 +44,7 @@ class TreeViewLogic;
 class ListViewLogic;
 class NoteEditorLogic;
 class TagPool;
-class SpliterStyle;
+class SplitterStyle;
 
 #if defined(Q_OS_WINDOWS) || defined(Q_OS_WIN)
 //#if defined(__MINGW32__) || defined(__GNUC__)
@@ -148,7 +148,7 @@ private:
     TagPool* m_tagPool;
     DBManager* m_dbManager;
     QThread* m_dbThread;
-    SpliterStyle* m_spliterStyle;
+	SplitterStyle* m_splitterStyle;
     UpdaterWindow m_updater;
     StyleEditorWindow m_styleEditorWindow;
     AboutWindow m_aboutWindow;

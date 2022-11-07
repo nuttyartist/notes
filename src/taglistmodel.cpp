@@ -72,7 +72,7 @@ QVariant TagListModel::data(const QModelIndex & index, int role) const {
 void TagListModel::updateTagData()
 {
     m_data.clear();
-    for (const auto& id : QT_AS_CONST(m_ids)) {
+    for (const auto& id : qAsConst(m_ids)) {
         if (m_tagPool->contains(id)) {
             m_data.append(m_tagPool->getTag(id));
         } else {
