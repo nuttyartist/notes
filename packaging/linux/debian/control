@@ -10,7 +10,7 @@ Homepage: http://www.get-notes.com/
 
 Package: notes
 Architecture: amd64
-Depends: libqt5widgets5 (>= 5.2), libqt5gui5 (>= 5.2), libqt5network5 (>= 5.2), libqt5sql5 (>= 5.2), libqt5core5a (>= 5.2), sqlite3, ${misc:Depends}, ${shlibs:Depends}
+Depends: libqt5widgets5 (>= 5.9), libqt5gui5 (>= 5.9), libqt5network5 (>= 5.9), libqt5sql5 (>= 5.9), libqt5core5a (>= 5.9), sqlite3, libqt5sql5-sqlite (>= 5.9), ${misc:Depends}, ${shlibs:Depends}
 Description: Note taking application, write down your thoughts.
  Notes is a tool for the things you need to write down off your
  brain. It is your place of expressing yourself. Notes is an open
