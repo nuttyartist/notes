@@ -6,12 +6,12 @@
 #include <QSet>
 
 namespace SpecialNodeID {
-    enum Value {
-        InvalidNodeId = -1,
-        RootFolder = 0,
-        TrashFolder = 1,
-        DefaultNotesFolder = 2,
-    };
+enum Value {
+    InvalidNodeId = -1,
+    RootFolder = 0,
+    TrashFolder = 1,
+    DefaultNotesFolder = 2,
+};
 }
 
 class NodeData
@@ -19,10 +19,7 @@ class NodeData
 public:
     explicit NodeData();
 
-    enum Type {
-        Note = 0,
-        Folder
-    };
+    enum Type { Note = 0, Folder };
 
     int id() const;
     void setId(int id);
@@ -34,7 +31,7 @@ public:
     void setLastModificationDateTime(const QDateTime &lastModificationdateTime);
 
     QDateTime creationDateTime() const;
-    void setCreationDateTime(const QDateTime& creationDateTime);
+    void setCreationDateTime(const QDateTime &creationDateTime);
 
     QString content() const;
     void setContent(const QString &content);
@@ -49,7 +46,7 @@ public:
     void setScrollBarPosition(int scrollBarPosition);
 
     QDateTime deletionDateTime() const;
-    void setDeletionDateTime(const QDateTime& deletionDateTime);
+    void setDeletionDateTime(const QDateTime &deletionDateTime);
 
     NodeData::Type nodeType() const;
     void setNodeType(NodeData::Type newNodeType);
@@ -109,7 +106,7 @@ private:
 
 Q_DECLARE_METATYPE(NodeData)
 
-QDataStream &operator>>(QDataStream &stream, NodeData& nodeData);
-QDataStream &operator>>(QDataStream &stream, NodeData* &nodeData);
+QDataStream &operator>>(QDataStream &stream, NodeData &nodeData);
+QDataStream &operator>>(QDataStream &stream, NodeData *&nodeData);
 
 #endif // NODEDATA_H

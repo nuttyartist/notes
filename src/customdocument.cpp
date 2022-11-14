@@ -1,11 +1,7 @@
 #include "customDocument.h"
 #include <QDebug>
 
-CustomDocument::CustomDocument(QWidget *parent)
-    : QTextEdit(parent)
-{
-
-}
+CustomDocument::CustomDocument(QWidget *parent) : QTextEdit(parent) { }
 
 /*!
  * \brief CustomDocument::setDocumentPadding

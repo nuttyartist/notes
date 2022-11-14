@@ -20,13 +20,9 @@ class NoteEditorLogic : public QObject
 {
     Q_OBJECT
 public:
-    explicit NoteEditorLogic(CustomDocument* textEdit,
-                             QLabel* editorDateLabel,
-                             QLineEdit* searchEdit,
-                             TagListView* tagListView,
-                             TagPool* tagPool,
-                             DBManager* dbManager,
-                             QObject *parent = nullptr);
+    explicit NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLabel,
+                             QLineEdit *searchEdit, TagListView *tagListView, TagPool *tagPool,
+                             DBManager *dbManager, QObject *parent = nullptr);
 
     bool markdownEnabled() const;
     void setMarkdownEnabled(bool newMarkdownEnabled);
@@ -48,36 +44,37 @@ public:
     void setCurrentMinimumEditorPadding(int newCurrentMinimumEditorPadding);
 
 public slots:
-    void showNotesInEditor(const QVector<NodeData>& notes);
+    void showNotesInEditor(const QVector<NodeData> &notes);
     void onTextEditTextChanged();
     void closeEditor();
     void onNoteTagListChanged(int noteId, const QSet<int> &tagIds);
 private slots:
     void editorResized();
 signals:
-    void requestCreateUpdateNote(const NodeData& note);
-    void noteEditClosed(const NodeData& note, bool selectNext);
+    void requestCreateUpdateNote(const NodeData &note);
+    void noteEditClosed(const NodeData &note, bool selectNext);
     void setVisibilityOfFrameRightNonEditor(bool);
-    void moveNoteToListViewTop(const NodeData& note);
-    void updateNoteDataInList(const NodeData& note);
-    void deleteNoteRequested(const NodeData& note);
+    void moveNoteToListViewTop(const NodeData &note);
+    void updateNoteDataInList(const NodeData &note);
+    void deleteNoteRequested(const NodeData &note);
+
 private:
     static QDateTime getQDateTime(const QString &date);
     void showTagListForCurrentNote();
     bool isInEditMode() const;
 
 private:
-    CustomDocument* m_textEdit;
+    CustomDocument *m_textEdit;
     MarkdownHighlighter *m_highlighter;
-    QLabel* m_editorDateLabel;
-    QLineEdit* m_searchEdit;
-    TagListView* m_tagListView;
-    DBManager* m_dbManager;
+    QLabel *m_editorDateLabel;
+    QLineEdit *m_searchEdit;
+    TagListView *m_tagListView;
+    DBManager *m_dbManager;
     QVector<NodeData> m_currentNotes;
     bool m_isContentModified;
     QTimer m_autoSaveTimer;
-    TagListDelegate* m_tagListDelegate;
-    TagListModel* m_tagListModel;
+    TagListDelegate *m_tagListDelegate;
+    TagListModel *m_tagListModel;
     QColor m_spacerColor;
     int m_currentAdaptableEditorPadding;
     int m_currentMinimumEditorPadding;

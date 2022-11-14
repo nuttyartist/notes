@@ -5,9 +5,9 @@
 #include <QMetaClassInfo>
 
 namespace SpecialTagID {
-    enum Value {
-        InvalidTagId = -1,
-    };
+enum Value {
+    InvalidTagId = -1,
+};
 }
 
 class TagData

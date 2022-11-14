@@ -1,26 +1,25 @@
 #include "tagpool.h"
 #include "dbmanager.h"
 
-TagPool::TagPool(DBManager *dbManager, QObject *parent) :
-    QObject(parent),
-    m_dbManager{dbManager}
+TagPool::TagPool(DBManager *dbManager, QObject *parent) : QObject(parent), m_dbManager{ dbManager }
 {
-    connect(m_dbManager, &DBManager::nodesTagTreeReceived,
-            this, [this] (const NodeTagTreeData& treeData) {
-        QMap<int, TagData> newPool;
-        for (const auto& tag: treeData.tagTreeData) {
-            newPool[tag.id()] = tag;
-        }
-        setTagPool(newPool);
-    }, Qt::QueuedConnection);
-    connect(m_dbManager, &DBManager::tagAdded,
-            this, &TagPool::onTagAdded, Qt::QueuedConnection);
-    connect(m_dbManager, &DBManager::tagRemoved,
-             this, &TagPool::onTagDeleted, Qt::QueuedConnection);
-    connect(m_dbManager, &DBManager::tagRenamed,
-             this, &TagPool::onTagRenamed, Qt::QueuedConnection);
-    connect(m_dbManager, &DBManager::tagColorChanged,
-             this, &TagPool::onTagColorChanged, Qt::QueuedConnection);
+    connect(
+            m_dbManager, &DBManager::nodesTagTreeReceived, this,
+            [this](const NodeTagTreeData &treeData) {
+                QMap<int, TagData> newPool;
+                for (const auto &tag : treeData.tagTreeData) {
+                    newPool[tag.id()] = tag;
+                }
+                setTagPool(newPool);
+            },
+            Qt::QueuedConnection);
+    connect(m_dbManager, &DBManager::tagAdded, this, &TagPool::onTagAdded, Qt::QueuedConnection);
+    connect(m_dbManager, &DBManager::tagRemoved, this, &TagPool::onTagDeleted,
+            Qt::QueuedConnection);
+    connect(m_dbManager, &DBManager::tagRenamed, this, &TagPool::onTagRenamed,
+            Qt::QueuedConnection);
+    connect(m_dbManager, &DBManager::tagColorChanged, this, &TagPool::onTagColorChanged,
+            Qt::QueuedConnection);
 }
 
 void TagPool::setTagPool(const QMap<int, TagData> &newPool)

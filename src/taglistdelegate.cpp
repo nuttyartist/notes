@@ -3,27 +3,30 @@
 #include <QPainter>
 #include <QPainterPath>
 
-TagListDelegate::TagListDelegate(QObject *parent) :
-    QStyledItemDelegate(parent),
-    #ifdef __APPLE__
-    m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")),
-    #elif _WIN32
-    m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI") : QStringLiteral("Roboto")),
-    #else
-    m_displayFont(QStringLiteral("Roboto")),
-    #endif
-    #ifdef __APPLE__
-	m_titleFont(m_displayFont, 13, QFont::DemiBold),
-    #else
-	m_titleFont(m_displayFont, 10, QFont::DemiBold),
-    #endif
-    m_titleColor(26, 26, 26),
-    m_theme(Theme::Light)
+TagListDelegate::TagListDelegate(QObject *parent)
+    : QStyledItemDelegate(parent),
+#ifdef __APPLE__
+      m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch()
+                            ? QStringLiteral("SF Pro Text")
+                            : QStringLiteral("Roboto")),
+#elif _WIN32
+      m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI")
+                                                                   : QStringLiteral("Roboto")),
+#else
+      m_displayFont(QStringLiteral("Roboto")),
+#endif
+#ifdef __APPLE__
+      m_titleFont(m_displayFont, 13, QFont::DemiBold),
+#else
+      m_titleFont(m_displayFont, 10, QFont::DemiBold),
+#endif
+      m_titleColor(26, 26, 26),
+      m_theme(Theme::Light)
 {
-
 }
 
-void TagListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+void TagListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
+                            const QModelIndex &index) const
 {
     painter->setRenderHint(QPainter::Antialiasing);
     auto name = index.data(TagListModel::NameRole).toString();
@@ -66,19 +69,16 @@ QSize TagListDelegate::sizeHint(const QStyleOptionViewItem &option, const QModel
 void TagListDelegate::setTheme(Theme newTheme)
 {
     m_theme = newTheme;
-    switch(m_theme){
-    case Theme::Light:
-    {
+    switch (m_theme) {
+    case Theme::Light: {
         m_titleColor = QColor(26, 26, 26);
         break;
     }
-    case Theme::Dark:
-    {
+    case Theme::Dark: {
         m_titleColor = QColor(204, 204, 204);
         break;
     }
-    case Theme::Sepia:
-    {
+    case Theme::Sepia: {
         m_titleColor = QColor(26, 26, 26);
         break;
     }

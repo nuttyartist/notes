@@ -3,8 +3,7 @@
 #include <QPainter>
 
 EditorSettingsButton::EditorSettingsButton(QWidget *parent)
-: QPushButton(parent),
-  m_currentFontName(QStringLiteral("Roboto"))
+    : QPushButton(parent), m_currentFontName(QStringLiteral("Roboto"))
 {
 }
 
@@ -35,11 +34,12 @@ void EditorSettingsButton::paintEvent(QPaintEvent *p)
     currentY += 6;
     painter.setFont(QFont(m_currentFontName, 36, QFont::Bold));
 #endif
-    painter.drawText(rowPosX, currentY, rowWidth, rowHeight, Qt::AlignHCenter, QStringLiteral("Aa"));
+    painter.drawText(rowPosX, currentY, rowWidth, rowHeight, Qt::AlignHCenter,
+                     QStringLiteral("Aa"));
 
     QString arrowImagePath;
     switch (m_currentTheme) {
-        case Theme::Dark:
+    case Theme::Dark:
         arrowImagePath = QStringLiteral(":images/arrow-right-dark.png");
         break;
     default:
@@ -48,13 +48,15 @@ void EditorSettingsButton::paintEvent(QPaintEvent *p)
     }
 
 #ifdef __APPLE__
-    painter.drawImage(rowPosX+115, currentY+30, QImage(arrowImagePath));
+    painter.drawImage(rowPosX + 115, currentY + 30, QImage(arrowImagePath));
     painter.setFont(QFont(QStringLiteral("Roboto"), 9, QFont::Normal));
-    painter.drawText(rowPosX+52, currentY+42, rowWidth, rowHeight, Qt::AlignHCenter, QStringLiteral("Next"));
+    painter.drawText(rowPosX + 52, currentY + 42, rowWidth, rowHeight, Qt::AlignHCenter,
+                     QStringLiteral("Next"));
 #else
-    painter.drawImage(rowPosX+109, currentY+24, QImage(arrowImagePath));
+    painter.drawImage(rowPosX + 109, currentY + 24, QImage(arrowImagePath));
     painter.setFont(QFont(QStringLiteral("Roboto"), 5, QFont::Normal));
-    painter.drawText(rowPosX+46, currentY+36, rowWidth, rowHeight, Qt::AlignHCenter, QStringLiteral("Next"));
+    painter.drawText(rowPosX + 46, currentY + 36, rowWidth, rowHeight, Qt::AlignHCenter,
+                     QStringLiteral("Next"));
 #endif
 
 #ifdef __APPLE__
@@ -64,7 +66,8 @@ void EditorSettingsButton::paintEvent(QPaintEvent *p)
     currentY += 54;
     painter.setFont(QFont(m_currentFontName, 10, QFont::Normal));
 #endif
-    painter.drawText(rowPosX, currentY, rowWidth, rowHeight, Qt::AlignHCenter, m_currentFontTypeface);
+    painter.drawText(rowPosX, currentY, rowWidth, rowHeight, Qt::AlignHCenter,
+                     m_currentFontTypeface);
     currentY += 16;
 
 #ifdef __APPLE__
@@ -73,7 +76,6 @@ void EditorSettingsButton::paintEvent(QPaintEvent *p)
     painter.setFont(QFont(m_currentFontName, 9, QFont::Normal));
 #endif
     painter.drawText(rowPosX, currentY, rowWidth, rowHeight, Qt::AlignHCenter, m_currentFontName);
-
 }
 
 /*!
@@ -83,7 +85,8 @@ void EditorSettingsButton::paintEvent(QPaintEvent *p)
  * \param fontTypeface
  * \param fontColor
  */
-void EditorSettingsButton::changeFont(const QString &fontName, const QString &fontTypeface, QColor fontColor)
+void EditorSettingsButton::changeFont(const QString &fontName, const QString &fontTypeface,
+                                      QColor fontColor)
 {
     m_currentFontName = fontName;
     m_currentFontTypeface = fontTypeface;
@@ -101,4 +104,3 @@ void EditorSettingsButton::setTheme(Theme theme)
 {
     m_currentTheme = theme;
 }
-

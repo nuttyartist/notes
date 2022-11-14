@@ -15,29 +15,29 @@ class NoteListView : public QListView
     Q_OBJECT
 
 public:
-    explicit NoteListView(QWidget* parent = Q_NULLPTR);
+    explicit NoteListView(QWidget *parent = Q_NULLPTR);
     ~NoteListView();
 
     void animateAddedRow(const QModelIndexList &indexes);
     void setAnimationEnabled(bool isEnabled);
     void setCurrentRowActive(bool isActive);
-    void setTheme(Theme theme);    
+    void setTheme(Theme theme);
     void setTagPool(TagPool *newTagPool);
     void setIsInTrash(bool newIsInTrash);
     void setDbManager(DBManager *newDbManager);
 
     void setCurrentFolderId(int newCurrentFolderId);
-    void openPersistentEditorC(const QModelIndex& index);
-    void closePersistentEditorC(const QModelIndex& index);
-    void setEditorWidget(int noteId, QWidget* w);
-    void unsetEditorWidget(int noteId, QWidget* w);
-    void closeAllEditor();    
+    void openPersistentEditorC(const QModelIndex &index);
+    void closePersistentEditorC(const QModelIndex &index);
+    void setEditorWidget(int noteId, QWidget *w);
+    void unsetEditorWidget(int noteId, QWidget *w);
+    void closeAllEditor();
     void setListViewInfo(const ListViewInfo &newListViewInfo);
     bool isDragging() const;
 
     bool isPinnedNotesCollapsed() const;
     void setIsPinnedNotesCollapsed(bool newIsPinnedNotesCollapsed);
-    void setCurrentIndexC(const QModelIndex& index);
+    void setCurrentIndexC(const QModelIndex &index);
     QModelIndexList selectedIndex() const;
     bool isDraggingInsidePinned() const;
 
@@ -47,10 +47,10 @@ public slots:
     void onAnimationFinished(NoteListState state);
 
 protected:
-    void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
-    void mousePressEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
-    void mouseReleaseEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
-    bool viewportEvent(QEvent* e) Q_DECL_OVERRIDE;
+    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void mousePressEvent(QMouseEvent *e) Q_DECL_OVERRIDE;
+    void mouseReleaseEvent(QMouseEvent *e) Q_DECL_OVERRIDE;
+    bool viewportEvent(QEvent *e) Q_DECL_OVERRIDE;
     virtual void dragEnterEvent(QDragEnterEvent *event) override;
     virtual void dragMoveEvent(QDragMoveEvent *event) override;
 
@@ -62,22 +62,22 @@ protected:
 public slots:
     void rowsAboutToBeMoved(const QModelIndexList &source);
     void rowsMoved(const QModelIndexList &dest);
-    void onRowsInserted(const QModelIndexList& rows);
+    void onRowsInserted(const QModelIndexList &rows);
 
 private slots:
     void init();
 
 signals:
-    void addTagRequested(const QModelIndex& index, int tadId);
-    void removeTagRequested(const QModelIndex& index, int tadId);
-    void deleteNoteRequested(const QModelIndexList& index);
-    void restoreNoteRequested(const QModelIndexList& indexes);
+    void addTagRequested(const QModelIndex &index, int tadId);
+    void removeTagRequested(const QModelIndex &index, int tadId);
+    void deleteNoteRequested(const QModelIndexList &index);
+    void restoreNoteRequested(const QModelIndexList &indexes);
     void newNoteRequested();
     void moveNoteRequested(int noteId, int folderId);
-    void setPinnedNoteRequested(const QModelIndexList& indexes, bool isPinned);
-    void saveSelectedNote(const QSet<int>& noteId);
+    void setPinnedNoteRequested(const QModelIndexList &indexes, bool isPinned);
+    void saveSelectedNote(const QSet<int> &noteId);
     void pinnedCollapseChanged();
-    void notePressed(const QModelIndexList& selected);
+    void notePressed(const QModelIndexList &selected);
     void noteListViewClicked();
 
 private:
@@ -87,21 +87,21 @@ private:
     bool m_mousePressHandled;
     int m_rowHeight;
     QColor m_currentBackgroundColor;
-    QMenu* contextMenu;
-    QAction* deleteNoteAction;
-    QAction* restoreNoteAction;
-    QAction* pinNoteAction;
-    QAction* unpinNoteAction;
-    QAction* newNoteAction;
-    TagPool* m_tagPool;
-    DBManager* m_dbManager;
+    QMenu *contextMenu;
+    QAction *deleteNoteAction;
+    QAction *restoreNoteAction;
+    QAction *pinNoteAction;
+    QAction *unpinNoteAction;
+    QAction *newNoteAction;
+    TagPool *m_tagPool;
+    DBManager *m_dbManager;
     int m_currentFolderId;
-    QVector<QAction*> m_noteTagActions;
-    QVector<QAction*> m_folderActions;
+    QVector<QAction *> m_noteTagActions;
+    QVector<QAction *> m_folderActions;
     bool m_isInTrash;
     QPoint m_dragStartPosition;
     QPixmap m_dragPixmap;
-    QMap<int, QVector<QWidget*>> m_openedEditor;
+    QMap<int, QVector<QWidget *>> m_openedEditor;
     QVector<int> m_needRemovedNotes;
     ListViewInfo m_listViewInfo;
     bool m_isDragging;
@@ -113,12 +113,14 @@ private:
 
     void addNotesToTag(QSet<int> notesId, int tagId);
     void removeNotesFromTag(QSet<int> notesId, int tagId);
+
 private:
     Q_DECLARE_PRIVATE(NoteListView)
 
     // QAbstractItemView interface
 protected slots:
-    void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected) override;
+    void selectionChanged(const QItemSelection &selected,
+                          const QItemSelection &deselected) override;
 };
 
 #endif // NOTELISTVIEW_H

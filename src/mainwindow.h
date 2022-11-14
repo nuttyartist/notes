@@ -1,8 +1,8 @@
 /*********************************************************************************************
-* Mozila License
-* Just a meantime project to see the ability of qt, the framework that my OS might be based on
-* And for those linux users that beleive in the power of notes
-*********************************************************************************************/
+ * Mozila License
+ * Just a meantime project to see the ability of qt, the framework that my OS might be based on
+ * And for those linux users that beleive in the power of notes
+ *********************************************************************************************/
 
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
@@ -50,7 +50,7 @@ class SplitterStyle;
 //#if defined(__MINGW32__) || defined(__GNUC__)
 using MainWindowBase = QMainWindow;
 //#else
-//using MainWindowBase = CFramelessWindow;
+// using MainWindowBase = CFramelessWindow;
 //#endif
 #elif defined(Q_OS_MACOS)
 using MainWindowBase = CFramelessWindow;
@@ -62,13 +62,9 @@ class MainWindow : public MainWindowBase
     Q_OBJECT
 
 public:
+    enum class ShadowType { Linear = 0, Radial };
 
-    enum class ShadowType{
-        Linear = 0,
-        Radial
-        };
-
-    enum class ShadowSide{
+    enum class ShadowSide {
         Left = 0,
         Right,
         Top,
@@ -77,9 +73,9 @@ public:
         TopRight,
         BottomLeft,
         BottomRight
-        };
+    };
 
-    enum class StretchSide{
+    enum class StretchSide {
         None = 0,
         Left,
         Right,
@@ -89,7 +85,7 @@ public:
         TopRight,
         BottomLeft,
         BottomRight
-        };
+    };
 
     Q_ENUM(ShadowType)
     Q_ENUM(ShadowSide)
@@ -101,54 +97,55 @@ public:
     void setMainWindowVisibility(bool state);
 
 public slots:
-    void saveLastSelectedFolderTags(bool isFolder, const QString &folderPath, const QSet<int>& tagId);
-    void saveExpandedFolder(const QStringList& folderPaths);
+    void saveLastSelectedFolderTags(bool isFolder, const QString &folderPath,
+                                    const QSet<int> &tagId);
+    void saveExpandedFolder(const QStringList &folderPaths);
     void saveLastSelectedNote(const QSet<int> &notesId);
 
 protected:
-    void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
-    void resizeEvent(QResizeEvent* event) Q_DECL_OVERRIDE;
-    void closeEvent(QCloseEvent* event) Q_DECL_OVERRIDE;
-    void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
-    void mouseReleaseEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
-    void mouseDoubleClickEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
-    void leaveEvent(QEvent*) Q_DECL_OVERRIDE;
-    bool eventFilter(QObject* object, QEvent* event) Q_DECL_OVERRIDE;
+    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+    void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
+    void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
+    void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void mouseDoubleClickEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void leaveEvent(QEvent *) Q_DECL_OVERRIDE;
+    bool eventFilter(QObject *object, QEvent *event) Q_DECL_OVERRIDE;
 
 private:
-    Ui::MainWindow* ui;
+    Ui::MainWindow *ui;
 
-    QSettings* m_settingsDatabase;
-    QToolButton* m_clearButton;
-    QPushButton* m_greenMaximizeButton;
-    QPushButton* m_redCloseButton;
-    QPushButton* m_yellowMinimizeButton;
+    QSettings *m_settingsDatabase;
+    QToolButton *m_clearButton;
+    QPushButton *m_greenMaximizeButton;
+    QPushButton *m_redCloseButton;
+    QPushButton *m_yellowMinimizeButton;
     QHBoxLayout m_trafficLightLayout;
-    QPushButton* m_newNoteButton;
-    QPushButton* m_trashButton;
-    QPushButton* m_dotsButton;
-    QPushButton* m_styleEditorButton;
-    CustomDocument* m_textEdit;
-    NoteEditorLogic* m_noteEditorLogic;
-    QLineEdit* m_searchEdit;
-    QLabel* m_editorDateLabel;
+    QPushButton *m_newNoteButton;
+    QPushButton *m_trashButton;
+    QPushButton *m_dotsButton;
+    QPushButton *m_styleEditorButton;
+    CustomDocument *m_textEdit;
+    NoteEditorLogic *m_noteEditorLogic;
+    QLineEdit *m_searchEdit;
+    QLabel *m_editorDateLabel;
     QSplitter *m_splitter;
-    QSystemTrayIcon* m_trayIcon;
-    QAction* m_restoreAction;
-    QAction* m_quitAction;
-    QMenu* m_trayIconMenu;
+    QSystemTrayIcon *m_trayIcon;
+    QAction *m_restoreAction;
+    QAction *m_quitAction;
+    QMenu *m_trayIconMenu;
 
-    NoteListView* m_listView;
-    NoteListModel* m_listModel;
-    ListViewLogic* m_listViewLogic;
-    NodeTreeView* m_treeView;
-    NodeTreeModel* m_treeModel;
-    TreeViewLogic* m_treeViewLogic;
-    TagPool* m_tagPool;
-    DBManager* m_dbManager;
-    QThread* m_dbThread;
-	SplitterStyle* m_splitterStyle;
+    NoteListView *m_listView;
+    NoteListModel *m_listModel;
+    ListViewLogic *m_listViewLogic;
+    NodeTreeView *m_treeView;
+    NodeTreeModel *m_treeModel;
+    TreeViewLogic *m_treeViewLogic;
+    TagPool *m_tagPool;
+    DBManager *m_dbManager;
+    QThread *m_dbThread;
+    SplitterStyle *m_splitterStyle;
     UpdaterWindow m_updater;
     StyleEditorWindow m_styleEditorWindow;
     AboutWindow m_aboutWindow;
@@ -182,7 +179,8 @@ private:
     int m_currentFontPointSize;
     bool m_isNoteListCollapsed;
     bool m_isTreeCollapsed;
-    struct m_charsLimitPerFont {
+    struct m_charsLimitPerFont
+    {
         int mono;
         int serif;
         int sansSerif;
@@ -234,8 +232,8 @@ private:
     void adjustUpperWidgets(bool shouldPushUp);
     void setSearchEditStyleSheet(bool isFocused);
 
-    void dropShadow(QPainter& painter, ShadowType type, ShadowSide side);
-    void fillRectWithGradient(QPainter& painter, QRect rect, QGradient& gradient);
+    void dropShadow(QPainter &painter, ShadowType type, ShadowSide side);
+    void fillRectWithGradient(QPainter &painter, QRect rect, QGradient &gradient);
     double gaussianDist(double x, const double center, double sigma) const;
 
     void setMargins(QMargins margins);
@@ -296,21 +294,21 @@ private slots:
     void setTheme(Theme theme);
     void deleteSelectedNote();
     void clearSearch();
-    void showErrorMessage(const QString& title, const QString& content);
+    void showErrorMessage(const QString &title, const QString &content);
     void setNoteListLoading();
     void selectAllNotesInList();
     void updateFrame();
 
 signals:
     void requestNodesTree();
-    void requestOpenDBManager(const QString& path, bool doCreate);
-    void requestRestoreNotes(const QString& filePath);
-    void requestImportNotes(const QString& filePath);
+    void requestOpenDBManager(const QString &path, bool doCreate);
+    void requestRestoreNotes(const QString &filePath);
+    void requestImportNotes(const QString &filePath);
     void requestExportNotes(QString fileName);
-    void requestMigrateNotesFromV0_9_0(QVector<NodeData>& noteList);
-    void requestMigrateTrashFromV0_9_0(QVector<NodeData>& noteList);
-    void requestMigrateNotesFromV1_5_0(const QString& path);
-    void requestChangeDatabasePath(const QString& newPath);
+    void requestMigrateNotesFromV0_9_0(QVector<NodeData> &noteList);
+    void requestMigrateTrashFromV0_9_0(QVector<NodeData> &noteList);
+    void requestMigrateNotesFromV1_5_0(const QString &path);
+    void requestChangeDatabasePath(const QString &newPath);
 };
 
 #endif // MAINWINDOW_H

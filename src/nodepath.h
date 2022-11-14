@@ -12,16 +12,16 @@
 class NodePath
 {
 public:
-    NodePath(const QString& path);
+    NodePath(const QString &path);
     QStringList seperate() const;
 
     QString path() const;
     NodePath parentPath() const;
     static QString getAllNoteFolderPath();
     static QString getTrashFolderPath();
+
 private:
     QString m_path;
 };
-
 
 #endif // NODEPATH_H

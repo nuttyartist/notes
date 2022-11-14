@@ -18,7 +18,7 @@ signals:
     void newInstance();
 
 private:
-    QLocalSocket* m_socket;
+    QLocalSocket *m_socket;
     QLocalServer m_server;
 };
 

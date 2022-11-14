@@ -1,11 +1,7 @@
 #include "nodepath.h"
 #include "nodedata.h"
 
-NodePath::NodePath(const QString &path) :
-    m_path(path)
-{
-
-}
+NodePath::NodePath(const QString &path) : m_path(path) { }
 
 QStringList NodePath::seperate() const
 {
@@ -35,6 +31,6 @@ QString NodePath::getAllNoteFolderPath()
 
 QString NodePath::getTrashFolderPath()
 {
-    return PATH_SEPERATOR + QString::number(SpecialNodeID::RootFolder)
-            + PATH_SEPERATOR + QString::number(SpecialNodeID::TrashFolder);
+    return PATH_SEPERATOR + QString::number(SpecialNodeID::RootFolder) + PATH_SEPERATOR
+            + QString::number(SpecialNodeID::TrashFolder);
 }
