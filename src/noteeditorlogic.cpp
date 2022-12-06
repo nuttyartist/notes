@@ -111,7 +111,7 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
         auto padding = m_currentAdaptableEditorPadding > m_currentMinimumEditorPadding
                 ? m_currentAdaptableEditorPadding
                 : m_currentMinimumEditorPadding;
-        QPixmap sep(QSize{ m_textEdit->width() - padding * 2 - 8, 4});
+        QPixmap sep(QSize{ m_textEdit->width() - padding * 2 - 12, 4});
         sep.fill(Qt::transparent);
         QPainter painter(&sep);
         painter.setPen(m_spacerColor);
