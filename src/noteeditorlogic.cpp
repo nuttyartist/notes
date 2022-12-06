@@ -25,7 +25,7 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLab
       m_tagListView{ tagListView },
       m_dbManager{ dbManager },
       m_isContentModified{ false },
-      m_spacerColor{ 26, 26, 26 },
+      m_spacerColor{ 191, 191, 191 },
       m_currentAdaptableEditorPadding{ 0 },
       m_currentMinimumEditorPadding{ 0 }
 {
@@ -111,11 +111,11 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
         auto padding = m_currentAdaptableEditorPadding > m_currentMinimumEditorPadding
                 ? m_currentAdaptableEditorPadding
                 : m_currentMinimumEditorPadding;
-        QPixmap sep(QSize{ m_textEdit->width() - padding * 2 - 20, 19 });
+        QPixmap sep(QSize{ m_textEdit->width() - padding * 2 - 8, 4});
         sep.fill(Qt::transparent);
         QPainter painter(&sep);
         painter.setPen(m_spacerColor);
-        painter.drawLine(10, 10, sep.width(), 10);
+        painter.drawRect(0, 1, sep.width(), 1);
         m_textEdit->document()->addResource(QTextDocument::ImageResource, QUrl("mydata://sep.png"),
                                             sep);
         for (int i = 0; i < notes.size(); ++i) {
@@ -132,7 +132,9 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
             }
             if (i != notes.size() - 1) {
                 cursor.movePosition(QTextCursor::End);
+                cursor.insertText("\n");
                 cursor.insertImage("mydata://sep.png");
+                cursor.insertText("\n");
             }
         }
         m_textEdit->blockSignals(false);
@@ -345,7 +347,7 @@ void NoteEditorLogic::setTheme(Theme newTheme)
     m_tagListDelegate->setTheme(newTheme);
     switch (newTheme) {
     case Theme::Light: {
-        m_spacerColor = QColor(26, 26, 26);
+        m_spacerColor = QColor(191, 191, 191);
         break;
     }
     case Theme::Dark: {
@@ -353,7 +355,7 @@ void NoteEditorLogic::setTheme(Theme newTheme)
         break;
     }
     case Theme::Sepia: {
-        m_spacerColor = QColor(26, 26, 26);
+        m_spacerColor = QColor(191, 191, 191);
         break;
     }
     }
