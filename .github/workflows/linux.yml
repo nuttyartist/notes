@@ -97,7 +97,7 @@ jobs:
           - os: ubuntu-20.04
             container: ubuntu:20.04
             build-type: release
-            qt-version: 6.2.4
+            qt-version: 6.3.2
     steps:
       - name: Install git PPA in docker container
         # A more recent version of git is required by the checkout action: https://github.com/actions/checkout/issues/758
