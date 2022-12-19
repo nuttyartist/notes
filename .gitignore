@@ -4,6 +4,7 @@
 build-Notes-*
 build-*
 bin*
+src/Makefile.Notes
 
 # OS generated files #
 ######################
