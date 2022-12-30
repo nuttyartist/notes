@@ -27,9 +27,12 @@ jobs:
           submodules: recursive
 
       - name: Install Qt ${{ matrix.qt-version-major }} (homebrew)
+        env:
+          # TODO: remove once https://github.com/actions/setup-python/issues/577 gets fixed.
+          HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
         run: |
           brew update
-          brew install qt@${{ matrix.qt-version-major }}
+          brew install ninja qt@${{ matrix.qt-version-major }} 
 
       - name: Configure Qt ${{ matrix.qt-version-major }} (homebrew)
         run: |
@@ -47,10 +50,9 @@ jobs:
 
       - name: Build (${{ matrix.build-type }})
         run: |
-          mkdir build
-          cd build
-          qmake -config ${{ matrix.build-type }} ../src/Notes.pro
-          make -j$(sysctl -n hw.logicalcpu)
+          export CMAKE_BUILD_PARALLEL_LEVEL=$(sysctl -n hw.logicalcpu)
+          cmake . -G Ninja -B build -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DCMAKE_PREFIX_PATH="$(brew --prefix qt@${{ matrix.qt-version-major }})"
+          cmake --build build
 
   # Build the dmg disk image using the official Qt 5 release downloaded by aqtinstall.
   # This is also done for Linux and Windows, just to make sure we use the exact same Qt version across all three OSes.
@@ -78,12 +80,12 @@ jobs:
 
       - name: Update version
         run: |
-          sed -i.bak "/^VERSION *=/ s/$/-g${GITHUB_SHA::7}/" src/Notes.pro
+          sed -i.bak "s/[^_]PROJECT_VERSION *[^)]\+/&-g${GITHUB_SHA::7}/" CMakeLists.txt
 
       - name: Setup variables
         id: vars
         run: |
-          version=$(grep -m 1 VERSION src/Notes.pro | sed 's/^VERSION *= *//')
+          version=$(grep -m 1 '[^_]PROJECT_VERSION' CMakeLists.txt | sed 's/.*[^_]PROJECT_VERSION *//' | sed 's/).*//')
           artifact_name="Notes_${version}-x86_64-Qt${{ matrix.qt-version }}"
           file_name="$artifact_name${{ matrix.build-type == 'debug' && '-debug.' || '.' }}dmg"
           echo "version=$version" >> $GITHUB_OUTPUT
@@ -96,18 +98,22 @@ jobs:
           version: ${{ matrix.qt-version }}
           cache: true
 
+      - name: Install Ninja
+        run: |
+          brew update
+          brew install ninja
+
       - name: Build (${{ matrix.build-type }})
         run: |
-          mkdir build
-          cd build
-          qmake -config ${{ matrix.build-type }} ../src/Notes.pro
-          make -j$(sysctl -n hw.logicalcpu)
+          export CMAKE_BUILD_PARALLEL_LEVEL=$(sysctl -n hw.logicalcpu)
+          cmake . -G Ninja -B build -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
+          cmake --build build
 
       - name: Build dmg (${{ matrix.build-type }})
         run: |
-          cd bin
+          cd build
           plutil -insert NSRequiresAquaSystemAppearance -bool true Notes.app/Contents/Info.plist
-          plutil -insert CFBundleName -string Notes Notes.app/Contents/Info.plist
+          plutil -replace CFBundleName -string Notes Notes.app/Contents/Info.plist
           macdeployqt Notes.app -dmg
           mv Notes.dmg '${{ steps.vars.outputs.file_name }}'
 
@@ -115,4 +121,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.vars.outputs.artifact_name }}-${{ runner.os }}-${{ matrix.build-type }}
-          path: bin/${{ steps.vars.outputs.file_name }}
+          path: build/${{ steps.vars.outputs.file_name }}

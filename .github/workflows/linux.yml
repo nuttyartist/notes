@@ -59,7 +59,7 @@ jobs:
           QT_PKGS: ${{ matrix.qt-version-major == '6' && 'qt6-base-private-dev libgl-dev' || 'qtbase5-private-dev' }}
         run: |
           sudo apt update
-          sudo apt install -y build-essential qtchooser ${{ env.QT_PKGS }}
+          sudo apt install -y build-essential cmake ninja-build ${{ env.QT_PKGS }} 
 
       - name: Setup GCC problem matcher
         if: matrix.build-type == 'debug'
@@ -70,11 +70,9 @@ jobs:
         run: |
           mkdir build
           cd build
-          # Workaround for qtchooser not supporting Qt 6: https://bugs.launchpad.net/ubuntu/+source/qtchooser/+bug/1964763
-          echo -e '/usr/lib/qt6/bin\n/usr/lib/x86_64-linux-gnu' | sudo tee /usr/lib/x86_64-linux-gnu/qtchooser/qt6.conf
-          export QT_SELECT=qt${{ matrix.qt-version-major }}
-          qmake -config ${{ matrix.build-type }} ../src/Notes.pro
-          make -j$(nproc)
+          cmake .. -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
+          export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
+          cmake --build .
 
   # Build the AppImage using official Qt releases, downloaded by aqtinstall.
   # This is also done for macOS and Windows, just to make sure we use the exact same Qt version across all three OSes.
@@ -112,20 +110,23 @@ jobs:
           apt update
 
       - name: Install other dependencies in docker container
+        # - cmake: Used to build the application
         # - curl: Used to download the linuxdeploy AppImage tool.
         # - git: Self-explanatory.
         # - libfontconfig1: Used as dependency of the resulting AppImage.
+        # - ninja-build: needed by cmake
         # - python3/python3-pip: Used by aqtinstall.
         # - sudo: Used by most GitHub actions to install things.
         if: matrix.container != ''
         run: |
-          apt update
-          apt install -y curl git libfontconfig1 python3 python3-pip sudo
-          # Upgrade to the latest setuptools, as Ubuntu's python3-setuptools package has compatibility issues with aqtinstall.
-          python3 -m pip install --upgrade setuptools
           # Configure the timezone, otherwise 'install-qt-action' gets stuck at 'configuring tzdata'.
           ln -sf /usr/share/zoneinfo/UTC /etc/localtime
           echo UTC > /etc/timezone
+          # install packages
+          apt update
+          apt install -y cmake curl git libfontconfig1 ninja-build python3 python3-pip sudo
+          # Upgrade to the latest setuptools, as Ubuntu's python3-setuptools package has compatibility issues with aqtinstall.
+          python3 -m pip install --upgrade setuptools
 
       - name: Checkout code
         uses: actions/checkout@v3
@@ -135,12 +136,12 @@ jobs:
       - name: Update version
         shell: bash
         run: |
-          sed -i.bak "/^VERSION *=/ s/$/-g${GITHUB_SHA::7}/" src/Notes.pro
+          sed -i.bak "s/[^_]PROJECT_VERSION *[^)]\+/&-g${GITHUB_SHA::7}/" CMakeLists.txt
 
       - name: Setup variables
         id: vars
         run: |
-          version=$(grep -m 1 VERSION src/Notes.pro | sed 's/^VERSION *= *//')
+          version=$(grep -m 1 '[^_]PROJECT_VERSION' CMakeLists.txt | sed 's/.*[^_]PROJECT_VERSION *//' | sed 's/).*//')
           artifact_name="Notes_${version}-x86_64-Qt${{ matrix.qt-version }}"
           file_name="$artifact_name${{ matrix.build-type == 'debug' && '-debug.' || '.' }}AppImage"
           echo "version=$version" >> $GITHUB_OUTPUT
@@ -166,8 +167,9 @@ jobs:
         run: |
           mkdir build
           cd build
-          qmake -config ${{ matrix.build-type }} ../src/Notes.pro
-          make -j$(nproc)
+          cmake .. -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
+          export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
+          cmake --build .
 
       - name: Setup linuxdeploy
         run: |
