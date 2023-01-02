@@ -34,14 +34,14 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Update version
-        run: |
-          (Get-Content CMakeLists.txt) -Replace ("[^_]PROJECT_VERSION *[^)]+", "`$0-g$($env:GITHUB_SHA.Substring(0,7))") | Set-Content CMakeLists.txt
-
       - name: Setup variables
         id: vars
         run: |
-          $version = Select-String -Path CMakeLists.txt -Pattern '[^_]PROJECT_VERSION *([^)]+)' | %{$_.Matches.Groups[1].value}
+          $version = Select-String -Path CMakeLists.txt -CaseSensitive -Pattern '\bAPP_VERSION +([^)]+)' | Select-Object -First 1 | %{$_.Matches.Groups[1].value}
+          if (!$version) {
+              throw "Failed to extract app version from CMakeLists.txt."
+          }
+          $version += "-g$($env:GITHUB_SHA.Substring(0,7))"
           $artifact_name = "Notes_$version-${{ matrix.arch }}-Qt${{ matrix.qt-version }}"
           Write-Output "version=$version" >> $env:GITHUB_OUTPUT
           Write-Output "artifact_name=$artifact_name" >> $env:GITHUB_OUTPUT

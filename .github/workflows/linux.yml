@@ -133,20 +133,28 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Update version
-        shell: bash
-        run: |
-          sed -i.bak "s/[^_]PROJECT_VERSION *[^)]\+/&-g${GITHUB_SHA::7}/" CMakeLists.txt
-
       - name: Setup variables
+        shell: bash
         id: vars
         run: |
-          version=$(grep -m 1 '[^_]PROJECT_VERSION' CMakeLists.txt | sed 's/.*[^_]PROJECT_VERSION *//' | sed 's/).*//')
+          set -x
+          version=$(grep -oPm1 '\bAPP_VERSION +\K[^)]+' CMakeLists.txt)
+          if [ -z "${version}" ]
+          then
+              echo 'Failed to extract app version from CMakeLists.txt.'
+              exit 1
+          fi
+          version="${version}-g${GITHUB_SHA::7}"
           artifact_name="Notes_${version}-x86_64-Qt${{ matrix.qt-version }}"
-          file_name="$artifact_name${{ matrix.build-type == 'debug' && '-debug.' || '.' }}AppImage"
-          echo "version=$version" >> $GITHUB_OUTPUT
-          echo "artifact_name=$artifact_name" >> $GITHUB_OUTPUT
-          echo "file_name=$file_name" >> $GITHUB_OUTPUT
+          if [ '${{ matrix.build-type }}' == 'debug' ]
+          then
+              file_name="${artifact_name}-debug.AppImage"
+          else
+              file_name="${artifact_name}.AppImage"
+          fi
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+          echo "artifact_name=${artifact_name}" >> "${GITHUB_OUTPUT}"
+          echo "file_name=${file_name}" >> "${GITHUB_OUTPUT}"
 
       - name: Install Qt ${{ matrix.qt-version }} (aqtinstall)
         uses: jurplel/install-qt-action@v3
