@@ -63,6 +63,8 @@ jobs:
         uses: ammaraskar/msvc-problem-matcher@0.2.0
 
       - name: Build (${{ matrix.build-type }}, ${{ matrix.arch }})
+        env:
+          VERBOSE: 1
         run: |
           cmake . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
           cmake --build build
