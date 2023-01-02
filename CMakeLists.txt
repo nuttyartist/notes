@@ -9,6 +9,8 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET
 set(USE_QT_VERSION
     ""
     CACHE STRING "Use a specific version of Qt to build the app")
+option(GIT_REVISION
+       "Append the current git revision to the app's version string" OFF)
 
 project(
   Notes
@@ -70,6 +72,29 @@ if(CMAKE_BUILD_TYPE STREQUAL "")
   message(STATUS "Build type: (not set)")
 else()
   message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+endif()
+
+if(GIT_REVISION)
+  if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
+    execute_process(
+      COMMAND git rev-parse --short HEAD
+      WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+      OUTPUT_VARIABLE GIT_REV
+      ERROR_VARIABLE GIT_REV_ERR
+      OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_STRIP_TRAILING_WHITESPACE)
+    if(GIT_REV)
+      message(STATUS "Git revision: ${GIT_REV}")
+      string(PREPEND GIT_REV "-g")
+    else()
+      message(FATAL_ERROR "Failed to retrieve git revision: ${GIT_REV_ERR}")
+    endif()
+  else()
+    message(
+      WARNING
+        "The GIT_REVISION option was set, but this is not a git repository.")
+  endif()
+else()
+  set(GIT_REV "")
 endif()
 
 set(GENERAL_PROJECT_SOURCES
@@ -176,8 +201,8 @@ target_include_directories(
 
 target_compile_definitions(
   ${PROJECT_NAME}
-  PUBLIC APP_VERSION="${PROJECT_VERSION}" QT_DISABLE_DEPRECATED_BEFORE=0x050900
-         QSU_INCLUDE_MOC=1)
+  PUBLIC APP_VERSION="${PROJECT_VERSION}${GIT_REV}"
+         QT_DISABLE_DEPRECATED_BEFORE=0x050900 QSU_INCLUDE_MOC=1)
 
 target_link_libraries(
   ${PROJECT_NAME}

@@ -171,6 +171,13 @@ jobs:
           sudo apt update
           sudo apt install -y libxkbcommon-dev libmysqlclient21
 
+      # TODO: Figure out why this error only occurs on the Linux container when building with -DGIT_REVISION=ON
+      # The error: fatal: detected dubious ownership in repository
+      - name: Prevent git's dubious ownership message
+        if: github.ref_type != 'tag'
+        run: |
+          git config --global --add safe.directory "${PWD}"
+
       # TODO: Migrate to the Ninja generator once we drop support for Ubuntu 18.04.
       - name: Build (${{ matrix.build-type }})
         env:
@@ -178,7 +185,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DCMAKE_INSTALL_PREFIX=/usr
+          cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }} -DCMAKE_INSTALL_PREFIX=/usr
           make -j$(nproc)
 
       - name: Install (${{ matrix.build-type }})

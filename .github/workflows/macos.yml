@@ -119,7 +119,7 @@ jobs:
           VERBOSE: 1
         run: |
           export CMAKE_BUILD_PARALLEL_LEVEL=$(sysctl -n hw.logicalcpu)
-          cmake . -G Ninja -B build -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
+          cmake . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }}
           cmake --build build
 
       - name: Install (${{ matrix.build-type }})
