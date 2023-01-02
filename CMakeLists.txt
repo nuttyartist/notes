@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.10)
 
 set(APP_VERSION 2.0.0)
 
+# Any of the options below can be changed by passing -D<option name>=<value> to CMake.
+set(CMAKE_OSX_DEPLOYMENT_TARGET
+    "10.15"
+    CACHE STRING "Minimum macOS version to target for deployment")
+
 project(
   notes
   VERSION ${APP_VERSION}
@@ -127,8 +132,8 @@ target_include_directories(
 
 target_compile_definitions(
   ${PROJECT_NAME}
-  PUBLIC APP_VERSION="${PROJECT_VERSION}"
-         QT_DISABLE_DEPRECATED_BEFORE=0x050900 QSU_INCLUDE_MOC=1)
+  PUBLIC APP_VERSION="${PROJECT_VERSION}" QT_DISABLE_DEPRECATED_BEFORE=0x050900
+         QSU_INCLUDE_MOC=1)
 
 target_link_libraries(
   ${PROJECT_NAME}
