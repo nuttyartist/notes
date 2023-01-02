@@ -114,7 +114,8 @@ set(MACX_PROJECT_SOURCES
 
 set(WIN32_PROJECT_SOURCES
     ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut_win.cpp
-    ${PROJECT_SOURCE_DIR}/src/framelesswindow.cpp)
+    ${PROJECT_SOURCE_DIR}/src/framelesswindow.cpp
+    ${PROJECT_SOURCE_DIR}/src/images/notes.rc)
 
 set(LINUX_PROJECT_SOURCES
     ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut_x11.cpp)
