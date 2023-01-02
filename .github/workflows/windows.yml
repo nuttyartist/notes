@@ -69,13 +69,17 @@ jobs:
           cmake . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
           cmake --build build
 
+      - name: Install (${{ matrix.build-type }}, ${{ matrix.arch }})
+        run: |
+          cmake --install build --prefix build
+
       - name: Deploy (${{ matrix.build-type }}, ${{ matrix.arch }})
         run: |
-          windeployqt build
+          windeployqt build\bin
 
       - name: Include required runtime libraries (${{ matrix.build-type }}, ${{ matrix.arch }})
         run: |
-          Set-Location build
+          Set-Location build\bin
 
           if ('${{ matrix.arch }}' -ieq 'x64') {
               $openssl_lib_suffix = '-x64'
@@ -114,7 +118,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.vars.outputs.artifact_name }}-${{ runner.os }}-${{ matrix.build-type }}
-          path: build
+          path: build\bin
 
   unified-installer:
     name: Unified x64-x86 Installer (Qt 5 only)

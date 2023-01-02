@@ -178,8 +178,12 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
+          cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DCMAKE_INSTALL_PREFIX=/usr
           make -j$(nproc)
+
+      - name: Install (${{ matrix.build-type }})
+        run: |
+          make -C build DESTDIR=Notes install
 
       - name: Setup linuxdeploy
         run: |
@@ -204,7 +208,6 @@ jobs:
           APPIMAGE_EXTRACT_AND_RUN: 1
         run: |
           cd build
-          install -Dm755 -t Notes/usr/bin notes
           install -Dm644 -t Notes/usr/share/applications ../packaging/linux/common/notes.desktop
           mkdir -p Notes/usr/share/icons/hicolor
           cp -r ../packaging/linux/common/icons/* Notes/usr/share/icons/hicolor
