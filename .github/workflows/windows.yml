@@ -66,6 +66,7 @@ jobs:
         env:
           VERBOSE: 1
         run: |
+          $env:CMAKE_BUILD_PARALLEL_LEVEL = $env:NUMBER_OF_PROCESSORS
           cmake . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
           cmake --build build
 
