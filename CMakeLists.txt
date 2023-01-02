@@ -6,6 +6,9 @@ set(APP_VERSION 2.0.0)
 set(CMAKE_OSX_DEPLOYMENT_TARGET
     "10.15"
     CACHE STRING "Minimum macOS version to target for deployment")
+set(USE_QT_VERSION
+    ""
+    CACHE STRING "Use a specific version of Qt to build the app")
 
 project(
   Notes
@@ -19,16 +22,55 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
+# List of Qt components required to build the app.
+set(QT_COMPONENTS
+    Core
+    Concurrent
+    Gui
+    Network
+    Sql
+    Test
+    Widgets)
 
-if(NOT DEFINED QT_VERSION_MAJOR)
-  message(FATAL_ERROR "Qt not found.")
+# No Qt version was specified, try to use either Qt 6 (preferred) or Qt 5.
+if(USE_QT_VERSION STREQUAL "")
+  # This can probably be simplified once the following bug gets resolved:
+  # https://gitlab.kitware.com/cmake/cmake/-/issues/23575
+  message(STATUS "Trying to find Qt 6...")
+
+  find_package(QT NAMES Qt6 QUIET)
+
+  if(NOT DEFINED QT_VERSION_MAJOR)
+    message(STATUS "Could not find Qt 6, will try Qt 5 next...")
+
+    find_package(QT NAMES Qt5 QUIET)
+
+    if(NOT DEFINED QT_VERSION_MAJOR)
+      message(FATAL_ERROR "Could not find Qt 5, aborting compilation.")
+    endif()
+  endif()
+
+  find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS ${QT_COMPONENTS})
 else()
-  message("Using QT_VERSION_MAJOR: ${QT_VERSION_MAJOR}")
+  if(NOT USE_QT_VERSION STREQUAL "5" AND NOT USE_QT_VERSION STREQUAL "6")
+    message(
+      FATAL_ERROR
+        "An unsupported version of Qt was specified: '${USE_QT_VERSION}'. Valid values are: 5 or 6."
+    )
+  endif()
+  message(STATUS "Trying to find Qt ${USE_QT_VERSION} (manually specified)...")
+  find_package(Qt${USE_QT_VERSION} REQUIRED COMPONENTS ${QT_COMPONENTS})
 endif()
 
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Concurrent Gui Network
-                                                       Sql Widgets Test)
+message(STATUS "Success! Configuration details:")
+message(STATUS "App name: ${PROJECT_NAME}")
+message(STATUS "App version: ${PROJECT_VERSION}")
+message(STATUS "Qt version: ${QT_VERSION}")
+if(CMAKE_BUILD_TYPE STREQUAL "")
+  message(STATUS "Build type: (not set)")
+else()
+  message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+endif()
 
 set(GENERAL_PROJECT_SOURCES
     ${PROJECT_SOURCE_DIR}/src/aboutwindow.cpp
