@@ -8,7 +8,7 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET
     CACHE STRING "Minimum macOS version to target for deployment")
 
 project(
-  notes
+  Notes
   VERSION ${APP_VERSION}
   LANGUAGES CXX)
 
@@ -159,6 +159,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   target_link_libraries(${PROJECT_NAME} PUBLIC "-framework Carbon"
                                                "-framework Cocoa")
 elseif(UNIX)
+  # On Linux, it's conventional for executables to be all lowercase.
+  string(TOLOWER ${PROJECT_NAME} BINARY_NAME)
+  set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${BINARY_NAME})
+
   target_sources(${PROJECT_NAME} PUBLIC ${LINUX_PROJECT_SOURCES})
 
   target_link_libraries(${PROJECT_NAME} PUBLIC X11)
@@ -168,9 +172,6 @@ elseif(WIN32)
   target_compile_definitions(${PROJECT_NAME} PUBLIC QXT_STATIC)
 
   target_link_libraries(${PROJECT_NAME} PUBLIC user32)
-
-  # windows outputs to build/<Debug/Release> folder for some reason
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 endif()
 
 install(

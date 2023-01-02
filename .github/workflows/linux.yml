@@ -203,7 +203,7 @@ jobs:
         run: |
           cd build
           install -Dm755 -t Notes/usr/bin notes
-          install -Dm755 -t Notes/usr/share/applications ../packaging/linux/common/notes.desktop
+          install -Dm644 -t Notes/usr/share/applications ../packaging/linux/common/notes.desktop
           mkdir -p Notes/usr/share/icons/hicolor
           cp -r ../packaging/linux/common/icons/* Notes/usr/share/icons/hicolor
           export VERSION='${{ steps.vars.outputs.version }}'
