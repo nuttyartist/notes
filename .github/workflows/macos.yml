@@ -136,5 +136,6 @@ jobs:
       - name: Upload dmg artifact (${{ matrix.build-type }})
         uses: actions/upload-artifact@v3
         with:
+          if-no-files-found: error
           name: ${{ steps.vars.outputs.artifact_name }}-${{ runner.os }}-${{ matrix.build-type }}
           path: build/${{ steps.vars.outputs.file_name }}

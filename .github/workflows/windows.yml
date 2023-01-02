@@ -124,6 +124,7 @@ jobs:
       - name: Upload artifacts (${{ matrix.build-type }}, ${{ matrix.arch }})
         uses: actions/upload-artifact@v3
         with:
+          if-no-files-found: error
           name: ${{ steps.vars.outputs.artifact_name }}-${{ runner.os }}-${{ matrix.build-type }}
           path: build\bin
 
@@ -170,6 +171,7 @@ jobs:
       - name: Upload unified installer artifact
         uses: actions/upload-artifact@v3
         with:
+          if-no-files-found: error
           name: NotesSetup_${{ needs.build-aqtinstall.outputs.version }}-Qt${{ steps.qt-version.outputs.result }}-${{ runner.os }}-release
           path: artifacts\installer
 
@@ -213,5 +215,6 @@ jobs:
       - name: Upload unified installer artifact
         uses: actions/upload-artifact@v3
         with:
+          if-no-files-found: error
           name: NotesSetup_${{ needs.build-aqtinstall.outputs.version }}-x64-Qt${{ steps.qt-version.outputs.result }}-${{ runner.os }}-release
           path: artifacts\installer
