@@ -121,6 +121,10 @@ jobs:
           cmake . -G Ninja -B build -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
           cmake --build build
 
+      - name: Install (${{ matrix.build-type }})
+        run: |
+          cmake --install build --prefix .
+
       - name: Build dmg (${{ matrix.build-type }})
         run: |
           cd build
