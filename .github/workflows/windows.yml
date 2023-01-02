@@ -88,15 +88,15 @@ jobs:
           }
 
           # Include OpenSSL libraries.
-          Copy-Item ..\..\Qt\Tools\OpenSSL\Win_${{ matrix.arch }}\bin\libcrypto-1_1$openssl_lib_suffix.dll
-          Copy-Item ..\..\Qt\Tools\OpenSSL\Win_${{ matrix.arch }}\bin\libssl-1_1$openssl_lib_suffix.dll
+          Copy-Item $env:IQTA_TOOLS\OpenSSL\Win_${{ matrix.arch }}\bin\libcrypto-1_1$openssl_lib_suffix.dll
+          Copy-Item $env:IQTA_TOOLS\OpenSSL\Win_${{ matrix.arch }}\bin\libssl-1_1$openssl_lib_suffix.dll
           # NOTE: Due to OpenSSL libraries being built with MSVC 2010, we must also include 'msvcr100.dll'.
           Copy-Item $env:WINDIR\${{ matrix.arch == 'x64' && 'System32' || 'SysWOW64' }}\msvcr100.dll
 
           # Also include OpenSSL debug symbols (when building Notes in debug mode).
           if ('${{ matrix.build-type }}' -ieq 'debug') {
-              Copy-Item ..\..\Qt\Tools\OpenSSL\Win_${{ matrix.arch }}\bin\libcrypto-1_1$openssl_lib_suffix.pdb
-              Copy-Item ..\..\Qt\Tools\OpenSSL\Win_${{ matrix.arch }}\bin\libssl-1_1$openssl_lib_suffix.pdb
+              Copy-Item $env:IQTA_TOOLS\OpenSSL\Win_${{ matrix.arch }}\bin\libcrypto-1_1$openssl_lib_suffix.pdb
+              Copy-Item $env:IQTA_TOOLS\OpenSSL\Win_${{ matrix.arch }}\bin\libssl-1_1$openssl_lib_suffix.pdb
           }
 
           # Include MSVC 2019 runtime libraries.
