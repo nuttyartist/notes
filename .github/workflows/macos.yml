@@ -65,6 +65,7 @@ jobs:
     name: dmg (${{ matrix.build-type }}, Qt ${{ matrix.qt-version }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: macos-11
