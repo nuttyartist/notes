@@ -103,6 +103,12 @@ jobs:
           if ('${{ matrix.build-type }}' -ieq 'release') {
               Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\msvcp140.dll
               Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\msvcp140_1.dll
+
+              # Only Qt 6 builds also need msvcp140_2.dll
+              if ('${{ matrix.qt-version }}'.StartsWith('6')) {
+                  Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\msvcp140_2.dll
+              }
+
               Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\vcruntime140.dll
               if ('${{ matrix.arch }}' -ieq 'x64') {
                   # Only 64-bit builds also need 'vcruntime140_1.dll' (tested on Windows 7)
