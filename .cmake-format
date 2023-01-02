@@ -156,7 +156,7 @@ with section("markup"):
   canonicalize_hashrulers = True
 
   # enable comment markup parsing and reflow
-  enable_markup = True
+  enable_markup = False
 
 # ----------------------------
 # Options affecting the linter
