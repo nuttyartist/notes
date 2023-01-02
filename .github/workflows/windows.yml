@@ -67,7 +67,7 @@ jobs:
           VERBOSE: 1
         run: |
           $env:CMAKE_BUILD_PARALLEL_LEVEL = $env:NUMBER_OF_PROCESSORS
-          cmake . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
+          cmake . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }}
           cmake --build build
 
       - name: Install (${{ matrix.build-type }}, ${{ matrix.arch }})
