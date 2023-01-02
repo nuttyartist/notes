@@ -110,7 +110,8 @@ file(
 
 set(MACX_PROJECT_SOURCES
     ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut_mac.cpp
-    ${PROJECT_SOURCE_DIR}/src/framelesswindow.mm)
+    ${PROJECT_SOURCE_DIR}/src/framelesswindow.mm
+    ${PROJECT_SOURCE_DIR}/src/images/notes_icon.icns)
 
 set(WIN32_PROJECT_SOURCES
     ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut_win.cpp
@@ -149,6 +150,10 @@ target_link_libraries(
          Qt${QT_VERSION_MAJOR}::WidgetsPrivate)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set(MACOSX_BUNDLE_ICON_FILE notes_icon.icns)
+  set_source_files_properties(${PROJECT_SOURCE_DIR}/src/images/notes_icon.icns
+                              PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+
   target_sources(${PROJECT_NAME} PUBLIC ${MACX_PROJECT_SOURCES})
 
   target_link_libraries(${PROJECT_NAME} PUBLIC "-framework Carbon"
