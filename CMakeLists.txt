@@ -1,11 +1,15 @@
 cmake_minimum_required(VERSION 3.10)
-project(notes LANGUAGES CXX)
-set(PROJECT_VERSION 2.0.0)
+
+set(APP_VERSION 2.0.0)
+
+project(
+  notes
+  VERSION ${APP_VERSION}
+  LANGUAGES CXX)
+
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
@@ -123,7 +127,7 @@ target_include_directories(
 
 target_compile_definitions(
   ${PROJECT_NAME}
-  PUBLIC APP_VERSION="${CMAKE_PROJECT_VERSION}"
+  PUBLIC APP_VERSION="${PROJECT_VERSION}"
          QT_DISABLE_DEPRECATED_BEFORE=0x050900 QSU_INCLUDE_MOC=1)
 
 target_link_libraries(
