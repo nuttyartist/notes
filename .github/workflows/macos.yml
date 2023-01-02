@@ -121,7 +121,6 @@ jobs:
         run: |
           cd build
           plutil -insert NSRequiresAquaSystemAppearance -bool true Notes.app/Contents/Info.plist
-          plutil -replace CFBundleName -string Notes Notes.app/Contents/Info.plist
           macdeployqt Notes.app -dmg
           mv Notes.dmg '${{ steps.vars.outputs.file_name }}'
 
