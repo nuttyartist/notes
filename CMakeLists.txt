@@ -61,6 +61,14 @@ else()
     )
   endif()
   message(STATUS "Trying to find Qt ${USE_QT_VERSION} (manually specified)...")
+
+  find_package(QT NAMES Qt${USE_QT_VERSION} QUIET)
+
+  if(NOT DEFINED QT_VERSION_MAJOR)
+    message(
+      FATAL_ERROR "Could not find Qt ${USE_QT_VERSION}, aborting compilation.")
+  endif()
+
   find_package(Qt${USE_QT_VERSION} REQUIRED COMPONENTS ${QT_COMPONENTS})
 endif()
 
