@@ -53,7 +53,10 @@ jobs:
           VERBOSE: 1
         run: |
           export CMAKE_BUILD_PARALLEL_LEVEL=$(sysctl -n hw.logicalcpu)
-          cmake . -G Ninja -B build -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DCMAKE_PREFIX_PATH="$(brew --prefix qt@${{ matrix.qt-version-major }})"
+          cmake . --warn-uninitialized --warn-unused-vars \
+              -G Ninja -B build \
+              -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
+              -DCMAKE_PREFIX_PATH="$(brew --prefix qt@${{ matrix.qt-version-major }})"
           cmake --build build
 
   # Build the dmg disk image using the official Qt 5 release downloaded by aqtinstall.
@@ -119,7 +122,10 @@ jobs:
           VERBOSE: 1
         run: |
           export CMAKE_BUILD_PARALLEL_LEVEL=$(sysctl -n hw.logicalcpu)
-          cmake . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }}
+          cmake . --warn-uninitialized --warn-unused-vars \
+              -B build -G Ninja \
+              -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
+              -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }}
           cmake --build build
 
       - name: Install (${{ matrix.build-type }})
