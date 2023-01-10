@@ -95,7 +95,7 @@ jobs:
               exit 1
           fi
           version="${version}-g${GITHUB_SHA::7}"
-          artifact_name="Notes_${version}-x86_64-Qt${{ matrix.qt-version }}"
+          artifact_name="Notes_${version}-Qt${{ matrix.qt-version }}-x86_64"
           if [ '${{ matrix.build-type }}' == 'debug' ]
           then
               file_name="${artifact_name}-debug.dmg"
