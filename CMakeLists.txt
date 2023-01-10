@@ -82,6 +82,7 @@ else()
   message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 endif()
 
+set(GIT_REV "")
 if(GIT_REVISION)
   if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
     execute_process(
@@ -101,8 +102,6 @@ if(GIT_REVISION)
       WARNING
         "The GIT_REVISION option was set, but this is not a git repository.")
   endif()
-else()
-  set(GIT_REV "")
 endif()
 
 set(GENERAL_PROJECT_SOURCES
