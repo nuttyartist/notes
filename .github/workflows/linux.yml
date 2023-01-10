@@ -72,7 +72,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
+          cmake .. --warn-uninitialized --warn-unused-vars -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
           make -j$(nproc)
 
   # Build the AppImage using official Qt releases, downloaded by aqtinstall.
@@ -185,7 +185,10 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }} -DCMAKE_INSTALL_PREFIX=/usr
+          cmake .. --warn-uninitialized --warn-unused-vars \
+              -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
+              -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }} \
+              -DCMAKE_INSTALL_PREFIX=/usr
           make -j$(nproc)
 
       - name: Install (${{ matrix.build-type }})
