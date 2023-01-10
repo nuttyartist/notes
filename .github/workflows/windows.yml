@@ -42,7 +42,7 @@ jobs:
               throw "Failed to extract app version from CMakeLists.txt."
           }
           $version += "-g$($env:GITHUB_SHA.Substring(0,7))"
-          $artifact_name = "Notes_$version-${{ matrix.arch }}-Qt${{ matrix.qt-version }}"
+          $artifact_name = "Notes_$version-Qt${{ matrix.qt-version }}-${{ matrix.arch }}"
           Write-Output "version=$version" >> $env:GITHUB_OUTPUT
           Write-Output "artifact_name=$artifact_name" >> $env:GITHUB_OUTPUT
 
@@ -132,7 +132,7 @@ jobs:
           path: build\bin
 
   unified-installer:
-    name: Unified x64-x86 Installer (Qt 5 only)
+    name: Unified x64-x86 Installer
     needs: build-aqtinstall
     runs-on: windows-2019
     steps:
@@ -144,80 +144,38 @@ jobs:
         with:
           path: artifacts
 
-      - name: Ensure two Qt 5 builds (x64 and x86) are present
-        id: qt-version
+      - name: Ensure a 64-bit Qt 6 build is present
         run: |
           Set-Location artifacts
-          $x64_builds = Get-ChildItem -Filter '*x64-Qt5*-release' -Attributes Directory
-          $valid_build = ''
-          foreach ($x64_build in $x64_builds) {
-              # Check if there's a x86 counterpart, grab the Qt version and stop at the first match.
-              if (Test-Path $x64_build.Name.Replace('x64', 'x86') -PathType Container) {
-                  $valid_build = [RegEx]::Matches($x64_build.Name, 'Qt(5[\d.]+)').Groups[1].Value
-                  Break
-              }
+          $x64_build = Get-ChildItem -Filter '*Qt6*-x64-Windows-release' -Attributes Directory |
+              Sort-Object -Property @{Expression = "Name"; Descending = $true} |
+              Select-Object -First 1
+          if (!$x64_build) {
+              Throw 'Could not find a 64-bit Qt 6 build.'
           }
-          if (!$valid_build) {
-              Throw "Need at least two release-type builds (x64 and x86), built with Qt 5."
-          }
-          Write-Output "result=$valid_build" >> $env:GITHUB_OUTPUT
+          Move-Item $x64_build Notes64
 
-      - name: Create unified installer (Qt ${{ steps.qt-version.outputs.result }})
+      - name: Ensure a 32-bit Qt 5 build is present
+        run: |
+          Set-Location artifacts
+          $x86_build = Get-ChildItem -Filter '*Qt5*-x86-Windows-release' -Attributes Directory |
+              Sort-Object -Property @{Expression = "Name"; Descending = $true} |
+              Select-Object -First 1
+          if (!$x86_build) {
+              Throw 'Could not find a 32-bit Qt 5 build.'
+          }
+          Move-Item $x86_build Notes32
+
+      - name: Create unified installer
         run: |
           Set-Location artifacts
           Copy-Item ..\packaging\windows\Notes_Inno_Script_Github.iss
-          Move-Item *x64-Qt${{ steps.qt-version.outputs.result }}-*-release* Notes64
-          Move-Item *x86-Qt${{ steps.qt-version.outputs.result }}-*-release* Notes32
-          $env:BUILD_VERSION = '${{ needs.build-aqtinstall.outputs.version }}'
+          $env:APP_VERSION = '${{ needs.build-aqtinstall.outputs.version }}'
           iscc /Oinstaller Notes_Inno_Script_Github.iss
 
       - name: Upload unified installer artifact
         uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
-          name: NotesSetup_${{ needs.build-aqtinstall.outputs.version }}-Qt${{ steps.qt-version.outputs.result }}-${{ runner.os }}-release
-          path: artifacts\installer
-
-  qt6-installer:
-    name: Qt 6 Installer (x64-only)
-    needs: build-aqtinstall
-    runs-on: windows-2019
-    steps:
-      - name: Checkout code to grab the ISS script
-        uses: actions/checkout@v3
-
-      - name: Download build artifacts from previous job
-        uses: actions/download-artifact@v3
-        with:
-          path: artifacts
-
-      - name: Ensure a x64 Qt 6 build is present
-        id: qt-version
-        run: |
-          Set-Location artifacts
-          $x64_builds = Get-ChildItem -Filter '*x64-Qt6*-release' -Attributes Directory
-          $valid_build = ''
-          foreach ($x64_build in $x64_builds) {
-              # Grab the Qt version and stop at the first match.
-              $valid_build = [RegEx]::Matches($x64_build.Name, 'Qt(6[\d.]+)').Groups[1].Value
-              Break
-          }
-          if (!$valid_build) {
-              Throw "Need at least one release-type x64 build, built with Qt 6."
-          }
-          Write-Output "result=$valid_build" >> $env:GITHUB_OUTPUT
-
-      - name: Create x64-only installer (Qt ${{ steps.qt-version.outputs.result }})
-        run: |
-          Set-Location artifacts
-          Copy-Item ..\packaging\windows\Notes_Inno_Script_Github_Qt6.iss
-          Move-Item *x64-Qt${{ steps.qt-version.outputs.result }}-*-release* Notes64
-          $env:BUILD_VERSION = '${{ needs.build-aqtinstall.outputs.version }}'
-          iscc /Oinstaller Notes_Inno_Script_Github_Qt6.iss
-
-      - name: Upload unified installer artifact
-        uses: actions/upload-artifact@v3
-        with:
-          if-no-files-found: error
-          name: NotesSetup_${{ needs.build-aqtinstall.outputs.version }}-x64-Qt${{ steps.qt-version.outputs.result }}-${{ runner.os }}-release
+          name: NotesSetup_${{ needs.build-aqtinstall.outputs.version }}-${{ runner.os }}-release
           path: artifacts\installer
