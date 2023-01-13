@@ -31,7 +31,6 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLab
 {
     m_highlighter = new MarkdownHighlighter(m_textEdit->document());
     connect(m_textEdit, &QTextEdit::textChanged, this, &NoteEditorLogic::onTextEditTextChanged);
-    connect(m_textEdit, &CustomDocument::resized, this, &NoteEditorLogic::editorResized);
     connect(this, &NoteEditorLogic::requestCreateUpdateNote, m_dbManager,
             &DBManager::onCreateUpdateRequestedNoteContent, Qt::QueuedConnection);
     // auto save timer
@@ -107,6 +106,7 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
         m_currentNotes = notes;
         m_tagListView->setVisible(false);
         m_textEdit->blockSignals(true);
+        auto verticalScrollBarValueToRestore = m_textEdit->verticalScrollBar()->value();
         m_textEdit->clear();
         auto padding = m_currentAdaptableEditorPadding > m_currentMinimumEditorPadding
                 ? m_currentAdaptableEditorPadding
@@ -137,6 +137,7 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
                 cursor.insertText("\n");
             }
         }
+        m_textEdit->verticalScrollBar()->setValue(verticalScrollBarValueToRestore);
         m_textEdit->blockSignals(false);
         m_textEdit->setReadOnly(true);
         m_textEdit->setTextInteractionFlags(Qt::NoTextInteraction);
@@ -262,19 +263,6 @@ void NoteEditorLogic::onNoteTagListChanged(int noteId, const QSet<int> &tagIds)
     if (currentEditingNoteId() == noteId) {
         m_currentNotes[0].setTagIds(tagIds);
         showTagListForCurrentNote();
-    }
-}
-
-void NoteEditorLogic::editorResized()
-{
-    if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId) {
-        int verticalScrollBarValueToRestore = m_textEdit->verticalScrollBar()->value();
-        m_textEdit->setText(m_textEdit->toPlainText());
-        m_textEdit->verticalScrollBar()->setValue(verticalScrollBarValueToRestore);
-    } else {
-        int verticalScrollBarValueToRestore = m_textEdit->verticalScrollBar()->value();
-        showNotesInEditor(m_currentNotes);
-        m_textEdit->verticalScrollBar()->setValue(verticalScrollBarValueToRestore);
     }
 }
 

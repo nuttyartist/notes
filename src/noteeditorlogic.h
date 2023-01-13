@@ -48,8 +48,6 @@ public slots:
     void onTextEditTextChanged();
     void closeEditor();
     void onNoteTagListChanged(int noteId, const QSet<int> &tagIds);
-private slots:
-    void editorResized();
 signals:
     void requestCreateUpdateNote(const NodeData &note);
     void noteEditClosed(const NodeData &note, bool selectNext);
