@@ -140,7 +140,7 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
         m_textEdit->verticalScrollBar()->setValue(verticalScrollBarValueToRestore);
         m_textEdit->blockSignals(false);
         m_textEdit->setReadOnly(true);
-        m_textEdit->setTextInteractionFlags(Qt::NoTextInteraction);
+        m_textEdit->setTextInteractionFlags(Qt::TextSelectableByMouse);
         m_textEdit->setFocusPolicy(Qt::NoFocus);
         highlightSearch();
     }
