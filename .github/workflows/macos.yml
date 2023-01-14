@@ -98,7 +98,12 @@ jobs:
           then
               version="${version}-g${GITHUB_SHA::7}"
           fi
-          artifact_name="Notes_${version}-Qt${{ matrix.qt-version }}-x86_64"
+          arches='x86_64'
+          if [[ '${{ matrix.qt-version }}' == 6.* ]]
+          then
+              arches+='-arm64'
+          fi
+          artifact_name="Notes_${version}-Qt${{ matrix.qt-version }}-${arches}"
           if [ '${{ matrix.build-type }}' == 'debug' ]
           then
               file_name="${artifact_name}-debug.dmg"
@@ -122,13 +127,17 @@ jobs:
 
       - name: Build (${{ matrix.build-type }})
         env:
+          # Only commercial Qt 5 supports targeting Apple Silicon at the moment:
+          # https://www.qt.io/blog/qt-on-apple-silicon
+          TARGET_ARCH: ${{ startsWith(matrix.qt-version, '6.') && 'x86_64;arm64' || 'x86_64' }}
           VERBOSE: 1
         run: |
           export CMAKE_BUILD_PARALLEL_LEVEL=$(sysctl -n hw.logicalcpu)
           cmake . --warn-uninitialized --warn-unused-vars \
               -B build -G Ninja \
               -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
-              -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }}
+              -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }} \
+              -DCMAKE_OSX_ARCHITECTURES="${{ env.TARGET_ARCH }}"
           cmake --build build
 
       - name: Install (${{ matrix.build-type }})
