@@ -224,7 +224,21 @@ target_link_libraries(
          Qt${QT_VERSION_MAJOR}::WidgetsPrivate)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set(MACOSX_BUNDLE_ICON_FILE notes_icon.icns)
+  string(TIMESTAMP CURRENT_YEAR "%Y")
+  set(COPYRIGHT_TEXT
+      "Copyright (c) 2015-${CURRENT_YEAR} Ruby Mamistvalove and contributors.")
+
+  set_target_properties(
+    ${PROJECT_NAME}
+    PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME ${PROJECT_NAME}
+               MACOSX_BUNDLE_GUI_IDENTIFIER "io.github.nuttyartist.notes"
+               MACOSX_BUNDLE_ICON_FILE "notes_icon.icns"
+               MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+               MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
+               MACOSX_BUNDLE_LONG_VERSION_STRING ${PROJECT_VERSION}
+               MACOSX_BUNDLE_COPYRIGHT ${COPYRIGHT_TEXT}
+               MACOSX_BUNDLE_INFO_STRING ${COPYRIGHT_TEXT})
+
   set_source_files_properties(${PROJECT_SOURCE_DIR}/src/images/notes_icon.icns
                               PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 
