@@ -330,9 +330,10 @@ QString NoteEditorLogic::getSecondLine(const QString &str)
     return ts.readLine(FIRST_LINE_MAX);
 }
 
-void NoteEditorLogic::setTheme(Theme newTheme)
+void NoteEditorLogic::setTheme(Theme newTheme, QColor textColor)
 {
     m_tagListDelegate->setTheme(newTheme);
+    m_highlighter->setTheme(newTheme, textColor);
     switch (newTheme) {
     case Theme::Light: {
         m_spacerColor = QColor(191, 191, 191);

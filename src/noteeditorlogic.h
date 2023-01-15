@@ -7,7 +7,7 @@
 #include "styleeditorwindow.h"
 
 class CustomDocument;
-class MarkdownHighlighter;
+class CustomMarkdownHighlighter;
 class QLabel;
 class QLineEdit;
 class DBManager;
@@ -35,7 +35,7 @@ public:
 
     static QString getFirstLine(const QString &str);
     static QString getSecondLine(const QString &str);
-    void setTheme(Theme newTheme);
+    void setTheme(Theme theme, QColor textColor);
 
     int currentAdaptableEditorPadding() const;
     void setCurrentAdaptableEditorPadding(int newCurrentAdaptableEditorPadding);
@@ -63,7 +63,7 @@ private:
 
 private:
     CustomDocument *m_textEdit;
-    MarkdownHighlighter *m_highlighter;
+    CustomMarkdownHighlighter *m_highlighter;
     QLabel *m_editorDateLabel;
     QLineEdit *m_searchEdit;
     TagListView *m_tagListView;
