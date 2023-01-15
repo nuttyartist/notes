@@ -16,6 +16,7 @@
 #include <QNetworkReply>
 #include <QDesktopServices>
 #include <QNetworkAccessManager>
+#include <QWindow>
 
 #include <QSimpleUpdater.h>
 
@@ -577,10 +578,15 @@ void UpdaterWindow::mousePressEvent(QMouseEvent *event)
 void UpdaterWindow::mouseMoveEvent(QMouseEvent *event)
 {
     if (m_canMoveWindow) {
-        setCursor(Qt::ClosedHandCursor);
-        int dx = event->globalX() - m_mousePressX;
-        int dy = event->globalY() - m_mousePressY;
-        move(dx, dy);
+        #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        if (!window()->windowHandle()->startSystemMove()) {
+        #endif
+            int dx = event->globalX() - m_mousePressX;
+            int dy = event->globalY() - m_mousePressY;
+            move(dx, dy);
+        #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        }
+        #endif
     }
 }
 

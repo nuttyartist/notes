@@ -2624,11 +2624,17 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 #  endif
 
     if (m_canMoveWindow) {
-        int dx = event->globalX() - m_mousePressX;
-        int dy = event->globalY() - m_mousePressY;
-        move(dx, dy);
-
+        #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        if (!window()->windowHandle()->startSystemMove()) {
+        #endif
+            int dx = event->globalX() - m_mousePressX;
+            int dy = event->globalY() - m_mousePressY;
+            move(dx, dy);
+        #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        }
+        #endif
     }
+
 #  ifndef __APPLE__
     else if (m_canStretchWindow && !isMaximized() && !isFullScreen()) {
         int newX = x();
