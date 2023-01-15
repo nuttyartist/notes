@@ -109,6 +109,7 @@ set(GENERAL_PROJECT_SOURCES
     ${PROJECT_SOURCE_DIR}/src/allnotebuttontreedelegateeditor.cpp
     ${PROJECT_SOURCE_DIR}/src/customapplicationstyle.cpp
     ${PROJECT_SOURCE_DIR}/src/customdocument.cpp
+    ${PROJECT_SOURCE_DIR}/src/customMarkdownHighlighter.cpp
     ${PROJECT_SOURCE_DIR}/src/dbmanager.cpp
     ${PROJECT_SOURCE_DIR}/src/defaultnotefolderdelegateeditor.cpp
     ${PROJECT_SOURCE_DIR}/src/editorsettingsbutton.cpp
