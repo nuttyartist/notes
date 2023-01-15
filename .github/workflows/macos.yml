@@ -148,8 +148,10 @@ jobs:
         run: |
           cd build
           plutil -insert NSRequiresAquaSystemAppearance -bool true Notes.app/Contents/Info.plist
-          macdeployqt Notes.app -dmg
-          mv Notes.dmg '${{ steps.vars.outputs.file_name }}'
+          # Rename the app folder to "Notes Better", so it doesn't conflict with macOS' "Notes" app.
+          mv Notes.app 'Notes Better.app'
+          macdeployqt 'Notes Better.app' -dmg
+          mv 'Notes Better.dmg' '${{ steps.vars.outputs.file_name }}'
 
       - name: Upload dmg artifact (${{ matrix.build-type }})
         uses: actions/upload-artifact@v3
