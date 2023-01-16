@@ -1,6 +1,6 @@
 #include "noteeditorlogic.h"
 #include "customDocument.h"
-#include "markdownhighlighter.h"
+#include "customMarkdownHighlighter.h"
 #include "dbmanager.h"
 #include "taglistview.h"
 #include "taglistmodel.h"
@@ -29,7 +29,7 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLab
       m_currentAdaptableEditorPadding{ 0 },
       m_currentMinimumEditorPadding{ 0 }
 {
-    m_highlighter = new MarkdownHighlighter(m_textEdit->document());
+    m_highlighter = new CustomMarkdownHighlighter(m_textEdit->document());
     connect(m_textEdit, &QTextEdit::textChanged, this, &NoteEditorLogic::onTextEditTextChanged);
     connect(this, &NoteEditorLogic::requestCreateUpdateNote, m_dbManager,
             &DBManager::onCreateUpdateRequestedNoteContent, Qt::QueuedConnection);
@@ -65,7 +65,7 @@ void NoteEditorLogic::setMarkdownEnabled(bool newMarkdownEnabled)
         m_highlighter = nullptr;
     }
     if (newMarkdownEnabled) {
-        m_highlighter = new MarkdownHighlighter(m_textEdit->document());
+        m_highlighter = new CustomMarkdownHighlighter(m_textEdit->document());
     } else {
         delete m_highlighter;
         m_highlighter = nullptr;
@@ -330,9 +330,10 @@ QString NoteEditorLogic::getSecondLine(const QString &str)
     return ts.readLine(FIRST_LINE_MAX);
 }
 
-void NoteEditorLogic::setTheme(Theme newTheme)
+void NoteEditorLogic::setTheme(Theme newTheme, QColor textColor)
 {
     m_tagListDelegate->setTheme(newTheme);
+    m_highlighter->setTheme(newTheme, textColor);
     switch (newTheme) {
     case Theme::Light: {
         m_spacerColor = QColor(191, 191, 191);

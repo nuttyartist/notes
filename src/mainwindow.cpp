@@ -1847,7 +1847,7 @@ void MainWindow::setTheme(Theme theme)
         m_styleEditorWindow.setTheme(Theme::Light, m_currentThemeBackgroundColor,
                                      m_currentEditorTextColor);
         m_aboutWindow.setTheme(m_currentThemeBackgroundColor, m_currentEditorTextColor);
-        m_noteEditorLogic->setTheme(theme);
+        m_noteEditorLogic->setTheme(theme, m_currentEditorTextColor);
         ui->listviewLabel1->setStyleSheet(
                 QStringLiteral("QLabel { color : %1; }").arg(QColor(26, 26, 26).name()));
         m_treeViewLogic->setTheme(theme);
@@ -1874,7 +1874,7 @@ void MainWindow::setTheme(Theme theme)
         m_styleEditorWindow.setTheme(Theme::Dark, m_currentThemeBackgroundColor,
                                      m_currentEditorTextColor);
         m_aboutWindow.setTheme(m_currentThemeBackgroundColor, m_currentEditorTextColor);
-        m_noteEditorLogic->setTheme(theme);
+        m_noteEditorLogic->setTheme(theme, m_currentEditorTextColor);
         ui->listviewLabel1->setStyleSheet(
                 QStringLiteral("QLabel { color : %1; }").arg(QColor(204, 204, 204).name()));
         m_treeViewLogic->setTheme(theme);
@@ -1902,7 +1902,7 @@ void MainWindow::setTheme(Theme theme)
         m_styleEditorWindow.setTheme(Theme::Sepia, m_currentThemeBackgroundColor,
                                      QColor(26, 26, 26));
         m_aboutWindow.setTheme(m_currentThemeBackgroundColor, QColor(26, 26, 26));
-        m_noteEditorLogic->setTheme(theme);
+        m_noteEditorLogic->setTheme(theme, m_currentEditorTextColor);
         ui->listviewLabel1->setStyleSheet(
                 QStringLiteral("QLabel { color : %1; }").arg(QColor(26, 26, 26).name()));
         m_treeViewLogic->setTheme(theme);
