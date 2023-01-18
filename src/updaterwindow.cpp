@@ -294,9 +294,8 @@ void UpdaterWindow::startDownload(const QUrl &url)
     m_startTime = QDateTime::currentDateTime().toSecsSinceEpoch();
     QNetworkRequest netReq(url);
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    netReq.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
-#endif
+    netReq.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
+                        QNetworkRequest::NoLessSafeRedirectPolicy);
     m_reply = m_manager->get(netReq);
 
     /* Set file name */
