@@ -13,21 +13,22 @@ AboutWindow::AboutWindow(QWidget *parent) : QWidget(parent), m_ui(new Ui::AboutW
     setWindowTitle(tr("About") + " " + qApp->applicationName());
 
     m_ui->aboutText->setText(
-                "<p>Notes was founded by <a href='https://rubymamistvalove.com'>Ruby Mamistvalove</a>, "
-                "to create an elegant yet powerful cross-platform and open-source note-taking "
-                "app.</p><a href='https://github.com/nuttyartist/notes'>Source code on "
-                "Github</a>.<br/><br/><strong>Acknowledgments</strong><br/>This project couldn't have "
-                "come this far without the help of these amazing "
-                "people:<br/><br/><strong>Programmers:</strong><br/>Thorbjørn Lindeijer<br/>Guilherme Silva<br/>Tuur Vanhoutte<br/>Diep Ngoc<br/>Ali "
-                "Diouri<br/>Waqar Ahmed<br/>Alex Spataru<br/>David "
-                "Planella<br/><br/><strong>Designers:</strong><br/>Kevin Doyle<br/><br/>And to the "
-                "many of our beloved users who keep sending us feedback, you are an essential force in "
-                "helping us improve, thank you!<br/><br/><strong>Notes makes use of the following "
-                "third-party "
-                "libraries:</strong><br/><br/>QMarkdownTextEdit<br/>QSimpleUpdater<br/>QAutostart<br/"
-                ">QXT<br/><br/><strong>Notes makes use of the following open source "
-                "fonts:</strong><br/><br/>Roboto<br/>Source Sans Pro<br/>Trykker<br/>Mate<br/>iA "
-                "Writer Mono<br/>iA Writer Duo<br/>iA Writer Quattro<br/>");
+            "<p>Notes was founded by <a href='https://rubymamistvalove.com'>Ruby Mamistvalove</a>, "
+            "to create an elegant yet powerful cross-platform and open-source note-taking "
+            "app.</p><a href='https://github.com/nuttyartist/notes'>Source code on "
+            "Github</a>.<br/><br/><strong>Acknowledgments</strong><br/>This project couldn't have "
+            "come this far without the help of these amazing "
+            "people:<br/><br/><strong>Programmers:</strong><br/>Thorbjørn Lindeijer<br/>Guilherme "
+            "Silva<br/>Tuur Vanhoutte<br/>Diep Ngoc<br/>Ali "
+            "Diouri<br/>Waqar Ahmed<br/>Alex Spataru<br/>David "
+            "Planella<br/><br/><strong>Designers:</strong><br/>Kevin Doyle<br/><br/>And to the "
+            "many of our beloved users who keep sending us feedback, you are an essential force in "
+            "helping us improve, thank you!<br/><br/><strong>Notes makes use of the following "
+            "third-party "
+            "libraries:</strong><br/><br/>QMarkdownTextEdit<br/>QSimpleUpdater<br/>QAutostart<br/"
+            ">QXT<br/><br/><strong>Notes makes use of the following open source "
+            "fonts:</strong><br/><br/>Roboto<br/>Source Sans Pro<br/>Trykker<br/>Mate<br/>iA "
+            "Writer Mono<br/>iA Writer Duo<br/>iA Writer Quattro<br/>");
     m_ui->aboutText->setTextColor(QColor(26, 26, 26));
 
 #ifdef __APPLE__

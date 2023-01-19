@@ -85,10 +85,10 @@ And to the many of our beloved users who keep sending us feedback, you are an es
 
 ## Notes makes use of the following third-party libraries:
 
-* QMarkdownTextEdit
-* QSimpleUpdater
-* QAutostart
-* QX
+* [QMarkdownTextEdit](https://github.com/pbek/qmarkdowntextedit)
+* [QSimpleUpdater](https://github.com/alex-spataru/QSimpleUpdater)
+* [QAutostart](https://github.com/b00f/qautostart)
+* [Qxt]()
 
 ## Notes makes use of the following open source fonts:
 
