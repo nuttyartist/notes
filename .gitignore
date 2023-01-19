@@ -4,6 +4,7 @@
 build-Notes-*
 build-*
 bin*
+CMakeLists.txt.user
 
 # OS generated files #
 ######################
