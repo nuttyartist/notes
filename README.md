@@ -88,7 +88,7 @@ And to the many of our beloved users who keep sending us feedback, you are an es
 * [QMarkdownTextEdit](https://github.com/pbek/qmarkdowntextedit)
 * [QSimpleUpdater](https://github.com/alex-spataru/QSimpleUpdater)
 * [QAutostart](https://github.com/b00f/qautostart)
-* [Qxt]()
+* [Qxt](https://bitbucket.org/libqxt/libqxt/src/master/)
 
 ## Notes makes use of the following open source fonts:
 
