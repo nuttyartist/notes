@@ -80,3 +80,22 @@ David Planella
 
 ### Designers:
 Kevin Doyle
+
+And to the many of our beloved users who keep sending us feedback, you are an essential force in helping us improve, thank you!  
+
+## Notes makes use of the following third-party libraries:
+
+* QMarkdownTextEdit
+* QSimpleUpdater
+* QAutostart
+* QX
+
+## Notes makes use of the following open source fonts:
+
+* Roboto
+* Source Sans Pro
+* Trykker
+* Mate
+* iA Writer Mono
+* iA Writer Duo
+* iA Writer Quattro
