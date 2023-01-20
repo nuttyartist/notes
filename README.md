@@ -69,14 +69,14 @@ The notes database and settings file are stored in:
 ## Contributers
 
 ### Developers:
-Thorbjørn Lindeijer  
-Guilherme Silva  
-Tuur Vanhoutte  
-Diep Ngoc  
-Ali Diouri  
-Waqar Ahmed  
 Alex Spataru  
+Ali Diouri  
 David Planella  
+Diep Ngoc  
+Guilherme Silva  
+Thorbjørn Lindeijer  
+Tuur Vanhoutte  
+Waqar Ahmed  
 
 ### Designers:
 Kevin Doyle
