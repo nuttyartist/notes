@@ -216,7 +216,7 @@ jobs:
           sudo apt update
           sudo apt install -y libpq5 libodbc1
 
-      - name: Build AppImage (${{ matrix.build-type }})
+      - name: Deploy (${{ matrix.build-type }})
         env:
           APPIMAGE_EXTRACT_AND_RUN: 1
         run: |
@@ -225,8 +225,27 @@ jobs:
           mkdir -p Notes/usr/share/icons/hicolor
           cp -r ../packaging/linux/common/icons/* Notes/usr/share/icons/hicolor
           export VERSION='${{ steps.vars.outputs.version }}'
-          ./linuxdeploy-x86_64.AppImage --appdir Notes --output appimage --plugin qt
-          mv Notes*.AppImage '${{ steps.vars.outputs.file_name }}'
+          ./linuxdeploy-x86_64.AppImage --appdir Notes --plugin qt
+
+      - name: Remove unnecessary Qt plugins and libraries
+        shell: bash
+        run: |
+          set -x
+          set -e
+          cd build/Notes
+          if [[ '${{ matrix.qt-version }}' == 5.* ]]
+          then
+              # The bearer plugin has caused problems for us in the past. Plus, it was removed altogether in Qt 6.
+              rm -rv usr/plugins/bearer
+          fi
+
+      - name: Build AppImage (${{ matrix.build-type }})
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: 1
+        run: |
+          cd build
+          ./linuxdeploy-x86_64.AppImage --appdir Notes --output appimage
+          mv -v Notes*.AppImage '${{ steps.vars.outputs.file_name }}'
 
       - name: Upload AppImage artifact (${{ matrix.build-type }})
         uses: actions/upload-artifact@v3

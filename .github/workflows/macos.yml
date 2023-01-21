@@ -144,14 +144,29 @@ jobs:
         run: |
           cmake --install build --prefix .
 
-      - name: Build dmg (${{ matrix.build-type }})
+      - name: Deploy (${{ matrix.build-type }})
         run: |
           cd build
           plutil -insert NSRequiresAquaSystemAppearance -bool true Notes.app/Contents/Info.plist
           # Rename the app folder to "Notes Better", so it doesn't conflict with macOS' "Notes" app.
           mv Notes.app 'Notes Better.app'
-          macdeployqt 'Notes Better.app' -dmg
-          mv 'Notes Better.dmg' '${{ steps.vars.outputs.file_name }}'
+          macdeployqt 'Notes Better.app'
+
+      - name: Remove unnecessary Qt plugins and libraries
+        run: |
+          set -x
+          set -e
+          cd 'build/Notes Better.app'
+          if [[ '${{ matrix.qt-version }}' == 5.* ]]
+          then
+              # The bearer plugin has caused problems for us in the past. Plus, it was removed altogether in Qt 6.
+              rm -rv Contents/PlugIns/bearer
+          fi
+
+      - name: Build dmg (${{ matrix.build-type }})
+        run: |
+          cd build
+          hdiutil create -srcfolder 'Notes Better.app' -format UDZO -fs HFS+ -volname 'Notes Better' '${{ steps.vars.outputs.file_name }}'
 
       - name: Upload dmg artifact (${{ matrix.build-type }})
         uses: actions/upload-artifact@v3
