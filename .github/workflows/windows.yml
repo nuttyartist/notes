@@ -92,6 +92,9 @@ jobs:
               # The bearer plugin has caused problems for us in the past. Plus, it was removed altogether in Qt 6.
               Remove-Item -Verbose -Recurse bearer
           }
+          # We only use the SQLite Qt driver, so it's fine to delete others.
+          Remove-Item -Verbose sqldrivers\qsqlodbc.dll
+          Remove-Item -Verbose sqldrivers\qsqlpsql.dll
 
       - name: Include required runtime libraries (${{ matrix.build-type }}, ${{ matrix.arch }})
         run: |

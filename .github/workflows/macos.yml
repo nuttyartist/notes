@@ -150,7 +150,7 @@ jobs:
           plutil -insert NSRequiresAquaSystemAppearance -bool true Notes.app/Contents/Info.plist
           # Rename the app folder to "Notes Better", so it doesn't conflict with macOS' "Notes" app.
           mv Notes.app 'Notes Better.app'
-          macdeployqt 'Notes Better.app'
+          macdeployqt 'Notes Better.app' -appstore-compliant
 
       - name: Remove unnecessary Qt plugins and libraries
         run: |
