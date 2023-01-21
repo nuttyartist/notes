@@ -732,7 +732,7 @@ void NoteListView::onCustomContextMenu(QPoint point)
         }
         contextMenu->clear();
         if (m_tagPool) {
-            tagsMenu = contextMenu->addMenu("Tags ...");
+            m_tagsMenu = contextMenu->addMenu("Tags ...");
             for (auto action : qAsConst(m_noteTagActions)) {
                 delete action;
             }
@@ -769,10 +769,10 @@ void NoteListView::onCustomContextMenu(QPoint point)
                 connect(tagAction, &QAction::triggered, this,
                         [this, id, notes] { removeNotesFromTag(notes, id); });
                 tagAction->setIcon(createTagIcon(tag.color()));
-                tagsMenu->addAction(tagAction);
+                m_tagsMenu->addAction(tagAction);
                 m_noteTagActions.append(tagAction);
             }
-            tagsMenu->addSeparator();
+            m_tagsMenu->addSeparator();
             for (auto id : tagIds) {
                 if (tagInNote.contains(id)) {
                     continue;
@@ -782,7 +782,7 @@ void NoteListView::onCustomContextMenu(QPoint point)
                 connect(tagAction, &QAction::triggered, this,
                         [this, id, notes] { addNotesToTag(notes, id); });
                 tagAction->setIcon(createTagIcon(tag.color()));
-                tagsMenu->addAction(tagAction);
+                m_tagsMenu->addAction(tagAction);
                 m_noteTagActions.append(tagAction);
             }
         }

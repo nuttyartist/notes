@@ -88,7 +88,7 @@ private:
     int m_rowHeight;
     QColor m_currentBackgroundColor;
     QMenu *contextMenu;
-    QMenu *tagsMenu;
+    QMenu *m_tagsMenu;
     QAction *deleteNoteAction;
     QAction *restoreNoteAction;
     QAction *pinNoteAction;
