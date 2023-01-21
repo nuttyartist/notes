@@ -83,6 +83,16 @@ jobs:
         run: |
           windeployqt build\bin
 
+      - name: Remove unnecessary Qt plugins and libraries
+        run: |
+          Set-Location build\bin
+          # We ship all required runtime DLLs individually.
+          Remove-Item -Verbose vc_redist.*.exe
+          if ('${{ matrix.qt-version }}'.StartsWith('5.')) {
+              # The bearer plugin has caused problems for us in the past. Plus, it was removed altogether in Qt 6.
+              Remove-Item -Verbose -Recurse bearer
+          }
+
       - name: Include required runtime libraries (${{ matrix.build-type }}, ${{ matrix.arch }})
         run: |
           Set-Location build\bin
@@ -120,7 +130,6 @@ jobs:
                   # Only 64-bit builds also need 'vcruntime140_1.dll' (tested on Windows 7)
                   Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\vcruntime140_1.dll
               }
-              Remove-Item vc_redist.*.exe
           } else {
               # On debug builds, the libraries above are included automatically, so we only need 'urtcbased.dll'.
               Copy-Item $env:WindowsSdkBinPath\${{ matrix.arch }}\ucrt\ucrtbased.dll
