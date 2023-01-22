@@ -65,3 +65,37 @@ The notes database and settings file are stored in:
 **Windows** : `C:\Users\user\AppData\Roaming\Awesomeness`  
 **Linux** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: `/home/user/.config/Awesomeness/` **or** `/home/snap/notes/x1/.config/Awesomeness` **(using snap)**  
 **Mac** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: `/home/user/.config/Awesomeness/`
+
+## Contributers
+
+### Developers:
+Alex Spataru  
+Ali Diouri  
+David Planella  
+Diep Ngoc  
+Guilherme Silva  
+Thorbjørn Lindeijer  
+Tuur Vanhoutte  
+Waqar Ahmed  
+
+### Designers:
+Kevin Doyle
+
+And to the many of our beloved users who keep sending us feedback, you are an essential force in helping us improve, thank you!  
+
+## Notes makes use of the following third-party libraries:
+
+* [QMarkdownTextEdit](https://github.com/pbek/qmarkdowntextedit)
+* [QSimpleUpdater](https://github.com/alex-spataru/QSimpleUpdater)
+* [QAutostart](https://github.com/b00f/qautostart)
+* [Qxt](https://bitbucket.org/libqxt/libqxt/src/master/)
+
+## Notes makes use of the following open source fonts:
+
+* Roboto
+* Source Sans Pro
+* Trykker
+* Mate
+* iA Writer Mono
+* iA Writer Duo
+* iA Writer Quattro
