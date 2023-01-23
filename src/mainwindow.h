@@ -283,7 +283,6 @@ private slots:
     void exportNotesFile();
     void restoreNotesFile();
     void stayOnTop(bool checked);
-    void askBeforeSettingNativeWindowFrame();
     void increaseHeading();
     void decreaseHeading();
     void setHeading(int level);

@@ -1691,7 +1691,7 @@ void MainWindow::onDotsButtonClicked()
     useNativeFrameAction->setCheckable(true);
     useNativeFrameAction->setChecked(m_useNativeWindowFrame);
     connect(useNativeFrameAction, &QAction::triggered, this,
-            &MainWindow::askBeforeSettingNativeWindowFrame);
+            [this]() { setUseNativeWindowFrame(!m_useNativeWindowFrame); });
 #endif
 
     mainMenu.exec(m_dotsButton->mapToGlobal(QPoint(0, m_dotsButton->height())));
@@ -3538,28 +3538,6 @@ void MainWindow::stayOnTop(bool checked)
 }
 
 /*!
- * \brief MainWindow::askBeforeSettingNativeWindowFrame
- */
-void MainWindow::askBeforeSettingNativeWindowFrame()
-{
-#ifdef _WIN32
-    if (!m_useNativeWindowFrame) {
-        QMessageBox msgBox;
-        msgBox.setText(tr("Warning: After performing this action, you will need to restart your "
-                          "system to revert to custom decoration."));
-        msgBox.setInformativeText(tr("Would you like to continue?"));
-        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-        msgBox.setDefaultButton(QMessageBox::No);
-        if (msgBox.exec() != QMessageBox::Yes) {
-            return;
-        }
-    }
-#endif
-
-    setUseNativeWindowFrame(!m_useNativeWindowFrame);
-}
-
-/*!
  * \brief MainWindow::increaseHeading
  * Increase markdown heading level
  */
@@ -3655,22 +3633,11 @@ void MainWindow::setUseNativeWindowFrame(bool useNativeWindowFrame)
     m_redCloseButton->setVisible(!useNativeWindowFrame);
     m_yellowMinimizeButton->setVisible(!useNativeWindowFrame);
 
-    auto flags = windowFlags();
+    // Reset window flags to its initial state.
+    Qt::WindowFlags flags = Qt::Window;
 
-#  if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
-    if (useNativeWindowFrame)
-        flags &= ~Qt::FramelessWindowHint;
-    else
-        flags |= Qt::FramelessWindowHint;
-#  elif _WIN32
-    if (useNativeWindowFrame) {
-        flags &= ~Qt::CustomizeWindowHint;
-        flags &= ~Qt::FramelessWindowHint;
-    } else {
+    if (!useNativeWindowFrame)
         flags |= Qt::CustomizeWindowHint;
-        flags |= Qt::FramelessWindowHint;
-    }
-#  endif
 
     setWindowFlags(flags);
 #endif
