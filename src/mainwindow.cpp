@@ -53,9 +53,11 @@ MainWindow::MainWindow(QWidget *parent)
       m_editorDateLabel(Q_NULLPTR),
       m_splitter(Q_NULLPTR),
       m_trayIcon(new QSystemTrayIcon(this)),
+#if !defined(Q_OS_MAC)
       m_restoreAction(new QAction(tr("&Hide Notes"), this)),
       m_quitAction(new QAction(tr("&Quit"), this)),
       m_trayIconMenu(new QMenu(this)),
+#endif
       m_listView(Q_NULLPTR),
       m_listModel(Q_NULLPTR),
       m_listViewLogic(Q_NULLPTR),
@@ -191,9 +193,13 @@ void MainWindow::setMainWindowVisibility(bool state)
         show();
         raise();
         activateWindow();
+#if !defined(Q_OS_MAC)
         m_restoreAction->setText(tr("&Hide Notes"));
+#endif
     } else {
+#if !defined(Q_OS_MAC)
         m_restoreAction->setText(tr("&Show Notes"));
+#endif
         hide();
     }
 }
@@ -432,13 +438,18 @@ void MainWindow::setupFonts()
  */
 void MainWindow::setupTrayIcon()
 {
+#if !defined(Q_OS_MAC)
     m_trayIconMenu->addAction(m_restoreAction);
     m_trayIconMenu->addSeparator();
     m_trayIconMenu->addAction(m_quitAction);
+#endif
 
     QIcon icon(QStringLiteral(":images/notes_system_tray_icon.png"));
     m_trayIcon->setIcon(icon);
+
+#if !defined(Q_OS_MAC)
     m_trayIcon->setContextMenu(m_trayIconMenu);
+#endif
     m_trayIcon->show();
 }
 
@@ -682,16 +693,19 @@ void MainWindow::setupSignalsSlots()
     connect(m_searchEdit, &QLineEdit::returnPressed, this, &MainWindow::onSearchEditReturnPressed);
     // clear button
     connect(m_clearButton, &QToolButton::clicked, this, &MainWindow::onClearButtonClicked);
-    // Restore Notes Action
+
+#if !defined(Q_OS_MAC)
+    // System tray context menu action: "Show/Hide Notes"
     connect(m_restoreAction, &QAction::triggered, this, [this]() {
         setMainWindowVisibility(isHidden() || windowState() == Qt::WindowMinimized
                                 || (qApp->applicationState() == Qt::ApplicationInactive));
     });
-    // Quit Action
+    // System tray context menu action: "Quit"
     connect(m_quitAction, &QAction::triggered, this, &MainWindow::QuitApplication);
     // Application state changed
     connect(qApp, &QApplication::applicationStateChanged, this,
             [this]() { m_listView->update(m_listView->currentIndex()); });
+#endif
 
     // MainWindow <-> DBManager
     connect(this, &MainWindow::requestNodesTree, m_dbManager, &DBManager::onNodeTagTreeRequested,
@@ -2402,7 +2416,10 @@ void MainWindow::onYellowMinimizeButtonClicked()
     m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/yellow.png")));
 
     minimizeWindow();
+
+#  if !defined(Q_OS_MAC)
     m_restoreAction->setText(tr("&Show Notes"));
+#  endif
 #endif
 }
 
