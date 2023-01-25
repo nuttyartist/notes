@@ -189,9 +189,8 @@ void MainWindow::setMainWindowVisibility(bool state)
 {
     if (state) {
         show();
-        qApp->processEvents();
-        qApp->setActiveWindow(this);
-        qApp->processEvents();
+        raise();
+        activateWindow();
         m_restoreAction->setText(tr("&Hide Notes"));
     } else {
         m_restoreAction->setText(tr("&Show Notes"));
