@@ -243,6 +243,7 @@ private:
 private slots:
     void InitData();
 
+    void onSystemTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
     void onNewNoteButtonPressed();
     void onNewNoteButtonClicked();
     void onTrashButtonPressed();
