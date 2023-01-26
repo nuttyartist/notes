@@ -184,6 +184,17 @@ void MainWindow::InitData()
 }
 
 /*!
+ * \brief Toggles visibility of the main window upon system tray activation
+ * \param reason The reason the system tray was activated
+ */
+void MainWindow::onSystemTrayIconActivated(QSystemTrayIcon::ActivationReason reason)
+{
+    if (reason == QSystemTrayIcon::Trigger) {
+        setMainWindowVisibility(!isVisible());
+    }
+}
+
+/*!
  * \brief MainWindow::setMainWindowVisibility
  * \param state
  */
@@ -693,6 +704,8 @@ void MainWindow::setupSignalsSlots()
     connect(m_searchEdit, &QLineEdit::returnPressed, this, &MainWindow::onSearchEditReturnPressed);
     // clear button
     connect(m_clearButton, &QToolButton::clicked, this, &MainWindow::onClearButtonClicked);
+    // System tray activation
+    connect(m_trayIcon, &QSystemTrayIcon::activated, this, &MainWindow::onSystemTrayIconActivated);
 
 #if !defined(Q_OS_MAC)
     // System tray context menu action: "Show/Hide Notes"
