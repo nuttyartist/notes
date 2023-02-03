@@ -155,7 +155,7 @@ void MainWindow::InitData()
         QProgressDialog *pd =
                 new QProgressDialog(tr("Migrating database, please wait."), QString(), 0, 0, this);
         pd->setCancelButton(Q_NULLPTR);
-        pd->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+        pd->setWindowFlags(Qt::Window | Qt::CustomizeWindowHint);
         pd->setMinimumDuration(0);
         pd->show();
 
@@ -305,11 +305,8 @@ MainWindow::~MainWindow()
  */
 void MainWindow::setupMainWindow()
 {
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
-    this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
-    //    this->setAttribute(Qt::WA_TranslucentBackground);
-#elif _WIN32
-    this->setWindowFlags(Qt::CustomizeWindowHint);
+#if !defined(Q_OS_MAC)
+    this->setWindowFlags(Qt::Window | Qt::CustomizeWindowHint);
 #endif
 
     m_greenMaximizeButton = new QPushButton(this);
