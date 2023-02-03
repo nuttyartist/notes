@@ -99,13 +99,7 @@ UpdaterWindow::UpdaterWindow(QWidget *parent)
     updateTitleLabel();
 
     /* Remove window border */
-#if defined Q_OS_WIN
-    setWindowFlags(Qt::CustomizeWindowHint);
-#elif defined Q_OS_MAC || defined Q_OS_LINUX || defined Q_OS_FREEBSD
-    setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
-#else
-#  error "We don't support your OS yet..."
-#endif
+    setWindowFlags(Qt::Window | Qt::CustomizeWindowHint);
 
     /* React when xdg-open finishes (Linux only) */
 #ifdef UseXdgOpen
