@@ -59,21 +59,20 @@ jobs:
           QT_PKGS: ${{ matrix.qt-version-major == '6' && 'qt6-base-private-dev libgl-dev' || 'qtbase5-private-dev' }}
         run: |
           sudo apt update
-          sudo apt install -y build-essential qtchooser ${{ env.QT_PKGS }}
+          sudo apt install -y build-essential cmake ${{ env.QT_PKGS }}
 
       - name: Setup GCC problem matcher
         if: matrix.build-type == 'debug'
         uses: ammaraskar/gcc-problem-matcher@0.2.0
 
+      # TODO: Migrate to the Ninja generator once we drop support for Ubuntu 18.04.
       - name: Build (${{ matrix.build-type }})
-        shell: bash
+        env:
+          VERBOSE: 1
         run: |
           mkdir build
           cd build
-          # Workaround for qtchooser not supporting Qt 6: https://bugs.launchpad.net/ubuntu/+source/qtchooser/+bug/1964763
-          echo -e '/usr/lib/qt6/bin\n/usr/lib/x86_64-linux-gnu' | sudo tee /usr/lib/x86_64-linux-gnu/qtchooser/qt6.conf
-          export QT_SELECT=qt${{ matrix.qt-version-major }}
-          qmake -config ${{ matrix.build-type }} ../src/Notes.pro
+          cmake .. --warn-uninitialized --warn-unused-vars -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
           make -j$(nproc)
 
   # Build the AppImage using official Qt releases, downloaded by aqtinstall.
@@ -97,7 +96,7 @@ jobs:
           - os: ubuntu-20.04
             container: ubuntu:20.04
             build-type: release
-            qt-version: 6.2.4
+            qt-version: 6.3.2
     steps:
       - name: Install git PPA in docker container
         # A more recent version of git is required by the checkout action: https://github.com/actions/checkout/issues/758
@@ -112,40 +111,53 @@ jobs:
           apt update
 
       - name: Install other dependencies in docker container
+        # - cmake: Used to help build the application.
         # - curl: Used to download the linuxdeploy AppImage tool.
-        # - git: Self-explanatory.
+        # - git: To clone this repository.
         # - libfontconfig1: Used as dependency of the resulting AppImage.
         # - python3/python3-pip: Used by aqtinstall.
         # - sudo: Used by most GitHub actions to install things.
         if: matrix.container != ''
         run: |
-          apt update
-          apt install -y curl git libfontconfig1 python3 python3-pip sudo
-          # Upgrade to the latest setuptools, as Ubuntu's python3-setuptools package has compatibility issues with aqtinstall.
-          python3 -m pip install --upgrade setuptools
           # Configure the timezone, otherwise 'install-qt-action' gets stuck at 'configuring tzdata'.
           ln -sf /usr/share/zoneinfo/UTC /etc/localtime
           echo UTC > /etc/timezone
+          # install packages
+          apt update
+          apt install -y cmake curl git libfontconfig1 python3 python3-pip sudo
+          # Upgrade to the latest setuptools, as Ubuntu's python3-setuptools package has compatibility issues with aqtinstall.
+          python3 -m pip install --upgrade setuptools
 
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           submodules: recursive
 
-      - name: Update version
-        shell: bash
-        run: |
-          sed -i.bak "/^VERSION *=/ s/$/-g${GITHUB_SHA::7}/" src/Notes.pro
-
       - name: Setup variables
+        shell: bash
         id: vars
         run: |
-          version=$(grep -m 1 VERSION src/Notes.pro | sed 's/^VERSION *= *//')
-          artifact_name="Notes_${version}-x86_64-Qt${{ matrix.qt-version }}"
-          file_name="$artifact_name${{ matrix.build-type == 'debug' && '-debug.' || '.' }}AppImage"
-          echo "version=$version" >> $GITHUB_OUTPUT
-          echo "artifact_name=$artifact_name" >> $GITHUB_OUTPUT
-          echo "file_name=$file_name" >> $GITHUB_OUTPUT
+          set -x
+          version=$(grep -oPm1 '\bAPP_VERSION +\K[^)]+' CMakeLists.txt)
+          if [ -z "${version}" ]
+          then
+              echo 'Failed to extract app version from CMakeLists.txt.'
+              exit 1
+          fi
+          if [ '${{ github.ref_type }}' != 'tag' ]
+          then
+              version="${version}-g${GITHUB_SHA::7}"
+          fi
+          artifact_name="Notes_${version}-Qt${{ matrix.qt-version }}-x86_64"
+          if [ '${{ matrix.build-type }}' == 'debug' ]
+          then
+              file_name="${artifact_name}-debug.AppImage"
+          else
+              file_name="${artifact_name}.AppImage"
+          fi
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+          echo "artifact_name=${artifact_name}" >> "${GITHUB_OUTPUT}"
+          echo "file_name=${file_name}" >> "${GITHUB_OUTPUT}"
 
       - name: Install Qt ${{ matrix.qt-version }} (aqtinstall)
         uses: jurplel/install-qt-action@v3
@@ -162,12 +174,29 @@ jobs:
           sudo apt update
           sudo apt install -y libxkbcommon-dev libmysqlclient21
 
+      # TODO: Figure out why this error only occurs on the Linux container when building with -DGIT_REVISION=ON
+      # The error: fatal: detected dubious ownership in repository
+      - name: Prevent git's dubious ownership message
+        if: github.ref_type != 'tag'
+        run: |
+          git config --global --add safe.directory "${PWD}"
+
+      # TODO: Migrate to the Ninja generator once we drop support for Ubuntu 18.04.
       - name: Build (${{ matrix.build-type }})
+        env:
+          VERBOSE: 1
         run: |
           mkdir build
           cd build
-          qmake -config ${{ matrix.build-type }} ../src/Notes.pro
+          cmake .. --warn-uninitialized --warn-unused-vars \
+              -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
+              -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }} \
+              -DCMAKE_INSTALL_PREFIX=/usr
           make -j$(nproc)
+
+      - name: Install (${{ matrix.build-type }})
+        run: |
+          make -C build DESTDIR=Notes install
 
       - name: Setup linuxdeploy
         run: |
@@ -187,21 +216,40 @@ jobs:
           sudo apt update
           sudo apt install -y libpq5 libodbc1
 
+      - name: Deploy (${{ matrix.build-type }})
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: 1
+        run: |
+          cd build
+          install -Dm644 -t Notes/usr/share/applications ../packaging/linux/common/notes.desktop
+          mkdir -p Notes/usr/share/icons/hicolor
+          cp -r ../packaging/linux/common/icons/* Notes/usr/share/icons/hicolor
+          export VERSION='${{ steps.vars.outputs.version }}'
+          ./linuxdeploy-x86_64.AppImage --appdir Notes --plugin qt
+
+      - name: Remove unnecessary Qt plugins and libraries
+        shell: bash
+        run: |
+          set -x
+          set -e
+          cd build/Notes
+          if [[ '${{ matrix.qt-version }}' == 5.* ]]
+          then
+              # The bearer plugin has caused problems for us in the past. Plus, it was removed altogether in Qt 6.
+              rm -rv usr/plugins/bearer
+          fi
+
       - name: Build AppImage (${{ matrix.build-type }})
         env:
           APPIMAGE_EXTRACT_AND_RUN: 1
         run: |
           cd build
-          install -Dm755 -t Notes/usr/bin notes
-          install -Dm755 -t Notes/usr/share/applications ../packaging/linux/common/notes.desktop
-          mkdir -p Notes/usr/share/icons/hicolor
-          cp -r ../packaging/linux/common/icons/* Notes/usr/share/icons/hicolor
-          export VERSION='${{ steps.vars.outputs.version }}'
-          ./linuxdeploy-x86_64.AppImage --appdir Notes --output appimage --plugin qt
-          mv Notes*.AppImage '${{ steps.vars.outputs.file_name }}'
+          ./linuxdeploy-x86_64.AppImage --appdir Notes --output appimage
+          mv -v Notes*.AppImage '${{ steps.vars.outputs.file_name }}'
 
       - name: Upload AppImage artifact (${{ matrix.build-type }})
         uses: actions/upload-artifact@v3
         with:
+          if-no-files-found: error
           name: ${{ steps.vars.outputs.artifact_name }}-${{ runner.os }}-${{ matrix.build-type }}
           path: build/${{ steps.vars.outputs.file_name }}

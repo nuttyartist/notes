@@ -913,6 +913,9 @@ color: rgb(132, 132, 132);
                <bold>false</bold>
               </font>
              </property>
+             <property name="horizontalScrollBarPolicy">
+              <enum>Qt::ScrollBarAlwaysOff</enum>
+             </property>
              <property name="focusPolicy">
               <enum>Qt::StrongFocus</enum>
              </property>

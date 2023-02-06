@@ -27,9 +27,12 @@ jobs:
           submodules: recursive
 
       - name: Install Qt ${{ matrix.qt-version-major }} (homebrew)
+        env:
+          # TODO: remove once https://github.com/actions/setup-python/issues/577 gets fixed.
+          HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
         run: |
           brew update
-          brew install qt@${{ matrix.qt-version-major }}
+          brew install ninja qt@${{ matrix.qt-version-major }} 
 
       - name: Configure Qt ${{ matrix.qt-version-major }} (homebrew)
         run: |
@@ -46,11 +49,15 @@ jobs:
         uses: ammaraskar/gcc-problem-matcher@0.2.0
 
       - name: Build (${{ matrix.build-type }})
+        env:
+          VERBOSE: 1
         run: |
-          mkdir build
-          cd build
-          qmake -config ${{ matrix.build-type }} ../src/Notes.pro
-          make -j$(sysctl -n hw.logicalcpu)
+          export CMAKE_BUILD_PARALLEL_LEVEL=$(sysctl -n hw.logicalcpu)
+          cmake . --warn-uninitialized --warn-unused-vars \
+              -G Ninja -B build \
+              -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
+              -DCMAKE_PREFIX_PATH="$(brew --prefix qt@${{ matrix.qt-version-major }})"
+          cmake --build build
 
   # Build the dmg disk image using the official Qt 5 release downloaded by aqtinstall.
   # This is also done for Linux and Windows, just to make sure we use the exact same Qt version across all three OSes.
@@ -61,6 +68,7 @@ jobs:
     name: dmg (${{ matrix.build-type }}, Qt ${{ matrix.qt-version }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: macos-11
@@ -68,7 +76,7 @@ jobs:
             build-type: release
 
           - os: macos-11
-            qt-version: 6.2.4
+            qt-version: 6.3.2
             build-type: release
     steps:
       - name: Checkout code
@@ -76,19 +84,35 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Update version
-        run: |
-          sed -i.bak "/^VERSION *=/ s/$/-g${GITHUB_SHA::7}/" src/Notes.pro
-
       - name: Setup variables
         id: vars
         run: |
-          version=$(grep -m 1 VERSION src/Notes.pro | sed 's/^VERSION *= *//')
-          artifact_name="Notes_${version}-x86_64-Qt${{ matrix.qt-version }}"
-          file_name="$artifact_name${{ matrix.build-type == 'debug' && '-debug.' || '.' }}dmg"
-          echo "version=$version" >> $GITHUB_OUTPUT
-          echo "artifact_name=$artifact_name" >> $GITHUB_OUTPUT
-          echo "file_name=$file_name" >> $GITHUB_OUTPUT
+          set -x
+          version=$(grep -Em1 '\bAPP_VERSION' CMakeLists.txt | sed -r 's/.*APP_VERSION +//; s/ *)//')
+          if [ -z "${version}" ]
+          then
+              echo 'Failed to extract app version from CMakeLists.txt.'
+              exit 1
+          fi
+          if [ '${{ github.ref_type }}' != 'tag' ]
+          then
+              version="${version}-g${GITHUB_SHA::7}"
+          fi
+          arches='x86_64'
+          if [[ '${{ matrix.qt-version }}' == 6.* ]]
+          then
+              arches+='-arm64'
+          fi
+          artifact_name="Notes_${version}-Qt${{ matrix.qt-version }}-${arches}"
+          if [ '${{ matrix.build-type }}' == 'debug' ]
+          then
+              file_name="${artifact_name}-debug.dmg"
+          else
+              file_name="${artifact_name}.dmg"
+          fi
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+          echo "artifact_name=${artifact_name}" >> "${GITHUB_OUTPUT}"
+          echo "file_name=${file_name}" >> "${GITHUB_OUTPUT}"
 
       - name: Install Qt ${{ matrix.qt-version }} (aqtinstall)
         uses: jurplel/install-qt-action@v3
@@ -96,23 +120,57 @@ jobs:
           version: ${{ matrix.qt-version }}
           cache: true
 
-      - name: Build (${{ matrix.build-type }})
+      - name: Install Ninja
         run: |
-          mkdir build
+          brew update
+          brew install ninja
+
+      - name: Build (${{ matrix.build-type }})
+        env:
+          # Only commercial Qt 5 supports targeting Apple Silicon at the moment:
+          # https://www.qt.io/blog/qt-on-apple-silicon
+          TARGET_ARCH: ${{ startsWith(matrix.qt-version, '6.') && 'x86_64;arm64' || 'x86_64' }}
+          VERBOSE: 1
+        run: |
+          export CMAKE_BUILD_PARALLEL_LEVEL=$(sysctl -n hw.logicalcpu)
+          cmake . --warn-uninitialized --warn-unused-vars \
+              -B build -G Ninja \
+              -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
+              -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }} \
+              -DCMAKE_OSX_ARCHITECTURES="${{ env.TARGET_ARCH }}"
+          cmake --build build
+
+      - name: Install (${{ matrix.build-type }})
+        run: |
+          cmake --install build --prefix .
+
+      - name: Deploy (${{ matrix.build-type }})
+        run: |
           cd build
-          qmake -config ${{ matrix.build-type }} ../src/Notes.pro
-          make -j$(sysctl -n hw.logicalcpu)
+          plutil -insert NSRequiresAquaSystemAppearance -bool true Notes.app/Contents/Info.plist
+          # Rename the app folder to "Notes Better", so it doesn't conflict with macOS' "Notes" app.
+          mv Notes.app 'Notes Better.app'
+          macdeployqt 'Notes Better.app'
+
+      - name: Remove unnecessary Qt plugins and libraries
+        run: |
+          set -x
+          set -e
+          cd 'build/Notes Better.app'
+          if [[ '${{ matrix.qt-version }}' == 5.* ]]
+          then
+              # The bearer plugin has caused problems for us in the past. Plus, it was removed altogether in Qt 6.
+              rm -rv Contents/PlugIns/bearer
+          fi
 
       - name: Build dmg (${{ matrix.build-type }})
         run: |
-          cd bin
-          plutil -insert NSRequiresAquaSystemAppearance -bool true Notes.app/Contents/Info.plist
-          plutil -insert CFBundleName -string Notes Notes.app/Contents/Info.plist
-          macdeployqt Notes.app -dmg
-          mv Notes.dmg '${{ steps.vars.outputs.file_name }}'
+          cd build
+          hdiutil create -srcfolder 'Notes Better.app' -format UDZO -fs HFS+ -volname 'Notes Better' '${{ steps.vars.outputs.file_name }}'
 
       - name: Upload dmg artifact (${{ matrix.build-type }})
         uses: actions/upload-artifact@v3
         with:
+          if-no-files-found: error
           name: ${{ steps.vars.outputs.artifact_name }}-${{ runner.os }}-${{ matrix.build-type }}
-          path: bin/${{ steps.vars.outputs.file_name }}
+          path: build/${{ steps.vars.outputs.file_name }}

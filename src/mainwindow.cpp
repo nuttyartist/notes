@@ -53,9 +53,11 @@ MainWindow::MainWindow(QWidget *parent)
       m_editorDateLabel(Q_NULLPTR),
       m_splitter(Q_NULLPTR),
       m_trayIcon(new QSystemTrayIcon(this)),
+#if !defined(Q_OS_MAC)
       m_restoreAction(new QAction(tr("&Hide Notes"), this)),
       m_quitAction(new QAction(tr("&Quit"), this)),
       m_trayIconMenu(new QMenu(this)),
+#endif
       m_listView(Q_NULLPTR),
       m_listModel(Q_NULLPTR),
       m_listViewLogic(Q_NULLPTR),
@@ -153,7 +155,7 @@ void MainWindow::InitData()
         QProgressDialog *pd =
                 new QProgressDialog(tr("Migrating database, please wait."), QString(), 0, 0, this);
         pd->setCancelButton(Q_NULLPTR);
-        pd->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+        pd->setWindowFlags(Qt::Window | Qt::CustomizeWindowHint);
         pd->setMinimumDuration(0);
         pd->show();
 
@@ -182,6 +184,17 @@ void MainWindow::InitData()
 }
 
 /*!
+ * \brief Toggles visibility of the main window upon system tray activation
+ * \param reason The reason the system tray was activated
+ */
+void MainWindow::onSystemTrayIconActivated(QSystemTrayIcon::ActivationReason reason)
+{
+    if (reason == QSystemTrayIcon::Trigger) {
+        setMainWindowVisibility(!isVisible());
+    }
+}
+
+/*!
  * \brief MainWindow::setMainWindowVisibility
  * \param state
  */
@@ -189,12 +202,15 @@ void MainWindow::setMainWindowVisibility(bool state)
 {
     if (state) {
         show();
-        qApp->processEvents();
-        qApp->setActiveWindow(this);
-        qApp->processEvents();
+        raise();
+        activateWindow();
+#if !defined(Q_OS_MAC)
         m_restoreAction->setText(tr("&Hide Notes"));
+#endif
     } else {
+#if !defined(Q_OS_MAC)
         m_restoreAction->setText(tr("&Show Notes"));
+#endif
         hide();
     }
 }
@@ -289,11 +305,8 @@ MainWindow::~MainWindow()
  */
 void MainWindow::setupMainWindow()
 {
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
-    this->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
-    //    this->setAttribute(Qt::WA_TranslucentBackground);
-#elif _WIN32
-    this->setWindowFlags(Qt::CustomizeWindowHint);
+#if !defined(Q_OS_MAC)
+    this->setWindowFlags(Qt::Window | Qt::CustomizeWindowHint);
 #endif
 
     m_greenMaximizeButton = new QPushButton(this);
@@ -433,13 +446,18 @@ void MainWindow::setupFonts()
  */
 void MainWindow::setupTrayIcon()
 {
+#if !defined(Q_OS_MAC)
     m_trayIconMenu->addAction(m_restoreAction);
     m_trayIconMenu->addSeparator();
     m_trayIconMenu->addAction(m_quitAction);
+#endif
 
     QIcon icon(QStringLiteral(":images/notes_system_tray_icon.png"));
     m_trayIcon->setIcon(icon);
+
+#if !defined(Q_OS_MAC)
     m_trayIcon->setContextMenu(m_trayIconMenu);
+#endif
     m_trayIcon->show();
 }
 
@@ -683,16 +701,21 @@ void MainWindow::setupSignalsSlots()
     connect(m_searchEdit, &QLineEdit::returnPressed, this, &MainWindow::onSearchEditReturnPressed);
     // clear button
     connect(m_clearButton, &QToolButton::clicked, this, &MainWindow::onClearButtonClicked);
-    // Restore Notes Action
+    // System tray activation
+    connect(m_trayIcon, &QSystemTrayIcon::activated, this, &MainWindow::onSystemTrayIconActivated);
+
+#if !defined(Q_OS_MAC)
+    // System tray context menu action: "Show/Hide Notes"
     connect(m_restoreAction, &QAction::triggered, this, [this]() {
         setMainWindowVisibility(isHidden() || windowState() == Qt::WindowMinimized
                                 || (qApp->applicationState() == Qt::ApplicationInactive));
     });
-    // Quit Action
+    // System tray context menu action: "Quit"
     connect(m_quitAction, &QAction::triggered, this, &MainWindow::QuitApplication);
     // Application state changed
     connect(qApp, &QApplication::applicationStateChanged, this,
             [this]() { m_listView->update(m_listView->currentIndex()); });
+#endif
 
     // MainWindow <-> DBManager
     connect(this, &MainWindow::requestNodesTree, m_dbManager, &DBManager::onNodeTagTreeRequested,
@@ -1665,7 +1688,7 @@ void MainWindow::onDotsButtonClicked()
     useNativeFrameAction->setCheckable(true);
     useNativeFrameAction->setChecked(m_useNativeWindowFrame);
     connect(useNativeFrameAction, &QAction::triggered, this,
-            &MainWindow::askBeforeSettingNativeWindowFrame);
+            [this]() { setUseNativeWindowFrame(!m_useNativeWindowFrame); });
 #endif
 
     mainMenu.exec(m_dotsButton->mapToGlobal(QPoint(0, m_dotsButton->height())));
@@ -1847,7 +1870,7 @@ void MainWindow::setTheme(Theme theme)
         m_styleEditorWindow.setTheme(Theme::Light, m_currentThemeBackgroundColor,
                                      m_currentEditorTextColor);
         m_aboutWindow.setTheme(m_currentThemeBackgroundColor, m_currentEditorTextColor);
-        m_noteEditorLogic->setTheme(theme);
+        m_noteEditorLogic->setTheme(theme, m_currentEditorTextColor);
         ui->listviewLabel1->setStyleSheet(
                 QStringLiteral("QLabel { color : %1; }").arg(QColor(26, 26, 26).name()));
         m_treeViewLogic->setTheme(theme);
@@ -1874,7 +1897,7 @@ void MainWindow::setTheme(Theme theme)
         m_styleEditorWindow.setTheme(Theme::Dark, m_currentThemeBackgroundColor,
                                      m_currentEditorTextColor);
         m_aboutWindow.setTheme(m_currentThemeBackgroundColor, m_currentEditorTextColor);
-        m_noteEditorLogic->setTheme(theme);
+        m_noteEditorLogic->setTheme(theme, m_currentEditorTextColor);
         ui->listviewLabel1->setStyleSheet(
                 QStringLiteral("QLabel { color : %1; }").arg(QColor(204, 204, 204).name()));
         m_treeViewLogic->setTheme(theme);
@@ -1902,7 +1925,7 @@ void MainWindow::setTheme(Theme theme)
         m_styleEditorWindow.setTheme(Theme::Sepia, m_currentThemeBackgroundColor,
                                      QColor(26, 26, 26));
         m_aboutWindow.setTheme(m_currentThemeBackgroundColor, QColor(26, 26, 26));
-        m_noteEditorLogic->setTheme(theme);
+        m_noteEditorLogic->setTheme(theme, m_currentEditorTextColor);
         ui->listviewLabel1->setStyleSheet(
                 QStringLiteral("QLabel { color : %1; }").arg(QColor(26, 26, 26).name()));
         m_treeViewLogic->setTheme(theme);
@@ -2403,7 +2426,10 @@ void MainWindow::onYellowMinimizeButtonClicked()
     m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/yellow.png")));
 
     minimizeWindow();
+
+#  if !defined(Q_OS_MAC)
     m_restoreAction->setText(tr("&Show Notes"));
+#  endif
 #endif
 }
 
@@ -3509,28 +3535,6 @@ void MainWindow::stayOnTop(bool checked)
 }
 
 /*!
- * \brief MainWindow::askBeforeSettingNativeWindowFrame
- */
-void MainWindow::askBeforeSettingNativeWindowFrame()
-{
-#ifdef _WIN32
-    if (!m_useNativeWindowFrame) {
-        QMessageBox msgBox;
-        msgBox.setText(tr("Warning: After performing this action, you will need to restart your "
-                          "system to revert to custom decoration."));
-        msgBox.setInformativeText(tr("Would you like to continue?"));
-        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-        msgBox.setDefaultButton(QMessageBox::No);
-        if (msgBox.exec() != QMessageBox::Yes) {
-            return;
-        }
-    }
-#endif
-
-    setUseNativeWindowFrame(!m_useNativeWindowFrame);
-}
-
-/*!
  * \brief MainWindow::increaseHeading
  * Increase markdown heading level
  */
@@ -3626,22 +3630,11 @@ void MainWindow::setUseNativeWindowFrame(bool useNativeWindowFrame)
     m_redCloseButton->setVisible(!useNativeWindowFrame);
     m_yellowMinimizeButton->setVisible(!useNativeWindowFrame);
 
-    auto flags = windowFlags();
+    // Reset window flags to its initial state.
+    Qt::WindowFlags flags = Qt::Window;
 
-#  if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
-    if (useNativeWindowFrame)
-        flags &= ~Qt::FramelessWindowHint;
-    else
-        flags |= Qt::FramelessWindowHint;
-#  elif _WIN32
-    if (useNativeWindowFrame) {
-        flags &= ~Qt::CustomizeWindowHint;
-        flags &= ~Qt::FramelessWindowHint;
-    } else {
+    if (!useNativeWindowFrame)
         flags |= Qt::CustomizeWindowHint;
-        flags |= Qt::FramelessWindowHint;
-    }
-#  endif
 
     setWindowFlags(flags);
 #endif

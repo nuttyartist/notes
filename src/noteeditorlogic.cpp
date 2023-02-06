@@ -1,6 +1,6 @@
 #include "noteeditorlogic.h"
 #include "customDocument.h"
-#include "markdownhighlighter.h"
+#include "customMarkdownHighlighter.h"
 #include "dbmanager.h"
 #include "taglistview.h"
 #include "taglistmodel.h"
@@ -25,13 +25,12 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLab
       m_tagListView{ tagListView },
       m_dbManager{ dbManager },
       m_isContentModified{ false },
-      m_spacerColor{ 26, 26, 26 },
+      m_spacerColor{ 191, 191, 191 },
       m_currentAdaptableEditorPadding{ 0 },
       m_currentMinimumEditorPadding{ 0 }
 {
-    m_highlighter = new MarkdownHighlighter(m_textEdit->document());
+    m_highlighter = new CustomMarkdownHighlighter(m_textEdit->document());
     connect(m_textEdit, &QTextEdit::textChanged, this, &NoteEditorLogic::onTextEditTextChanged);
-    connect(m_textEdit, &CustomDocument::resized, this, &NoteEditorLogic::editorResized);
     connect(this, &NoteEditorLogic::requestCreateUpdateNote, m_dbManager,
             &DBManager::onCreateUpdateRequestedNoteContent, Qt::QueuedConnection);
     // auto save timer
@@ -66,7 +65,7 @@ void NoteEditorLogic::setMarkdownEnabled(bool newMarkdownEnabled)
         m_highlighter = nullptr;
     }
     if (newMarkdownEnabled) {
-        m_highlighter = new MarkdownHighlighter(m_textEdit->document());
+        m_highlighter = new CustomMarkdownHighlighter(m_textEdit->document());
     } else {
         delete m_highlighter;
         m_highlighter = nullptr;
@@ -107,15 +106,16 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
         m_currentNotes = notes;
         m_tagListView->setVisible(false);
         m_textEdit->blockSignals(true);
+        auto verticalScrollBarValueToRestore = m_textEdit->verticalScrollBar()->value();
         m_textEdit->clear();
         auto padding = m_currentAdaptableEditorPadding > m_currentMinimumEditorPadding
                 ? m_currentAdaptableEditorPadding
                 : m_currentMinimumEditorPadding;
-        QPixmap sep(QSize{ m_textEdit->width() - padding * 2 - 20, 19 });
+        QPixmap sep(QSize{ m_textEdit->width() - padding * 2 - 12, 4 });
         sep.fill(Qt::transparent);
         QPainter painter(&sep);
         painter.setPen(m_spacerColor);
-        painter.drawLine(10, 10, sep.width(), 10);
+        painter.drawRect(0, 1, sep.width(), 1);
         m_textEdit->document()->addResource(QTextDocument::ImageResource, QUrl("mydata://sep.png"),
                                             sep);
         for (int i = 0; i < notes.size(); ++i) {
@@ -132,12 +132,15 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
             }
             if (i != notes.size() - 1) {
                 cursor.movePosition(QTextCursor::End);
+                cursor.insertText("\n");
                 cursor.insertImage("mydata://sep.png");
+                cursor.insertText("\n");
             }
         }
+        m_textEdit->verticalScrollBar()->setValue(verticalScrollBarValueToRestore);
         m_textEdit->blockSignals(false);
         m_textEdit->setReadOnly(true);
-        m_textEdit->setTextInteractionFlags(Qt::NoTextInteraction);
+        m_textEdit->setTextInteractionFlags(Qt::TextSelectableByMouse);
         m_textEdit->setFocusPolicy(Qt::NoFocus);
         highlightSearch();
     }
@@ -263,19 +266,6 @@ void NoteEditorLogic::onNoteTagListChanged(int noteId, const QSet<int> &tagIds)
     }
 }
 
-void NoteEditorLogic::editorResized()
-{
-    if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId) {
-        int verticalScrollBarValueToRestore = m_textEdit->verticalScrollBar()->value();
-        m_textEdit->setText(m_textEdit->toPlainText());
-        m_textEdit->verticalScrollBar()->setValue(verticalScrollBarValueToRestore);
-    } else {
-        int verticalScrollBarValueToRestore = m_textEdit->verticalScrollBar()->value();
-        showNotesInEditor(m_currentNotes);
-        m_textEdit->verticalScrollBar()->setValue(verticalScrollBarValueToRestore);
-    }
-}
-
 void NoteEditorLogic::deleteCurrentNote()
 {
     if (isTempNote()) {
@@ -340,12 +330,13 @@ QString NoteEditorLogic::getSecondLine(const QString &str)
     return ts.readLine(FIRST_LINE_MAX);
 }
 
-void NoteEditorLogic::setTheme(Theme newTheme)
+void NoteEditorLogic::setTheme(Theme newTheme, QColor textColor)
 {
     m_tagListDelegate->setTheme(newTheme);
+    m_highlighter->setTheme(newTheme, textColor);
     switch (newTheme) {
     case Theme::Light: {
-        m_spacerColor = QColor(26, 26, 26);
+        m_spacerColor = QColor(191, 191, 191);
         break;
     }
     case Theme::Dark: {
@@ -353,7 +344,7 @@ void NoteEditorLogic::setTheme(Theme newTheme)
         break;
     }
     case Theme::Sepia: {
-        m_spacerColor = QColor(26, 26, 26);
+        m_spacerColor = QColor(191, 191, 191);
         break;
     }
     }

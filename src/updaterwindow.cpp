@@ -99,13 +99,7 @@ UpdaterWindow::UpdaterWindow(QWidget *parent)
     updateTitleLabel();
 
     /* Remove window border */
-#if defined Q_OS_WIN
-    setWindowFlags(Qt::CustomizeWindowHint);
-#elif defined Q_OS_MAC || defined Q_OS_LINUX || defined Q_OS_FREEBSD
-    setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
-#else
-#  error "We don't support your OS yet..."
-#endif
+    setWindowFlags(Qt::Window | Qt::CustomizeWindowHint);
 
     /* React when xdg-open finishes (Linux only) */
 #ifdef UseXdgOpen
@@ -294,9 +288,8 @@ void UpdaterWindow::startDownload(const QUrl &url)
     m_startTime = QDateTime::currentDateTime().toSecsSinceEpoch();
     QNetworkRequest netReq(url);
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    netReq.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
-#endif
+    netReq.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
+                        QNetworkRequest::NoLessSafeRedirectPolicy);
     m_reply = m_manager->get(netReq);
 
     /* Set file name */

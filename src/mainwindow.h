@@ -132,9 +132,11 @@ private:
     QLabel *m_editorDateLabel;
     QSplitter *m_splitter;
     QSystemTrayIcon *m_trayIcon;
+#if !defined(Q_OS_MAC)
     QAction *m_restoreAction;
     QAction *m_quitAction;
     QMenu *m_trayIconMenu;
+#endif
 
     NoteListView *m_listView;
     NoteListModel *m_listModel;
@@ -241,6 +243,7 @@ private:
 private slots:
     void InitData();
 
+    void onSystemTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
     void onNewNoteButtonPressed();
     void onNewNoteButtonClicked();
     void onTrashButtonPressed();
@@ -280,7 +283,6 @@ private slots:
     void exportNotesFile();
     void restoreNotesFile();
     void stayOnTop(bool checked);
-    void askBeforeSettingNativeWindowFrame();
     void increaseHeading();
     void decreaseHeading();
     void setHeading(int level);

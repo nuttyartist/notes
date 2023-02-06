@@ -24,7 +24,7 @@ jobs:
 
           - os: windows-2019
             arch: x64
-            qt-version: 6.2.4
+            qt-version: 6.3.2
             build-type: release
     outputs:
       version: ${{ steps.vars.outputs.version }}
@@ -34,15 +34,17 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Update version
-        run: |
-          (Get-Content src\Notes.pro) -Replace '^VERSION *= *(.+)$',"`$0-g$($env:GITHUB_SHA.Substring(0,7))" | Set-Content src\Notes.pro
-
       - name: Setup variables
         id: vars
         run: |
-          $version = Select-String -Path src\Notes.pro -Pattern '^VERSION *= *(.+)$' | %{$_.Matches.Groups[1].value}
-          $artifact_name = "Notes_$version-${{ matrix.arch }}-Qt${{ matrix.qt-version }}"
+          $version = Select-String -Path CMakeLists.txt -CaseSensitive -Pattern '\bAPP_VERSION +([^)]+)' | Select-Object -First 1 | %{$_.Matches.Groups[1].value}
+          if (!$version) {
+              throw "Failed to extract app version from CMakeLists.txt."
+          }
+          if ('${{ github.ref_type }}' -ne 'tag') {
+              $version += "-g$($env:GITHUB_SHA.Substring(0,7))"
+          }
+          $artifact_name = "Notes_$version-Qt${{ matrix.qt-version }}-${{ matrix.arch }}"
           Write-Output "version=$version" >> $env:GITHUB_OUTPUT
           Write-Output "artifact_name=$artifact_name" >> $env:GITHUB_OUTPUT
 
@@ -63,19 +65,37 @@ jobs:
         uses: ammaraskar/msvc-problem-matcher@0.2.0
 
       - name: Build (${{ matrix.build-type }}, ${{ matrix.arch }})
+        env:
+          VERBOSE: 1
         run: |
-          New-Item build -ItemType Directory
-          Set-Location build
-          qmake -config ${{ matrix.build-type }} ..\src\Notes.pro
-          nmake
+          $env:CMAKE_BUILD_PARALLEL_LEVEL = $env:NUMBER_OF_PROCESSORS
+          cmake . --warn-uninitialized --warn-unused-vars `
+              -B build -G Ninja `
+              -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} `
+              -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }}
+          cmake --build build
+
+      - name: Install (${{ matrix.build-type }}, ${{ matrix.arch }})
+        run: |
+          cmake --install build --prefix build
 
       - name: Deploy (${{ matrix.build-type }}, ${{ matrix.arch }})
         run: |
-          windeployqt bin
+          windeployqt build\bin
+
+      - name: Remove unnecessary Qt plugins and libraries
+        run: |
+          Set-Location build\bin
+          # We ship all required runtime DLLs individually.
+          Remove-Item -Verbose vc_redist.*.exe
+          if ('${{ matrix.qt-version }}'.StartsWith('5.')) {
+              # The bearer plugin has caused problems for us in the past. Plus, it was removed altogether in Qt 6.
+              Remove-Item -Verbose -Recurse bearer
+          }
 
       - name: Include required runtime libraries (${{ matrix.build-type }}, ${{ matrix.arch }})
         run: |
-          Set-Location bin
+          Set-Location build\bin
 
           if ('${{ matrix.arch }}' -ieq 'x64') {
               $openssl_lib_suffix = '-x64'
@@ -84,27 +104,32 @@ jobs:
           }
 
           # Include OpenSSL libraries.
-          Copy-Item ..\..\Qt\Tools\OpenSSL\Win_${{ matrix.arch }}\bin\libcrypto-1_1$openssl_lib_suffix.dll
-          Copy-Item ..\..\Qt\Tools\OpenSSL\Win_${{ matrix.arch }}\bin\libssl-1_1$openssl_lib_suffix.dll
+          Copy-Item $env:IQTA_TOOLS\OpenSSL\Win_${{ matrix.arch }}\bin\libcrypto-1_1$openssl_lib_suffix.dll
+          Copy-Item $env:IQTA_TOOLS\OpenSSL\Win_${{ matrix.arch }}\bin\libssl-1_1$openssl_lib_suffix.dll
           # NOTE: Due to OpenSSL libraries being built with MSVC 2010, we must also include 'msvcr100.dll'.
           Copy-Item $env:WINDIR\${{ matrix.arch == 'x64' && 'System32' || 'SysWOW64' }}\msvcr100.dll
 
           # Also include OpenSSL debug symbols (when building Notes in debug mode).
           if ('${{ matrix.build-type }}' -ieq 'debug') {
-              Copy-Item ..\..\Qt\Tools\OpenSSL\Win_${{ matrix.arch }}\bin\libcrypto-1_1$openssl_lib_suffix.pdb
-              Copy-Item ..\..\Qt\Tools\OpenSSL\Win_${{ matrix.arch }}\bin\libssl-1_1$openssl_lib_suffix.pdb
+              Copy-Item $env:IQTA_TOOLS\OpenSSL\Win_${{ matrix.arch }}\bin\libcrypto-1_1$openssl_lib_suffix.pdb
+              Copy-Item $env:IQTA_TOOLS\OpenSSL\Win_${{ matrix.arch }}\bin\libssl-1_1$openssl_lib_suffix.pdb
           }
 
           # Include MSVC 2019 runtime libraries.
           if ('${{ matrix.build-type }}' -ieq 'release') {
               Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\msvcp140.dll
               Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\msvcp140_1.dll
+
+              # Only Qt 6 builds also need msvcp140_2.dll
+              if ('${{ matrix.qt-version }}'.StartsWith('6')) {
+                  Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\msvcp140_2.dll
+              }
+
               Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\vcruntime140.dll
               if ('${{ matrix.arch }}' -ieq 'x64') {
                   # Only 64-bit builds also need 'vcruntime140_1.dll' (tested on Windows 7)
                   Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\vcruntime140_1.dll
               }
-              Remove-Item vc_redist.*.exe
           } else {
               # On debug builds, the libraries above are included automatically, so we only need 'urtcbased.dll'.
               Copy-Item $env:WindowsSdkBinPath\${{ matrix.arch }}\ucrt\ucrtbased.dll
@@ -113,11 +138,12 @@ jobs:
       - name: Upload artifacts (${{ matrix.build-type }}, ${{ matrix.arch }})
         uses: actions/upload-artifact@v3
         with:
+          if-no-files-found: error
           name: ${{ steps.vars.outputs.artifact_name }}-${{ runner.os }}-${{ matrix.build-type }}
-          path: bin
+          path: build\bin
 
   unified-installer:
-    name: Unified x64-x86 Installer (Qt 5 only)
+    name: Unified x64-x86 Installer
     needs: build-aqtinstall
     runs-on: windows-2019
     steps:
@@ -129,78 +155,38 @@ jobs:
         with:
           path: artifacts
 
-      - name: Ensure two Qt 5 builds (x64 and x86) are present
-        id: qt-version
+      - name: Ensure a 64-bit Qt 6 build is present
         run: |
           Set-Location artifacts
-          $x64_builds = Get-ChildItem -Filter '*x64-Qt5*-release' -Attributes Directory
-          $valid_build = ''
-          foreach ($x64_build in $x64_builds) {
-              # Check if there's a x86 counterpart, grab the Qt version and stop at the first match.
-              if (Test-Path $x64_build.Name.Replace('x64', 'x86') -PathType Container) {
-                  $valid_build = [RegEx]::Matches($x64_build.Name, 'Qt(5[\d.]+)').Groups[1].Value
-                  Break
-              }
+          $x64_build = Get-ChildItem -Filter '*Qt6*-x64-Windows-release' -Attributes Directory |
+              Sort-Object -Property @{Expression = "Name"; Descending = $true} |
+              Select-Object -First 1
+          if (!$x64_build) {
+              Throw 'Could not find a 64-bit Qt 6 build.'
           }
-          if (!$valid_build) {
-              Throw "Need at least two release-type builds (x64 and x86), built with Qt 5."
-          }
-          Write-Output "result=$valid_build" >> $env:GITHUB_OUTPUT
+          Move-Item $x64_build Notes64
 
-      - name: Create unified installer (Qt ${{ steps.qt-version.outputs.result }})
+      - name: Ensure a 32-bit Qt 5 build is present
+        run: |
+          Set-Location artifacts
+          $x86_build = Get-ChildItem -Filter '*Qt5*-x86-Windows-release' -Attributes Directory |
+              Sort-Object -Property @{Expression = "Name"; Descending = $true} |
+              Select-Object -First 1
+          if (!$x86_build) {
+              Throw 'Could not find a 32-bit Qt 5 build.'
+          }
+          Move-Item $x86_build Notes32
+
+      - name: Create unified installer
         run: |
           Set-Location artifacts
           Copy-Item ..\packaging\windows\Notes_Inno_Script_Github.iss
-          Move-Item *x64-Qt${{ steps.qt-version.outputs.result }}-*-release* Notes64
-          Move-Item *x86-Qt${{ steps.qt-version.outputs.result }}-*-release* Notes32
-          $env:BUILD_VERSION = '${{ needs.build-aqtinstall.outputs.version }}'
+          $env:APP_VERSION = '${{ needs.build-aqtinstall.outputs.version }}'
           iscc /Oinstaller Notes_Inno_Script_Github.iss
 
       - name: Upload unified installer artifact
         uses: actions/upload-artifact@v3
         with:
-          name: NotesSetup_${{ needs.build-aqtinstall.outputs.version }}-Qt${{ steps.qt-version.outputs.result }}-${{ runner.os }}-release
-          path: artifacts\installer
-
-  qt6-installer:
-    name: Qt 6 Installer (x64-only)
-    needs: build-aqtinstall
-    runs-on: windows-2019
-    steps:
-      - name: Checkout code to grab the ISS script
-        uses: actions/checkout@v3
-
-      - name: Download build artifacts from previous job
-        uses: actions/download-artifact@v3
-        with:
-          path: artifacts
-
-      - name: Ensure a x64 Qt 6 build is present
-        id: qt-version
-        run: |
-          Set-Location artifacts
-          $x64_builds = Get-ChildItem -Filter '*x64-Qt6*-release' -Attributes Directory
-          $valid_build = ''
-          foreach ($x64_build in $x64_builds) {
-              # Grab the Qt version and stop at the first match.
-              $valid_build = [RegEx]::Matches($x64_build.Name, 'Qt(6[\d.]+)').Groups[1].Value
-              Break
-          }
-          if (!$valid_build) {
-              Throw "Need at least one release-type x64 build, built with Qt 6."
-          }
-          Write-Output "result=$valid_build" >> $env:GITHUB_OUTPUT
-
-      - name: Create x64-only installer (Qt ${{ steps.qt-version.outputs.result }})
-        run: |
-          Set-Location artifacts
-          Copy-Item ..\packaging\windows\Notes_Inno_Script_Github_Qt6.iss
-          Move-Item *x64-Qt${{ steps.qt-version.outputs.result }}-*-release* Notes64
-          $env:BUILD_VERSION = '${{ needs.build-aqtinstall.outputs.version }}'
-          iscc /Oinstaller Notes_Inno_Script_Github_Qt6.iss
-
-      - name: Upload unified installer artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: NotesSetup_${{ needs.build-aqtinstall.outputs.version }}-x64-Qt${{ steps.qt-version.outputs.result }}-${{ runner.os }}-release
+          if-no-files-found: error
+          name: NotesSetup_${{ needs.build-aqtinstall.outputs.version }}-${{ runner.os }}-release
           path: artifacts\installer
