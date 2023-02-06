@@ -732,7 +732,7 @@ void NoteListView::onCustomContextMenu(QPoint point)
         }
         contextMenu->clear();
         if (m_tagPool) {
-            auto tagsMenu = contextMenu->addMenu("Tags ...");
+            m_tagsMenu = contextMenu->addMenu("Tags ...");
             for (auto action : qAsConst(m_noteTagActions)) {
                 delete action;
             }
@@ -765,24 +765,24 @@ void NoteListView::onCustomContextMenu(QPoint point)
             }
             for (auto id : qAsConst(tagInNote)) {
                 auto tag = m_tagPool->getTag(id);
-                auto tagAction = new QAction(QString("Remove tag ") + tag.name(), this);
+                auto tagAction = new QAction(QString("✓ Remove tag ") + tag.name(), this);
                 connect(tagAction, &QAction::triggered, this,
                         [this, id, notes] { removeNotesFromTag(notes, id); });
                 tagAction->setIcon(createTagIcon(tag.color()));
-                tagsMenu->addAction(tagAction);
+                m_tagsMenu->addAction(tagAction);
                 m_noteTagActions.append(tagAction);
             }
-            tagsMenu->addSeparator();
+            m_tagsMenu->addSeparator();
             for (auto id : tagIds) {
                 if (tagInNote.contains(id)) {
                     continue;
                 }
                 auto tag = m_tagPool->getTag(id);
-                auto tagAction = new QAction(QString("Assign tag ") + tag.name(), this);
+                auto tagAction = new QAction(QString(" ") + tag.name(), this);
                 connect(tagAction, &QAction::triggered, this,
                         [this, id, notes] { addNotesToTag(notes, id); });
                 tagAction->setIcon(createTagIcon(tag.color()));
-                tagsMenu->addAction(tagAction);
+                m_tagsMenu->addAction(tagAction);
                 m_noteTagActions.append(tagAction);
             }
         }
