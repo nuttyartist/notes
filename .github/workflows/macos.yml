@@ -163,10 +163,25 @@ jobs:
               rm -rv Contents/PlugIns/bearer
           fi
 
+      - name: Install create-dmg and dependencies
+        run: |
+          brew install graphicsmagick imagemagick
+          npm install --global create-dmg@^6.0.0
+
       - name: Build dmg (${{ matrix.build-type }})
         run: |
           cd build
-          hdiutil create -srcfolder 'Notes Better.app' -format UDZO -fs HFS+ -volname 'Notes Better' '${{ steps.vars.outputs.file_name }}'
+          # TODO: Remove most of the code below once we support signing/notarization.
+          set +e
+          create-dmg 'Notes Better.app'
+          code=$?
+          set -e
+          if [[ ${code} -ne 0 && ${code} -ne 2 ]]
+          then
+              echo "create-dmg exited with code ${code}."
+              exit ${code}
+          fi
+          mv *.dmg '${{ steps.vars.outputs.file_name }}'
 
       - name: Upload dmg artifact (${{ matrix.build-type }})
         uses: actions/upload-artifact@v3
