@@ -2526,6 +2526,11 @@ void MainWindow::closeEvent(QCloseEvent *event)
  */
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
+    if (m_useNativeWindowFrame) {
+        MainWindowBase::mousePressEvent(event);
+        return;
+    }
+
     m_mousePressX = event->pos().x();
     m_mousePressY = event->pos().y();
 
@@ -2582,7 +2587,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         event->accept();
 
     } else {
-        QMainWindow::mousePressEvent(event);
+        MainWindowBase::mousePressEvent(event);
     }
 }
 
@@ -2593,6 +2598,11 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
  */
 void MainWindow::mouseMoveEvent(QMouseEvent *event)
 {
+    if (m_useNativeWindowFrame) {
+        MainWindowBase::mouseMoveEvent(event);
+        return;
+    }
+
 #  ifndef __APPLE__
     if (!m_canStretchWindow && !m_canMoveWindow) {
         m_mousePressX = event->pos().x();
@@ -2776,6 +2786,11 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
  */
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
+    if (m_useNativeWindowFrame) {
+        MainWindowBase::mouseReleaseEvent(event);
+        return;
+    }
+
     m_canMoveWindow = false;
     m_canStretchWindow = false;
     QApplication::restoreOverrideCursor();
@@ -2789,6 +2804,11 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event)
  */
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
+    if (m_useNativeWindowFrame) {
+        MainWindowBase::mousePressEvent(event);
+        return;
+    }
+
     if (event->button() == Qt::LeftButton) {
         if (event->pos().x() < this->width() - 5 && event->pos().x() > 5
             && event->pos().y() < this->height() - 5 && event->pos().y() > 5) {
@@ -2813,6 +2833,11 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
  */
 void MainWindow::mouseMoveEvent(QMouseEvent *event)
 {
+    if (m_useNativeWindowFrame) {
+        MainWindowBase::mouseMoveEvent(event);
+        return;
+    }
+
     if (m_canMoveWindow) {
         //        this->setCursor(Qt::ClosedHandCursor);
         int dx = event->globalPos().x() - m_mousePressX;
@@ -2828,6 +2853,11 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
  */
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
+    if (m_useNativeWindowFrame) {
+        MainWindowBase::mouseReleaseEvent(event);
+        return;
+    }
+
     m_canMoveWindow = false;
     //    this->unsetCursor();
     event->accept();
@@ -3126,6 +3156,11 @@ double MainWindow::gaussianDist(double x, const double center, double sigma) con
  */
 void MainWindow::mouseDoubleClickEvent(QMouseEvent *event)
 {
+    if (m_useNativeWindowFrame) {
+        MainWindowBase::mouseDoubleClickEvent(event);
+        return;
+    }
+
 #ifndef __APPLE__
     maximizeWindow();
 #else
