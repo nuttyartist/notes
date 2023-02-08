@@ -2533,8 +2533,12 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         if (m_mousePressX < this->width() - m_layoutMargin && m_mousePressX > m_layoutMargin
             && m_mousePressY < this->height() - m_layoutMargin && m_mousePressY > m_layoutMargin) {
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+            m_canMoveWindow = !window()->windowHandle()->startSystemMove();
+#else
             m_canMoveWindow = true;
             //            QApplication::setOverrideCursor(QCursor(Qt::ClosedHandCursor));
+#endif
 
 #  ifndef __APPLE__
         } else {
@@ -2653,8 +2657,8 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
         int dx = event->globalX() - m_mousePressX;
         int dy = event->globalY() - m_mousePressY;
         move(dx, dy);
-
     }
+
 #  ifndef __APPLE__
     else if (m_canStretchWindow && !isMaximized() && !isFullScreen()) {
         int newX = x();
@@ -2789,7 +2793,11 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         if (event->pos().x() < this->width() - 5 && event->pos().x() > 5
             && event->pos().y() < this->height() - 5 && event->pos().y() > 5) {
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+            m_canMoveWindow = !window()->windowHandle()->startSystemMove();
+#else
             m_canMoveWindow = true;
+#endif
             m_mousePressX = event->pos().x();
             m_mousePressY = event->pos().y();
         }
