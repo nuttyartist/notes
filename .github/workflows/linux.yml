@@ -238,6 +238,15 @@ jobs:
               # The bearer plugin has caused problems for us in the past. Plus, it was removed altogether in Qt 6.
               rm -rv usr/plugins/bearer
           fi
+          # We only use the SQLite Qt driver, so it's fine to delete others.
+          rm -v usr/plugins/sqldrivers/libqsqlodbc.so
+          rm -v usr/plugins/sqldrivers/libqsqlpsql.so
+          if [[ '${{ matrix.qt-version }}' == 6.* ]]
+          then
+              # The Qt 6 build also has a MySQL Qt driver we don't use.
+              rm -v usr/plugins/sqldrivers/libqsqlmysql.so
+              rm -v usr/lib/libmysqlclient.so.*
+          fi
 
       - name: Build AppImage (${{ matrix.build-type }})
         env:
