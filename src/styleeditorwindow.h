@@ -7,7 +7,7 @@
 #ifndef STYLEEDITORWINDOW_H
 #define STYLEEDITORWINDOW_H
 
-#include <QWidget>
+#include <QDialog>
 #include <QPushButton>
 
 namespace Ui {
@@ -24,7 +24,7 @@ enum class Theme { Light, Dark, Sepia };
 
 enum class ButtonState { Normal, Hovered, Clicked };
 
-class StyleEditorWindow : public QWidget
+class StyleEditorWindow : public QDialog
 {
     Q_OBJECT
 

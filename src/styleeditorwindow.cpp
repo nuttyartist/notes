@@ -9,7 +9,7 @@
  * Initializes the window components and configures the StyleEditorWindow
  */
 StyleEditorWindow::StyleEditorWindow(QWidget *parent)
-    : QWidget(parent),
+    : QDialog(parent),
       m_ui(new Ui::StyleEditorWindow),
       m_currentlyClickedButton(Q_NULLPTR),
       m_currentSelectedFontButton(Q_NULLPTR),
@@ -17,8 +17,7 @@ StyleEditorWindow::StyleEditorWindow(QWidget *parent)
       m_isFullWidthClicked(false)
 {
     m_ui->setupUi(this);
-    this->setWindowTitle(tr("Editor Settings"));
-    this->setWindowFlags(Qt::Window | Qt::WindowStaysOnTopHint);
+    setWindowTitle(tr("Editor Settings"));
 
     m_ui->serifButton->setToolTip(
             "Change the text editor font to a serif font.\nClick again to try different fonts");
