@@ -104,104 +104,135 @@ if(GIT_REVISION)
   endif()
 endif()
 
-set(GENERAL_PROJECT_SOURCES
+set(SOURCES
     ${PROJECT_SOURCE_DIR}/src/aboutwindow.cpp
+    ${PROJECT_SOURCE_DIR}/src/aboutwindow.h
     ${PROJECT_SOURCE_DIR}/src/allnotebuttontreedelegateeditor.cpp
+    ${PROJECT_SOURCE_DIR}/src/allnotebuttontreedelegateeditor.h
     ${PROJECT_SOURCE_DIR}/src/customapplicationstyle.cpp
+    ${PROJECT_SOURCE_DIR}/src/customapplicationstyle.h
     ${PROJECT_SOURCE_DIR}/src/customdocument.cpp
+    ${PROJECT_SOURCE_DIR}/src/customDocument.h
     ${PROJECT_SOURCE_DIR}/src/customMarkdownHighlighter.cpp
+    ${PROJECT_SOURCE_DIR}/src/customMarkdownHighlighter.h
     ${PROJECT_SOURCE_DIR}/src/dbmanager.cpp
+    ${PROJECT_SOURCE_DIR}/src/dbmanager.h
     ${PROJECT_SOURCE_DIR}/src/defaultnotefolderdelegateeditor.cpp
+    ${PROJECT_SOURCE_DIR}/src/defaultnotefolderdelegateeditor.h
     ${PROJECT_SOURCE_DIR}/src/editorsettingsbutton.cpp
+    ${PROJECT_SOURCE_DIR}/src/editorsettingsbutton.h
     ${PROJECT_SOURCE_DIR}/src/elidedlabel.cpp
+    ${PROJECT_SOURCE_DIR}/src/elidedlabel.h
     ${PROJECT_SOURCE_DIR}/src/foldertreedelegateeditor.cpp
+    ${PROJECT_SOURCE_DIR}/src/foldertreedelegateeditor.h
     ${PROJECT_SOURCE_DIR}/src/labeledittype.cpp
+    ${PROJECT_SOURCE_DIR}/src/labeledittype.h
     ${PROJECT_SOURCE_DIR}/src/listviewlogic.cpp
+    ${PROJECT_SOURCE_DIR}/src/listviewlogic.h
     ${PROJECT_SOURCE_DIR}/src/main.cpp
     ${PROJECT_SOURCE_DIR}/src/mainwindow.cpp
+    ${PROJECT_SOURCE_DIR}/src/mainwindow.h
     ${PROJECT_SOURCE_DIR}/src/nodedata.cpp
+    ${PROJECT_SOURCE_DIR}/src/nodedata.h
     ${PROJECT_SOURCE_DIR}/src/nodepath.cpp
+    ${PROJECT_SOURCE_DIR}/src/nodepath.h
     ${PROJECT_SOURCE_DIR}/src/nodetreedelegate.cpp
+    ${PROJECT_SOURCE_DIR}/src/nodetreedelegate.h
     ${PROJECT_SOURCE_DIR}/src/nodetreemodel.cpp
+    ${PROJECT_SOURCE_DIR}/src/nodetreemodel.h
     ${PROJECT_SOURCE_DIR}/src/nodetreeview.cpp
+    ${PROJECT_SOURCE_DIR}/src/nodetreeview.h
+    ${PROJECT_SOURCE_DIR}/src/nodetreeview_p.h
     ${PROJECT_SOURCE_DIR}/src/noteeditorlogic.cpp
+    ${PROJECT_SOURCE_DIR}/src/noteeditorlogic.h
     ${PROJECT_SOURCE_DIR}/src/notelistdelegate.cpp
     ${PROJECT_SOURCE_DIR}/src/notelistdelegateeditor.cpp
+    ${PROJECT_SOURCE_DIR}/src/notelistdelegateeditor.h
+    ${PROJECT_SOURCE_DIR}/src/notelistdelegate.h
     ${PROJECT_SOURCE_DIR}/src/notelistmodel.cpp
+    ${PROJECT_SOURCE_DIR}/src/notelistmodel.h
     ${PROJECT_SOURCE_DIR}/src/notelistview.cpp
+    ${PROJECT_SOURCE_DIR}/src/notelistview.h
+    ${PROJECT_SOURCE_DIR}/src/notelistview_p.h
     ${PROJECT_SOURCE_DIR}/src/pushbuttontype.cpp
+    ${PROJECT_SOURCE_DIR}/src/pushbuttontype.h
     ${PROJECT_SOURCE_DIR}/src/singleinstance.cpp
+    ${PROJECT_SOURCE_DIR}/src/singleinstance.h
     ${PROJECT_SOURCE_DIR}/src/splitterstyle.cpp
+    ${PROJECT_SOURCE_DIR}/src/splitterstyle.h
     ${PROJECT_SOURCE_DIR}/src/styleeditorwindow.cpp
+    ${PROJECT_SOURCE_DIR}/src/styleeditorwindow.h
     ${PROJECT_SOURCE_DIR}/src/tagdata.cpp
+    ${PROJECT_SOURCE_DIR}/src/tagdata.h
     ${PROJECT_SOURCE_DIR}/src/taglistdelegate.cpp
+    ${PROJECT_SOURCE_DIR}/src/taglistdelegate.h
     ${PROJECT_SOURCE_DIR}/src/taglistmodel.cpp
+    ${PROJECT_SOURCE_DIR}/src/taglistmodel.h
     ${PROJECT_SOURCE_DIR}/src/taglistview.cpp
+    ${PROJECT_SOURCE_DIR}/src/taglistview.h
     ${PROJECT_SOURCE_DIR}/src/tagpool.cpp
+    ${PROJECT_SOURCE_DIR}/src/tagpool.h
     ${PROJECT_SOURCE_DIR}/src/tagtreedelegateeditor.cpp
+    ${PROJECT_SOURCE_DIR}/src/tagtreedelegateeditor.h
     ${PROJECT_SOURCE_DIR}/src/trashbuttondelegateeditor.cpp
+    ${PROJECT_SOURCE_DIR}/src/trashbuttondelegateeditor.h
     ${PROJECT_SOURCE_DIR}/src/treeviewlogic.cpp
+    ${PROJECT_SOURCE_DIR}/src/treeviewlogic.h
     ${PROJECT_SOURCE_DIR}/src/updaterwindow.cpp
+    ${PROJECT_SOURCE_DIR}/src/updaterwindow.h
     # ui
     ${PROJECT_SOURCE_DIR}/src/aboutwindow.ui
     ${PROJECT_SOURCE_DIR}/src/mainwindow.ui
     ${PROJECT_SOURCE_DIR}/src/styleeditorwindow.ui
     ${PROJECT_SOURCE_DIR}/src/updaterwindow.ui
-    # 3rdParty ui
-    ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/qplaintexteditsearchwidget.ui
-    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/src/Downloader.ui
-    # 3rdParty source files
-    ${PROJECT_SOURCE_DIR}/3rdParty/qautostart/src/qautostart.cpp
-    ${PROJECT_SOURCE_DIR}/3rdParty/qautostart/src/qautostart.cpp
-    ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/markdownhighlighter.cpp
-    ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/qmarkdowntextedit.cpp
-    ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/qownlanguagedata.cpp
-    ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/qplaintexteditsearchwidget.cpp
-    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/src/Downloader.cpp
-    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/src/QSimpleUpdater.cpp
-    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/src/Updater.cpp
-    ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobal.cpp
-    ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut.cpp
     # qrc files
-    ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/media.qrc
-    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/etc/resources/qsimpleupdater.qrc
     ${PROJECT_SOURCE_DIR}/src/fonts.qrc
     ${PROJECT_SOURCE_DIR}/src/images.qrc
-    ${PROJECT_SOURCE_DIR}/src/styles.qrc)
-
-file(
-  GLOB_RECURSE
-  HEADERS
-  ${PROJECT_SOURCE_DIR}/3rdParty/qautostart/qautostart.h
-  ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/linenumberarea.h
-  ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/markdownhighlighter.h
-  ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/qmarkdowntextedit.h
-  ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/qownlanguagedata.h
-  ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/qplaintexteditsearchwidget.h
-  ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/include/*.h
-  ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/src/*.h
-  ${PROJECT_SOURCE_DIR}/3rdParty/qxt/*.h
-  ${PROJECT_SOURCE_DIR}/src/*.h)
+    ${PROJECT_SOURCE_DIR}/src/styles.qrc
+    # 3rdParty source files
+    ${PROJECT_SOURCE_DIR}/3rdParty/qautostart/src/qautostart.cpp
+    ${PROJECT_SOURCE_DIR}/3rdParty/qautostart/src/qautostart.h
+    ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/linenumberarea.h
+    ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/markdownhighlighter.cpp
+    ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/markdownhighlighter.h
+    ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/qmarkdowntextedit.cpp
+    ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/qmarkdowntextedit.h
+    ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/qownlanguagedata.cpp
+    ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/qownlanguagedata.h
+    ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/qplaintexteditsearchwidget.cpp
+    ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/qplaintexteditsearchwidget.h
+    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/include/QSimpleUpdater.h
+    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/src/Downloader.cpp
+    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/src/Downloader.h
+    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/src/QSimpleUpdater.cpp
+    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/src/Updater.cpp
+    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/src/Updater.h
+    ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobal.cpp
+    ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobal.h
+    ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut.cpp
+    ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut.h
+    ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut_p.h)
 
 set(MACX_PROJECT_SOURCES
-    ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut_mac.cpp
     ${PROJECT_SOURCE_DIR}/src/framelesswindow.mm
-    ${PROJECT_SOURCE_DIR}/src/images/notes_icon.icns)
+    ${PROJECT_SOURCE_DIR}/src/framelesswindow.h
+    ${PROJECT_SOURCE_DIR}/src/images/notes_icon.icns
+    ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut_mac.cpp)
 
 set(WIN32_PROJECT_SOURCES
-    ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut_win.cpp
     ${PROJECT_SOURCE_DIR}/src/framelesswindow.cpp
-    ${PROJECT_SOURCE_DIR}/src/images/notes.rc)
+    ${PROJECT_SOURCE_DIR}/src/framelesswindow.h
+    ${PROJECT_SOURCE_DIR}/src/images/notes.rc
+    ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut_win.cpp)
 
 set(LINUX_PROJECT_SOURCES
     ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut_x11.cpp)
 
-add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE ${GENERAL_PROJECT_SOURCES}
-                                                   ${HEADERS})
+add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE ${SOURCES})
 
 target_include_directories(
   ${PROJECT_NAME}
-  PUBLIC ${PROJECT_SOURCE_DIR}/src/
+  PUBLIC ${PROJECT_SOURCE_DIR}/src
          ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/include
          ${PROJECT_SOURCE_DIR}/3rdParty/qautostart/src
          ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit
