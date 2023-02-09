@@ -2186,8 +2186,68 @@ void MainWindow::minimizeWindow()
  */
 void MainWindow::QuitApplication()
 {
+    if (windowState() != Qt::WindowFullScreen) {
+        m_settingsDatabase->setValue(QStringLiteral("windowGeometry"), saveGeometry());
+        if (m_styleEditorWindow.windowState() != Qt::WindowFullScreen)
+            m_settingsDatabase->setValue(QStringLiteral("editorSettingsWindowGeometry"),
+                                         m_styleEditorWindow.saveGeometry());
+    }
+
+    m_noteEditorLogic->saveNoteToDB();
+
+#if defined(UPDATE_CHECKER)
+    m_settingsDatabase->setValue(QStringLiteral("dontShowUpdateWindow"), m_dontShowUpdateWindow);
+#endif
+    m_settingsDatabase->setValue(QStringLiteral("splitterSizes"), m_splitter->saveState());
+
+    QString currentFontTypefaceString;
+    switch (m_currentFontTypeface) {
+    case FontTypeface::Mono:
+        currentFontTypefaceString = "Mono";
+        break;
+    case FontTypeface::Serif:
+        currentFontTypefaceString = "Serif";
+        break;
+    case FontTypeface::SansSerif:
+        currentFontTypefaceString = "SansSerif";
+        break;
+    }
+    QString currentThemeString;
+    switch (m_currentTheme) {
+    case Theme::Light:
+        currentThemeString = "Light";
+        break;
+    case Theme::Dark:
+        currentThemeString = "Dark";
+        break;
+    case Theme::Sepia:
+        currentThemeString = "Sepia";
+        break;
+    }
+    m_settingsDatabase->setValue(QStringLiteral("selectedFontTypeface"), currentFontTypefaceString);
+    m_settingsDatabase->setValue(QStringLiteral("editorMediumFontSize"), m_editorMediumFontSize);
+    m_settingsDatabase->setValue(QStringLiteral("isTextFullWidth"),
+                                 m_textEdit->lineWrapMode() == QTextEdit::WidgetWidth ? true
+                                                                                      : false);
+    m_settingsDatabase->setValue(QStringLiteral("charsLimitPerFontMono"),
+                                 m_currentCharsLimitPerFont.mono);
+    m_settingsDatabase->setValue(QStringLiteral("charsLimitPerFontSerif"),
+                                 m_currentCharsLimitPerFont.serif);
+    m_settingsDatabase->setValue(QStringLiteral("charsLimitPerFontSansSerif"),
+                                 m_currentCharsLimitPerFont.sansSerif);
+    m_settingsDatabase->setValue(QStringLiteral("theme"), currentThemeString);
+    m_settingsDatabase->setValue(QStringLiteral("chosenMonoFont"),
+                                 m_listOfMonoFonts.at(m_chosenMonoFontIndex));
+    m_settingsDatabase->setValue(QStringLiteral("chosenSerifFont"),
+                                 m_listOfSerifFonts.at(m_chosenSerifFontIndex));
+    m_settingsDatabase->setValue(QStringLiteral("chosenSansSerifFont"),
+                                 m_listOfSansSerifFonts.at(m_chosenSansSerifFontIndex));
+
+    m_settingsDatabase->sync();
+
     m_noteEditorLogic->closeEditor();
-    MainWindow::close();
+
+    QCoreApplication::quit();
 }
 
 /*!
@@ -2446,7 +2506,14 @@ void MainWindow::onRedCloseButtonClicked()
     m_redCloseButton->setIcon(QIcon(QStringLiteral(":images/red.png")));
 #endif
 
-    setMainWindowVisibility(false);
+    if (m_hideToTray)
+    {
+        setMainWindowVisibility(false);
+    }
+    else
+    {
+        close();
+    }
 }
 
 /*!
@@ -2458,66 +2525,14 @@ void MainWindow::onRedCloseButtonClicked()
  */
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    if (windowState() != Qt::WindowFullScreen) {
-        m_settingsDatabase->setValue(QStringLiteral("windowGeometry"), saveGeometry());
-        if (m_styleEditorWindow.windowState() != Qt::WindowFullScreen)
-            m_settingsDatabase->setValue(QStringLiteral("editorSettingsWindowGeometry"),
-                                         m_styleEditorWindow.saveGeometry());
+    if (!event->spontaneous() || !isVisible()) {
+        return;
     }
-
-    m_noteEditorLogic->saveNoteToDB();
-
-#if defined(UPDATE_CHECKER)
-    m_settingsDatabase->setValue(QStringLiteral("dontShowUpdateWindow"), m_dontShowUpdateWindow);
-#endif
-    m_settingsDatabase->setValue(QStringLiteral("splitterSizes"), m_splitter->saveState());
-
-    QString currentFontTypefaceString;
-    switch (m_currentFontTypeface) {
-    case FontTypeface::Mono:
-        currentFontTypefaceString = "Mono";
-        break;
-    case FontTypeface::Serif:
-        currentFontTypefaceString = "Serif";
-        break;
-    case FontTypeface::SansSerif:
-        currentFontTypefaceString = "SansSerif";
-        break;
+    if (m_trayIcon->isVisible()) {
+        // don't close the application, just hide to tray
+        setMainWindowVisibility(false);
+        event->ignore();
     }
-    QString currentThemeString;
-    switch (m_currentTheme) {
-    case Theme::Light:
-        currentThemeString = "Light";
-        break;
-    case Theme::Dark:
-        currentThemeString = "Dark";
-        break;
-    case Theme::Sepia:
-        currentThemeString = "Sepia";
-        break;
-    }
-    m_settingsDatabase->setValue(QStringLiteral("selectedFontTypeface"), currentFontTypefaceString);
-    m_settingsDatabase->setValue(QStringLiteral("editorMediumFontSize"), m_editorMediumFontSize);
-    m_settingsDatabase->setValue(QStringLiteral("isTextFullWidth"),
-                                 m_textEdit->lineWrapMode() == QTextEdit::WidgetWidth ? true
-                                                                                      : false);
-    m_settingsDatabase->setValue(QStringLiteral("charsLimitPerFontMono"),
-                                 m_currentCharsLimitPerFont.mono);
-    m_settingsDatabase->setValue(QStringLiteral("charsLimitPerFontSerif"),
-                                 m_currentCharsLimitPerFont.serif);
-    m_settingsDatabase->setValue(QStringLiteral("charsLimitPerFontSansSerif"),
-                                 m_currentCharsLimitPerFont.sansSerif);
-    m_settingsDatabase->setValue(QStringLiteral("theme"), currentThemeString);
-    m_settingsDatabase->setValue(QStringLiteral("chosenMonoFont"),
-                                 m_listOfMonoFonts.at(m_chosenMonoFontIndex));
-    m_settingsDatabase->setValue(QStringLiteral("chosenSerifFont"),
-                                 m_listOfSerifFonts.at(m_chosenSerifFontIndex));
-    m_settingsDatabase->setValue(QStringLiteral("chosenSansSerifFont"),
-                                 m_listOfSansSerifFonts.at(m_chosenSansSerifFontIndex));
-
-    m_settingsDatabase->sync();
-
-    QWidget::closeEvent(event);
 }
 
 #ifndef _WIN32
