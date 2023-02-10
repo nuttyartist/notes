@@ -9,7 +9,7 @@
  * Initializes the window components and configures the StyleEditorWindow
  */
 StyleEditorWindow::StyleEditorWindow(QWidget *parent)
-    : QDialog(parent),
+    : QDialog(parent, Qt::Tool),
       m_ui(new Ui::StyleEditorWindow),
       m_currentlyClickedButton(Q_NULLPTR),
       m_currentSelectedFontButton(Q_NULLPTR),
