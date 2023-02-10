@@ -178,6 +178,7 @@ private:
 #endif
     bool m_alwaysStayOnTop;
     bool m_useNativeWindowFrame;
+    bool m_hideToTray;
 
     QStringList m_listOfSerifFonts;
     QStringList m_listOfSansSerifFonts;
@@ -299,6 +300,7 @@ private slots:
     void decreaseHeading();
     void setHeading(int level);
     void setUseNativeWindowFrame(bool useNativeWindowFrame);
+    void setHideToTray(bool enabled);
     void toggleStayOnTop();
     void onSearchEditReturnPressed();
     void changeEditorFontTypeFromStyleButtons(FontTypeface fontType);

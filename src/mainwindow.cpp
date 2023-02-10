@@ -85,6 +85,7 @@ MainWindow::MainWindow(QWidget *parent)
 #endif
       m_alwaysStayOnTop(false),
       m_useNativeWindowFrame(false),
+      m_hideToTray(false),
       m_listOfSerifFonts(
               { QStringLiteral("Trykker"), QStringLiteral("PT Serif"), QStringLiteral("Mate") }),
       m_listOfSansSerifFonts({ QStringLiteral("Source Sans Pro"), QStringLiteral("Roboto") }),
@@ -95,10 +96,8 @@ MainWindow::MainWindow(QWidget *parent)
       m_chosenMonoFontIndex(0),
       m_isNoteListCollapsed(false),
       m_isTreeCollapsed(false),
-      m_currentCharsLimitPerFont({ 64 // Mono    TODO: is this the proper way to initialize?
-                                   ,
-                                   80 // Serif
-                                   ,
+      m_currentCharsLimitPerFont({ 64, // Mono    TODO: is this the proper way to initialize?
+                                   80, // Serif
                                    80 }), // SansSerif
       m_currentFontTypeface(FontTypeface::SansSerif),
 #ifdef __APPLE__
@@ -122,7 +121,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     setupMainWindow();
     setupFonts();
-    setupTrayIcon();
     setupKeyboardShortcuts();
     setupNewNoteButtonAndTrahButton();
     setupSplitter();
@@ -1237,6 +1235,11 @@ void MainWindow::restoreStates()
     setUseNativeWindowFrame(
             m_settingsDatabase->value(QStringLiteral("useNativeWindowFrame"), false).toBool());
 
+    setHideToTray(m_settingsDatabase->value(QStringLiteral("hideToTray"), true).toBool());
+    if (m_hideToTray) {
+        setupTrayIcon();
+    }
+
     if (m_settingsDatabase->value(QStringLiteral("windowGeometry"), "NULL") != "NULL")
         this->restoreGeometry(
                 m_settingsDatabase->value(QStringLiteral("windowGeometry")).toByteArray());
@@ -1629,6 +1632,22 @@ void MainWindow::onDotsButtonClicked()
             [=]() { m_autostart.setAutostart(autostartAction->isChecked()); });
     autostartAction->setCheckable(true);
     autostartAction->setChecked(m_autostart.isAutostart());
+
+    // hide to tray
+    QAction *hideToTrayAction = mainMenu.addAction(tr("&Hide to tray"));
+    connect(hideToTrayAction, &QAction::triggered, this, [=]() {
+        m_settingsDatabase->setValue(QStringLiteral("hideToTray"), hideToTrayAction->isChecked());
+    });
+    hideToTrayAction->setCheckable(true);
+    hideToTrayAction->setChecked(m_hideToTray);
+    connect(hideToTrayAction, &QAction::triggered, this, [this]() {
+        setHideToTray(!m_hideToTray);
+        if (m_hideToTray) {
+            setupTrayIcon();
+        } else {
+            m_trayIcon->hide();
+        }
+    });
 
     QAction *changeDBPathAction = mainMenu.addAction(tr("&Change database path"));
     connect(changeDBPathAction, &QAction::triggered, this, [=]() {
@@ -2506,12 +2525,9 @@ void MainWindow::onRedCloseButtonClicked()
     m_redCloseButton->setIcon(QIcon(QStringLiteral(":images/red.png")));
 #endif
 
-    if (m_hideToTray)
-    {
+    if (m_hideToTray) {
         setMainWindowVisibility(false);
-    }
-    else
-    {
+    } else {
         close();
     }
 }
@@ -2528,7 +2544,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     if (!event->spontaneous() || !isVisible()) {
         return;
     }
-    if (m_trayIcon->isVisible()) {
+    if (m_hideToTray && m_trayIcon->isVisible()) {
         // don't close the application, just hide to tray
         setMainWindowVisibility(false);
         event->ignore();
@@ -2555,12 +2571,12 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         if (m_mousePressX < this->width() - m_layoutMargin && m_mousePressX > m_layoutMargin
             && m_mousePressY < this->height() - m_layoutMargin && m_mousePressY > m_layoutMargin) {
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+#  if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
             m_canMoveWindow = !window()->windowHandle()->startSystemMove();
-#else
+#  else
             m_canMoveWindow = true;
             //            QApplication::setOverrideCursor(QCursor(Qt::ClosedHandCursor));
-#endif
+#  endif
 
 #  ifndef __APPLE__
         } else {
@@ -2830,11 +2846,11 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         if (event->pos().x() < this->width() - 5 && event->pos().x() > 5
             && event->pos().y() < this->height() - 5 && event->pos().y() > 5) {
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+#  if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
             m_canMoveWindow = !window()->windowHandle()->startSystemMove();
-#else
+#  else
             m_canMoveWindow = true;
-#endif
+#  endif
             m_mousePressX = event->pos().x();
             m_mousePressY = event->pos().y();
         }
@@ -3701,27 +3717,33 @@ void MainWindow::setUseNativeWindowFrame(bool useNativeWindowFrame)
     setWindowFlags(flags);
 #endif
 
-    //#if defined(Q_OS_LINUX)
-    //    if (useNativeWindowFrame || isMaximized()) {
-    //        ui->centralWidget->layout()->setContentsMargins(QMargins());
-    //    } else {
-    //        QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
-    //        ui->centralWidget->layout()->setContentsMargins(margins);
-    //    }
-    //#endif
+    // #if defined(Q_OS_LINUX)
+    //     if (useNativeWindowFrame || isMaximized()) {
+    //         ui->centralWidget->layout()->setContentsMargins(QMargins());
+    //     } else {
+    //         QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
+    //         ui->centralWidget->layout()->setContentsMargins(margins);
+    //     }
+    // #endif
 
-    //#ifndef _WIN32
-    //    if (useNativeWindowFrame || isMaximized()) {
-    //        ui->centralWidget->layout()->setContentsMargins(QMargins());
-    //    } else {
-    //        QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
-    //        ui->centralWidget->layout()->setContentsMargins(margins);
-    //    }
-    //#endif
+    // #ifndef _WIN32
+    //     if (useNativeWindowFrame || isMaximized()) {
+    //         ui->centralWidget->layout()->setContentsMargins(QMargins());
+    //     } else {
+    //         QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
+    //         ui->centralWidget->layout()->setContentsMargins(margins);
+    //     }
+    // #endif
 
     adjustUpperWidgets(useNativeWindowFrame);
 
     setMainWindowVisibility(true);
+}
+
+void MainWindow::setHideToTray(bool enabled)
+{
+    m_hideToTray = enabled;
+    m_settingsDatabase->setValue(QStringLiteral("hideToTrayEnabled"), enabled);
 }
 
 /*!
