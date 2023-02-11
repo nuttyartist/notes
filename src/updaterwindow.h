@@ -7,7 +7,7 @@
 #ifndef UPDATERWINDOW_H
 #define UPDATERWINDOW_H
 
-#include <QWidget>
+#include <QDialog>
 
 namespace Ui {
 class UpdaterWindow;
@@ -18,7 +18,7 @@ class QNetworkReply;
 class QSimpleUpdater;
 class QNetworkAccessManager;
 
-class UpdaterWindow : public QWidget
+class UpdaterWindow : public QDialog
 {
     Q_OBJECT
 

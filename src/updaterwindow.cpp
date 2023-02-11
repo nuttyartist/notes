@@ -48,7 +48,7 @@ static const QDir DOWNLOAD_DIR(QDir::homePath() + "/Downloads/");
  * Initializes the window components and configures the QSimpleUpdater
  */
 UpdaterWindow::UpdaterWindow(QWidget *parent)
-    : QWidget(parent),
+    : QDialog(parent),
       m_fileName(""),
       m_ui(new Ui::UpdaterWindow),
       m_canMoveWindow(false),
@@ -100,7 +100,7 @@ UpdaterWindow::UpdaterWindow(QWidget *parent)
     updateTitleLabel();
 
     /* Remove window border */
-    setWindowFlags(Qt::Window | Qt::CustomizeWindowHint);
+    setWindowFlags(windowFlags() | Qt::CustomizeWindowHint);
 
     /* React when xdg-open finishes (Linux only) */
 #ifdef UseXdgOpen

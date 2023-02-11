@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>UpdaterWindow</class>
- <widget class="QWidget" name="UpdaterWindow">
+ <widget class="QDialog" name="UpdaterWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
