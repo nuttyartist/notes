@@ -235,10 +235,12 @@ endif()
 add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE ${SOURCES}
                                                    ${SOURCES_3RD_PARTY})
 
+target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/src)
+
+# Include third-party headers as 'system' files, in order to silence compiler warnings on them.
 target_include_directories(
-  ${PROJECT_NAME}
-  PUBLIC ${PROJECT_SOURCE_DIR}/src
-         ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/include
+  ${PROJECT_NAME} SYSTEM
+  PUBLIC ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/include
          ${PROJECT_SOURCE_DIR}/3rdParty/qautostart/src
          ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit
          ${PROJECT_SOURCE_DIR}/3rdParty/qxt)
@@ -247,6 +249,17 @@ target_compile_definitions(
   ${PROJECT_NAME}
   PUBLIC APP_VERSION="${PROJECT_VERSION}${GIT_REV}"
          QT_DISABLE_DEPRECATED_BEFORE=0x050900 QSU_INCLUDE_MOC=1)
+
+# Enable useful compiler warnings (except on third-party code).
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES
+                                           "Clang")
+  target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra -Wpedantic
+                                                -Wshadow)
+  set_source_files_properties(${SOURCES_3RD_PARTY} PROPERTIES COMPILE_FLAGS -w)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  target_compile_options(${PROJECT_NAME} PUBLIC /W4)
+  set_source_files_properties(${SOURCES_3RD_PARTY} PROPERTIES COMPILE_FLAGS /w)
+endif()
 
 target_link_libraries(
   ${PROJECT_NAME}
