@@ -349,7 +349,6 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
         }
     } else {
         if (m_view->isPinnedNotesCollapsed()) {
-            auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
             if (!isPinned) {
                 bufferPainter.fillRect(bufferRect, QBrush(m_defaultColor));
             }

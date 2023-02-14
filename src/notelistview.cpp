@@ -441,8 +441,8 @@ void NoteListView::startDrag(Qt::DropActions supportedActions)
     Q_UNUSED(supportedActions);
     Q_D(NoteListView);
     auto indexes = selectedIndexes();
-    QMimeData *data = d->model->mimeData(indexes);
-    if (!data) {
+    QMimeData *mimeData = d->model->mimeData(indexes);
+    if (!mimeData) {
         return;
     }
     QRect rect;
@@ -512,7 +512,7 @@ void NoteListView::startDrag(Qt::DropActions supportedActions)
     }
     QDrag *drag = new QDrag(this);
     drag->setPixmap(pixmap);
-    drag->setMimeData(data);
+    drag->setMimeData(mimeData);
     if (indexes.size() == 1) {
         drag->setHotSpot(d->pressedPosition - rect.topLeft());
     } else {
@@ -524,7 +524,7 @@ void NoteListView::startDrag(Qt::DropActions supportedActions)
     /// Delete later, if there is no drop event.
     if (dropAction == Qt::IgnoreAction) {
         drag->deleteLater();
-        data->deleteLater();
+        mimeData->deleteLater();
     }
 #if QT_VERSION > QT_VERSION_CHECK(5, 15, 0)
     d->dropEventMoved = false;
@@ -747,8 +747,8 @@ void NoteListView::onCustomContextMenu(QPoint point)
             const auto tagIds = m_tagPool->tagIds();
             for (const auto &id : tagIds) {
                 bool all = true;
-                for (const auto &index : qAsConst(indexList)) {
-                    auto tags = index.data(NoteListModel::NoteTagsList).value<QSet<int>>();
+                for (const auto &selectedIndex : qAsConst(indexList)) {
+                    auto tags = selectedIndex.data(NoteListModel::NoteTagsList).value<QSet<int>>();
                     if (!tags.contains(id)) {
                         all = false;
                         break;
@@ -859,9 +859,10 @@ void NoteListView::onCustomContextMenu(QPoint point)
                 auto action = new QAction(folders[id], this);
                 connect(action, &QAction::triggered, this, [this, id] {
                     auto indexes = selectedIndexes();
-                    for (const auto &index : qAsConst(indexes)) {
-                        if (index.isValid()) {
-                            emit moveNoteRequested(index.data(NoteListModel::NoteID).toInt(), id);
+                    for (const auto &selectedIndex : qAsConst(indexes)) {
+                        if (selectedIndex.isValid()) {
+                            emit moveNoteRequested(
+                                    selectedIndex.data(NoteListModel::NoteID).toInt(), id);
                         }
                     }
                 });

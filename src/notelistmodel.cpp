@@ -453,8 +453,7 @@ bool NoteListModel::dropMimeData(const QMimeData *mime, Qt::DropAction action, i
                 auto lastMod = index.data(NoteDeletionDateTime).toDateTime();
                 for (destinationChild = 0; destinationChild < m_noteList.size();
                      ++destinationChild) {
-                    const auto &note = m_noteList[destinationChild];
-                    if (note.deletionDateTime() <= lastMod) {
+                    if (m_noteList[destinationChild].deletionDateTime() <= lastMod) {
                         break;
                     }
                 }
@@ -462,8 +461,7 @@ bool NoteListModel::dropMimeData(const QMimeData *mime, Qt::DropAction action, i
                 auto lastMod = index.data(NoteLastModificationDateTime).toDateTime();
                 for (destinationChild = 0; destinationChild < m_noteList.size();
                      ++destinationChild) {
-                    const auto &note = m_noteList[destinationChild];
-                    if (note.lastModificationdateTime() <= lastMod) {
+                    if (m_noteList[destinationChild].deletionDateTime() <= lastMod) {
                         break;
                     }
                 }

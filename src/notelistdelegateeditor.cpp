@@ -125,13 +125,13 @@ NoteListDelegateEditor::NoteListDelegateEditor(const NoteListDelegate *delegate,
         m_tagListView->setGeometry(10, y - 5, rect().width() - 15, m_tagListView->height());
     }
     connect(m_tagListView->verticalScrollBar(), &QScrollBar::valueChanged, this, [this] {
-        auto m_index = dynamic_cast<NoteListModel *>(m_view->model())->getNoteIndex(m_id);
+        auto idx = dynamic_cast<NoteListModel *>(m_view->model())->getNoteIndex(m_id);
         dynamic_cast<NoteListModel *>(m_view->model())
-                ->setData(m_index, getScrollBarPos(), NoteListModel::NoteTagListScrollbarPos);
+                ->setData(idx, getScrollBarPos(), NoteListModel::NoteTagListScrollbarPos);
     });
     QTimer::singleShot(0, this, [this] {
-        auto index = dynamic_cast<NoteListModel *>(m_view->model())->getNoteIndex(m_id);
-        setScrollBarPos(index.data(NoteListModel::NoteTagListScrollbarPos).toInt());
+        auto idx = dynamic_cast<NoteListModel *>(m_view->model())->getNoteIndex(m_id);
+        setScrollBarPos(idx.data(NoteListModel::NoteTagListScrollbarPos).toInt());
     });
     m_view->setEditorWidget(m_id, this);
     setMouseTracking(true);
@@ -188,7 +188,6 @@ void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOpti
             m_tagListView->setBackground(m_hoverColor);
         }
     } else {
-        auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
         if (m_view->isPinnedNotesCollapsed() && !isPinned) {
             bufferPainter.fillRect(bufferRect, QBrush(m_defaultColor));
             m_tagListView->setBackground(m_defaultColor);

@@ -7,10 +7,10 @@
 
 TrashButtonDelegateEditor::TrashButtonDelegateEditor(QTreeView *view,
                                                      const QStyleOptionViewItem &option,
-                                                     const QModelIndex &m_index, QWidget *parent)
+                                                     const QModelIndex &index, QWidget *parent)
     : QWidget(parent),
       m_option(option),
-      m_index(m_index),
+      m_index(index),
 #ifdef __APPLE__
       m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch()
                             ? QStringLiteral("SF Pro Text")

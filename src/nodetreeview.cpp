@@ -602,9 +602,9 @@ void NodeTreeView::mousePressEvent(QMouseEvent *event)
             case NodeItem::Type::TagItem: {
                 auto oldIndexes = selectionModel()->selectedIndexes();
                 for (const auto &ix : qAsConst(oldIndexes)) {
-                    auto itemType =
+                    auto selectedItemType =
                             static_cast<NodeItem::Type>(ix.data(NodeItem::Roles::ItemType).toInt());
-                    if (itemType != NodeItem::Type::TagItem) {
+                    if (selectedItemType != NodeItem::Type::TagItem) {
                         setCurrentIndex(QModelIndex());
                         clearSelection();
                         break;

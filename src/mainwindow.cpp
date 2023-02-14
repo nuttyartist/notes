@@ -397,17 +397,6 @@ void MainWindow::setupMainWindow()
     ui->listviewLabel2->setMaximumSize({ 40, 25 });
 
 #ifdef __APPLE__
-    QString m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch()
-                                  ? QStringLiteral("SF Pro Text")
-                                  : QStringLiteral("Roboto"));
-#elif _WIN32
-    QString m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch()
-                                  ? QStringLiteral("Segoe UI")
-                                  : QStringLiteral("Roboto"));
-#else
-    QString m_displayFont(QStringLiteral("Roboto"));
-#endif
-#ifdef __APPLE__
     QFont m_titleFont(m_displayFont, 13, QFont::DemiBold);
 #else
     QFont m_titleFont(m_displayFont, 10, QFont::DemiBold);

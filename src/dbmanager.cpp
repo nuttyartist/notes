@@ -1019,8 +1019,7 @@ NodeData DBManager::getNode(int nodeId)
                            R"("title" )"
                            R"(FROM node_table WHERE id=:id LIMIT 1;)");
             query2.bindValue(":id", node.parentId());
-            bool status = query2.exec();
-            if (status) {
+            if (query2.exec()) {
                 query2.next();
                 node.setParentName(query2.value(0).toString());
             } else {
@@ -1136,8 +1135,7 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
         query.prepare(R"(SELECT id, absolute_path FROM "node_table" )"
                       R"(WHERE absolute_path like (:path_expr) || '%';)");
         query.bindValue(QStringLiteral(":path_expr"), oldAbsolutePath);
-        bool status = query.exec();
-        if (status) {
+        if (query.exec()) {
             while (query.next()) {
                 if (query.value(0).toInt() != node.id()) {
                     childs[query.value(0).toInt()] = query.value(1).toString();
@@ -1166,8 +1164,7 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
                 query.bindValue(QStringLiteral(":absolute_path"), newP);
                 query.bindValue(QStringLiteral(":id"), id);
             }
-            bool status = query.exec();
-            if (!status) {
+            if (!query.exec()) {
                 qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
             }
         }
@@ -1305,7 +1302,6 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
         QVector<QSet<int>> nds;
         for (const auto &tagId : inf.currentTagList) {
             QSet<int> nd;
-            QSqlQuery query(m_db);
             query.prepare(R"(SELECT "node_id" FROM tag_relationship WHERE tag_id = :tag_id;)");
             query.bindValue(QStringLiteral(":tag_id"), tagId);
             bool status = query.exec();
@@ -1794,8 +1790,7 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                 qr.bindValue(QStringLiteral(":name"), tag.name());
                 qr.bindValue(QStringLiteral(":color"), tag.color());
                 QVector<int> ids;
-                bool status = qr.exec();
-                if (status) {
+                if (qr.exec()) {
                     while (qr.next()) {
                         ids.append(qr.value(0).toInt());
                     }
@@ -1865,8 +1860,7 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                                      static_cast<int>(NodeData::Folder));
                         qr.bindValue(QStringLiteral(":parent_id"), folderIdMap[node.parentId()]);
                         QVector<int> ids;
-                        bool status = qr.exec();
-                        if (status) {
+                        if (qr.exec()) {
                             while (qr.next()) {
                                 ids.append(qr.value(0).toInt());
                             }
