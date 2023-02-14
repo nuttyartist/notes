@@ -188,8 +188,10 @@ set(SOURCES
     # qrc files
     ${PROJECT_SOURCE_DIR}/src/fonts.qrc
     ${PROJECT_SOURCE_DIR}/src/images.qrc
-    ${PROJECT_SOURCE_DIR}/src/styles.qrc
-    # 3rdParty source files
+    ${PROJECT_SOURCE_DIR}/src/styles.qrc)
+
+# Third-party source files.
+set(SOURCES_3RD_PARTY
     ${PROJECT_SOURCE_DIR}/3rdParty/qautostart/src/qautostart.cpp
     ${PROJECT_SOURCE_DIR}/3rdParty/qautostart/src/qautostart.h
     ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/linenumberarea.h
@@ -213,22 +215,25 @@ set(SOURCES
     ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut.h
     ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut_p.h)
 
-set(MACX_PROJECT_SOURCES
-    ${PROJECT_SOURCE_DIR}/src/framelesswindow.mm
-    ${PROJECT_SOURCE_DIR}/src/framelesswindow.h
-    ${PROJECT_SOURCE_DIR}/src/images/notes_icon.icns
-    ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut_mac.cpp)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  list(APPEND SOURCES ${PROJECT_SOURCE_DIR}/src/framelesswindow.mm
+       ${PROJECT_SOURCE_DIR}/src/framelesswindow.h
+       ${PROJECT_SOURCE_DIR}/src/images/notes_icon.icns)
+  list(APPEND SOURCES_3RD_PARTY
+       ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut_mac.cpp)
+elseif(UNIX)
+  list(APPEND SOURCES_3RD_PARTY
+       ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut_x11.cpp)
+elseif(WIN32)
+  list(APPEND SOURCES ${PROJECT_SOURCE_DIR}/src/framelesswindow.cpp
+       ${PROJECT_SOURCE_DIR}/src/framelesswindow.h
+       ${PROJECT_SOURCE_DIR}/src/images/notes.rc)
+  list(APPEND SOURCES_3RD_PARTY
+       ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut_win.cpp)
+endif()
 
-set(WIN32_PROJECT_SOURCES
-    ${PROJECT_SOURCE_DIR}/src/framelesswindow.cpp
-    ${PROJECT_SOURCE_DIR}/src/framelesswindow.h
-    ${PROJECT_SOURCE_DIR}/src/images/notes.rc
-    ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut_win.cpp)
-
-set(LINUX_PROJECT_SOURCES
-    ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut_x11.cpp)
-
-add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE ${SOURCES})
+add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE ${SOURCES}
+                                                   ${SOURCES_3RD_PARTY})
 
 target_include_directories(
   ${PROJECT_NAME}
@@ -274,8 +279,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set_source_files_properties(${PROJECT_SOURCE_DIR}/src/images/notes_icon.icns
                               PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 
-  target_sources(${PROJECT_NAME} PUBLIC ${MACX_PROJECT_SOURCES})
-
   target_link_libraries(${PROJECT_NAME} PUBLIC "-framework Carbon"
                                                "-framework Cocoa")
 elseif(UNIX)
@@ -283,12 +286,8 @@ elseif(UNIX)
   string(TOLOWER ${PROJECT_NAME} BINARY_NAME)
   set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${BINARY_NAME})
 
-  target_sources(${PROJECT_NAME} PUBLIC ${LINUX_PROJECT_SOURCES})
-
   target_link_libraries(${PROJECT_NAME} PUBLIC X11)
 elseif(WIN32)
-  target_sources(${PROJECT_NAME} PUBLIC ${WIN32_PROJECT_SOURCES})
-
   target_compile_definitions(${PROJECT_NAME} PUBLIC QXT_STATIC)
 
   target_link_libraries(${PROJECT_NAME} PUBLIC user32)
