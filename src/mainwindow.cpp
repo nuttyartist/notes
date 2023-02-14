@@ -1167,14 +1167,12 @@ void MainWindow::setupDatabases()
     } else if (needMigrateFromV1_5_0) {
         QFile noteDBFile(noteDBFilePath);
         noteDBFile.rename(dir.path() + QDir::separator() + QStringLiteral("oldNotes.db"));
-        {
-            QFile noteDBFile(noteDBFilePath);
-            if (!noteDBFile.open(QIODevice::WriteOnly))
-                qFatal("ERROR : Can't create database file");
+        noteDBFile.setFileName(noteDBFilePath);
+        if (!noteDBFile.open(QIODevice::WriteOnly))
+            qFatal("ERROR : Can't create database file");
 
-            noteDBFile.close();
-            doCreate = true;
-        }
+        noteDBFile.close();
+        doCreate = true;
     }
 
     if (needMigrateFromV1_5_0) {
