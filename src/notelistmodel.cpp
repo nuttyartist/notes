@@ -533,7 +533,6 @@ void NoteListModel::setNotesIsPinned(const QModelIndexList &indexes, bool isPinn
 
     if (isPinned) {
         emit rowsAboutToBeMovedC(needMovingIndexes);
-        int moved = 0;
         beginResetModel();
         for (const auto &id : qAsConst(needMovingIds)) {
             auto index = getNoteIndex(id);
@@ -545,7 +544,6 @@ void NoteListModel::setNotesIsPinned(const QModelIndexList &indexes, bool isPinn
                 continue;
             }
             m_pinnedList.prepend(m_noteList.takeAt(sourceRow - m_pinnedList.size()));
-            ++moved;
         }
         endResetModel();
         QModelIndexList destinations;
