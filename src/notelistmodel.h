@@ -66,6 +66,8 @@ private:
     ListViewInfo m_listViewInfo;
     void updatePinnedRelativePosition();
     bool isInAllNote() const;
+    NodeData &getRef(int row);
+    const NodeData &getRef(int row) const;
 
 signals:
     void rowCountChanged();
