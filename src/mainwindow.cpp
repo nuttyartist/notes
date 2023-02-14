@@ -1155,11 +1155,9 @@ void MainWindow::setupDatabases()
             m_db.setDatabaseName(noteDBFilePath);
             if (m_db.open()) {
                 QSqlQuery query(m_db);
-                bool status = query.exec(
-                        "SELECT name FROM sqlite_master WHERE type='table' AND name='tag_table';");
-                if (status) {
-                    query.next();
-                    if (query.value(0).toString() == "tag_table") {
+                if (query.exec("SELECT name FROM sqlite_master WHERE type='table' AND "
+                               "name='tag_table';")) {
+                    if (query.next() && query.value(0).toString() == "tag_table") {
                         needMigrateFromV1_5_0 = false;
                     }
                 }
