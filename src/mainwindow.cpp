@@ -397,12 +397,12 @@ void MainWindow::setupMainWindow()
     ui->listviewLabel2->setMaximumSize({ 40, 25 });
 
 #ifdef __APPLE__
-    QFont m_titleFont(m_displayFont, 13, QFont::DemiBold);
+    QFont titleFont(m_displayFont, 13, QFont::DemiBold);
 #else
-    QFont m_titleFont(m_displayFont, 10, QFont::DemiBold);
+    QFont titleFont(m_displayFont, 10, QFont::DemiBold);
 #endif
-    ui->listviewLabel1->setFont(m_titleFont);
-    ui->listviewLabel2->setFont(m_titleFont);
+    ui->listviewLabel1->setFont(titleFont);
+    ui->listviewLabel2->setFont(titleFont);
     ui->listviewLabel1->setStyleSheet("QLabel { color :  rgb(0, 0, 0); }");
     ui->listviewLabel2->setStyleSheet("QLabel { color :  rgb(132, 132, 132); }");
     m_splitterStyle = new SplitterStyle();
