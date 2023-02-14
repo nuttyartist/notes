@@ -298,13 +298,8 @@ void NoteListView::mousePressEvent(QMouseEvent *e)
         if (!oldIndexes.contains(index)) {
             if (e->modifiers() == Qt::ControlModifier) {
                 setSelectionMode(QAbstractItemView::MultiSelection);
-                auto oldIndexes = selectionModel()->selectedIndexes();
-                if (oldIndexes.contains(index) && oldIndexes.size() > 1) {
-                    selectionModel()->select(index, QItemSelectionModel::Deselect);
-                } else {
-                    setCurrentIndex(index);
-                    selectionModel()->setCurrentIndex(index, QItemSelectionModel::SelectCurrent);
-                }
+                setCurrentIndex(index);
+                selectionModel()->setCurrentIndex(index, QItemSelectionModel::SelectCurrent);
                 auto selectedIndexes = selectionModel()->selectedIndexes();
                 emit notePressed(selectedIndexes);
             } else {
