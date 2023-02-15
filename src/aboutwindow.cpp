@@ -23,9 +23,11 @@ AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent), m_ui(new Ui::AboutW
             "Ahmed<br/><br/><strong>Designers:</strong><br/>Kevin Doyle<br/><br/>And to the "
             "many of our beloved users who keep sending us feedback, you are an essential force in "
             "helping us improve, thank you!<br/><br/><strong>Notes makes use of the following "
-            "third-party "
-            "libraries:</strong><br/><br/>QMarkdownTextEdit<br/>QSimpleUpdater<br/>QAutostart<br/"
-            ">QXT<br/><br/><strong>Notes makes use of the following open source "
+            "third-party libraries:</strong><br/><br/>QMarkdownTextEdit<br/>"
+#if defined(UPDATE_CHECKER)
+            "QSimpleUpdater<br/>"
+#endif
+            "QAutostart<br/>QXT<br/><br/><strong>Notes makes use of the following open source "
             "fonts:</strong><br/><br/>Roboto<br/>Source Sans Pro<br/>Trykker<br/>Mate<br/>iA "
             "Writer Mono<br/>iA Writer Duo<br/>iA Writer Quattro<br/>");
     m_ui->aboutText->setTextColor(QColor(26, 26, 26));

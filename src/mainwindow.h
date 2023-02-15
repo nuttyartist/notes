@@ -29,7 +29,11 @@
 #include "notelistmodel.h"
 #include "notelistview.h"
 #include "nodetreemodel.h"
-#include "updaterwindow.h"
+
+#if defined(UPDATE_CHECKER)
+#  include "updaterwindow.h"
+#endif
+
 #include "styleeditorwindow.h"
 #include "dbmanager.h"
 #include "customDocument.h"
@@ -148,7 +152,9 @@ private:
     DBManager *m_dbManager;
     QThread *m_dbThread;
     SplitterStyle *m_splitterStyle;
+#if defined(UPDATE_CHECKER)
     UpdaterWindow m_updater;
+#endif
     StyleEditorWindow m_styleEditorWindow;
     AboutWindow m_aboutWindow;
     StretchSide m_stretchSide;
@@ -167,7 +173,9 @@ private:
     bool m_isTemp;
     bool m_isListViewScrollBarHidden;
     bool m_isOperationRunning;
+#if defined(UPDATE_CHECKER)
     bool m_dontShowUpdateWindow;
+#endif
     bool m_alwaysStayOnTop;
     bool m_useNativeWindowFrame;
 
@@ -211,7 +219,9 @@ private:
     void setupRightFrame();
     void setupTitleBarButtons();
     void setupSignalsSlots();
+#if defined(UPDATE_CHECKER)
     void autoCheckForUpdates();
+#endif
     void setupSearchEdit();
     void resetEditorSettings();
     void setupTextEditStyleSheet(int paddingLeft, int paddingRight);
@@ -272,7 +282,9 @@ private slots:
     void maximizeWindow();
     void minimizeWindow();
     void QuitApplication();
+#if defined(UPDATE_CHECKER)
     void checkForUpdates();
+#endif
     void collapseNoteList();
     void expandNoteList();
     void toggleNoteList();

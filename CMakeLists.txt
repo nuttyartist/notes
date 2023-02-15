@@ -11,6 +11,8 @@ set(USE_QT_VERSION
     CACHE STRING "Use a specific version of Qt to build the app")
 option(GIT_REVISION
        "Append the current git revision to the app's version string" OFF)
+option(UPDATE_CHECKER
+       "Enable or disable both the update checker and auto-updater" ON)
 
 project(
   Notes
@@ -76,6 +78,7 @@ message(STATUS "Success! Configuration details:")
 message(STATUS "App name: ${PROJECT_NAME}")
 message(STATUS "App version: ${PROJECT_VERSION}")
 message(STATUS "Qt version: ${QT_VERSION}")
+message(STATUS "Update checker: ${UPDATE_CHECKER}")
 if(CMAKE_BUILD_TYPE STREQUAL "")
   message(STATUS "Build type: (not set)")
 else()
@@ -178,13 +181,10 @@ set(SOURCES
     ${PROJECT_SOURCE_DIR}/src/trashbuttondelegateeditor.h
     ${PROJECT_SOURCE_DIR}/src/treeviewlogic.cpp
     ${PROJECT_SOURCE_DIR}/src/treeviewlogic.h
-    ${PROJECT_SOURCE_DIR}/src/updaterwindow.cpp
-    ${PROJECT_SOURCE_DIR}/src/updaterwindow.h
     # ui
     ${PROJECT_SOURCE_DIR}/src/aboutwindow.ui
     ${PROJECT_SOURCE_DIR}/src/mainwindow.ui
     ${PROJECT_SOURCE_DIR}/src/styleeditorwindow.ui
-    ${PROJECT_SOURCE_DIR}/src/updaterwindow.ui
     # qrc files
     ${PROJECT_SOURCE_DIR}/src/fonts.qrc
     ${PROJECT_SOURCE_DIR}/src/images.qrc
@@ -203,22 +203,33 @@ set(SOURCES_3RD_PARTY
     ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/qownlanguagedata.h
     ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/qplaintexteditsearchwidget.cpp
     ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit/qplaintexteditsearchwidget.h
-    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/include/QSimpleUpdater.h
-    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/src/Downloader.cpp
-    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/src/Downloader.h
-    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/src/QSimpleUpdater.cpp
-    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/src/Updater.cpp
-    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/src/Updater.h
     ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobal.cpp
     ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobal.h
     ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut.cpp
     ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut.h
     ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut_p.h)
 
+if(UPDATE_CHECKER)
+  list(APPEND SOURCES ${PROJECT_SOURCE_DIR}/src/updaterwindow.cpp
+       ${PROJECT_SOURCE_DIR}/src/updaterwindow.h
+       ${PROJECT_SOURCE_DIR}/src/updaterwindow.ui)
+
+  list(
+    APPEND
+    SOURCES_3RD_PARTY
+    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/include/QSimpleUpdater.h
+    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/src/Downloader.cpp
+    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/src/Downloader.h
+    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/src/QSimpleUpdater.cpp
+    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/src/Updater.cpp
+    ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/src/Updater.h)
+endif()
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   list(APPEND SOURCES ${PROJECT_SOURCE_DIR}/src/framelesswindow.mm
        ${PROJECT_SOURCE_DIR}/src/framelesswindow.h
        ${PROJECT_SOURCE_DIR}/src/images/notes_icon.icns)
+
   list(APPEND SOURCES_3RD_PARTY
        ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut_mac.cpp)
 elseif(UNIX)
@@ -228,6 +239,7 @@ elseif(WIN32)
   list(APPEND SOURCES ${PROJECT_SOURCE_DIR}/src/framelesswindow.cpp
        ${PROJECT_SOURCE_DIR}/src/framelesswindow.h
        ${PROJECT_SOURCE_DIR}/src/images/notes.rc)
+
   list(APPEND SOURCES_3RD_PARTY
        ${PROJECT_SOURCE_DIR}/3rdParty/qxt/qxtglobalshortcut_win.cpp)
 endif()
@@ -240,10 +252,17 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/src)
 # Include third-party headers as 'system' files, in order to silence compiler warnings on them.
 target_include_directories(
   ${PROJECT_NAME} SYSTEM
-  PUBLIC ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/include
-         ${PROJECT_SOURCE_DIR}/3rdParty/qautostart/src
+  PUBLIC ${PROJECT_SOURCE_DIR}/3rdParty/qautostart/src
          ${PROJECT_SOURCE_DIR}/3rdParty/qmarkdowntextedit
          ${PROJECT_SOURCE_DIR}/3rdParty/qxt)
+
+if(UPDATE_CHECKER)
+  target_include_directories(
+    ${PROJECT_NAME} SYSTEM
+    PUBLIC ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/include)
+
+  add_definitions(-DUPDATE_CHECKER)
+endif()
 
 target_compile_definitions(
   ${PROJECT_NAME}

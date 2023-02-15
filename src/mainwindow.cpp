@@ -8,7 +8,6 @@
 #include "ui_mainwindow.h"
 #include "notelistdelegate.h"
 #include "qxtglobalshortcut.h"
-#include "updaterwindow.h"
 #include "treeviewlogic.h"
 #include "listviewlogic.h"
 #include "noteeditorlogic.h"
@@ -81,7 +80,9 @@ MainWindow::MainWindow(QWidget *parent)
       m_isTemp(false),
       m_isListViewScrollBarHidden(true),
       m_isOperationRunning(false),
+#if defined(UPDATE_CHECKER)
       m_dontShowUpdateWindow(false),
+#endif
       m_alwaysStayOnTop(false),
       m_useNativeWindowFrame(false),
       m_listOfSerifFonts(
@@ -134,7 +135,9 @@ MainWindow::MainWindow(QWidget *parent)
     setupTextEdit();
     restoreStates();
     setupSignalsSlots();
+#if defined(UPDATE_CHECKER)
     autoCheckForUpdates();
+#endif
 
     QTimer::singleShot(200, this, SLOT(InitData()));
 }
@@ -629,8 +632,10 @@ void MainWindow::setupTitleBarButtons()
  */
 void MainWindow::setupSignalsSlots()
 {
+#if defined(UPDATE_CHECKER)
     connect(&m_updater, &UpdaterWindow::dontShowUpdateWindowChanged, this,
             [=](bool state) { m_dontShowUpdateWindow = state; });
+#endif
     // Style Editor Window
     connect(&m_styleEditorWindow, &StyleEditorWindow::changeFontType, this,
             [=](FontTypeface fontType) { changeEditorFontTypeFromStyleButtons(fontType); });
@@ -790,12 +795,14 @@ void MainWindow::setupSignalsSlots()
  * Checks for updates, if an update is found, then the updater dialog will show
  * up, otherwise, no notification shall be showed
  */
+#if defined(UPDATE_CHECKER)
 void MainWindow::autoCheckForUpdates()
 {
     m_updater.installEventFilter(this);
     m_updater.setShowWindowDisable(m_dontShowUpdateWindow);
     m_updater.checkForUpdates(false);
 }
+#endif
 
 void MainWindow::setSearchEditStyleSheet(bool isFocused = false)
 {
@@ -1069,9 +1076,11 @@ void MainWindow::initializeSettingsDatabase()
     if (m_settingsDatabase->value(QStringLiteral("version"), "NULL") == "NULL")
         m_settingsDatabase->setValue(QStringLiteral("version"), qApp->applicationVersion());
 
+#if defined(UPDATE_CHECKER)
     if (m_settingsDatabase->value(QStringLiteral("dontShowUpdateWindow"), "NULL") == "NULL")
         m_settingsDatabase->setValue(QStringLiteral("dontShowUpdateWindow"),
                                      m_dontShowUpdateWindow);
+#endif
 
     if (m_settingsDatabase->value(QStringLiteral("windowGeometry"), "NULL") == "NULL") {
         int initWidth = 870;
@@ -1244,9 +1253,11 @@ void MainWindow::restoreStates()
         //    }
 #endif
 
+#if defined(UPDATE_CHECKER)
     if (m_settingsDatabase->value(QStringLiteral("dontShowUpdateWindow"), "NULL") != "NULL")
         m_dontShowUpdateWindow =
                 m_settingsDatabase->value(QStringLiteral("dontShowUpdateWindow")).toBool();
+#endif
 
     m_splitter->setCollapsible(0, true);
     m_splitter->resize(width() - m_layoutMargin, height() - m_layoutMargin);
@@ -1606,9 +1617,11 @@ void MainWindow::onDotsButtonClicked()
         }
     });
 
+#if defined(UPDATE_CHECKER)
     // Check for update action
     QAction *checkForUpdatesAction = mainMenu.addAction(tr("Check For &Updates"));
     connect(checkForUpdatesAction, &QAction::triggered, this, &MainWindow::checkForUpdates);
+#endif
 
     // Autostart
     QAction *autostartAction = mainMenu.addAction(tr("&Start automatically"));
@@ -2182,10 +2195,12 @@ void MainWindow::QuitApplication()
  * Called when the "Check for Updates" menu item is clicked, this function
  * instructs the updater window to check if there are any updates available
  */
+#if defined(UPDATE_CHECKER)
 void MainWindow::checkForUpdates()
 {
     m_updater.checkForUpdates(true);
 }
+#endif
 
 /*!
  * \brief MainWindow::importNotesFile
@@ -2452,7 +2467,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
     m_noteEditorLogic->saveNoteToDB();
 
+#if defined(UPDATE_CHECKER)
     m_settingsDatabase->setValue(QStringLiteral("dontShowUpdateWindow"), m_dontShowUpdateWindow);
+#endif
     m_settingsDatabase->setValue(QStringLiteral("splitterSizes"), m_splitter->saveState());
 
     QString currentFontTypefaceString;
@@ -3457,6 +3474,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         break;
     }
     case QEvent::Show:
+#if defined(UPDATE_CHECKER)
         if (object == &m_updater) {
 
             QRect rect = m_updater.geometry();
@@ -3468,6 +3486,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
 
             m_updater.setGeometry(QRect(x, y, rect.width(), rect.height()));
         }
+#endif
         break;
     case QEvent::MouseButtonPress:
     case QEvent::MouseButtonDblClick:
