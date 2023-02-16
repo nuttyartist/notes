@@ -18,6 +18,23 @@ CFramelessWindow::CFramelessWindow(QWidget *parent)
     initUI();
 }
 
+@interface AppObserver : NSObject
+@property (readwrite) CFramelessWindow *window;
+- (void)appDidHide:(NSNotification *)notification;
+- (void)appDidUnhide:(NSNotification *)notification;
+@end
+
+@implementation AppObserver
+- (void)appDidHide:(NSNotification *)notification
+{
+    self.window->hide();
+}
+- (void)appDidUnhide:(NSNotification *)notification
+{
+    self.window->show();
+}
+@end
+
 //此类用于支持重载系统按钮的行为
 //this Objective-c class is used to override the action of sysytem close button and zoom button
 //https://stackoverflow.com/questions/27643659/setting-c-function-as-selector-for-nsbutton-produces-no-results
@@ -70,6 +87,23 @@ void CFramelessWindow::initUI()
     if (0 == view) {setWindowFlags(Qt::FramelessWindowHint); return;}
     NSWindow *window = view.window;
     if (0 == window) {setWindowFlags(Qt::FramelessWindowHint); return;}
+
+    AppObserver *observer = [[AppObserver alloc] init];
+    if (observer) {
+        observer.window = this;
+        [[[NSWorkspace sharedWorkspace] notificationCenter]
+                addObserver:observer
+                   selector:@selector(appDidHide:)
+                       name:NSWorkspaceDidHideApplicationNotification
+                     object:nil];
+        [[[NSWorkspace sharedWorkspace] notificationCenter]
+                addObserver:observer
+                   selector:@selector(appDidUnhide:)
+                       name:NSWorkspaceDidUnhideApplicationNotification
+                     object:nil];
+    } else {
+        qWarning() << "Failed to set up Notification Observer!";
+    }
 
     //设置标题文字和图标为不可见
     window.titleVisibility = NSWindowTitleHidden;   //MAC_10_10及以上版本支持
