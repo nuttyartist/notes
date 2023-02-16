@@ -205,6 +205,20 @@ void CFramelessWindow::setDraggableAreaHeight(int height)
     m_draggableHeight = height;
 }
 
+void CFramelessWindow::hideEvent(QHideEvent *event)
+{
+    // FIXME: Figure out why this fails to trigger our AppObserver listener sometimes. :/
+    [NSApp hide:nil];
+    QMainWindow::hideEvent(event);
+}
+
+void CFramelessWindow::showEvent(QShowEvent *event)
+{
+    // FIXME: Figure out why this fails to trigger our AppObserver listener sometimes. :/
+    [NSApp unhide:nil];
+    QMainWindow::showEvent(event);
+}
+
 void CFramelessWindow::mousePressEvent(QMouseEvent *event)
 {
     if ((event->button() != Qt::LeftButton) || isMaximized() )

@@ -131,6 +131,8 @@ signals:
     void toggleFullScreen(bool isFullScreen);
 
 protected:
+    void hideEvent(QHideEvent *event);
+    void showEvent(QShowEvent *event);
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
