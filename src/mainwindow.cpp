@@ -505,10 +505,10 @@ void MainWindow::setupKeyboardShortcuts()
     new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Backslash), this, SLOT(resetBlockFormat()));
 
     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
-    shortcut->setShortcut(QKeySequence(Qt::META | Qt::SHIFT | Qt::Key_N));
-#else
+#if defined(Q_OS_MACOS)
     shortcut->setShortcut(QKeySequence(Qt::META | Qt::Key_N));
+#else
+    shortcut->setShortcut(QKeySequence(Qt::META | Qt::SHIFT | Qt::Key_N));
 #endif
     connect(shortcut, &QxtGlobalShortcut::activated, this, [=]() {
         // workaround prevent textEdit and searchEdit

@@ -27,7 +27,7 @@ Our vision for the future on our [Wiki](https://github.com/nuttyartist/notes/wik
 - Markdown Support. Format text without lifting your hands from the keyboard.
 - Different themes. Switch between Light, Dark, and Sepia.
 - Feed View. Select multiple notes to see them all one after another in the editor.
-- Always runs in the background. Use the hotkey "Windows" + 'N' to summon Notes. "control" + "N" for macOS.
+- Always runs in the background. Use the hotkey <kbd>Win</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd> to summon Notes. <kbd>Ctrl</kbd>+<kbd>N</kbd> for macOS.
 - Keyboard shortcuts. Meant to have the option to be used solely with a keyboard (but more work needs to be done there).
 - What feature will you contribute?
 
