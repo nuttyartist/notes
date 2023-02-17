@@ -2201,7 +2201,8 @@ void MainWindow::minimizeWindow()
 /*!
  * \brief MainWindow::QuitApplication
  * Exit the application
- * If a new note created but wasn't edited, delete it from the database
+ * Save the geometry of the app to the settings
+ * Save the current note if it's note temporary one otherwise remove it from DB
  */
 void MainWindow::QuitApplication()
 {
@@ -2534,9 +2535,7 @@ void MainWindow::onRedCloseButtonClicked()
 
 /*!
  * \brief MainWindow::closeEvent
- * Called when the app is about the close
- * save the geometry of the app to the settings
- * save the current note if it's note temporary one otherwise remove it from DB
+ * Called when the window is about to close
  * \param event
  */
 void MainWindow::closeEvent(QCloseEvent *event)
