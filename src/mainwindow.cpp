@@ -906,6 +906,14 @@ void MainWindow::setCurrentFontBasedOnTypeface(FontTypeface selectedFontTypeFace
     m_currentSelectedFont = QFont(m_currentFontFamily, m_currentFontPointSize, QFont::Normal);
     m_textEdit->setFont(m_currentSelectedFont);
 
+    // Set tab width
+    QFontMetrics currentFontMetrics(m_currentSelectedFont);
+#if QT_VERSION < QT_VERSION_CHECK(5, 11, 0)
+    m_textEdit->setTabStopWidth(4 * currentFontMetrics.width(' '));
+#else
+    m_textEdit->setTabStopDistance(4 * currentFontMetrics.horizontalAdvance(QLatin1Char(' ')));
+#endif
+
     alignTextEditText();
 }
 
@@ -1887,7 +1895,6 @@ void MainWindow::setTheme(Theme theme)
         m_styleEditorWindow.setTheme(Theme::Light, m_currentThemeBackgroundColor,
                                      m_currentEditorTextColor);
         m_aboutWindow.setTheme(m_currentThemeBackgroundColor, m_currentEditorTextColor);
-        m_noteEditorLogic->setTheme(theme, m_currentEditorTextColor);
         ui->listviewLabel1->setStyleSheet(
                 QStringLiteral("QLabel { color : %1; }").arg(QColor(26, 26, 26).name()));
         m_treeViewLogic->setTheme(theme);
@@ -1914,7 +1921,6 @@ void MainWindow::setTheme(Theme theme)
         m_styleEditorWindow.setTheme(Theme::Dark, m_currentThemeBackgroundColor,
                                      m_currentEditorTextColor);
         m_aboutWindow.setTheme(m_currentThemeBackgroundColor, m_currentEditorTextColor);
-        m_noteEditorLogic->setTheme(theme, m_currentEditorTextColor);
         ui->listviewLabel1->setStyleSheet(
                 QStringLiteral("QLabel { color : %1; }").arg(QColor(204, 204, 204).name()));
         m_treeViewLogic->setTheme(theme);
@@ -1942,7 +1948,6 @@ void MainWindow::setTheme(Theme theme)
         m_styleEditorWindow.setTheme(Theme::Sepia, m_currentThemeBackgroundColor,
                                      QColor(26, 26, 26));
         m_aboutWindow.setTheme(m_currentThemeBackgroundColor, QColor(26, 26, 26));
-        m_noteEditorLogic->setTheme(theme, m_currentEditorTextColor);
         ui->listviewLabel1->setStyleSheet(
                 QStringLiteral("QLabel { color : %1; }").arg(QColor(26, 26, 26).name()));
         m_treeViewLogic->setTheme(theme);
@@ -1950,6 +1955,7 @@ void MainWindow::setTheme(Theme theme)
     }
     }
     ui->tagListView->setBackground(m_currentThemeBackgroundColor);
+    m_noteEditorLogic->setTheme(theme, m_currentEditorTextColor);
 
     setSearchEditStyleSheet(false);
     alignTextEditText();
