@@ -2069,7 +2069,7 @@ void MainWindow::fullscreenWindow()
     if (isFullScreen()) {
         if (!isMaximized()) {
             m_noteListWidth =
-                    m_splitter->sizes().at(0) != 0 ? m_splitter->sizes().at(0) : m_noteListWidth;
+                    m_splitter->sizes().at(1) != 0 ? m_splitter->sizes().at(1) : m_noteListWidth;
             //            QMargins
             //            margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
             //            setMargins(margins);
@@ -2162,7 +2162,7 @@ void MainWindow::maximizeWindow()
     if (isMaximized()) {
         if (!isFullScreen()) {
             m_noteListWidth =
-                    m_splitter->sizes().at(0) != 0 ? m_splitter->sizes().at(0) : m_noteListWidth;
+                    m_splitter->sizes().at(1) != 0 ? m_splitter->sizes().at(1) : m_noteListWidth;
             QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
 
             setMargins(margins);
@@ -2590,7 +2590,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         } else {
             m_canStretchWindow = true;
 
-            int currentWidth = m_splitter->sizes().at(0);
+            int currentWidth = m_splitter->sizes().at(1);
             if (currentWidth != 0)
                 m_noteListWidth = currentWidth;
 
