@@ -2955,7 +2955,7 @@ void MainWindow::updateFrame()
     QList<int> sizes = m_splitter->sizes();
     sizes[0] = nodeTreeWidth;
     sizes[1] = noteListWidth;
-    sizes[2] = m_splitter->width() - noteListWidth - nodeTreeWidth;
+    sizes[2] = (m_splitter->width() + 2 * m_layoutMargin) - noteListWidth - nodeTreeWidth;
     m_splitter->setCollapsible(1, true);
     m_splitter->setCollapsible(0, true);
     m_splitter->setSizes(sizes);
