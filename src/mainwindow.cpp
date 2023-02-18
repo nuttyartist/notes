@@ -2802,12 +2802,6 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
         }
 
         setGeometry(newX, newY, newWidth, newHeight);
-        QList<int> sizes = m_splitter->sizes();
-        if (sizes[0] != 0) {
-            sizes[0] = m_noteListWidth;
-            sizes[1] = m_splitter->width() - m_noteListWidth;
-            m_splitter->setSizes(sizes);
-        }
     }
 #  endif
     event->accept();
