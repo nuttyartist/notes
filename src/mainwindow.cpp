@@ -1099,14 +1099,7 @@ void MainWindow::initializeSettingsDatabase()
 
     if (m_settingsDatabase->value(QStringLiteral("splitterSizes"), "NULL") == "NULL") {
         m_splitter->resize(width() - 2 * m_layoutMargin, height() - 2 * m_layoutMargin);
-        QList<int> sizes = m_splitter->sizes();
-        m_noteListWidth = ui->frameMiddle->minimumWidth() != 0 ? ui->frameMiddle->minimumWidth()
-                                                               : m_noteListWidth;
-        sizes[0] = m_noteListWidth;
-        sizes[1] = m_splitter->width() - m_noteListWidth;
-        m_isTreeCollapsed = sizes[0] == 0;
-        m_isNoteListCollapsed = sizes[1] == 0;
-        m_splitter->setSizes(sizes);
+        updateFrame();
         m_settingsDatabase->setValue(QStringLiteral("splitterSizes"), m_splitter->saveState());
     }
 }
