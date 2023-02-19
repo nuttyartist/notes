@@ -2535,7 +2535,7 @@ void MainWindow::onRedCloseButtonClicked()
     if (m_hideToTray) {
         setMainWindowVisibility(false);
     } else {
-        close();
+        QuitApplication();
     }
 }
 
@@ -2553,6 +2553,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
         // don't close the application, just hide to tray
         setMainWindowVisibility(false);
         event->ignore();
+    } else {
+        // save states and quit application
+        QuitApplication();
     }
 }
 
