@@ -1264,12 +1264,21 @@ void MainWindow::restoreStates()
 #endif
 
     m_splitter->setCollapsible(0, true);
+    m_splitter->setCollapsible(1, true);
     m_splitter->resize(width() - m_layoutMargin, height() - m_layoutMargin);
+
     if (m_settingsDatabase->value(QStringLiteral("splitterSizes"), "NULL") != "NULL")
         m_splitter->restoreState(
                 m_settingsDatabase->value(QStringLiteral("splitterSizes")).toByteArray());
-    m_noteListWidth = m_splitter->sizes().at(1);
+
     m_splitter->setCollapsible(0, false);
+    m_splitter->setCollapsible(1, false);
+
+    m_nodeTreeWidth = m_splitter->sizes().at(0);
+    m_noteListWidth = m_splitter->sizes().at(1);
+
+    m_isTreeCollapsed = m_nodeTreeWidth == 0;
+    m_isNoteListCollapsed = m_noteListWidth == 0;
 
     QString selectedFontTypefaceFromDatabase =
             m_settingsDatabase->value(QStringLiteral("selectedFontTypeface"), "NULL").toString();
