@@ -71,8 +71,8 @@ MainWindow::MainWindow(QWidget *parent)
       m_trashCounter(0),
       m_layoutMargin(10),
       m_shadowWidth(10),
-      m_noteListWidth(200),
-      m_nodeTreeWidth(0),
+      m_noteListWidth(185),
+      m_nodeTreeWidth(185),
       m_smallEditorWidth(420),
       m_largeEditorWidth(1250),
       m_canMoveWindow(false),
@@ -1099,14 +1099,7 @@ void MainWindow::initializeSettingsDatabase()
 
     if (m_settingsDatabase->value(QStringLiteral("splitterSizes"), "NULL") == "NULL") {
         m_splitter->resize(width() - 2 * m_layoutMargin, height() - 2 * m_layoutMargin);
-        QList<int> sizes = m_splitter->sizes();
-        m_noteListWidth = ui->frameMiddle->minimumWidth() != 0 ? ui->frameMiddle->minimumWidth()
-                                                               : m_noteListWidth;
-        sizes[0] = m_noteListWidth;
-        sizes[1] = m_splitter->width() - m_noteListWidth;
-        m_isTreeCollapsed = sizes[0] == 0;
-        m_isNoteListCollapsed = sizes[1] == 0;
-        m_splitter->setSizes(sizes);
+        updateFrame();
         m_settingsDatabase->setValue(QStringLiteral("splitterSizes"), m_splitter->saveState());
     }
 }
@@ -2069,7 +2062,7 @@ void MainWindow::fullscreenWindow()
     if (isFullScreen()) {
         if (!isMaximized()) {
             m_noteListWidth =
-                    m_splitter->sizes().at(0) != 0 ? m_splitter->sizes().at(0) : m_noteListWidth;
+                    m_splitter->sizes().at(1) != 0 ? m_splitter->sizes().at(1) : m_noteListWidth;
             //            QMargins
             //            margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
             //            setMargins(margins);
@@ -2162,7 +2155,7 @@ void MainWindow::maximizeWindow()
     if (isMaximized()) {
         if (!isFullScreen()) {
             m_noteListWidth =
-                    m_splitter->sizes().at(0) != 0 ? m_splitter->sizes().at(0) : m_noteListWidth;
+                    m_splitter->sizes().at(1) != 0 ? m_splitter->sizes().at(1) : m_noteListWidth;
             QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
 
             setMargins(margins);
@@ -2590,7 +2583,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         } else {
             m_canStretchWindow = true;
 
-            int currentWidth = m_splitter->sizes().at(0);
+            int currentWidth = m_splitter->sizes().at(1);
             if (currentWidth != 0)
                 m_noteListWidth = currentWidth;
 
@@ -2809,12 +2802,6 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
         }
 
         setGeometry(newX, newY, newWidth, newHeight);
-        QList<int> sizes = m_splitter->sizes();
-        if (sizes[0] != 0) {
-            sizes[0] = m_noteListWidth;
-            sizes[1] = m_splitter->width() - m_noteListWidth;
-            m_splitter->setSizes(sizes);
-        }
     }
 #  endif
     event->accept();
@@ -2955,7 +2942,7 @@ void MainWindow::updateFrame()
     QList<int> sizes = m_splitter->sizes();
     sizes[0] = nodeTreeWidth;
     sizes[1] = noteListWidth;
-    sizes[2] = m_splitter->width() - noteListWidth - nodeTreeWidth;
+    sizes[2] = (m_splitter->width() + 2 * m_layoutMargin) - noteListWidth - nodeTreeWidth;
     m_splitter->setCollapsible(1, true);
     m_splitter->setCollapsible(0, true);
     m_splitter->setSizes(sizes);
