@@ -248,7 +248,7 @@ void MainWindow::saveLastSelectedNote(const QSet<int> &notesId)
  */
 void MainWindow::paintEvent(QPaintEvent *event)
 {
-#if !defined(__APPLE__) && !defined(Q_OS_LINUX) && !defined(Q_OS_FREEBSD)
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
     if (!m_useNativeWindowFrame) {
         QPainter painter(this);
         painter.save();
@@ -309,6 +309,9 @@ void MainWindow::setupMainWindow()
 #if !defined(Q_OS_MAC)
     this->setWindowFlags(Qt::Window | Qt::CustomizeWindowHint);
 #endif
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    this->setAttribute(Qt::WA_TranslucentBackground);
+#endif
 
     m_greenMaximizeButton = new QPushButton(this);
     m_redCloseButton = new QPushButton(this);
@@ -343,19 +346,15 @@ void MainWindow::setupMainWindow()
     m_editorDateLabel = ui->editorDateLabel;
     m_splitter = ui->splitter;
 
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
-    //    QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
-    //    setMargins(margins);
-    setMargins(QMargins(0, 0, 0, 0));
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
+    setMargins(margins);
 #elif _WIN32
     ui->verticalSpacer->changeSize(0, 7, QSizePolicy::Fixed, QSizePolicy::Fixed);
     ui->verticalSpacer_upEditorDateLabel->changeSize(0, 27, QSizePolicy::Fixed, QSizePolicy::Fixed);
 #endif
     ui->frame->installEventFilter(this);
-    ui->frameRight->setMouseTracking(true);
     ui->centralWidget->setMouseTracking(true);
-    ui->frame->setMouseTracking(true);
-    ui->frameRightTop->setMouseTracking(true);
     this->setMouseTracking(true);
     QPalette pal(palette());
     pal.setColor(QPalette::Window, QColor(248, 248, 248));
@@ -958,7 +957,7 @@ void MainWindow::setupTextEditStyleSheet(int paddingLeft, int paddingRight)
 {
     m_textEdit->setDocumentPadding(paddingLeft, 0, paddingRight, 2);
 
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
     QString ss =
             QString("QTextEdit {background-color: %1;} "
                     "QTextEdit{selection-background-color: rgb(63, 99, 139);}"
@@ -1252,11 +1251,11 @@ void MainWindow::restoreStates()
                 m_settingsDatabase->value(QStringLiteral("editorSettingsWindowGeometry"))
                         .toByteArray());
 
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
-        /// Set margin to zero if the window is maximized
-        //    if (isMaximized()) {
-        //        setMargins(QMargins(0,0,0,0));
-        //    }
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    // Set margin to zero if the window is maximized
+    if (isMaximized()) {
+        setMargins(QMargins());
+    }
 #endif
 
 #if defined(UPDATE_CHECKER)
@@ -2074,15 +2073,14 @@ void MainWindow::fullscreenWindow()
         if (!isMaximized()) {
             m_noteListWidth =
                     m_splitter->sizes().at(1) != 0 ? m_splitter->sizes().at(1) : m_noteListWidth;
-            //            QMargins
-            //            margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
-            //            setMargins(margins);
+            QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
+            setMargins(margins);
         }
 
         setWindowState(windowState() & ~Qt::WindowFullScreen);
     } else {
         setWindowState(windowState() | Qt::WindowFullScreen);
-        //        setMargins(QMargins(0,0,0,0));
+        setMargins(QMargins());
     }
 
 #elif _WIN32
@@ -2177,7 +2175,7 @@ void MainWindow::maximizeWindow()
 
     } else {
         setWindowState(windowState() | Qt::WindowMaximized);
-        //        setMargins(QMargins(0,0,0,0));
+        setMargins(QMargins());
     }
 #elif _WIN32
     if (isMaximized()) {
@@ -2200,8 +2198,8 @@ void MainWindow::maximizeWindow()
 void MainWindow::minimizeWindow()
 {
 #if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
-    //    QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
-    //    setMargins(margins);
+    QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
+    setMargins(margins);
 #endif
 
     // BUG : QTBUG-57902 minimize doesn't store the window state before minimizing
@@ -3547,12 +3545,6 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         }
         break;
     }
-    case QEvent::MouseMove: {
-        // Apperantly we need this if m_layoutMargin is set to 0
-        if (object == ui->frame || object == ui->frameMiddle || object == ui->frameRight
-            || object == ui->frameRightTop)
-            mouseMoveEvent(static_cast<QMouseEvent *>(event));
-    }
     default:
         break;
     }
@@ -3723,23 +3715,14 @@ void MainWindow::setUseNativeWindowFrame(bool useNativeWindowFrame)
     setWindowFlags(flags);
 #endif
 
-    // #if defined(Q_OS_LINUX)
-    //     if (useNativeWindowFrame || isMaximized()) {
-    //         ui->centralWidget->layout()->setContentsMargins(QMargins());
-    //     } else {
-    //         QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
-    //         ui->centralWidget->layout()->setContentsMargins(margins);
-    //     }
-    // #endif
-
-    // #ifndef _WIN32
-    //     if (useNativeWindowFrame || isMaximized()) {
-    //         ui->centralWidget->layout()->setContentsMargins(QMargins());
-    //     } else {
-    //         QMargins margins(m_layoutMargin,m_layoutMargin,m_layoutMargin,m_layoutMargin);
-    //         ui->centralWidget->layout()->setContentsMargins(margins);
-    //     }
-    // #endif
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    if (useNativeWindowFrame || isMaximized()) {
+        ui->centralWidget->layout()->setContentsMargins(QMargins());
+    } else {
+        QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
+        ui->centralWidget->layout()->setContentsMargins(margins);
+    }
+#endif
 
     adjustUpperWidgets(useNativeWindowFrame);
 
