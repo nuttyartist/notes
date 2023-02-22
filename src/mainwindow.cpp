@@ -474,7 +474,9 @@ void MainWindow::setupKeyboardShortcuts()
     new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_L), this, SLOT(maximizeWindow()));
     new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_M), this, SLOT(minimizeWindow()));
     new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q), this, SLOT(QuitApplication()));
+#if defined(Q_OS_MACOS) || defined(Q_OS_WINDOWS)
     new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_K), this, SLOT(toggleStayOnTop()));
+#endif
     new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_J), this, SLOT(toggleNoteList()));
     new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_S), this,
                   SLOT(onStyleEditorButtonClicked()));
@@ -1699,7 +1701,7 @@ void MainWindow::onDotsButtonClicked()
     restoreNotesFileAction->setToolTip(tr("Replace all notes with notes from a file"));
     connect(restoreNotesFileAction, &QAction::triggered, this, &MainWindow::restoreNotesFile);
 
-#if !defined(Q_OS_LINUX) && !defined(Q_OS_FREEBSD)
+#if defined(Q_OS_MACOS) || defined(Q_OS_WINDOWS)
     // Stay on top action
     QAction *stayOnTopAction = viewMenu->addAction(tr("Always stay on top"));
     stayOnTopAction->setToolTip(tr("Always keep the notes application on top of all windows"));
