@@ -176,7 +176,8 @@ void MainWindow::InitData()
         watcher->setFuture(migration);
     }
     /// Check if it is running with an argument (ex. hide)
-    if (qApp->arguments().contains(QStringLiteral("--autostart"))) {
+    if (qApp->arguments().contains(QStringLiteral("--autostart"))
+        && QSystemTrayIcon::isSystemTrayAvailable()) {
         setMainWindowVisibility(false);
     }
 
@@ -2534,7 +2535,7 @@ void MainWindow::onRedCloseButtonClicked()
     m_redCloseButton->setIcon(QIcon(QStringLiteral(":images/red.png")));
 #endif
 
-    if (m_hideToTray) {
+    if (m_hideToTray && m_trayIcon->isVisible() && QSystemTrayIcon::isSystemTrayAvailable()) {
         setMainWindowVisibility(false);
     } else {
         QuitApplication();
@@ -2551,7 +2552,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     if (!event->spontaneous() || !isVisible()) {
         return;
     }
-    if (m_hideToTray && m_trayIcon->isVisible()) {
+    if (m_hideToTray && m_trayIcon->isVisible() && QSystemTrayIcon::isSystemTrayAvailable()) {
         // don't close the application, just hide to tray
         setMainWindowVisibility(false);
         event->ignore();
