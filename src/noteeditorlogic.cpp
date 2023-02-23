@@ -20,7 +20,7 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLab
                                  DBManager *dbManager, QObject *parent)
     : QObject(parent),
       m_textEdit{ textEdit },
-      m_highlighter{ new CustomMarkdownHighlighter { m_textEdit->document() } },
+      m_highlighter{ new CustomMarkdownHighlighter{ m_textEdit->document() } },
       m_editorDateLabel{ editorDateLabel },
       m_searchEdit{ searchEdit },
       m_tagListView{ tagListView },
