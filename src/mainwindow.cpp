@@ -156,7 +156,11 @@ void MainWindow::InitData()
         QProgressDialog *pd =
                 new QProgressDialog(tr("Migrating database, please wait."), QString(), 0, 0, this);
         pd->setCancelButton(Q_NULLPTR);
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+        pd->setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::FramelessWindowHint);
+#else
         pd->setWindowFlags(Qt::Window | Qt::CustomizeWindowHint);
+#endif
         pd->setMinimumDuration(0);
         pd->show();
 
@@ -308,8 +312,13 @@ MainWindow::~MainWindow()
 void MainWindow::setupMainWindow()
 {
 #if !defined(Q_OS_MAC)
-    this->setWindowFlags(Qt::Window | Qt::CustomizeWindowHint);
+    auto flags = Qt::Window | Qt::CustomizeWindowHint;
+#  if defined(Q_OS_UNIX)
+    flags |= Qt::FramelessWindowHint;
+#  endif
+    setWindowFlags(flags);
 #endif
+
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
     this->setAttribute(Qt::WA_TranslucentBackground);
 #endif
@@ -3722,8 +3731,12 @@ void MainWindow::setUseNativeWindowFrame(bool useNativeWindowFrame)
     // Reset window flags to its initial state.
     Qt::WindowFlags flags = Qt::Window;
 
-    if (!useNativeWindowFrame)
+    if (!useNativeWindowFrame) {
         flags |= Qt::CustomizeWindowHint;
+#  if defined(Q_OS_UNIX)
+        flags |= Qt::FramelessWindowHint;
+#  endif
+    }
 
     setWindowFlags(flags);
 #endif

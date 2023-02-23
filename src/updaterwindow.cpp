@@ -99,8 +99,12 @@ UpdaterWindow::UpdaterWindow(QWidget *parent)
     /* Start the UI loops */
     updateTitleLabel();
 
-    /* Remove window border */
+    /* Remove native window decorations */
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    setWindowFlags(windowFlags() | Qt::CustomizeWindowHint | Qt::FramelessWindowHint);
+#else
     setWindowFlags(windowFlags() | Qt::CustomizeWindowHint);
+#endif
 
     /* React when xdg-open finishes (Linux only) */
 #ifdef UseXdgOpen
