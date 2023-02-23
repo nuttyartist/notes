@@ -3212,6 +3212,22 @@ void MainWindow::leaveEvent(QEvent *)
 }
 
 /*!
+ * \brief MainWindow::changeEvent
+ */
+void MainWindow::changeEvent(QEvent *event)
+{
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    if (event->type() == QEvent::WindowStateChange && !m_useNativeWindowFrame) {
+        if (isMaximized())
+            setMargins(QMargins());
+        else
+            setMargins(QMargins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin));
+    }
+#endif
+    MainWindowBase::changeEvent(event);
+}
+
+/*!
  * \brief MainWindow::setVisibilityOfFrameRightNonEditor
  * Either show or hide all widgets which are not m_textEdit
  */

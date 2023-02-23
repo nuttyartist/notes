@@ -115,6 +115,7 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
     void mouseDoubleClickEvent(QMouseEvent *event) override;
     void leaveEvent(QEvent *) override;
+    void changeEvent(QEvent *event) override;
     bool eventFilter(QObject *object, QEvent *event) override;
 
 private:
