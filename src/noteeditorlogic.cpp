@@ -20,6 +20,7 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLab
                                  DBManager *dbManager, QObject *parent)
     : QObject(parent),
       m_textEdit{ textEdit },
+      m_highlighter{ new CustomMarkdownHighlighter{ m_textEdit->document() } },
       m_editorDateLabel{ editorDateLabel },
       m_searchEdit{ searchEdit },
       m_tagListView{ tagListView },
@@ -29,7 +30,6 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLab
       m_currentAdaptableEditorPadding{ 0 },
       m_currentMinimumEditorPadding{ 0 }
 {
-    m_highlighter = new CustomMarkdownHighlighter(m_textEdit->document());
     connect(m_textEdit, &QTextEdit::textChanged, this, &NoteEditorLogic::onTextEditTextChanged);
     connect(this, &NoteEditorLogic::requestCreateUpdateNote, m_dbManager,
             &DBManager::onCreateUpdateRequestedNoteContent, Qt::QueuedConnection);
@@ -55,21 +55,12 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLab
 
 bool NoteEditorLogic::markdownEnabled() const
 {
-    return m_highlighter;
+    return m_highlighter->document() != nullptr;
 }
 
-void NoteEditorLogic::setMarkdownEnabled(bool newMarkdownEnabled)
+void NoteEditorLogic::setMarkdownEnabled(bool enabled)
 {
-    if (markdownEnabled()) {
-        delete m_highlighter;
-        m_highlighter = nullptr;
-    }
-    if (newMarkdownEnabled) {
-        m_highlighter = new CustomMarkdownHighlighter(m_textEdit->document());
-    } else {
-        delete m_highlighter;
-        m_highlighter = nullptr;
-    }
+    m_highlighter->setDocument(enabled ? m_textEdit->document() : nullptr);
 }
 
 void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)

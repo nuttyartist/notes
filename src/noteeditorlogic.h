@@ -25,7 +25,7 @@ public:
                              DBManager *dbManager, QObject *parent = nullptr);
 
     bool markdownEnabled() const;
-    void setMarkdownEnabled(bool newMarkdownEnabled);
+    void setMarkdownEnabled(bool enabled);
     static QString getNoteDateEditor(const QString &dateEdited);
     void highlightSearch() const;
     bool isTempNote() const;
