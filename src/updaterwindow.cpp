@@ -20,7 +20,7 @@
 
 #include <QSimpleUpdater.h>
 
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
 #  define UseXdgOpen
 #else
 #  ifdef UseXdgOpen

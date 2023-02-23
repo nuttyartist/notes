@@ -631,7 +631,7 @@ void NoteListView::setupSignalsSlots()
  */
 void NoteListView::setupStyleSheet()
 {
-#if defined(Q_OS_LINUX) || defined(Q_OS_WINDOWS) || defined(Q_OS_WIN)
+#if !defined(Q_OS_MACOS)
     QString ss =
             QString("QListView {background-color: %1;} "
                     "QScrollBar::handle:vertical:hover { background: rgba(40, 40, 40, 0.5); }"

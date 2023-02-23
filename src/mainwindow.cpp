@@ -2065,7 +2065,7 @@ void MainWindow::selectNoteUp()
  */
 void MainWindow::fullscreenWindow()
 {
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
     if (isFullScreen()) {
         if (!isMaximized()) {
             m_noteListWidth =
@@ -2157,7 +2157,7 @@ void MainWindow::applyFormat(const QString &formatChars)
  */
 void MainWindow::maximizeWindow()
 {
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
     if (isMaximized()) {
         if (!isFullScreen()) {
             m_noteListWidth =
@@ -2194,7 +2194,7 @@ void MainWindow::maximizeWindow()
  */
 void MainWindow::minimizeWindow()
 {
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
     QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
     setMargins(margins);
 #endif

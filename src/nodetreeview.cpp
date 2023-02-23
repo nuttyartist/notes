@@ -16,7 +16,7 @@ NodeTreeView::NodeTreeView(QWidget *parent)
       m_isLastSelectedFolder{ false }
 {
     setHeaderHidden(true);
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
     setStyleSheet(
             R"(QTreeView {)"
             R"(    border-style: none;)"
@@ -459,7 +459,7 @@ void NodeTreeView::setCurrentIndexNC(const QModelIndex &index)
 void NodeTreeView::setTheme(Theme theme)
 {
     m_theme = theme;
-#if defined(Q_OS_LINUX) || defined(Q_OS_WINDOWS) || defined(Q_OS_WIN) || defined(Q_OS_FREEBSD)
+#if !defined(Q_OS_MACOS)
     QString ss = QStringLiteral(
             R"(QTreeView {)"
             R"(    border-style: none;)"
