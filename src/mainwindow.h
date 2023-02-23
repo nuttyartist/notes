@@ -96,7 +96,7 @@ public:
     Q_ENUM(StretchSide)
 
     explicit MainWindow(QWidget *parent = Q_NULLPTR);
-    ~MainWindow() Q_DECL_OVERRIDE;
+    ~MainWindow() override;
 
     void setMainWindowVisibility(bool state);
 
@@ -107,15 +107,15 @@ public slots:
     void saveLastSelectedNote(const QSet<int> &notesId);
 
 protected:
-    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
-    void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
-    void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
-    void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseDoubleClickEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void leaveEvent(QEvent *) Q_DECL_OVERRIDE;
-    bool eventFilter(QObject *object, QEvent *event) Q_DECL_OVERRIDE;
+    void paintEvent(QPaintEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
+    void closeEvent(QCloseEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
+    void leaveEvent(QEvent *) override;
+    bool eventFilter(QObject *object, QEvent *event) override;
 
 private:
     Ui::MainWindow *ui;
