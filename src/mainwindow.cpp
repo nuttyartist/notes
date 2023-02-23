@@ -1623,11 +1623,7 @@ void MainWindow::onDotsButtonClicked()
 #endif
 
     connect(noteMarkdownVisibiltyAction, &QAction::triggered, m_noteEditorLogic, [this] {
-        if (m_noteEditorLogic->markdownEnabled()) {
-            m_noteEditorLogic->setMarkdownEnabled(false);
-        } else {
-            m_noteEditorLogic->setMarkdownEnabled(true);
-        }
+        m_noteEditorLogic->setMarkdownEnabled(!m_noteEditorLogic->markdownEnabled());
     });
 
 #if defined(UPDATE_CHECKER)
