@@ -55,7 +55,6 @@ MainWindow::MainWindow(QWidget *parent)
 #if !defined(Q_OS_MAC)
       m_restoreAction(new QAction(tr("&Hide Notes"), this)),
       m_quitAction(new QAction(tr("&Quit"), this)),
-      m_trayIconMenu(new QMenu(this)),
 #endif
       m_listView(Q_NULLPTR),
       m_listModel(Q_NULLPTR),
@@ -448,17 +447,15 @@ void MainWindow::setupFonts()
 void MainWindow::setupTrayIcon()
 {
 #if !defined(Q_OS_MAC)
-    m_trayIconMenu->addAction(m_restoreAction);
-    m_trayIconMenu->addSeparator();
-    m_trayIconMenu->addAction(m_quitAction);
+    auto trayIconMenu = new QMenu(this);
+    trayIconMenu->addAction(m_restoreAction);
+    trayIconMenu->addSeparator();
+    trayIconMenu->addAction(m_quitAction);
+    m_trayIcon->setContextMenu(trayIconMenu);
 #endif
 
     QIcon icon(QStringLiteral(":images/notes_system_tray_icon.png"));
     m_trayIcon->setIcon(icon);
-
-#if !defined(Q_OS_MAC)
-    m_trayIcon->setContextMenu(m_trayIconMenu);
-#endif
     m_trayIcon->show();
 }
 
