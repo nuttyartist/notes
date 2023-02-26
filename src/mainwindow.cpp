@@ -71,8 +71,6 @@ MainWindow::MainWindow(QWidget *parent)
       m_trashCounter(0),
       m_layoutMargin(10),
       m_shadowWidth(10),
-      m_noteListWidth(185),
-      m_nodeTreeWidth(185),
       m_smallEditorWidth(420),
       m_largeEditorWidth(1250),
       m_canMoveWindow(false),
@@ -94,8 +92,6 @@ MainWindow::MainWindow(QWidget *parent)
       m_chosenSerifFontIndex(0),
       m_chosenSansSerifFontIndex(0),
       m_chosenMonoFontIndex(0),
-      m_isNoteListCollapsed(false),
-      m_isTreeCollapsed(false),
       m_currentCharsLimitPerFont({ 64, // Mono    TODO: is this the proper way to initialize?
                                    80, // Serif
                                    80 }), // SansSerif
@@ -355,6 +351,12 @@ void MainWindow::setupMainWindow()
     m_textEdit = ui->textEdit;
     m_editorDateLabel = ui->editorDateLabel;
     m_splitter = ui->splitter;
+    m_foldersWidget = ui->frameLeft;
+    m_noteListWidget = ui->frameMiddle;
+    // don't resize first two panes when resizing
+    m_splitter->setStretchFactor(0, 0);
+    m_splitter->setStretchFactor(1, 0);
+    m_splitter->setStretchFactor(2, 1);
 
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
     QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
@@ -489,7 +491,7 @@ void MainWindow::setupKeyboardShortcuts()
     new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_J), this, SLOT(toggleNoteList()));
     new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_S), this,
                   SLOT(onStyleEditorButtonClicked()));
-    new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_J), this, SLOT(toggleNodeTree()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_J), this, SLOT(toggleFolderTree()));
     new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_A), this, SLOT(selectAllNotesInList()));
     new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_QuoteLeft), this, SLOT(makeCode()));
     new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_B), this, SLOT(makeBold()));
@@ -759,7 +761,7 @@ void MainWindow::setupSignalsSlots()
                 ui->listviewLabel2->setText(l2);
                 m_splitter->setHandleWidth(0);
             });
-    connect(ui->toggleTreeViewButton, &QPushButton::pressed, this, &MainWindow::toggleNodeTree);
+    connect(ui->toggleTreeViewButton, &QPushButton::pressed, this, &MainWindow::toggleFolderTree);
     connect(m_dbManager, &DBManager::showErrorMessage, this, &MainWindow::showErrorMessage,
             Qt::QueuedConnection);
     connect(m_listViewLogic, &ListViewLogic::requestNewNote, this,
@@ -1282,14 +1284,11 @@ void MainWindow::restoreStates()
         m_splitter->restoreState(
                 m_settingsDatabase->value(QStringLiteral("splitterSizes")).toByteArray());
 
+    m_foldersWidget->setHidden(m_settingsDatabase->value(QStringLiteral("isTreeCollapsed")).toBool());
+    m_noteListWidget->setHidden(m_settingsDatabase->value(QStringLiteral("isNoteListCollapsed")).toBool());
+
     m_splitter->setCollapsible(0, false);
     m_splitter->setCollapsible(1, false);
-
-    m_nodeTreeWidth = m_splitter->sizes().at(0);
-    m_noteListWidth = m_splitter->sizes().at(1);
-
-    m_isTreeCollapsed = m_nodeTreeWidth == 0;
-    m_isNoteListCollapsed = m_noteListWidth == 0;
 
     QString selectedFontTypefaceFromDatabase =
             m_settingsDatabase->value(QStringLiteral("selectedFontTypeface"), "NULL").toString();
@@ -1593,7 +1592,7 @@ void MainWindow::onDotsButtonClicked()
 #endif
 
     // note list visiblity action
-    bool isNoteListCollapsed = (m_splitter->sizes().at(1) == 0);
+    bool isNoteListCollapsed = (m_noteListWidget->isHidden());
     QString actionLabel = isNoteListCollapsed ? tr("Show &notes list") : tr("Hide &notes list");
 
     QAction *noteListVisbilityAction = viewMenu->addAction(actionLabel);
@@ -1608,20 +1607,20 @@ void MainWindow::onDotsButtonClicked()
     }
 
     // folder tree view visiblity action
-    bool isFolderTreeCollapsed = (m_splitter->sizes().at(0) == 0);
+    bool isFolderTreeCollapsed = (m_foldersWidget->isHidden());
     QString factionLabel =
             isFolderTreeCollapsed ? tr("Show &folders tree") : tr("Hide &folders tree");
 
-    QAction *folderTreeVisbilityAction = viewMenu->addAction(factionLabel);
-    folderTreeVisbilityAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_J));
+    QAction *folderTreeVisibilityAction = viewMenu->addAction(factionLabel);
+    folderTreeVisibilityAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_J));
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
-    folderTreeVisbilityAction->setShortcutVisibleInContextMenu(true);
+    folderTreeVisibilityAction->setShortcutVisibleInContextMenu(true);
 #endif
     if (isFolderTreeCollapsed) {
-        connect(folderTreeVisbilityAction, &QAction::triggered, this, &MainWindow::expandNodeTree);
+        connect(folderTreeVisibilityAction, &QAction::triggered, this, &MainWindow::expandFolderTree);
     } else {
-        connect(folderTreeVisbilityAction, &QAction::triggered, this,
-                &MainWindow::collapseNodeTree);
+        connect(folderTreeVisibilityAction, &QAction::triggered, this,
+                &MainWindow::collapseFolderTree);
     }
 
     // Enable or Disable markdown
@@ -2077,8 +2076,6 @@ void MainWindow::fullscreenWindow()
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
     if (isFullScreen()) {
         if (!isMaximized()) {
-            m_noteListWidth =
-                    m_splitter->sizes().at(1) != 0 ? m_splitter->sizes().at(1) : m_noteListWidth;
             QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
             setMargins(margins);
         }
@@ -2169,8 +2166,6 @@ void MainWindow::maximizeWindow()
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
     if (isMaximized()) {
         if (!isFullScreen()) {
-            m_noteListWidth =
-                    m_splitter->sizes().at(1) != 0 ? m_splitter->sizes().at(1) : m_noteListWidth;
             QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
 
             setMargins(margins);
@@ -2233,6 +2228,9 @@ void MainWindow::QuitApplication()
     m_settingsDatabase->setValue(QStringLiteral("dontShowUpdateWindow"), m_dontShowUpdateWindow);
 #endif
     m_settingsDatabase->setValue(QStringLiteral("splitterSizes"), m_splitter->saveState());
+
+    m_settingsDatabase->setValue(QStringLiteral("isTreeCollapsed"), m_foldersWidget->isHidden());
+    m_settingsDatabase->setValue(QStringLiteral("isNoteListCollapsed"), m_noteListWidget->isHidden());
 
     QString currentFontTypefaceString;
     switch (m_currentFontTypeface) {
@@ -2387,54 +2385,45 @@ void MainWindow::exportNotesFile()
     }
 }
 
-/*!
- * \brief MainWindow::toggleNoteList
- */
+void MainWindow::toggleFolderTree()
+{
+    if (m_foldersWidget->isHidden()) {
+        expandFolderTree();
+    } else {
+        collapseFolderTree();
+    }
+}
+
+void MainWindow::collapseFolderTree()
+{
+    m_foldersWidget->setHidden(true);
+    updateFrame();
+}
+
+void MainWindow::expandFolderTree()
+{
+    m_foldersWidget->setHidden(false);
+    updateFrame();
+}
+
 void MainWindow::toggleNoteList()
 {
-    if (m_isNoteListCollapsed) {
+    if (m_noteListWidget->isHidden()) {
         expandNoteList();
     } else {
         collapseNoteList();
     }
 }
 
-void MainWindow::collapseNodeTree()
-{
-    m_isTreeCollapsed = true;
-    updateFrame();
-}
-
-void MainWindow::expandNodeTree()
-{
-    m_isTreeCollapsed = false;
-    updateFrame();
-}
-
-void MainWindow::toggleNodeTree()
-{
-    if (m_isTreeCollapsed) {
-        expandNodeTree();
-    } else {
-        collapseNodeTree();
-    }
-}
-
-/*!
- * \brief MainWindow::collapseNoteList
- */
 void MainWindow::collapseNoteList()
 {
-    m_isNoteListCollapsed = true;
+    m_noteListWidget->setHidden(true);
     updateFrame();
 }
 
-/*!
- * \brief MainWindow::expandNoteList
- */
 void MainWindow::expandNoteList()
 {
-    m_isNoteListCollapsed = false;
+    m_noteListWidget->setHidden(false);
     updateFrame();
 }
 
@@ -2597,10 +2586,6 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 #  ifndef __APPLE__
         } else {
             m_canStretchWindow = true;
-
-            int currentWidth = m_splitter->sizes().at(1);
-            if (currentWidth != 0)
-                m_noteListWidth = currentWidth;
 
             if ((m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin)
                 && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)) {
@@ -2946,25 +2931,7 @@ void MainWindow::selectAllNotesInList()
 
 void MainWindow::updateFrame()
 {
-    int minWidth = ui->frameMiddle->minimumWidth();
-    int noteListWidth = m_isNoteListCollapsed ? 0
-            : m_noteListWidth < minWidth      ? minWidth
-                                              : m_noteListWidth;
-    minWidth = ui->frameLeft->minimumWidth();
-    int nodeTreeWidth = m_isTreeCollapsed ? 0
-            : m_nodeTreeWidth < minWidth  ? minWidth
-                                          : m_nodeTreeWidth;
-    QList<int> sizes = m_splitter->sizes();
-    sizes[0] = nodeTreeWidth;
-    sizes[1] = noteListWidth;
-    sizes[2] = (m_splitter->width() + 2 * m_layoutMargin) - noteListWidth - nodeTreeWidth;
-    m_splitter->setCollapsible(1, true);
-    m_splitter->setCollapsible(0, true);
-    m_splitter->setSizes(sizes);
-    m_splitter->setCollapsible(1, false);
-    m_splitter->setCollapsible(0, false);
-
-    if (m_isNoteListCollapsed && m_isTreeCollapsed) {
+    if (m_foldersWidget->isHidden() && m_noteListWidget->isHidden()) {
         setWindowButtonsVisible(false);
     } else {
         setWindowButtonsVisible(true);
@@ -3260,7 +3227,7 @@ void MainWindow::setVisibilityOfFrameRightNonEditor(bool isVisible)
 
     // If the notes list is collapsed, hide the window buttons
     if (m_splitter) {
-        if (m_isNoteListCollapsed && m_isTreeCollapsed) {
+        if (m_foldersWidget->isHidden() && m_noteListWidget->isHidden()) {
             setWindowButtonsVisible(isVisible);
         }
     }
