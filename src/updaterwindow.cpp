@@ -9,7 +9,6 @@
 
 #include <math.h>
 
-#include <QDir>
 #include <QTimer>
 #include <QMessageBox>
 #include <QMouseEvent>
@@ -40,16 +39,11 @@ static const QString
         UPDATES_URL("https://raw.githubusercontent.com/nuttyartist/notes/master/UPDATES.json");
 
 /**
- * Download dir
- */
-static const QDir DOWNLOAD_DIR(QDir::homePath() + "/Downloads/");
-
-/**
  * Initializes the window components and configures the QSimpleUpdater
  */
 UpdaterWindow::UpdaterWindow(QWidget *parent)
     : QDialog(parent),
-      m_fileName(""),
+      m_downloadDir(QDir::homePath() + "/Downloads/"),
       m_ui(new Ui::UpdaterWindow),
       m_canMoveWindow(false),
       m_checkingForUpdates(false),
@@ -301,16 +295,16 @@ void UpdaterWindow::startDownload(const QUrl &url)
     m_fileName = m_updater->getDownloadUrl(UPDATES_URL).split("/").last();
     if (m_fileName.isEmpty()) {
         m_fileName = QString("%1_Update_%2.bin")
-                             .arg(qApp->applicationName())
-                             .arg(m_updater->getLatestVersion(UPDATES_URL));
+                             .arg(QCoreApplication::applicationName(),
+                                  m_updater->getLatestVersion(UPDATES_URL));
     }
 
     /* Prepare download directory */
-    if (!DOWNLOAD_DIR.exists())
-        DOWNLOAD_DIR.mkpath(".");
+    if (!m_downloadDir.exists())
+        m_downloadDir.mkpath(".");
 
     /* Remove previous downloads(if any)*/
-    QFile::remove(DOWNLOAD_DIR.filePath(m_fileName));
+    QFile::remove(m_downloadDir.filePath(m_fileName));
 
     /* Show UI controls */
     m_ui->progressControls->show();
@@ -387,11 +381,11 @@ void UpdaterWindow::onCheckFinished(const QString &url)
 void UpdaterWindow::onXdgOpenFinished(const int exitCode)
 {
 #ifdef UseXdgOpen
-    if (exitCode != 0 && XDGOPEN_PROCESS.arguments().count() > 0) {
-        QString path = XDGOPEN_PROCESS.arguments().first();
-        openDownloadFolder(path);
+    const auto arguments = XDGOPEN_PROCESS.arguments();
+    if (exitCode != 0 && !arguments.isEmpty()) {
+        openDownloadFolder(arguments.first());
     } else {
-        qApp->quit();
+        QCoreApplication::quit();
     }
 #else
     Q_UNUSED(exitCode);
@@ -478,7 +472,7 @@ void UpdaterWindow::updateProgress(qint64 received, qint64 total)
         m_ui->progressBar->setMaximum(0);
         m_ui->progressBar->setValue(-1);
         m_ui->downloadLabel->setText(tr("Downloading Updates") + "...");
-        m_ui->timeLabel->setText(QString("%1: %2").arg(tr("Time Remaining")).arg(tr("unknown")));
+        m_ui->timeLabel->setText(QStringLiteral("%1: %2").arg(tr("Time Remaining"), tr("unknown")));
     }
 }
 
@@ -536,8 +530,7 @@ void UpdaterWindow::onDownloadFinished()
             m_reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
 
     if (redirectedUrl.isEmpty()) {
-
-        QString filePath = DOWNLOAD_DIR.filePath(m_fileName);
+        const QString filePath = m_downloadDir.filePath(m_fileName);
         QFile file(filePath);
         if (file.open(QIODevice::WriteOnly | QIODevice::Append)) {
             file.write(m_reply->readAll());
