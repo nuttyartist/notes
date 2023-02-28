@@ -6,7 +6,6 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "notelistdelegate.h"
 #include "qxtglobalshortcut.h"
 #include "treeviewlogic.h"
 #include "listviewlogic.h"
