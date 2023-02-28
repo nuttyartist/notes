@@ -21,7 +21,7 @@ class NodeTreeView : public QTreeView
 {
     Q_OBJECT
 public:
-    explicit NodeTreeView(QWidget *parent = Q_NULLPTR);
+    explicit NodeTreeView(QWidget *parent = nullptr);
 
     void setTreeSeparator(const QVector<QModelIndex> &newTreeSeparator,
                           const QModelIndex &defaultNotesIndex);

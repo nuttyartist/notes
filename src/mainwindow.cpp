@@ -36,34 +36,34 @@
 MainWindow::MainWindow(QWidget *parent)
     : MainWindowBase(parent),
       ui(new Ui::MainWindow),
-      m_settingsDatabase(Q_NULLPTR),
-      m_clearButton(Q_NULLPTR),
-      m_greenMaximizeButton(Q_NULLPTR),
-      m_redCloseButton(Q_NULLPTR),
-      m_yellowMinimizeButton(Q_NULLPTR),
-      m_trafficLightLayout(Q_NULLPTR),
-      m_newNoteButton(Q_NULLPTR),
-      m_trashButton(Q_NULLPTR),
-      m_dotsButton(Q_NULLPTR),
-      m_styleEditorButton(Q_NULLPTR),
-      m_textEdit(Q_NULLPTR),
-      m_searchEdit(Q_NULLPTR),
-      m_editorDateLabel(Q_NULLPTR),
-      m_splitter(Q_NULLPTR),
+      m_settingsDatabase(nullptr),
+      m_clearButton(nullptr),
+      m_greenMaximizeButton(nullptr),
+      m_redCloseButton(nullptr),
+      m_yellowMinimizeButton(nullptr),
+      m_trafficLightLayout(nullptr),
+      m_newNoteButton(nullptr),
+      m_trashButton(nullptr),
+      m_dotsButton(nullptr),
+      m_styleEditorButton(nullptr),
+      m_textEdit(nullptr),
+      m_searchEdit(nullptr),
+      m_editorDateLabel(nullptr),
+      m_splitter(nullptr),
       m_trayIcon(new QSystemTrayIcon(this)),
 #if !defined(Q_OS_MAC)
       m_restoreAction(new QAction(tr("&Hide Notes"), this)),
       m_quitAction(new QAction(tr("&Quit"), this)),
 #endif
-      m_listView(Q_NULLPTR),
-      m_listModel(Q_NULLPTR),
-      m_listViewLogic(Q_NULLPTR),
-      m_treeView(Q_NULLPTR),
+      m_listView(nullptr),
+      m_listModel(nullptr),
+      m_listViewLogic(nullptr),
+      m_treeView(nullptr),
       m_treeModel(new NodeTreeModel(this)),
-      m_treeViewLogic(Q_NULLPTR),
-      m_tagPool(Q_NULLPTR),
-      m_dbManager(Q_NULLPTR),
-      m_dbThread(Q_NULLPTR),
+      m_treeViewLogic(nullptr),
+      m_tagPool(nullptr),
+      m_dbManager(nullptr),
+      m_dbThread(nullptr),
       m_styleEditorWindow(this),
       m_aboutWindow(this),
       m_trashCounter(0),
@@ -149,7 +149,7 @@ void MainWindow::InitData()
     if (isV0_9_0) {
         QProgressDialog *pd =
                 new QProgressDialog(tr("Migrating database, please wait."), QString(), 0, 0, this);
-        pd->setCancelButton(Q_NULLPTR);
+        pd->setCancelButton(nullptr);
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
         pd->setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::FramelessWindowHint);
 #else
@@ -278,7 +278,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
  */
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
-    if (m_splitter != Q_NULLPTR) {
+    if (m_splitter) {
         // restore note list width
         updateFrame();
     }

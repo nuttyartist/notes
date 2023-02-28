@@ -24,7 +24,7 @@ public:
         NoteIsPinned,
     };
 
-    explicit NoteListModel(QObject *parent = Q_NULLPTR);
+    explicit NoteListModel(QObject *parent = nullptr);
     ~NoteListModel();
 
     QModelIndex addNote(const NodeData &note);

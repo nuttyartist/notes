@@ -49,7 +49,7 @@ UpdaterWindow::UpdaterWindow(QWidget *parent)
       m_checkingForUpdates(false),
       m_dontShowUpdateWindow(false),
       m_forced(false),
-      m_reply(Q_NULLPTR),
+      m_reply(nullptr),
       m_updater(QSimpleUpdater::getInstance()),
       m_manager(new QNetworkAccessManager(this))
 {

@@ -84,9 +84,8 @@ NoteListView::~NoteListView()
 void NoteListView::animateAddedRow(const QModelIndexList &indexes)
 {
     NoteListDelegate *delegate = dynamic_cast<NoteListDelegate *>(itemDelegate());
-    if (delegate != Q_NULLPTR) {
+    if (delegate)
         delegate->setState(NoteListState::Insert, indexes);
-    }
 }
 
 bool NoteListView::isPinnedNotesCollapsed() const
@@ -349,7 +348,7 @@ void NoteListView::mouseReleaseEvent(QMouseEvent *e)
 
 bool NoteListView::viewportEvent(QEvent *e)
 {
-    if (model() != Q_NULLPTR) {
+    if (model()) {
         switch (e->type()) {
         case QEvent::Leave: {
             QPoint pt = mapFromGlobal(QCursor::pos());
@@ -357,7 +356,7 @@ bool NoteListView::viewportEvent(QEvent *e)
             if (index.row() > 0) {
                 index = model()->index(index.row() - 1, 0);
                 NoteListDelegate *delegate = dynamic_cast<NoteListDelegate *>(itemDelegate());
-                if (delegate != Q_NULLPTR) {
+                if (delegate) {
                     delegate->setHoveredIndex(QModelIndex());
                     viewport()->update(visualRect(index));
                 }
@@ -544,7 +543,7 @@ void NoteListView::startDrag(Qt::DropActions supportedActions)
 void NoteListView::setCurrentRowActive(bool isActive)
 {
     NoteListDelegate *delegate = dynamic_cast<NoteListDelegate *>(itemDelegate());
-    if (delegate == Q_NULLPTR)
+    if (!delegate)
         return;
 
     delegate->setActive(isActive);
@@ -562,7 +561,7 @@ void NoteListView::setupSignalsSlots()
     // current selectected row changed
     connect(selectionModel(), &QItemSelectionModel::currentRowChanged, this,
             [this](const QModelIndex &current, const QModelIndex &previous) {
-                if (model() != Q_NULLPTR) {
+                if (model()) {
                     if (current.row() < previous.row()) {
                         if (current.row() > 0) {
                             QModelIndex prevIndex = model()->index(current.row() - 1, 0);
@@ -579,7 +578,7 @@ void NoteListView::setupSignalsSlots()
 
     // row was entered
     connect(this, &NoteListView::entered, this, [this](const QModelIndex &index) {
-        if (model() != Q_NULLPTR) {
+        if (model()) {
             if (index.row() > 1) {
                 QModelIndex prevPrevIndex = model()->index(index.row() - 2, 0);
                 viewport()->update(visualRect(prevPrevIndex));
@@ -593,16 +592,16 @@ void NoteListView::setupSignalsSlots()
             }
 
             NoteListDelegate *delegate = dynamic_cast<NoteListDelegate *>(itemDelegate());
-            if (delegate != Q_NULLPTR)
+            if (delegate)
                 delegate->setHoveredIndex(index);
         }
     });
 
     // viewport was entered
     connect(this, &NoteListView::viewportEntered, this, [this]() {
-        if (model() != Q_NULLPTR && model()->rowCount() > 1) {
+        if (model() && model()->rowCount() > 1) {
             NoteListDelegate *delegate = dynamic_cast<NoteListDelegate *>(itemDelegate());
-            if (delegate != Q_NULLPTR)
+            if (delegate)
                 delegate->setHoveredIndex(QModelIndex());
 
             QModelIndex lastIndex = model()->index(model()->rowCount() - 2, 0);
@@ -615,7 +614,7 @@ void NoteListView::setupSignalsSlots()
         Q_UNUSED(min)
 
         NoteListDelegate *delegate = dynamic_cast<NoteListDelegate *>(itemDelegate());
-        if (delegate != Q_NULLPTR) {
+        if (delegate) {
             if (max > 0) {
                 delegate->setRowRightOffset(2);
             } else {

@@ -10,7 +10,7 @@ class NodeTreeDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
 public:
-    explicit NodeTreeDelegate(QTreeView *view, QObject *parent = Q_NULLPTR);
+    explicit NodeTreeDelegate(QTreeView *view, QObject *parent = nullptr);
     void setTheme(Theme theme);
 signals:
     void addFolderRequested();

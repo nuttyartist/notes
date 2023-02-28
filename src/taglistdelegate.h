@@ -8,7 +8,7 @@ class TagListDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
 public:
-    explicit TagListDelegate(QObject *parent = Q_NULLPTR);
+    explicit TagListDelegate(QObject *parent = nullptr);
 
     // QAbstractItemDelegate interface
 public:

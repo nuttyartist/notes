@@ -15,7 +15,7 @@ class NoteListView : public QListView
     Q_OBJECT
 
 public:
-    explicit NoteListView(QWidget *parent = Q_NULLPTR);
+    explicit NoteListView(QWidget *parent = nullptr);
     ~NoteListView();
 
     void animateAddedRow(const QModelIndexList &indexes);

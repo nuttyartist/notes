@@ -95,7 +95,7 @@ public:
     Q_ENUM(ShadowSide)
     Q_ENUM(StretchSide)
 
-    explicit MainWindow(QWidget *parent = Q_NULLPTR);
+    explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
 
     void setMainWindowVisibility(bool state);
