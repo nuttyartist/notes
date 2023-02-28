@@ -76,10 +76,10 @@ UpdaterWindow::UpdaterWindow(QWidget *parent)
     QFont fontToUse = QFont(QStringLiteral("Roboto"));
 #endif
 
-    this->setFont(fontToUse);
+    setFont(fontToUse);
     m_ui->changelog->setFont(fontToUse);
     m_ui->changelog->setTextColor(QColor(26, 26, 26));
-    foreach (QWidget *widgetChild, this->findChildren<QWidget *>()) {
+    foreach (QWidget *widgetChild, findChildren<QWidget *>()) {
         widgetChild->setFont(fontToUse);
     }
 

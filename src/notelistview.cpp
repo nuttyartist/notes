@@ -610,7 +610,7 @@ void NoteListView::setupSignalsSlots()
     });
 
     // remove/add offset right side
-    connect(this->verticalScrollBar(), &QScrollBar::rangeChanged, this, [this](int min, int max) {
+    connect(verticalScrollBar(), &QScrollBar::rangeChanged, this, [this](int min, int max) {
         Q_UNUSED(min)
 
         NoteListDelegate *delegate = dynamic_cast<NoteListDelegate *>(itemDelegate());

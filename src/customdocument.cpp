@@ -22,7 +22,7 @@ CustomDocument::CustomDocument(QWidget *parent) : QTextEdit(parent)
  */
 void CustomDocument::setDocumentPadding(int left, int top, int right, int bottom)
 {
-    this->setViewportMargins(left, top, right, bottom);
+    setViewportMargins(left, top, right, bottom);
 }
 
 void CustomDocument::resizeEvent(QResizeEvent *event)
@@ -38,9 +38,8 @@ bool CustomDocument::eventFilter(QObject *obj, QEvent *event)
     if (event->type() == QEvent::HoverMove) {
         auto *mouseEvent = static_cast<QMouseEvent *>(event);
 
-        QWidget *viewPort = this->viewport();
         // toggle cursor when control key has been pressed or released
-        viewPort->setCursor(mouseEvent->modifiers().testFlag(Qt::ControlModifier)
+        viewport()->setCursor(mouseEvent->modifiers().testFlag(Qt::ControlModifier)
                                     ? Qt::PointingHandCursor
                                     : Qt::IBeamCursor);
     } else if (event->type() == QEvent::KeyPress) {
@@ -48,22 +47,20 @@ bool CustomDocument::eventFilter(QObject *obj, QEvent *event)
 
         // set cursor to pointing hand if control key was pressed
         if (keyEvent->modifiers().testFlag(Qt::ControlModifier)) {
-            QWidget *viewPort = this->viewport();
-            viewPort->setCursor(Qt::PointingHandCursor);
+            viewport()->setCursor(Qt::PointingHandCursor);
         }
     } else if (event->type() == QEvent::MouseButtonRelease) {
 
         auto *mouseEvent = static_cast<QMouseEvent *>(event);
 
         // track `Ctrl + Click` in the text edit
-        if ((obj == this->viewport()) && (mouseEvent->button() == Qt::LeftButton)
+        if ((obj == viewport()) && (mouseEvent->button() == Qt::LeftButton)
             && (QGuiApplication::keyboardModifiers() == Qt::ExtraButton24)) {
             // open the link (if any) at the current position
             // in the noteTextEdit
 
             qDebug("Ctrl+Click");
-            QWidget *viewPort = viewport();
-            viewPort->setCursor(Qt::IBeamCursor);
+            viewport()->setCursor(Qt::IBeamCursor);
 
             openLinkAtCursorPosition();
 
@@ -121,7 +118,7 @@ QString CustomDocument::getMarkdownUrlAtPosition(const QString &text, int positi
  */
 bool CustomDocument::openLinkAtCursorPosition()
 {
-    QTextCursor cursor = this->textCursor();
+    QTextCursor cursor = textCursor();
     const int clickedPosition = cursor.position();
 
     // select the text in the clicked block and find out on

@@ -112,7 +112,7 @@ StyleEditorWindow::StyleEditorWindow(QWidget *parent)
 
 #endif
 
-    this->setFont(QFont(fontDisplayName));
+    setFont(QFont(fontDisplayName));
 
 #ifdef __APPLE__
     int fontDisplaySize = 13;

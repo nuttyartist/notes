@@ -314,7 +314,7 @@ void MainWindow::setupMainWindow()
 #endif
 
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
-    this->setAttribute(Qt::WA_TranslucentBackground);
+    setAttribute(Qt::WA_TranslucentBackground);
 #endif
 
     m_greenMaximizeButton = new QPushButton(this);
@@ -328,7 +328,7 @@ void MainWindow::setupMainWindow()
     m_trafficLightLayout.addWidget(m_yellowMinimizeButton);
     m_trafficLightLayout.addWidget(m_greenMaximizeButton);
 #else
-    this->setCloseBtnQuit(false);
+    setCloseBtnQuit(false);
     m_layoutMargin = 0;
     m_greenMaximizeButton->setVisible(false);
     m_redCloseButton->setVisible(false);
@@ -365,11 +365,11 @@ void MainWindow::setupMainWindow()
 #endif
     ui->frame->installEventFilter(this);
     ui->centralWidget->setMouseTracking(true);
-    this->setMouseTracking(true);
+    setMouseTracking(true);
     QPalette pal(palette());
     pal.setColor(QPalette::Window, QColor(248, 248, 248));
-    this->setAutoFillBackground(true);
-    this->setPalette(pal);
+    setAutoFillBackground(true);
+    setPalette(pal);
 
     m_newNoteButton->setToolTip(tr("Create New Note"));
     m_trashButton->setToolTip(tr("Delete Selected Note"));
@@ -529,9 +529,9 @@ void MainWindow::setupKeyboardShortcuts()
         if (isHidden() || windowState() == Qt::WindowMinimized
             || qApp->applicationState() == Qt::ApplicationInactive)
 #ifdef __APPLE__
-            this->raise();
+            raise();
 #else
-            this->activateWindow();
+            activateWindow();
 #endif
         m_textEdit->setDisabled(false);
         m_searchEdit->setDisabled(false);
@@ -1251,8 +1251,7 @@ void MainWindow::restoreStates()
     }
 
     if (m_settingsDatabase->value(QStringLiteral("windowGeometry"), "NULL") != "NULL")
-        this->restoreGeometry(
-                m_settingsDatabase->value(QStringLiteral("windowGeometry")).toByteArray());
+        restoreGeometry(m_settingsDatabase->value(QStringLiteral("windowGeometry")).toByteArray());
 
     if (m_settingsDatabase->value(QStringLiteral("editorSettingsWindowGeometry"), "NULL") != "NULL")
         m_styleEditorWindow.restoreGeometry(
@@ -1513,7 +1512,7 @@ void MainWindow::onNewNoteButtonClicked()
     if (!m_searchEdit->text().isEmpty()) {
         m_listViewLogic->clearSearch(true);
     } else {
-        this->createNewNote();
+        createNewNote();
     }
 }
 
@@ -1883,7 +1882,7 @@ void MainWindow::setTheme(Theme theme)
         m_currentEditorTextColor = QColor(26, 26, 26);
         m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
-        this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(247, 247, 247);}"));
+        setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(247, 247, 247);}"));
         ui->verticalSpacer_upSearchEdit->setStyleSheet(
                 QStringLiteral("QWidget{ background-color: %1;}")
                         .arg(m_currentThemeBackgroundColor.name()));
@@ -1909,7 +1908,7 @@ void MainWindow::setTheme(Theme theme)
         m_currentEditorTextColor = QColor(204, 204, 204);
         m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
-        this->setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(26, 26, 26); }"));
+        setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(26, 26, 26); }"));
         ui->verticalSpacer_upSearchEdit->setStyleSheet(
                 QStringLiteral("QWidget{ background-color: %1;}")
                         .arg(m_currentThemeBackgroundColor.name()));
@@ -1935,7 +1934,7 @@ void MainWindow::setTheme(Theme theme)
         m_currentEditorTextColor = QColor(95, 74, 50);
         m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
-        this->setStyleSheet(
+        setStyleSheet(
                 QStringLiteral("QMainWindow { background-color: rgb(251, 240, 217); }"));
         ui->verticalSpacer_upSearchEdit->setStyleSheet(
                 QStringLiteral("QWidget{ background-color: %1;}")
@@ -2432,11 +2431,10 @@ void MainWindow::onGreenMaximizeButtonPressed()
 #ifdef _WIN32
     m_greenMaximizeButton->setIcon(QIcon(":images/windows_minimize_pressed.png"));
 #else
-    if (this->windowState() == Qt::WindowFullScreen) {
+    if (windowState() == Qt::WindowFullScreen)
         m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/greenInPressed.png")));
-    } else {
+    else
         m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/greenPressed.png")));
-    }
 #endif
 }
 
@@ -2447,7 +2445,7 @@ void MainWindow::onGreenMaximizeButtonPressed()
 void MainWindow::onYellowMinimizeButtonPressed()
 {
 #ifdef _WIN32
-    if (this->windowState() == Qt::WindowFullScreen) {
+    if (windowState() == Qt::WindowFullScreen) {
         m_yellowMinimizeButton->setIcon(
                 QIcon(QStringLiteral(":images/windows_de-maximize_pressed.png")));
     } else {
@@ -2569,8 +2567,8 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     m_mousePressY = event->pos().y();
 
     if (event->buttons() == Qt::LeftButton) {
-        if (m_mousePressX < this->width() - m_layoutMargin && m_mousePressX > m_layoutMargin
-            && m_mousePressY < this->height() - m_layoutMargin && m_mousePressY > m_layoutMargin) {
+        if (m_mousePressX < width() - m_layoutMargin && m_mousePressX > m_layoutMargin
+            && m_mousePressY < height() - m_layoutMargin && m_mousePressY > m_layoutMargin) {
 
 #  if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
             m_canMoveWindow = !window()->windowHandle()->startSystemMove();
@@ -2583,28 +2581,28 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         } else {
             m_canStretchWindow = true;
 
-            if ((m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin)
+            if ((m_mousePressX < width() && m_mousePressX > width() - m_layoutMargin)
                 && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)) {
                 m_stretchSide = StretchSide::TopRight;
-            } else if ((m_mousePressX < this->width()
-                        && m_mousePressX > this->width() - m_layoutMargin)
-                       && (m_mousePressY < this->height()
-                           && m_mousePressY > this->height() - m_layoutMargin)) {
+            } else if ((m_mousePressX < width()
+                        && m_mousePressX > width() - m_layoutMargin)
+                       && (m_mousePressY < height()
+                           && m_mousePressY > height() - m_layoutMargin)) {
                 m_stretchSide = StretchSide::BottomRight;
             } else if ((m_mousePressX < m_layoutMargin && m_mousePressX > 0)
                        && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)) {
                 m_stretchSide = StretchSide::TopLeft;
             } else if ((m_mousePressX < m_layoutMargin && m_mousePressX > 0)
-                       && (m_mousePressY < this->height()
-                           && m_mousePressY > this->height() - m_layoutMargin)) {
+                       && (m_mousePressY < height()
+                           && m_mousePressY > height() - m_layoutMargin)) {
                 m_stretchSide = StretchSide::BottomLeft;
-            } else if (m_mousePressX < this->width()
-                       && m_mousePressX > this->width() - m_layoutMargin) {
+            } else if (m_mousePressX < width()
+                       && m_mousePressX > width() - m_layoutMargin) {
                 m_stretchSide = StretchSide::Right;
             } else if (m_mousePressX < m_layoutMargin && m_mousePressX > 0) {
                 m_stretchSide = StretchSide::Left;
-            } else if (m_mousePressY < this->height()
-                       && m_mousePressY > this->height() - m_layoutMargin) {
+            } else if (m_mousePressY < height()
+                       && m_mousePressY > height() - m_layoutMargin) {
                 m_stretchSide = StretchSide::Bottom;
             } else if (m_mousePressY < m_layoutMargin && m_mousePressY > 0) {
                 m_stretchSide = StretchSide::Top;
@@ -2638,27 +2636,27 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
         m_mousePressX = event->pos().x();
         m_mousePressY = event->pos().y();
 
-        if ((m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin)
+        if ((m_mousePressX < width() && m_mousePressX > width() - m_layoutMargin)
             && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)) {
             m_stretchSide = StretchSide::TopRight;
-        } else if ((m_mousePressX < this->width() && m_mousePressX > this->width() - m_layoutMargin)
-                   && (m_mousePressY < this->height()
-                       && m_mousePressY > this->height() - m_layoutMargin)) {
+        } else if ((m_mousePressX < width() && m_mousePressX > width() - m_layoutMargin)
+                   && (m_mousePressY < height()
+                       && m_mousePressY > height() - m_layoutMargin)) {
             m_stretchSide = StretchSide::BottomRight;
         } else if ((m_mousePressX < m_layoutMargin && m_mousePressX > 0)
                    && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)) {
             m_stretchSide = StretchSide::TopLeft;
         } else if ((m_mousePressX < m_layoutMargin && m_mousePressX > 0)
-                   && (m_mousePressY < this->height()
-                       && m_mousePressY > this->height() - m_layoutMargin)) {
+                   && (m_mousePressY < height()
+                       && m_mousePressY > height() - m_layoutMargin)) {
             m_stretchSide = StretchSide::BottomLeft;
-        } else if (m_mousePressX < this->width()
-                   && m_mousePressX > this->width() - m_layoutMargin) {
+        } else if (m_mousePressX < width()
+                   && m_mousePressX > width() - m_layoutMargin) {
             m_stretchSide = StretchSide::Right;
         } else if (m_mousePressX < m_layoutMargin && m_mousePressX > 0) {
             m_stretchSide = StretchSide::Left;
-        } else if (m_mousePressY < this->height()
-                   && m_mousePressY > this->height() - m_layoutMargin) {
+        } else if (m_mousePressY < height()
+                   && m_mousePressY > height() - m_layoutMargin) {
             m_stretchSide = StretchSide::Bottom;
         } else if (m_mousePressY < m_layoutMargin && m_mousePressY > 0) {
             m_stretchSide = StretchSide::Top;
@@ -2710,7 +2708,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 
         switch (m_stretchSide) {
         case StretchSide::Right:
-            newWidth = abs(event->globalPos().x() - this->x() + 1);
+            newWidth = abs(event->globalPos().x() - x() + 1);
             newWidth = newWidth < minimumWidth() ? minimumWidth() : newWidth;
             break;
         case StretchSide::Left:
@@ -2834,8 +2832,8 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     }
 
     if (event->button() == Qt::LeftButton) {
-        if (event->pos().x() < this->width() - 5 && event->pos().x() > 5
-            && event->pos().y() < this->height() - 5 && event->pos().y() > 5) {
+        if (event->pos().x() < width() - 5 && event->pos().x() > 5
+            && event->pos().y() < height() - 5 && event->pos().y() > 5) {
 
 #  if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
             m_canMoveWindow = !window()->windowHandle()->startSystemMove();
@@ -2863,7 +2861,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
     }
 
     if (m_canMoveWindow) {
-        //        this->setCursor(Qt::ClosedHandCursor);
+        //        setCursor(Qt::ClosedHandCursor);
         int dx = event->globalPos().x() - m_mousePressX;
         int dy = event->globalY() - m_mousePressY;
         move(dx, dy);
@@ -2883,7 +2881,7 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event)
     }
 
     m_canMoveWindow = false;
-    //    this->unsetCursor();
+    //    unsetCursor();
     event->accept();
 }
 #endif
@@ -3170,7 +3168,7 @@ void MainWindow::mouseDoubleClickEvent(QMouseEvent *event)
 #ifndef __APPLE__
     maximizeWindow();
 #else
-    this->maximizeWindowMac();
+    maximizeWindowMac();
 #endif
     event->accept();
 }
@@ -3180,7 +3178,7 @@ void MainWindow::mouseDoubleClickEvent(QMouseEvent *event)
  */
 void MainWindow::leaveEvent(QEvent *)
 {
-    this->unsetCursor();
+    unsetCursor();
 }
 
 /*!
@@ -3252,7 +3250,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
             }
 
             if (object == m_yellowMinimizeButton) {
-                if (this->windowState() == Qt::WindowFullScreen) {
+                if (windowState() == Qt::WindowFullScreen) {
                     m_yellowMinimizeButton->setIcon(
                             QIcon(QStringLiteral(":images/windows_de-maximize_hovered.png")));
                 } else {
@@ -3273,7 +3271,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
 
                 m_redCloseButton->setIcon(QIcon(QStringLiteral(":images/redHovered.png")));
                 m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/yellowHovered.png")));
-                if (this->windowState() == Qt::WindowFullScreen) {
+                if (windowState() == Qt::WindowFullScreen) {
                     m_greenMaximizeButton->setIcon(
                             QIcon(QStringLiteral(":images/greenInHovered.png")));
                 } else {
@@ -3284,22 +3282,22 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
 #endif
 
             if (object == m_newNoteButton) {
-                this->setCursor(Qt::PointingHandCursor);
+                setCursor(Qt::PointingHandCursor);
                 m_newNoteButton->setIcon(QIcon(QStringLiteral(":/images/newNote_Hovered.png")));
             }
 
             if (object == m_trashButton) {
-                this->setCursor(Qt::PointingHandCursor);
+                setCursor(Qt::PointingHandCursor);
                 m_trashButton->setIcon(QIcon(QStringLiteral(":/images/trashCan_Hovered.png")));
             }
 
             if (object == m_dotsButton) {
-                this->setCursor(Qt::PointingHandCursor);
+                setCursor(Qt::PointingHandCursor);
                 m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Hovered.png")));
             }
 
             if (object == m_styleEditorButton) {
-                this->setCursor(Qt::PointingHandCursor);
+                setCursor(Qt::PointingHandCursor);
                 QString ss = QStringLiteral("QPushButton { "
                                             "  border: none; "
                                             "  padding: 0px; "
@@ -3331,7 +3329,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                 m_greenMaximizeButton->setIcon(
                         QIcon(QStringLiteral(":images/windows_minimize_regular.png")));
 
-                if (this->windowState() == Qt::WindowFullScreen) {
+                if (windowState() == Qt::WindowFullScreen) {
                     m_yellowMinimizeButton->setIcon(
                             QIcon(QStringLiteral(":images/windows_de-maximize_regular.png")));
                 } else {
@@ -3346,22 +3344,22 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
             }
 
             if (object == m_newNoteButton) {
-                this->unsetCursor();
+                unsetCursor();
                 m_newNoteButton->setIcon(QIcon(QStringLiteral(":/images/newNote_Regular.png")));
             }
 
             if (object == m_trashButton) {
-                this->unsetCursor();
+                unsetCursor();
                 m_trashButton->setIcon(QIcon(QStringLiteral(":/images/trashCan_Regular.png")));
             }
 
             if (object == m_dotsButton) {
-                this->unsetCursor();
+                unsetCursor();
                 m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Regular.png")));
             }
 
             if (object == m_styleEditorButton) {
-                this->unsetCursor();
+                unsetCursor();
                 QString ss = QStringLiteral("QPushButton { "
                                             "  border: none; "
                                             "  padding: 0px; "
@@ -3394,7 +3392,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         m_greenMaximizeButton->setIcon(
                 QIcon(QStringLiteral(":images/windows_minimize_regular.png")));
 
-        if (this->windowState() == Qt::WindowFullScreen) {
+        if (windowState() == Qt::WindowFullScreen) {
             m_yellowMinimizeButton->setIcon(
                     QIcon(QStringLiteral(":images/windows_de-maximize_regular.png")));
         } else {
@@ -3446,7 +3444,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                     if (!m_searchEdit->text().isEmpty()) {
                         m_listViewLogic->clearSearch(true);
                     } else {
-                        this->createNewNote();
+                        createNewNote();
                     }
                 }
             }
@@ -3583,7 +3581,7 @@ void MainWindow::stayOnTop(bool checked)
     setWindowFlags(flags);
     setMainWindowVisibility(true);
 #else
-    this->setWindowAlwaysOnTopMac(checked);
+    setWindowAlwaysOnTopMac(checked);
 #endif
 }
 
@@ -3721,7 +3719,7 @@ void MainWindow::setHideToTray(bool enabled)
  */
 void MainWindow::toggleStayOnTop()
 {
-    this->stayOnTop(!m_alwaysStayOnTop);
+    stayOnTop(!m_alwaysStayOnTop);
 }
 
 /*!
