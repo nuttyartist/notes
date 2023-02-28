@@ -3206,20 +3206,12 @@ void MainWindow::changeEvent(QEvent *event)
 void MainWindow::setVisibilityOfFrameRightNonEditor(bool isVisible)
 {
     m_isFrameRightTopWidgetsVisible = isVisible;
+    m_areNonEditorWidgetsVisible = isVisible;
 
-    if (isVisible) {
-        m_areNonEditorWidgetsVisible = true;
-        m_editorDateLabel->setVisible(true);
-        m_trashButton->setVisible(true);
-        m_dotsButton->setVisible(true);
-        m_styleEditorButton->setVisible(true);
-    } else {
-        m_areNonEditorWidgetsVisible = false;
-        m_editorDateLabel->setVisible(false);
-        m_trashButton->setVisible(false);
-        m_dotsButton->setVisible(false);
-        m_styleEditorButton->setVisible(false);
-    }
+    m_editorDateLabel->setVisible(isVisible);
+    m_trashButton->setVisible(isVisible);
+    m_dotsButton->setVisible(isVisible);
+    m_styleEditorButton->setVisible(isVisible);
 
     // If the notes list is collapsed, hide the window buttons
     if (m_splitter) {
