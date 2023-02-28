@@ -136,6 +136,8 @@ private:
     QLineEdit *m_searchEdit;
     QLabel *m_editorDateLabel;
     QSplitter *m_splitter;
+    QWidget *m_noteListWidget;
+    QWidget *m_foldersWidget;
     QSystemTrayIcon *m_trayIcon;
 #if !defined(Q_OS_MAC)
     QAction *m_restoreAction;
@@ -189,8 +191,6 @@ private:
     int m_chosenMonoFontIndex;
     int m_editorMediumFontSize;
     int m_currentFontPointSize;
-    bool m_isNoteListCollapsed;
-    bool m_isTreeCollapsed;
     struct m_charsLimitPerFont
     {
         int mono;
@@ -290,9 +290,9 @@ private slots:
     void collapseNoteList();
     void expandNoteList();
     void toggleNoteList();
-    void collapseNodeTree();
-    void expandNodeTree();
-    void toggleNodeTree();
+    void collapseFolderTree();
+    void expandFolderTree();
+    void toggleFolderTree();
     void importNotesFile();
     void exportNotesFile();
     void restoreNotesFile();
