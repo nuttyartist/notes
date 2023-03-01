@@ -8,6 +8,7 @@
 #define UPDATERWINDOW_H
 
 #include <QDialog>
+#include <QDir>
 
 namespace Ui {
 class UpdaterWindow;
@@ -59,6 +60,8 @@ private:
 
 private:
     QString m_fileName;
+    const QDir m_downloadDir;
+
     Ui::UpdaterWindow *m_ui;
 
     QPoint m_dragPosition;

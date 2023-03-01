@@ -33,7 +33,7 @@ class DBManager : public QObject
 {
     Q_OBJECT
 public:
-    explicit DBManager(QObject *parent = Q_NULLPTR);
+    explicit DBManager(QObject *parent = nullptr);
     Q_INVOKABLE NodePath getNodeAbsolutePath(int nodeId);
     Q_INVOKABLE NodeData getNode(int nodeId);
     Q_INVOKABLE void moveFolderToTrash(const NodeData &node);

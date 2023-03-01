@@ -11,9 +11,9 @@
 StyleEditorWindow::StyleEditorWindow(QWidget *parent)
     : QDialog(parent, Qt::Tool),
       m_ui(new Ui::StyleEditorWindow),
-      m_currentlyClickedButton(Q_NULLPTR),
-      m_currentSelectedFontButton(Q_NULLPTR),
-      m_currentSelectedThemeButton(Q_NULLPTR),
+      m_currentlyClickedButton(nullptr),
+      m_currentSelectedFontButton(nullptr),
+      m_currentSelectedThemeButton(nullptr),
       m_isFullWidthClicked(false)
 {
     m_ui->setupUi(this);
@@ -112,7 +112,7 @@ StyleEditorWindow::StyleEditorWindow(QWidget *parent)
 
 #endif
 
-    this->setFont(QFont(fontDisplayName));
+    setFont(QFont(fontDisplayName));
 
 #ifdef __APPLE__
     int fontDisplaySize = 13;
@@ -169,14 +169,14 @@ void StyleEditorWindow::buttonClicked(QPushButton *button)
 
     if (button == m_ui->serifButton || button == m_ui->sansSerifButton
         || button == m_ui->monoButton) {
-        if (m_currentSelectedFontButton != Q_NULLPTR) {
+        if (m_currentSelectedFontButton) {
             m_currentSelectedFontButton->setStyleSheet(getStyleSheetForButton(ButtonState::Normal));
         }
         m_currentSelectedFontButton = button;
     }
 
     if (button == m_ui->lightButton || button == m_ui->darkButton || button == m_ui->sepiaButton) {
-        if (m_currentSelectedThemeButton != Q_NULLPTR) {
+        if (m_currentSelectedThemeButton) {
             m_currentSelectedThemeButton->setStyleSheet(
                     getStyleSheetForButton(ButtonState::Normal));
         }

@@ -95,7 +95,7 @@ public:
     Q_ENUM(ShadowSide)
     Q_ENUM(StretchSide)
 
-    explicit MainWindow(QWidget *parent = Q_NULLPTR);
+    explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
 
     void setMainWindowVisibility(bool state);
@@ -142,7 +142,6 @@ private:
 #if !defined(Q_OS_MAC)
     QAction *m_restoreAction;
     QAction *m_quitAction;
-    QMenu *m_trayIconMenu;
 #endif
 
     NoteListView *m_listView;

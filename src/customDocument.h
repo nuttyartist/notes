@@ -9,7 +9,7 @@ class CustomDocument : public QTextEdit
 {
     Q_OBJECT
 public:
-    CustomDocument(QWidget *parent = Q_NULLPTR);
+    CustomDocument(QWidget *parent = nullptr);
     void setDocumentPadding(int left, int top, int right, int bottom);
     bool eventFilter(QObject *obj, QEvent *event);
     bool openLinkAtCursorPosition();

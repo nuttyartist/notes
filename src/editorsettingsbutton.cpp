@@ -18,10 +18,10 @@ void EditorSettingsButton::paintEvent(QPaintEvent *p)
 {
     QPushButton::paintEvent(p);
 
-    int rowPosX = this->rect().x();
-    int rowPosY = this->rect().y();
-    int rowWidth = this->rect().width();
-    int rowHeight = this->rect().height();
+    int rowPosX = 0;
+    int rowPosY = 0;
+    int rowWidth = width();
+    int rowHeight = height();
     int currentY = rowPosY;
 
     QPainter painter(this);

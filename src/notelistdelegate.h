@@ -15,7 +15,7 @@ class NoteListDelegate : public QStyledItemDelegate
     Q_OBJECT
 
 public:
-    NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject *parent = Q_NULLPTR);
+    NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject *parent = nullptr);
 
     void setState(NoteListState NewState, QModelIndexList indexes);
     void setAnimationDuration(const int duration);
