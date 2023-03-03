@@ -3497,17 +3497,6 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         }
 #endif
         break;
-    case QEvent::MouseButtonPress:
-    case QEvent::MouseButtonDblClick:
-        // Only allow double click (maximise/minimise) or dragging (move)
-        // from the top part of the window
-        if (object == ui->frame) {
-            QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
-            if (mouseEvent->pos().y() >= ui->searchEdit->y()) {
-                return true;
-            }
-        }
-        break;
     case QEvent::KeyPress: {
         auto *keyEvent = static_cast<QKeyEvent *>(event);
         if (keyEvent->key() == Qt::Key_Return && m_searchEdit->text().isEmpty()) {
