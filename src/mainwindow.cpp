@@ -3158,7 +3158,8 @@ double MainWindow::gaussianDist(double x, const double center, double sigma) con
  */
 void MainWindow::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    if (m_useNativeWindowFrame) {
+    if (m_useNativeWindowFrame || event->buttons() != Qt::LeftButton
+        || !isTitleBar(event->pos().x(), event->pos().y())) {
         MainWindowBase::mouseDoubleClickEvent(event);
         return;
     }
