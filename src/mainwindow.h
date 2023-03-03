@@ -314,6 +314,7 @@ private slots:
     void setNoteListLoading();
     void selectAllNotesInList();
     void updateFrame();
+    bool isTitleBar(int x, int y) const;
 
 signals:
     void requestNodesTree();

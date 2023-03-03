@@ -2568,14 +2568,12 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     m_mousePressY = event->pos().y();
 
     if (event->buttons() == Qt::LeftButton) {
-        if (m_mousePressX < width() - m_layoutMargin && m_mousePressX > m_layoutMargin
-            && m_mousePressY < height() - m_layoutMargin && m_mousePressY > m_layoutMargin) {
+        if (isTitleBar(m_mousePressX, m_mousePressY)) {
 
 #  if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
             m_canMoveWindow = !window()->windowHandle()->startSystemMove();
 #  else
             m_canMoveWindow = true;
-            //            QApplication::setOverrideCursor(QCursor(Qt::ClosedHandCursor));
 #  endif
 
 #  ifndef __APPLE__
@@ -2833,8 +2831,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     }
 
     if (event->button() == Qt::LeftButton) {
-        if (event->pos().x() < width() - 5 && event->pos().x() > 5
-            && event->pos().y() < height() - 5 && event->pos().y() > 5) {
+        if (isTitleBar(event->pos().x(), event->pos().y())) {
 
 #  if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
             m_canMoveWindow = !window()->windowHandle()->startSystemMove();
@@ -3751,4 +3748,26 @@ void MainWindow::setMargins(QMargins margins)
 
     ui->centralWidget->layout()->setContentsMargins(margins);
     m_trafficLightLayout.setGeometry(QRect(4 + margins.left(), 4 + margins.top(), 56, 16));
+}
+
+bool MainWindow::isTitleBar(int x, int y) const
+{
+    if (m_useNativeWindowFrame)
+        return false;
+
+    // The width of the title bar is essentially the width of the main window.
+    int titleBarWidth = width();
+    int titleBarHeight = ui->verticalSpacer_upTreeView->height();
+
+    int adjustedX = x;
+    int adjustedY = y;
+
+    if (!isMaximized() && !isFullScreen()) {
+        titleBarWidth -= m_layoutMargin * 2;
+        adjustedX -= m_layoutMargin;
+        adjustedY -= m_layoutMargin;
+    }
+
+    return (adjustedX >= 0 && adjustedX <= titleBarWidth && adjustedY >= 0
+            && adjustedY <= titleBarHeight);
 }
