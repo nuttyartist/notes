@@ -2579,7 +2579,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 #  endif
 
 #  ifndef __APPLE__
-        } else {
+        } else if (!isMaximized() && !isFullScreen()) {
             m_canStretchWindow = true;
 
             if ((m_mousePressX < width() && m_mousePressX > width() - m_layoutMargin)
@@ -2666,7 +2666,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
         }
     }
 
-    if (!m_canMoveWindow) {
+    if (!m_canMoveWindow && !isMaximized() && !isFullScreen()) {
         switch (m_stretchSide) {
         case StretchSide::Right:
         case StretchSide::Left:
