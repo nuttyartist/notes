@@ -9,6 +9,9 @@
 AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent), m_ui(new Ui::AboutWindow)
 {
     m_ui->setupUi(this);
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
+    setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+#endif
     setWindowTitle(tr("About") + " " + QCoreApplication::applicationName());
 
     m_ui->aboutText->setText(

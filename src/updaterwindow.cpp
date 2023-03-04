@@ -62,6 +62,9 @@ UpdaterWindow::UpdaterWindow(QWidget *parent)
 
     /* Initialize the UI */
     m_ui->setupUi(this);
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
+    setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+#endif
     setWindowTitle(qApp->applicationName() + " " + tr("Updater"));
 
     /* Change fonts */
