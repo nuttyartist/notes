@@ -8,7 +8,7 @@
 
 Notes is an open source and cross-platform note-taking app that is both beautiful and powerful.
 
-Website: <a href="http://get-notes.com" target="_blank">get-notes.com</a>  
+Website: <a href="https://get-notes.com" target="_blank">get-notes.com</a>
 Our vision for the future on our [Wiki](https://github.com/nuttyartist/notes/wiki/Vision).
 
 ## Screenshots
@@ -35,28 +35,9 @@ Our vision for the future on our [Wiki](https://github.com/nuttyartist/notes/wik
 
 If you use Notes daily, consider donating money so I can pay programmers to develop new features and fix bugs. I partner with [Github Sponsors](https://github.com/sponsors/nuttyartist) and [Patreon](https://www.patreon.com/rubymamis) to receive contributions. You can also put a bounty on specific issues using Bountysource. I currently make a living from ads on the website, but I'd like to stop with that.
 
-## How to clone
+## Building from source
 
-Use this command to clone the repository:
-
-```shell
-$> git clone --recursive  https://github.com/nuttyartist/notes.git
-```
-
-## Dependencies
-
-Make sure the Qt (>= 5.9) development libraries are installed:
-
-- Debian/Ubuntu : qt5-default build-essential qtbase5-private-dev sqlite3
-
-## Compiling
-
-```shell
-$> mkdir build
-$> cd build
-$> cmake .. -DCMAKE_BUILD_TYPE=Release
-$> make -j4
-```
+We have specific instructions for [Windows](docs/build_on_windows.md), [macOS](docs/build_on_macos.md) and [Linux](docs/build_on_linux.md) (and we also provide [build options](docs/build_options.md)).
 
 ## Database path
 
