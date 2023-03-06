@@ -51,11 +51,11 @@ class TagPool;
 class SplitterStyle;
 
 #if defined(Q_OS_WINDOWS) || defined(Q_OS_WIN)
-//#if defined(__MINGW32__) || defined(__GNUC__)
+// #if defined(__MINGW32__) || defined(__GNUC__)
 using MainWindowBase = QMainWindow;
-//#else
-// using MainWindowBase = CFramelessWindow;
-//#endif
+// #else
+//  using MainWindowBase = CFramelessWindow;
+// #endif
 #elif defined(Q_OS_MACOS)
 using MainWindowBase = CFramelessWindow;
 #else

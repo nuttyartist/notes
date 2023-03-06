@@ -1280,8 +1280,10 @@ void MainWindow::restoreStates()
         m_splitter->restoreState(
                 m_settingsDatabase->value(QStringLiteral("splitterSizes")).toByteArray());
 
-    m_foldersWidget->setHidden(m_settingsDatabase->value(QStringLiteral("isTreeCollapsed")).toBool());
-    m_noteListWidget->setHidden(m_settingsDatabase->value(QStringLiteral("isNoteListCollapsed")).toBool());
+    m_foldersWidget->setHidden(
+            m_settingsDatabase->value(QStringLiteral("isTreeCollapsed")).toBool());
+    m_noteListWidget->setHidden(
+            m_settingsDatabase->value(QStringLiteral("isNoteListCollapsed")).toBool());
 
     m_splitter->setCollapsible(0, false);
     m_splitter->setCollapsible(1, false);
@@ -1613,7 +1615,8 @@ void MainWindow::onDotsButtonClicked()
     folderTreeVisibilityAction->setShortcutVisibleInContextMenu(true);
 #endif
     if (isFolderTreeCollapsed) {
-        connect(folderTreeVisibilityAction, &QAction::triggered, this, &MainWindow::expandFolderTree);
+        connect(folderTreeVisibilityAction, &QAction::triggered, this,
+                &MainWindow::expandFolderTree);
     } else {
         connect(folderTreeVisibilityAction, &QAction::triggered, this,
                 &MainWindow::collapseFolderTree);
@@ -1935,8 +1938,7 @@ void MainWindow::setTheme(Theme theme)
         m_currentEditorTextColor = QColor(95, 74, 50);
         m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
         m_currentRightFrameColor = m_currentThemeBackgroundColor;
-        setStyleSheet(
-                QStringLiteral("QMainWindow { background-color: rgb(251, 240, 217); }"));
+        setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(251, 240, 217); }"));
         ui->verticalSpacer_upSearchEdit->setStyleSheet(
                 QStringLiteral("QWidget{ background-color: %1;}")
                         .arg(m_currentThemeBackgroundColor.name()));
@@ -2226,7 +2228,8 @@ void MainWindow::QuitApplication()
     m_settingsDatabase->setValue(QStringLiteral("splitterSizes"), m_splitter->saveState());
 
     m_settingsDatabase->setValue(QStringLiteral("isTreeCollapsed"), m_foldersWidget->isHidden());
-    m_settingsDatabase->setValue(QStringLiteral("isNoteListCollapsed"), m_noteListWidget->isHidden());
+    m_settingsDatabase->setValue(QStringLiteral("isNoteListCollapsed"),
+                                 m_noteListWidget->isHidden());
 
     QString currentFontTypefaceString;
     switch (m_currentFontTypeface) {
@@ -2583,25 +2586,20 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
             if ((m_mousePressX < width() && m_mousePressX > width() - m_layoutMargin)
                 && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)) {
                 m_stretchSide = StretchSide::TopRight;
-            } else if ((m_mousePressX < width()
-                        && m_mousePressX > width() - m_layoutMargin)
-                       && (m_mousePressY < height()
-                           && m_mousePressY > height() - m_layoutMargin)) {
+            } else if ((m_mousePressX < width() && m_mousePressX > width() - m_layoutMargin)
+                       && (m_mousePressY < height() && m_mousePressY > height() - m_layoutMargin)) {
                 m_stretchSide = StretchSide::BottomRight;
             } else if ((m_mousePressX < m_layoutMargin && m_mousePressX > 0)
                        && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)) {
                 m_stretchSide = StretchSide::TopLeft;
             } else if ((m_mousePressX < m_layoutMargin && m_mousePressX > 0)
-                       && (m_mousePressY < height()
-                           && m_mousePressY > height() - m_layoutMargin)) {
+                       && (m_mousePressY < height() && m_mousePressY > height() - m_layoutMargin)) {
                 m_stretchSide = StretchSide::BottomLeft;
-            } else if (m_mousePressX < width()
-                       && m_mousePressX > width() - m_layoutMargin) {
+            } else if (m_mousePressX < width() && m_mousePressX > width() - m_layoutMargin) {
                 m_stretchSide = StretchSide::Right;
             } else if (m_mousePressX < m_layoutMargin && m_mousePressX > 0) {
                 m_stretchSide = StretchSide::Left;
-            } else if (m_mousePressY < height()
-                       && m_mousePressY > height() - m_layoutMargin) {
+            } else if (m_mousePressY < height() && m_mousePressY > height() - m_layoutMargin) {
                 m_stretchSide = StretchSide::Bottom;
             } else if (m_mousePressY < m_layoutMargin && m_mousePressY > 0) {
                 m_stretchSide = StretchSide::Top;
@@ -2639,23 +2637,19 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
             && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)) {
             m_stretchSide = StretchSide::TopRight;
         } else if ((m_mousePressX < width() && m_mousePressX > width() - m_layoutMargin)
-                   && (m_mousePressY < height()
-                       && m_mousePressY > height() - m_layoutMargin)) {
+                   && (m_mousePressY < height() && m_mousePressY > height() - m_layoutMargin)) {
             m_stretchSide = StretchSide::BottomRight;
         } else if ((m_mousePressX < m_layoutMargin && m_mousePressX > 0)
                    && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)) {
             m_stretchSide = StretchSide::TopLeft;
         } else if ((m_mousePressX < m_layoutMargin && m_mousePressX > 0)
-                   && (m_mousePressY < height()
-                       && m_mousePressY > height() - m_layoutMargin)) {
+                   && (m_mousePressY < height() && m_mousePressY > height() - m_layoutMargin)) {
             m_stretchSide = StretchSide::BottomLeft;
-        } else if (m_mousePressX < width()
-                   && m_mousePressX > width() - m_layoutMargin) {
+        } else if (m_mousePressX < width() && m_mousePressX > width() - m_layoutMargin) {
             m_stretchSide = StretchSide::Right;
         } else if (m_mousePressX < m_layoutMargin && m_mousePressX > 0) {
             m_stretchSide = StretchSide::Left;
-        } else if (m_mousePressY < height()
-                   && m_mousePressY > height() - m_layoutMargin) {
+        } else if (m_mousePressY < height() && m_mousePressY > height() - m_layoutMargin) {
             m_stretchSide = StretchSide::Bottom;
         } else if (m_mousePressY < m_layoutMargin && m_mousePressY > 0) {
             m_stretchSide = StretchSide::Top;

@@ -40,8 +40,8 @@ bool CustomDocument::eventFilter(QObject *obj, QEvent *event)
 
         // toggle cursor when control key has been pressed or released
         viewport()->setCursor(mouseEvent->modifiers().testFlag(Qt::ControlModifier)
-                                    ? Qt::PointingHandCursor
-                                    : Qt::IBeamCursor);
+                                      ? Qt::PointingHandCursor
+                                      : Qt::IBeamCursor);
     } else if (event->type() == QEvent::KeyPress) {
         auto *keyEvent = static_cast<QKeyEvent *>(event);
 
