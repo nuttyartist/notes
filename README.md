@@ -43,11 +43,13 @@ We have specific instructions for [Windows](docs/build_on_windows.md), [macOS](d
 
 The notes database and settings file are stored in:
 
-**Windows** : `C:\Users\user\AppData\Roaming\Awesomeness`  
-**Linux** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: `/home/user/.config/Awesomeness/` **or** `/home/snap/notes/x1/.config/Awesomeness` **(using snap)**  
-**Mac** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: `/home/user/.config/Awesomeness/`
+| OS      | Path                                                                                                                                             |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Windows | `%APPDATA%\Awesomeness`                                                                                                                          |
+| Linux   | `~/.config/Awesomeness`<br>`~/snap/notes/x1/.config/Awesomeness` (Snap)<br>`~/.var/app/io.github.nuttyartist.notes/config/Awesomeness` (Flatpak) |
+| macOS   | `~/.config/Awesomeness`                                                                                                                          |
 
-## Contributers
+## Contributors
 
 ### Developers:
 Alex Spataru  
