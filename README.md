@@ -31,6 +31,10 @@ Our vision for the future on our [Wiki](https://github.com/nuttyartist/notes/wik
 - Keyboard shortcuts. Meant to have the option to be used solely with a keyboard (but more work needs to be done there).
 - What feature will you contribute?
 
+## Keyboard shortcuts
+
+All keyboard shortcuts are [documented here](docs/keyboard_shortcuts.md).
+
 ## Support the project
 
 If you use Notes daily, consider donating money so I can pay programmers to develop new features and fix bugs. I partner with [Github Sponsors](https://github.com/sponsors/nuttyartist) and [Patreon](https://www.patreon.com/rubymamis) to receive contributions. You can also put a bounty on specific issues using Bountysource. I currently make a living from ads on the website, but I'd like to stop with that.
