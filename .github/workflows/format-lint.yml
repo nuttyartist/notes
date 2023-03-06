@@ -1,0 +1,31 @@
+name: Code Linting
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    name: Format / Lint
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up cmake-format
+        run: pip install cmakelang
+
+      - name: Run clang-format
+        run: find src/ -iregex '.*\.\(cpp\|h\|mm\)$' -print0 | xargs -n 1 -0 clang-format -style=file --dry-run --Werror --color=true
+
+      - name: Run cmake-format
+        run: |
+          cmake-format CMakeLists.txt > CMakeLists-new.txt
+          if ! cmp -s CMakeLists.txt CMakeLists-new.txt
+          then
+              echo 'Please format CMakeLists.txt using cmake-format: https://github.com/cheshirekow/cmake_format'
+              echo 'For example: cmake-format CMakeLists.txt | sponge CMakeLists.txt'
+              exit 1
+          fi
