@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(APP_VERSION 2.0.0)
+set(APP_VERSION 2.1.0)
 set(APP_ID "io.github.nuttyartist.notes")
 
 # Any of the options below can be changed by passing -D<option name>=<value> to CMake.
