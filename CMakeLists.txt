@@ -329,6 +329,12 @@ elseif(UNIX)
   install(FILES ${CMAKE_BINARY_DIR}/${APP_ID}.desktop
           DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
 
+  configure_file(
+    ${PROJECT_SOURCE_DIR}/packaging/linux/common/notes.appdata.xml.in
+    ${CMAKE_BINARY_DIR}/${APP_ID}.metainfo.xml)
+  install(FILES ${CMAKE_BINARY_DIR}/${APP_ID}.metainfo.xml
+          DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/metainfo)
+
   foreach(
     ICON_SIZE
     16
