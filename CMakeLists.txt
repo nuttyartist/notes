@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 set(APP_VERSION 2.0.0)
+set(APP_ID "io.github.nuttyartist.notes")
 
 # Any of the options below can be changed by passing -D<option name>=<value> to CMake.
 set(CMAKE_OSX_DEPLOYMENT_TARGET
@@ -300,7 +301,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set_target_properties(
     ${PROJECT_NAME}
     PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME ${PROJECT_NAME}
-               MACOSX_BUNDLE_GUI_IDENTIFIER "io.github.nuttyartist.notes"
+               MACOSX_BUNDLE_GUI_IDENTIFIER ${APP_ID}
                MACOSX_BUNDLE_ICON_FILE "notes_icon.icns"
                MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
                MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
