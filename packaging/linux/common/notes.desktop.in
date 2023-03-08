@@ -1,9 +1,9 @@
 [Desktop Entry]
 Type=Application
-Name=Notes
+Name=@PROJECT_NAME@
 Comment=Write down your thoughts
 Categories=Utility;
-Exec=notes
-Icon=notes
+Exec=@BINARY_NAME@
+Icon=@APP_ID@
 StartupNotify=true
-StartupWMClass=Notes
+StartupWMClass=@PROJECT_NAME@

@@ -321,6 +321,37 @@ elseif(UNIX)
   set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${BINARY_NAME})
 
   target_link_libraries(${PROJECT_NAME} PUBLIC X11)
+
+  include(GNUInstallDirs)
+
+  configure_file(${PROJECT_SOURCE_DIR}/packaging/linux/common/notes.desktop.in
+                 ${CMAKE_BINARY_DIR}/${APP_ID}.desktop)
+  install(FILES ${CMAKE_BINARY_DIR}/${APP_ID}.desktop
+          DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
+
+  foreach(
+    ICON_SIZE
+    16
+    22
+    24
+    32
+    48
+    64
+    128
+    256
+    512)
+    install(
+      FILES
+        ${PROJECT_SOURCE_DIR}/packaging/linux/common/icons/${ICON_SIZE}x${ICON_SIZE}/notes.png
+      DESTINATION
+        ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/${ICON_SIZE}x${ICON_SIZE}/apps
+      RENAME ${APP_ID}.png)
+  endforeach()
+
+  install(
+    FILES ${PROJECT_SOURCE_DIR}/packaging/linux/common/icons/scalable/notes.svg
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps
+    RENAME ${APP_ID}.svg)
 elseif(WIN32)
   target_compile_definitions(${PROJECT_NAME} PUBLIC QXT_STATIC)
 
