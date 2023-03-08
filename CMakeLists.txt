@@ -276,7 +276,8 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES
   target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra -Wpedantic
                                                 -Wshadow)
   set_source_files_properties(${SOURCES_3RD_PARTY} PROPERTIES COMPILE_FLAGS -w)
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" AND MSVC_VERSION GREATER_EQUAL
+                                                 1920)
   target_compile_options(${PROJECT_NAME} PUBLIC /W4)
   set_source_files_properties(${SOURCES_3RD_PARTY} PROPERTIES COMPILE_FLAGS /w)
 endif()
