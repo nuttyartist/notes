@@ -225,7 +225,6 @@ jobs:
           install -Dm644 -t Notes/usr/share/applications ../packaging/linux/common/notes.desktop
           mkdir -p Notes/usr/share/icons/hicolor
           cp -r ../packaging/linux/common/icons/* Notes/usr/share/icons/hicolor
-          export VERSION='${{ steps.vars.outputs.version }}'
           ./linuxdeploy-x86_64.AppImage --appdir Notes --plugin qt
 
       - name: Remove unnecessary Qt plugins and libraries
@@ -254,6 +253,7 @@ jobs:
           APPIMAGE_EXTRACT_AND_RUN: 1
         run: |
           cd build
+          export VERSION='${{ steps.vars.outputs.version }}'
           ./linuxdeploy-x86_64.AppImage --appdir Notes --output appimage
           mv -v Notes*.AppImage '${{ steps.vars.outputs.file_name }}'
 
