@@ -116,6 +116,7 @@ jobs:
         # - appstream: Used to validate the AppStream metadata file.
         # - cmake: Used to help build the application.
         # - curl: Used to download the linuxdeploy AppImage tool.
+        # - desktop-file-utils: Used to validate the desktop file.
         # - git: To clone this repository.
         # - libfontconfig1: Used as dependency of the resulting AppImage.
         # - libxkbcommon-x11-0: Used as dependency of the resulting AppImage.
@@ -128,7 +129,7 @@ jobs:
           echo UTC > /etc/timezone
           # install packages
           apt update
-          apt install -y appstream cmake curl git libfontconfig1 libxkbcommon-x11-0 python3 python3-pip sudo
+          apt install -y appstream cmake curl desktop-file-utils git libfontconfig1 libxkbcommon-x11-0 python3 python3-pip sudo
           # Upgrade to the latest setuptools, as Ubuntu's python3-setuptools package has compatibility issues with aqtinstall.
           python3 -m pip install --upgrade setuptools
 
@@ -253,6 +254,11 @@ jobs:
         run: |
           cd build/Notes
           appstreamcli validate --verbose 'usr/share/metainfo/${{ env.APP_ID }}.metainfo.xml'
+
+      - name: Validate desktop file
+        run: |
+          cd build/Notes
+          desktop-file-validate 'usr/share/applications/${{ env.APP_ID }}.desktop'
 
       - name: Build AppImage (${{ matrix.build-type }})
         env:
