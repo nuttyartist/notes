@@ -226,7 +226,7 @@ if(UPDATE_CHECKER)
     ${PROJECT_SOURCE_DIR}/3rdParty/QSimpleUpdater/src/Updater.h)
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(APPLE)
   list(APPEND SOURCES ${PROJECT_SOURCE_DIR}/src/framelesswindow.mm
        ${PROJECT_SOURCE_DIR}/src/framelesswindow.h
        ${PROJECT_SOURCE_DIR}/src/images/notes_icon.icns)
@@ -293,7 +293,7 @@ target_link_libraries(
          Qt${QT_VERSION_MAJOR}::Widgets
          Qt${QT_VERSION_MAJOR}::WidgetsPrivate)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(APPLE)
   string(TIMESTAMP CURRENT_YEAR "%Y")
   set(COPYRIGHT_TEXT
       "Copyright (c) 2015-${CURRENT_YEAR} Ruby Mamistvalove and contributors.")
