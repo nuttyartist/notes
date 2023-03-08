@@ -4,10 +4,13 @@
 build-Notes-*
 build-*
 bin*
+CMakeLists.txt.user
 
 # OS generated files #
 ######################
 .DS_Store*
+.vscode/
+.cache/
 ehthumbs.db
 Thumbs.db
 Makefile

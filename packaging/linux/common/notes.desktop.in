@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=@PROJECT_NAME@
+Comment=Write down your thoughts
+Categories=Utility;
+Exec=@BINARY_NAME@
+Icon=@APP_ID@
+StartupNotify=true
+StartupWMClass=@PROJECT_NAME@

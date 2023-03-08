@@ -8,32 +8,24 @@
 
 class TagPool;
 class NoteListModel;
-enum class NoteListState{
-    Normal,
-    Insert,
-    Remove,
-    MoveOut,
-    MoveIn
-};
+enum class NoteListState { Normal, Insert, Remove, MoveOut, MoveIn };
 
 class NoteListDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
 
 public:
-    NoteListDelegate(NoteListView* view, TagPool *tagPool, QObject *parent = Q_NULLPTR);
+    NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject *parent = nullptr);
 
-    void setState(NoteListState NewState , QModelIndexList indexes);
+    void setState(NoteListState NewState, QModelIndexList indexes);
     void setAnimationDuration(const int duration);
 
     void paint(QPainter *painter, const QStyleOptionViewItem &option,
-               const QModelIndex &index) const Q_DECL_OVERRIDE;
+               const QModelIndex &index) const override;
 
-    QSize sizeHint(const QStyleOptionViewItem &option,
-                   const QModelIndex &index) const Q_DECL_OVERRIDE;
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
 
-    QSize bufferSizeHint(const QStyleOptionViewItem &option,
-                   const QModelIndex &index) const;
+    QSize bufferSizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
 
     QTimeLine::State animationState();
 
@@ -47,29 +39,33 @@ public:
     void clearSizeMap();
 
 public slots:
-    void updateSizeMap(int id, const QSize& sz, const QModelIndex& index);
-    void editorDestroyed(int id, const QModelIndex& index);
+    void updateSizeMap(int id, QSize sz, const QModelIndex &index);
+    void editorDestroyed(int id, const QModelIndex &index);
 
     // QAbstractItemDelegate interface
 public:
-    virtual QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+    virtual QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
+                                  const QModelIndex &index) const override;
     const QModelIndex &hoveredIndex() const;
-    bool shouldPaintSeparator(const QModelIndex& index, const NoteListModel& model) const;
+    bool shouldPaintSeparator(const QModelIndex &index, const NoteListModel &model) const;
 
 signals:
     void themeChanged(Theme theme);
     void animationFinished(NoteListState animationState);
 
 private:
-    void paintBackground(QPainter* painter, const QStyleOptionViewItem &option, const QModelIndex &index)const;
-    void paintLabels(QPainter* painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
-    void paintSeparator(QPainter *painter, const QRect &rect, const QModelIndex &index) const;
-    void paintTagList(int top, QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
-    QString parseDateTime(const QDateTime& dateTime) const;
-    void setStateI(NoteListState NewState , QModelIndexList indexes);
+    void paintBackground(QPainter *painter, const QStyleOptionViewItem &option,
+                         const QModelIndex &index) const;
+    void paintLabels(QPainter *painter, const QStyleOptionViewItem &option,
+                     const QModelIndex &index) const;
+    void paintSeparator(QPainter *painter, QRect rect, const QModelIndex &index) const;
+    void paintTagList(int top, QPainter *painter, const QStyleOptionViewItem &option,
+                      const QModelIndex &index) const;
+    QString parseDateTime(const QDateTime &dateTime) const;
+    void setStateI(NoteListState NewState, const QModelIndexList &indexes);
 
-    NoteListView* m_view;
-    TagPool* m_tagPool;
+    NoteListView *m_view;
+    TagPool *m_tagPool;
     QString m_displayFont;
     QFont m_titleFont;
     QFont m_titleSelectedFont;
@@ -96,7 +92,7 @@ private:
     Theme m_theme;
     QTimeLine *m_timeLine;
     QModelIndexList m_animatedIndexes;
-    QModelIndex m_hoveredIndex;    
+    QModelIndex m_hoveredIndex;
     QMap<int, QSize> szMap;
     QQueue<QPair<QSet<int>, NoteListState>> animationQueue;
 };

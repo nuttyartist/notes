@@ -1,107 +1,106 @@
 /*********************************************************************************************
-* Mozila License
-* Just a meantime project to see the ability of qt, the framework that my OS might be based on
-* And for those linux users that beleive in the power of notes
-*********************************************************************************************/
+ * Mozila License
+ * Just a meantime project to see the ability of qt, the framework that my OS might be based on
+ * And for those linux users that beleive in the power of notes
+ *********************************************************************************************/
 
 #include "updaterwindow.h"
 #include "ui_updaterwindow.h"
 
 #include <math.h>
 
-#include <QDir>
 #include <QTimer>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QNetworkReply>
 #include <QDesktopServices>
-#include <QNetworkConfiguration>
 #include <QNetworkAccessManager>
+#include <QWindow>
 
 #include <QSimpleUpdater.h>
 
-#ifdef Q_OS_LINUX
-  #define UseXdgOpen
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+#  define UseXdgOpen
 #else
-  #ifdef UseXdgOpen
-    #undef UseXdgOpen
-  #endif
+#  ifdef UseXdgOpen
+#    undef UseXdgOpen
+#  endif
 #endif
 
 #ifdef UseXdgOpen
-  #include <QProcess>
-  static QProcess XDGOPEN_PROCESS;
+#  include <QProcess>
+static QProcess XDGOPEN_PROCESS;
 #endif
 
 /**
  * Indicates from where we should download the update definitions file
  */
-static const QString UPDATES_URL("https://raw.githubusercontent.com/nuttyartist/notes/master/UPDATES.json");
-
-/**
- * Download dir
- */
-static const QDir DOWNLOAD_DIR(QDir::homePath()+ "/Downloads/");
+static const QString
+        UPDATES_URL("https://raw.githubusercontent.com/nuttyartist/notes/master/UPDATES.json");
 
 /**
  * Initializes the window components and configures the QSimpleUpdater
  */
-UpdaterWindow::UpdaterWindow(QWidget *parent) :
-    QWidget(parent),
-    m_fileName(""),
-    m_ui(new Ui::UpdaterWindow),
-    m_canMoveWindow(false),
-    m_checkingForUpdates(false),
-    m_dontShowUpdateWindow(false),
-    m_forced(false),
-    m_reply(Q_NULLPTR),
-    m_updater(QSimpleUpdater::getInstance()),
-    m_manager(new QNetworkAccessManager(this))
+UpdaterWindow::UpdaterWindow(QWidget *parent)
+    : QDialog(parent),
+      m_downloadDir(QDir::homePath() + "/Downloads/"),
+      m_ui(new Ui::UpdaterWindow),
+      m_canMoveWindow(false),
+      m_checkingForUpdates(false),
+      m_dontShowUpdateWindow(false),
+      m_forced(false),
+      m_reply(nullptr),
+      m_updater(QSimpleUpdater::getInstance()),
+      m_manager(new QNetworkAccessManager(this))
 {
     /* Load the stylesheet */
     QFile file(":/styles/style.css");
-    if(file.open(QIODevice::ReadOnly)){
+    if (file.open(QIODevice::ReadOnly)) {
         setStyleSheet(QString::fromUtf8(file.readAll()).toLatin1());
         file.close();
     }
 
     /* Initialize the UI */
     m_ui->setupUi(this);
-    setWindowTitle(qApp->applicationName()+ " " + tr("Updater"));
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
+    setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+#endif
+    setWindowTitle(qApp->applicationName() + " " + tr("Updater"));
 
     /* Change fonts */
 #ifdef __APPLE__
-    QFont fontToUse = QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto");
+    QFont fontToUse = QFont(QStringLiteral("SF Pro Text")).exactMatch()
+            ? QStringLiteral("SF Pro Text")
+            : QStringLiteral("Roboto");
 #elif _WIN32
-    QFont fontToUse = QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI") : QStringLiteral("Roboto");
+    QFont fontToUse = QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI")
+                                                                     : QStringLiteral("Roboto");
 #else
     QFont fontToUse = QFont(QStringLiteral("Roboto"));
 #endif
 
-    this->setFont(fontToUse);
+    setFont(fontToUse);
     m_ui->changelog->setFont(fontToUse);
     m_ui->changelog->setTextColor(QColor(26, 26, 26));
-    foreach(QWidget *widgetChild, this->findChildren<QWidget *>()) {
+    foreach (QWidget *widgetChild, findChildren<QWidget *>()) {
         widgetChild->setFont(fontToUse);
     }
 
-
     /* Connect UI signals/slots */
-    connect(m_ui->closeButton,  &QPushButton::clicked, this, &UpdaterWindow::close);
-    connect(m_ui->updateButton, &QPushButton::clicked, this, &UpdaterWindow::onDownloadButtonClicked);
-    connect(m_updater, &QSimpleUpdater::checkingFinished,this, &UpdaterWindow::onCheckFinished);
-    connect(m_ui->checkBox, &QCheckBox::toggled, this ,&UpdaterWindow::dontShowUpdateWindowChanged);
+    connect(m_ui->closeButton, &QPushButton::clicked, this, &UpdaterWindow::close);
+    connect(m_ui->updateButton, &QPushButton::clicked, this,
+            &UpdaterWindow::onDownloadButtonClicked);
+    connect(m_updater, &QSimpleUpdater::checkingFinished, this, &UpdaterWindow::onCheckFinished);
+    connect(m_ui->checkBox, &QCheckBox::toggled, this, &UpdaterWindow::dontShowUpdateWindowChanged);
 
     /* Start the UI loops */
     updateTitleLabel();
 
-    /* Remove window border */
-#if defined Q_OS_WIN
-    setWindowFlags(Qt::CustomizeWindowHint);
-#elif defined Q_OS_MAC || defined Q_OS_LINUX
-    setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+    /* Remove native window decorations */
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    setWindowFlags(windowFlags() | Qt::CustomizeWindowHint | Qt::FramelessWindowHint);
 #else
-#error "We don't support your OS yet..."
+    setWindowFlags(windowFlags() | Qt::CustomizeWindowHint);
 #endif
 
     /* React when xdg-open finishes (Linux only) */
@@ -141,7 +140,7 @@ void UpdaterWindow::setShowWindowDisable(const bool dontShowWindow)
 void UpdaterWindow::checkForUpdates(bool force)
 {
     /* Change the silent flag */
-    if(!m_updater->getUpdateAvailable(UPDATES_URL)){
+    if (!m_updater->getUpdateAvailable(UPDATES_URL)) {
         m_checkingForUpdates = true;
 
         m_forced = force;
@@ -158,8 +157,8 @@ void UpdaterWindow::checkForUpdates(bool force)
     }
 
     /* Show window if force flag is set */
-    if(force){
-        if(!m_updater->getUpdateAvailable(UPDATES_URL)){
+    if (force) {
+        if (!m_updater->getUpdateAvailable(UPDATES_URL)) {
             m_ui->updateButton->setEnabled(false);
             m_ui->title->setText(tr("Checking for updates...."));
         }
@@ -185,66 +184,65 @@ void UpdaterWindow::resetControls()
     m_ui->availableVersion->setText(m_updater->getLatestVersion(UPDATES_URL));
 
     /* Set title label */
-    if(m_updater->getUpdateAvailable(UPDATES_URL)){
+    if (m_updater->getUpdateAvailable(UPDATES_URL)) {
         m_ui->title->setText(tr("A Newer Version is Available!"));
-    }else{
+    } else {
         m_ui->title->setText(tr("You're up-to-date!"));
     }
 
     /* Reset the progress controls */
     m_ui->progressControls->hide();
     m_ui->progressBar->setValue(0);
-    m_ui->downloadLabel->setText(tr("Downloading Updates")+ "...");
-    m_ui->timeLabel->setText(tr("Time remaining")+ ": " + tr("unknown"));
+    m_ui->downloadLabel->setText(tr("Downloading Updates") + "...");
+    m_ui->timeLabel->setText(tr("Time remaining") + ": " + tr("unknown"));
 
     /* Set changelog text */
     QString changelogText = m_updater->getChangelog(UPDATES_URL);
     m_ui->changelog->setText(changelogText);
-    if(m_ui->changelog->toPlainText().isEmpty()){
+    if (m_ui->changelog->toPlainText().isEmpty()) {
         m_ui->changelog->setText("<p>No changelog found...</p>");
     } else {
-        m_ui->changelog->setText(changelogText.append("\n")); // Don't know why currently changelog box is dissapearing at the bottom, so I add a new line to see the text.
+        m_ui->changelog->setText(changelogText.append(
+                "\n")); // Don't know why currently changelog box is dissapearing at the bottom, so
+                        // I add a new line to see the text.
     }
 
     /* Enable/disable update button */
     bool available = m_updater->getUpdateAvailable(UPDATES_URL);
     bool validOpenUrl = !m_updater->getOpenUrl(UPDATES_URL).isEmpty();
     bool validDownUrl = !m_updater->getDownloadUrl(UPDATES_URL).isEmpty();
-    m_ui->updateButton->setEnabled(available &&(validOpenUrl || validDownUrl));
+    m_ui->updateButton->setEnabled(available && (validOpenUrl || validDownUrl));
 
     /* Resize window */
     bool showAgain = isVisible();
     int height = minimumSizeHint().height();
-    int width = qMax(minimumSizeHint().width(),int(height * 1.2));
+    int width = qMax(minimumSizeHint().width(), int(height * 1.2));
     resize(QSize(width, height));
 
     /* Re-show the window(if required)*/
-    if(showAgain){
+    if (showAgain) {
         showNormal();
     }
 }
 
 /**
  * Changes the number of dots of the title label while the QSimpleUpdater
- * is downloading and interpreting the update definitions file 
+ * is downloading and interpreting the update definitions file
  */
 void UpdaterWindow::updateTitleLabel()
 {
-    if(m_checkingForUpdates)
-    {
-        static int num=0;
+    if (m_checkingForUpdates) {
+        static int num = 0;
         QString base = tr("Checking for updates");
         QString dot = "";
         num++;
         dot.fill('.', num);
-        m_ui->title->setText(base+dot);
-        if(num==4)
-            num=0;
+        m_ui->title->setText(base + dot);
+        if (num == 4)
+            num = 0;
     }
     QTimer::singleShot(500, this, SLOT(updateTitleLabel()));
 }
-
-
 
 /**
  * Updates the text displayed the the UI controls to reflect the information
@@ -252,7 +250,7 @@ void UpdaterWindow::updateTitleLabel()
  */
 void UpdaterWindow::onUpdateAvailable()
 {
-    if(!m_dontShowUpdateWindow){
+    if (!m_dontShowUpdateWindow) {
         resetControls();
         showNormal();
     }
@@ -263,7 +261,7 @@ void UpdaterWindow::onUpdateAvailable()
  */
 void UpdaterWindow::onDownloadButtonClicked()
 {
-    if(m_updater->getUpdateAvailable(UPDATES_URL)){
+    if (m_updater->getUpdateAvailable(UPDATES_URL)) {
         m_ui->updateButton->setEnabled(false);
         startDownload(m_updater->getDownloadUrl(UPDATES_URL));
     }
@@ -274,44 +272,42 @@ void UpdaterWindow::onDownloadButtonClicked()
  * to automatically update the user interface when we receive new data
  * from the download/update server
  */
-void UpdaterWindow::startDownload(const QUrl& url)
+void UpdaterWindow::startDownload(const QUrl &url)
 {
     /* URL is invalid, try opening web browser */
-    if(url.isEmpty()){
+    if (url.isEmpty()) {
         QDesktopServices::openUrl(QUrl(m_updater->getOpenUrl(UPDATES_URL)));
         return;
     }
 
     /* Cancel previous download (if any)*/
-    if(m_reply){
+    if (m_reply) {
         m_reply->abort();
         m_reply->deleteLater();
     }
 
     /* Start download */
-    m_startTime = QDateTime::currentDateTime().toTime_t();
+    m_startTime = QDateTime::currentDateTime().toSecsSinceEpoch();
     QNetworkRequest netReq(url);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-    netReq.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
-#endif
-
+    netReq.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
+                        QNetworkRequest::NoLessSafeRedirectPolicy);
     m_reply = m_manager->get(netReq);
 
     /* Set file name */
     m_fileName = m_updater->getDownloadUrl(UPDATES_URL).split("/").last();
-    if(m_fileName.isEmpty()){
+    if (m_fileName.isEmpty()) {
         m_fileName = QString("%1_Update_%2.bin")
-                .arg(qApp->applicationName())
-                .arg(m_updater->getLatestVersion(UPDATES_URL));
+                             .arg(QCoreApplication::applicationName(),
+                                  m_updater->getLatestVersion(UPDATES_URL));
     }
 
     /* Prepare download directory */
-    if(!DOWNLOAD_DIR.exists())
-        DOWNLOAD_DIR.mkpath(".");
+    if (!m_downloadDir.exists())
+        m_downloadDir.mkpath(".");
 
     /* Remove previous downloads(if any)*/
-    QFile::remove(DOWNLOAD_DIR.filePath(m_fileName));
+    QFile::remove(m_downloadDir.filePath(m_fileName));
 
     /* Show UI controls */
     m_ui->progressControls->show();
@@ -325,21 +321,21 @@ void UpdaterWindow::startDownload(const QUrl& url)
 /**
  * Opens the downloaded file
  */
-void UpdaterWindow::openDownload(const QString& file)
+void UpdaterWindow::openDownload(const QString &file)
 {
     /* File is empty, abort */
-    if(file.isEmpty()){
+    if (file.isEmpty()) {
         return;
     }
 
     /* Change labels */
     m_ui->downloadLabel->setText(tr("Download finished!"));
-    m_ui->timeLabel->setText(tr("Opening downloaded file")+ "...");
+    m_ui->timeLabel->setText(tr("Opening downloaded file") + "...");
 
     /* Try to open the downloaded file (Windows & Mac) */
 #ifndef UseXdgOpen
     bool openUrl = QDesktopServices::openUrl(QUrl::fromLocalFile(file));
-    if(!openUrl){
+    if (!openUrl) {
         openDownloadFolder(file);
         m_ui->progressControls->hide();
         qApp->processEvents();
@@ -370,11 +366,10 @@ void UpdaterWindow::onCheckFinished(const QString &url)
     /* Do not allow the title label to change automatically */
     m_checkingForUpdates = false;
 
-
     /* There is an update available, show the window */
-    if(m_updater->getUpdateAvailable(url)&&(UPDATES_URL == url)){
+    if (m_updater->getUpdateAvailable(url) && (UPDATES_URL == url)) {
         onUpdateAvailable();
-    }else if(m_forced){
+    } else if (m_forced) {
         m_forced = false;
         resetControls();
         showNormal();
@@ -389,14 +384,14 @@ void UpdaterWindow::onCheckFinished(const QString &url)
 void UpdaterWindow::onXdgOpenFinished(const int exitCode)
 {
 #ifdef UseXdgOpen
-    if (exitCode != 0 && XDGOPEN_PROCESS.arguments().count() > 0) {
-        QString path = XDGOPEN_PROCESS.arguments().first();
-        openDownloadFolder(path);
+    const auto arguments = XDGOPEN_PROCESS.arguments();
+    if (exitCode != 0 && !arguments.isEmpty()) {
+        openDownloadFolder(arguments.first());
     } else {
-        qApp->quit();
+        QCoreApplication::quit();
     }
 #else
-    Q_UNUSED (exitCode);
+    Q_UNUSED(exitCode);
 #endif
 }
 
@@ -409,12 +404,12 @@ void UpdaterWindow::openDownloadFolder(const QString &file)
 {
     /* Notify the user of the problem */
     QString extension = file.split(".").last();
-    QMessageBox::information(this,
-                             tr("Open Error"),
+    QMessageBox::information(this, tr("Open Error"),
                              tr("It seems that your OS does not have an "
                                 "application that can handle *.%1 files. "
                                 "We'll open the downloads folder for you.")
-                             .arg(extension), QMessageBox::Ok);
+                                     .arg(extension),
+                             QMessageBox::Ok);
 
     /* Get the full path list of the downloaded file */
     QString native_path = QDir::toNativeSeparators(QDir(file).absolutePath());
@@ -422,7 +417,7 @@ void UpdaterWindow::openDownloadFolder(const QString &file)
 
     /* Remove file name from list to get the folder of the update file */
     directories.removeLast();
-    QString path = directories.join (QDir::separator());
+    QString path = directories.join(QDir::separator());
 
     /* Get valid URL and open it */
     QUrl url = QUrl::fromLocalFile(QDir(path).absolutePath());
@@ -440,26 +435,25 @@ void UpdaterWindow::calculateSizes(qint64 received, qint64 total)
     QString receivedSize;
 
     /* Get total size string */
-    if(total < 1024){
+    if (total < 1024) {
         totalSize = tr("%1 bytes").arg(total);
-    }else if(total < (1024 * 1024)){
+    } else if (total < (1024 * 1024)) {
         totalSize = tr("%1 KB").arg(round(total / 1024));
-    }else{
+    } else {
         totalSize = tr("%1 MB").arg(round(total / (1024 * 1024)));
     }
 
     /* Get received size string */
-    if(received < 1024){
+    if (received < 1024) {
         receivedSize = tr("%1 bytes").arg(received);
-    }else if(received < (1024 * 1024)){
+    } else if (received < (1024 * 1024)) {
         receivedSize = tr("%1 KB").arg(received / 1024);
-    }else{
+    } else {
         receivedSize = tr("%1 MB").arg(received / (1024 * 1024));
     }
 
     /* Update the label text */
-    m_ui->downloadLabel->setText(tr("Downloading updates")
-                                 + " (" + receivedSize + " " + tr("of")
+    m_ui->downloadLabel->setText(tr("Downloading updates") + " (" + receivedSize + " " + tr("of")
                                  + " " + totalSize + ")");
 }
 
@@ -469,21 +463,19 @@ void UpdaterWindow::calculateSizes(qint64 received, qint64 total)
  */
 void UpdaterWindow::updateProgress(qint64 received, qint64 total)
 {
-    if(total > 0){
+    if (total > 0) {
         m_ui->progressBar->setMinimum(0);
         m_ui->progressBar->setMaximum(100);
-        m_ui->progressBar->setValue(int((received * 100)/ total));
+        m_ui->progressBar->setValue(int((received * 100) / total));
 
         calculateSizes(received, total);
         calculateTimeRemaining(received, total);
-    }else{
+    } else {
         m_ui->progressBar->setMinimum(0);
         m_ui->progressBar->setMaximum(0);
         m_ui->progressBar->setValue(-1);
-        m_ui->downloadLabel->setText(tr("Downloading Updates")+ "...");
-        m_ui->timeLabel->setText(QString("%1: %2")
-                                 .arg(tr("Time Remaining"))
-                                 .arg(tr("unknown")));
+        m_ui->downloadLabel->setText(tr("Downloading Updates") + "...");
+        m_ui->timeLabel->setText(QStringLiteral("%1: %2").arg(tr("Time Remaining"), tr("unknown")));
     }
 }
 
@@ -497,81 +489,82 @@ void UpdaterWindow::updateProgress(qint64 received, qint64 total)
  */
 void UpdaterWindow::calculateTimeRemaining(qint64 received, qint64 total)
 {
-    uint difference = QDateTime::currentDateTime().toTime_t() - m_startTime;
+    uint difference = QDateTime::currentDateTime().toSecsSinceEpoch() - m_startTime;
 
-    if(difference > 0){
+    if (difference > 0) {
         QString timeString;
-        qreal timeRemaining = total /(received / difference);
+        qreal timeRemaining = total / (received / difference);
 
-        if(timeRemaining > 7200){
+        if (timeRemaining > 7200) {
             timeRemaining /= 3600;
             int hours = int(timeRemaining + 0.5);
 
-            if(hours > 1){
+            if (hours > 1) {
                 timeString = tr("about %1 hours").arg(hours);
-            }else{
+            } else {
                 timeString = tr("about one hour");
             }
-        }else if(timeRemaining > 60){
+        } else if (timeRemaining > 60) {
             timeRemaining /= 60;
             int minutes = int(timeRemaining + 0.5);
 
-            if(minutes > 1){
+            if (minutes > 1) {
                 timeString = tr("%1 minutes").arg(minutes);
-            }else{
+            } else {
                 timeString = tr("1 minute");
             }
-        }else if(timeRemaining <= 60){
+        } else if (timeRemaining <= 60) {
             int seconds = int(timeRemaining + 0.5);
 
-            if(seconds > 1){
+            if (seconds > 1) {
                 timeString = tr("%1 seconds").arg(seconds);
-            }else{
+            } else {
                 timeString = tr("1 second");
             }
         }
 
-        m_ui->timeLabel->setText(tr("Time remaining")+ ": " + timeString);
+        m_ui->timeLabel->setText(tr("Time remaining") + ": " + timeString);
     }
 }
 
 void UpdaterWindow::onDownloadFinished()
 {
-   QString redirectedUrl = m_reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
+    QString redirectedUrl =
+            m_reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
 
-   if(redirectedUrl.isEmpty()){
-
-        QString filePath = DOWNLOAD_DIR.filePath(m_fileName);
+    if (redirectedUrl.isEmpty()) {
+        const QString filePath = m_downloadDir.filePath(m_fileName);
         QFile file(filePath);
-        if(file.open(QIODevice::WriteOnly | QIODevice::Append)){
+        if (file.open(QIODevice::WriteOnly | QIODevice::Append)) {
             file.write(m_reply->readAll());
             file.close();
             qApp->processEvents();
         }
 
         openDownload(filePath);
-   }else{
-       startDownload(redirectedUrl);
-   }
+    } else {
+        startDownload(redirectedUrl);
+    }
 }
 
 /**
  * Allows the user to move the window and registers the position in which
  * the user originally clicked to move the window
  */
-void UpdaterWindow::mousePressEvent(QMouseEvent* event)
+void UpdaterWindow::mousePressEvent(QMouseEvent *event)
 {
-    if(event->button()== Qt::LeftButton){
-        if(event->pos().x()< width() - 5
-                && event->pos().x()>5
-                && event->pos().y()< height() - 5
-                && event->pos().y()> 5){
+    if (event->button() == Qt::LeftButton) {
+        if (event->x() < width() - 5 && event->x() > 5 && event->pos().y() < height() - 5
+            && event->pos().y() > 5) {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+            m_canMoveWindow = !window()->windowHandle()->startSystemMove();
+#else
             m_canMoveWindow = true;
-            m_mousePressX = event->x();
-            m_mousePressY = event->y();
+#endif
+            m_mousePressX = event->pos().x();
+            m_mousePressY = event->pos().y();
         }
     }
-
     event->accept();
 }
 
@@ -580,10 +573,9 @@ void UpdaterWindow::mousePressEvent(QMouseEvent* event)
  * the window)and moves the window to the desired position of the given
  * \a event
  */
-void UpdaterWindow::mouseMoveEvent(QMouseEvent* event)
+void UpdaterWindow::mouseMoveEvent(QMouseEvent *event)
 {
-    if(m_canMoveWindow){
-        setCursor(Qt::ClosedHandCursor);
+    if (m_canMoveWindow) {
         int dx = event->globalX() - m_mousePressX;
         int dy = event->globalY() - m_mousePressY;
         move(dx, dy);
@@ -603,7 +595,7 @@ void UpdaterWindow::mouseReleaseEvent(QMouseEvent *event)
 /**
  * Rounds the given \a input to two decimal places
  */
-qreal UpdaterWindow::round(const qreal& input)
+qreal UpdaterWindow::round(qreal input)
 {
-    return qreal(roundf(float(input * 100))/100);
+    return qreal(roundf(float(input * 100)) / 100);
 }

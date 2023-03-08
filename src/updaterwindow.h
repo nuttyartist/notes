@@ -1,13 +1,14 @@
 /*********************************************************************************************
-* Mozila License
-* Just a meantime project to see the ability of qt, the framework that my OS might be based on
-* And for those linux users that beleive in the power of notes
-*********************************************************************************************/
+ * Mozila License
+ * Just a meantime project to see the ability of qt, the framework that my OS might be based on
+ * And for those linux users that beleive in the power of notes
+ *********************************************************************************************/
 
 #ifndef UPDATERWINDOW_H
 #define UPDATERWINDOW_H
 
-#include <QWidget>
+#include <QDialog>
+#include <QDir>
 
 namespace Ui {
 class UpdaterWindow;
@@ -18,18 +19,18 @@ class QNetworkReply;
 class QSimpleUpdater;
 class QNetworkAccessManager;
 
-class UpdaterWindow : public QWidget
+class UpdaterWindow : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit UpdaterWindow (QWidget *parent = 0);
+    explicit UpdaterWindow(QWidget *parent = 0);
     ~UpdaterWindow();
 
     void setShowWindowDisable(const bool dontShowWindow);
 
 public slots:
-    void checkForUpdates (bool force);
+    void checkForUpdates(bool force);
 
 signals:
     void dontShowUpdateWindowChanged(bool state);
@@ -39,26 +40,28 @@ private slots:
     void updateTitleLabel();
     void onUpdateAvailable();
     void onDownloadButtonClicked();
-    void startDownload (const QUrl& url);
+    void startDownload(const QUrl &url);
     void openDownload(const QString &file);
-    void onCheckFinished (const QString& url);
-    void onXdgOpenFinished (const int exitCode);
-    void openDownloadFolder (const QString& file);
-    void calculateSizes (qint64 received, qint64 total);
-    void updateProgress (qint64 received, qint64 total);
-    void calculateTimeRemaining (qint64 received, qint64 total);
+    void onCheckFinished(const QString &url);
+    void onXdgOpenFinished(const int exitCode);
+    void openDownloadFolder(const QString &file);
+    void calculateSizes(qint64 received, qint64 total);
+    void updateProgress(qint64 received, qint64 total);
+    void calculateTimeRemaining(qint64 received, qint64 total);
     void onDownloadFinished();
 
 protected:
-    void mouseMoveEvent (QMouseEvent* event) Q_DECL_OVERRIDE;
-    void mousePressEvent (QMouseEvent* event) Q_DECL_OVERRIDE;
-    void mouseReleaseEvent (QMouseEvent *event) Q_DECL_OVERRIDE;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
 
 private:
-    qreal round (const qreal& input);
+    qreal round(qreal input);
 
 private:
     QString m_fileName;
+    const QDir m_downloadDir;
+
     Ui::UpdaterWindow *m_ui;
 
     QPoint m_dragPosition;
@@ -71,9 +74,9 @@ private:
     bool m_forced;
 
     uint m_startTime;
-    QNetworkReply* m_reply;
-    QSimpleUpdater* m_updater;
-    QNetworkAccessManager* m_manager;
+    QNetworkReply *m_reply;
+    QSimpleUpdater *m_updater;
+    QNetworkAccessManager *m_manager;
 };
 
 #endif

@@ -16,15 +16,15 @@ void TagListView::setBackground(const QColor &color)
     if (m_backgroundColor != color) {
         m_backgroundColor = color;
         QString ss = QStringLiteral(
-                    R"(QListView { background: %1; } )"
-                    R"(QScrollBar::handle:vertical:hover { background: rgb(170, 170, 171); } )"
-                    R"(QScrollBar::handle:vertical:pressed { background: rgb(149, 149, 149); } )"
-                    R"(QScrollBar::handle:vertical { border-radius: 4px; background: rgb(188, 188, 188); min-height: 20px; }  )"
-                    R"(QScrollBar::vertical {border-radius: 4px; width: 8px; color: rgba(255, 255, 255,0);} )"
-                    R"(QScrollBar {margin: 0; background: transparent;} )"
-                    R"(QScrollBar:hover { background-color: rgb(217, 217, 217);})"
-                    R"(QScrollBar::add-line:vertical { width:0px; height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  )"
-                    R"(QScrollBar::sub-line:vertical { width:0px; height: 0px; subcontrol-position: top; subcontrol-origin: margin; })");
+                R"(QListView { background: %1; } )"
+                R"(QScrollBar::handle:vertical:hover { background: rgb(170, 170, 171); } )"
+                R"(QScrollBar::handle:vertical:pressed { background: rgb(149, 149, 149); } )"
+                R"(QScrollBar::handle:vertical { border-radius: 4px; background: rgb(188, 188, 188); min-height: 20px; }  )"
+                R"(QScrollBar::vertical {border-radius: 4px; width: 8px; color: rgba(255, 255, 255,0);} )"
+                R"(QScrollBar {margin: 0; background: transparent;} )"
+                R"(QScrollBar:hover { background-color: rgb(217, 217, 217);})"
+                R"(QScrollBar::add-line:vertical { width:0px; height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  )"
+                R"(QScrollBar::sub-line:vertical { width:0px; height: 0px; subcontrol-position: top; subcontrol-origin: margin; })");
         setStyleSheet(ss.arg(m_backgroundColor.name()));
     }
 }
@@ -37,7 +37,7 @@ void TagListView::reset()
         sz.setHeight(0);
     } else {
         auto firstIndex = model()->index(0, 0);
-        auto lastIndex = model()->index(model()->rowCount() -1, 0);
+        auto lastIndex = model()->index(model()->rowCount() - 1, 0);
         auto fr = visualRect(firstIndex);
         fr.setBottom(visualRect(lastIndex).bottom());
         if (fr.height() < 80) {
@@ -74,4 +74,3 @@ void TagListView::mouseMoveEvent(QMouseEvent *event)
 {
     event->ignore();
 }
-

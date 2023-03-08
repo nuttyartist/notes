@@ -1,18 +1,17 @@
 #include "nodedata.h"
 #include <QDataStream>
 
-NodeData::NodeData():
-    m_id{SpecialNodeID::InvalidNodeId},
-    m_isModified(false),
-    m_isSelected(false),
-    m_scrollBarPosition(0),
-    m_isTempNote{false},
-    m_isPinnedNote{false},
-    m_tagListScrollBarPos{0},
-    m_relativePosAN{0},
-    m_childNotesCount{0}
+NodeData::NodeData()
+    : m_id{ SpecialNodeID::InvalidNodeId },
+      m_isModified(false),
+      m_isSelected(false),
+      m_scrollBarPosition(0),
+      m_isTempNote{ false },
+      m_isPinnedNote{ false },
+      m_tagListScrollBarPos{ 0 },
+      m_relativePosAN{ 0 },
+      m_childNotesCount{ 0 }
 {
-
 }
 
 int NodeData::id() const
@@ -20,7 +19,7 @@ int NodeData::id() const
     return m_id;
 }
 
-void NodeData::setId(const int &id)
+void NodeData::setId(int id)
 {
     m_id = id;
 }
@@ -90,7 +89,7 @@ QDateTime NodeData::deletionDateTime() const
     return m_deletionDateTime;
 }
 
-void NodeData::setDeletionDateTime(const QDateTime& deletionDateTime)
+void NodeData::setDeletionDateTime(const QDateTime &deletionDateTime)
 {
     m_deletionDateTime = deletionDateTime;
 }
@@ -210,12 +209,13 @@ QDateTime NodeData::creationDateTime() const
     return m_creationDateTime;
 }
 
-void NodeData::setCreationDateTime(const QDateTime&creationDateTime)
+void NodeData::setCreationDateTime(const QDateTime &creationDateTime)
 {
     m_creationDateTime = creationDateTime;
 }
 
-QDataStream &operator>>(QDataStream &stream, NodeData &nodeData){
+QDataStream &operator>>(QDataStream &stream, NodeData &nodeData)
+{
     int id;
     QString fullTitle;
     QDateTime lastModificationDateTime;
@@ -230,7 +230,7 @@ QDataStream &operator>>(QDataStream &stream, NodeData &nodeData){
     return stream;
 }
 
-QDataStream &operator>>(QDataStream &stream, NodeData* &nodeData)
+QDataStream &operator>>(QDataStream &stream, NodeData *&nodeData)
 {
     nodeData = new NodeData();
     QString id;

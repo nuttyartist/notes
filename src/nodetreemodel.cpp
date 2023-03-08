@@ -3,10 +3,10 @@
 #include <QRegularExpression>
 #include <QMimeData>
 
-
 NodeTreeItem::NodeTreeItem(const QHash<NodeItem::Roles, QVariant> &data, NodeTreeItem *parent)
     : m_itemData(data), m_parentItem(parent)
-{}
+{
+}
 
 NodeTreeItem::~NodeTreeItem()
 {
@@ -60,17 +60,16 @@ int NodeTreeItem::columnCount() const
 int NodeTreeItem::recursiveNodeCount() const
 {
     int res = 1;
-    for (const auto& child: m_childItems) {
+    for (const auto &child : m_childItems) {
         res += child->recursiveNodeCount();
     }
     return res;
 }
 
-void NodeTreeItem::recursiveUpdateFolderPath(const QString &oldP, const QString newP)
+void NodeTreeItem::recursiveUpdateFolderPath(const QString &oldP, const QString &newP)
 {
     {
-        auto type = static_cast<NodeItem::Type>(
-                    data(NodeItem::Roles::ItemType).toInt());
+        auto type = static_cast<NodeItem::Type>(data(NodeItem::Roles::ItemType).toInt());
         if (type != NodeItem::Type::FolderItem) {
             return;
         }
@@ -78,7 +77,7 @@ void NodeTreeItem::recursiveUpdateFolderPath(const QString &oldP, const QString 
         currP.replace(currP.indexOf(oldP), oldP.size(), newP);
         setData(NodeItem::Roles::AbsPath, currP);
     }
-    for (auto& child: m_childItems) {
+    for (auto &child : m_childItems) {
         child->recursiveUpdateFolderPath(oldP, newP);
     }
 }
@@ -105,26 +104,26 @@ void NodeTreeItem::setParentItem(NodeTreeItem *parentItem)
 
 void NodeTreeItem::moveChild(int from, int to)
 {
-    vector_move(m_childItems, from, to);
+    m_childItems.move(from, to);
 }
 
 void NodeTreeItem::recursiveSort()
 {
-    auto type = static_cast<NodeItem::Type>(
-                data(NodeItem::Roles::ItemType).toInt());
-    auto relPosComparator = [] (const NodeTreeItem* a, const NodeTreeItem* b) {
+    auto type = static_cast<NodeItem::Type>(data(NodeItem::Roles::ItemType).toInt());
+    auto relPosComparator = [](const NodeTreeItem *a, const NodeTreeItem *b) {
         return a->data(NodeItem::Roles::RelPos).toInt() < b->data(NodeItem::Roles::RelPos).toInt();
     };
     if (type == NodeItem::Type::FolderItem) {
         std::sort(m_childItems.begin(), m_childItems.end(), relPosComparator);
-        for (auto& child: m_childItems) {
+        for (auto &child : m_childItems) {
             child->recursiveSort();
         }
     } else if (type == NodeItem::Type::RootItem) {
-        QVector<NodeTreeItem*> allNoteButton, trashFolder, folderSep, folderItems, tagSep, tagItems;
-        for (const auto child : QT_AS_CONST(m_childItems)) {
-            auto childType = static_cast<NodeItem::Type>(
-                        child->data(NodeItem::Roles::ItemType).toInt());
+        QVector<NodeTreeItem *> allNoteButton, trashFolder, folderSep, folderItems, tagSep,
+                tagItems;
+        for (const auto child : qAsConst(m_childItems)) {
+            auto childType =
+                    static_cast<NodeItem::Type>(child->data(NodeItem::Roles::ItemType).toInt());
             if (childType == NodeItem::Type::AllNoteButton) {
                 allNoteButton.append(child);
             } else if (childType == NodeItem::Type::TrashButton) {
@@ -143,7 +142,7 @@ void NodeTreeItem::recursiveSort()
         }
         m_childItems.clear();
         std::sort(folderItems.begin(), folderItems.end(), relPosComparator);
-        for (auto& child: folderItems) {
+        for (auto &child : folderItems) {
             child->recursiveSort();
         }
         std::sort(tagItems.begin(), tagItems.end(), relPosComparator);
@@ -159,15 +158,13 @@ void NodeTreeItem::recursiveSort()
 int NodeTreeItem::row() const
 {
     if (m_parentItem) {
-        return m_parentItem->m_childItems.indexOf(const_cast<NodeTreeItem*>(this));
+        return m_parentItem->m_childItems.indexOf(const_cast<NodeTreeItem *>(this));
     }
 
     return 0;
 }
 
-NodeTreeModel::NodeTreeModel(QObject *parent) :
-    QAbstractItemModel(parent),
-    rootItem(nullptr)
+NodeTreeModel::NodeTreeModel(QObject *parent) : QAbstractItemModel(parent), rootItem(nullptr)
 {
     auto hs = QHash<NodeItem::Roles, QVariant>{};
     hs[NodeItem::Roles::ItemType] = NodeItem::Type::RootItem;
@@ -185,15 +182,17 @@ void NodeTreeModel::appendChildNodeToParent(const QModelIndex &parentIndex,
     if (rootItem) {
         const auto type = static_cast<NodeItem::Type>(data[NodeItem::Roles::ItemType].toInt());
         if (type == NodeItem::Type::FolderItem) {
-            auto parentItem = static_cast<NodeTreeItem*>(parentIndex.internalPointer());
+            auto parentItem = static_cast<NodeTreeItem *>(parentIndex.internalPointer());
             if (!parentItem || parentItem == rootItem) {
                 parentItem = rootItem;
                 int row = 0;
                 for (int i = 0; i < parentItem->childCount(); ++i) {
                     auto childItem = parentItem->child(i);
-                    auto childType = static_cast<NodeItem::Type>(childItem->data(NodeItem::Roles::ItemType).toInt());
-                    if (childType == NodeItem::Type::FolderItem &&
-                            childItem->data(NodeItem::Roles::NodeId).toInt() == SpecialNodeID::DefaultNotesFolder) {
+                    auto childType = static_cast<NodeItem::Type>(
+                            childItem->data(NodeItem::Roles::ItemType).toInt());
+                    if (childType == NodeItem::Type::FolderItem
+                        && childItem->data(NodeItem::Roles::NodeId).toInt()
+                                == SpecialNodeID::DefaultNotesFolder) {
                         row = i + 1;
                         break;
                     }
@@ -214,8 +213,8 @@ void NodeTreeModel::appendChildNodeToParent(const QModelIndex &parentIndex,
                 updateChildRelativePosition(parentItem, NodeItem::Type::FolderItem);
             }
         } else if (type == NodeItem::Type::TagItem) {
-            //tag always in root level
-            auto parentItem = static_cast<NodeTreeItem*>(parentIndex.internalPointer());
+            // tag always in root level
+            auto parentItem = static_cast<NodeTreeItem *>(parentIndex.internalPointer());
             if (parentItem != rootItem) {
                 qDebug() << "tag only go into root level";
                 return;
@@ -223,7 +222,8 @@ void NodeTreeModel::appendChildNodeToParent(const QModelIndex &parentIndex,
             int row = 0;
             for (int i = 0; i < parentItem->childCount(); ++i) {
                 auto childItem = parentItem->child(i);
-                auto childType = static_cast<NodeItem::Type>(childItem->data(NodeItem::Roles::ItemType).toInt());
+                auto childType = static_cast<NodeItem::Type>(
+                        childItem->data(NodeItem::Roles::ItemType).toInt());
                 if (childType == NodeItem::Type::TagSeparator) {
                     row = i + 1;
                     break;
@@ -254,7 +254,7 @@ QModelIndex NodeTreeModel::index(int row, int column, const QModelIndex &parent)
     if (!parent.isValid()) {
         parentItem = rootItem;
     } else {
-        parentItem = static_cast<NodeTreeItem*>(parent.internalPointer());
+        parentItem = static_cast<NodeTreeItem *>(parent.internalPointer());
     }
 
     NodeTreeItem *childItem = parentItem->child(row);
@@ -270,7 +270,7 @@ QModelIndex NodeTreeModel::parent(const QModelIndex &index) const
         return QModelIndex();
     }
 
-    NodeTreeItem *childItem = static_cast<NodeTreeItem*>(index.internalPointer());
+    NodeTreeItem *childItem = static_cast<NodeTreeItem *>(index.internalPointer());
     if ((!childItem) || (childItem == rootItem)) {
         return QModelIndex();
     }
@@ -291,7 +291,7 @@ int NodeTreeModel::rowCount(const QModelIndex &parent) const
     if (!parent.isValid()) {
         parentItem = rootItem;
     } else {
-        parentItem = static_cast<NodeTreeItem*>(parent.internalPointer());
+        parentItem = static_cast<NodeTreeItem *>(parent.internalPointer());
     }
 
     return parentItem->childCount();
@@ -300,7 +300,7 @@ int NodeTreeModel::rowCount(const QModelIndex &parent) const
 int NodeTreeModel::columnCount(const QModelIndex &parent) const
 {
     if (parent.isValid()) {
-        return static_cast<NodeTreeItem*>(parent.internalPointer())->columnCount();
+        return static_cast<NodeTreeItem *>(parent.internalPointer())->columnCount();
     }
     return rootItem->columnCount();
 }
@@ -311,7 +311,7 @@ QVariant NodeTreeModel::data(const QModelIndex &index, int role) const
         return QVariant();
     }
 
-    NodeTreeItem *item = static_cast<NodeTreeItem*>(index.internalPointer());
+    NodeTreeItem *item = static_cast<NodeTreeItem *>(index.internalPointer());
     if (static_cast<NodeItem::Roles>(role) == NodeItem::Roles::IsExpandable) {
         return item->childCount() > 0;
     }
@@ -333,7 +333,7 @@ QModelIndex NodeTreeModel::folderIndexFromIdPath(const NodePath &idPath)
     }
     auto ps = idPath.seperate();
     auto item = rootItem;
-    for (const auto& ite : QT_AS_CONST(ps)) {
+    for (const auto &ite : qAsConst(ps)) {
         bool ok = false;
         auto id = ite.toInt(&ok);
         if (!ok) {
@@ -344,11 +344,10 @@ QModelIndex NodeTreeModel::folderIndexFromIdPath(const NodePath &idPath)
             continue;
         }
         bool foundChild = false;
-        for (int i = 0 ; i < item->childCount(); ++i) {
+        for (int i = 0; i < item->childCount(); ++i) {
             auto child = item->child(i);
-            if (static_cast<NodeItem::Type>(
-                        child->data(NodeItem::Roles::ItemType).toInt())
-                    != NodeItem::FolderItem) {
+            if (static_cast<NodeItem::Type>(child->data(NodeItem::Roles::ItemType).toInt())
+                != NodeItem::FolderItem) {
                 continue;
             }
             if (id == static_cast<int>(child->data(NodeItem::Roles::NodeId).toInt())) {
@@ -358,8 +357,8 @@ QModelIndex NodeTreeModel::folderIndexFromIdPath(const NodePath &idPath)
             }
         }
         if (!foundChild) {
-//            qDebug() << __FUNCTION__ << "Can't find child id" << id << "inside parent"
-//                     << static_cast<int>(item->data(NodeItem::Roles::NodeId).toInt());
+            //            qDebug() << __FUNCTION__ << "Can't find child id" << id << "inside parent"
+            //                     << static_cast<int>(item->data(NodeItem::Roles::NodeId).toInt());
             return QModelIndex();
         }
     }
@@ -370,9 +369,9 @@ QModelIndex NodeTreeModel::tagIndexFromId(int id)
 {
     for (int i = 0; i < rootItem->childCount(); ++i) {
         auto child = rootItem->child(i);
-        if (static_cast<NodeItem::Type>(
-                    child->data(NodeItem::Roles::ItemType).toInt()) == NodeItem::Type::TagItem &&
-                static_cast<int>(child->data(NodeItem::Roles::NodeId).toInt() == id)) {
+        if (static_cast<NodeItem::Type>(child->data(NodeItem::Roles::ItemType).toInt())
+                    == NodeItem::Type::TagItem
+            && static_cast<int>(child->data(NodeItem::Roles::NodeId).toInt() == id)) {
             return createIndex(i, 0, child);
         }
     }
@@ -383,7 +382,7 @@ QString NodeTreeModel::getNewFolderPlaceholderName(const QModelIndex &parentInde
 {
     QString result = "New Folder";
     if (parentIndex.isValid()) {
-        auto parentItem = static_cast<NodeTreeItem*>(parentIndex.internalPointer());
+        auto parentItem = static_cast<NodeTreeItem *>(parentIndex.internalPointer());
         if (parentItem) {
             QRegularExpression reg(R"(^New Folder\s\((\d+)\))");
             int n = 0;
@@ -458,8 +457,9 @@ QModelIndex NodeTreeModel::getDefaultNotesIndex()
         for (int i = 0; i < rootItem->childCount(); ++i) {
             auto child = rootItem->child(i);
             auto type = static_cast<NodeItem::Type>(child->data(NodeItem::Roles::ItemType).toInt());
-            if (type == NodeItem::Type::FolderItem &&
-                    child->data(NodeItem::Roles::NodeId).toInt() == SpecialNodeID::DefaultNotesFolder) {
+            if (type == NodeItem::Type::FolderItem
+                && child->data(NodeItem::Roles::NodeId).toInt()
+                        == SpecialNodeID::DefaultNotesFolder) {
                 return createIndex(i, 0, child);
             }
         }
@@ -495,18 +495,17 @@ QModelIndex NodeTreeModel::getTrashButtonIndex()
     return QModelIndex{};
 }
 
-void NodeTreeModel::deleteRow(const QModelIndex &rowIndex, const QModelIndex& parentIndex)
+void NodeTreeModel::deleteRow(const QModelIndex &rowIndex, const QModelIndex &parentIndex)
 {
     auto type = static_cast<NodeItem::Type>(rowIndex.data(NodeItem::Roles::ItemType).toInt());
     auto id = rowIndex.data(NodeItem::Roles::NodeId).toInt();
-    if (!((type == NodeItem::Type::FolderItem &&
-           id > SpecialNodeID::DefaultNotesFolder) ||
-          type == NodeItem::Type::TagItem)) {
+    if (!((type == NodeItem::Type::FolderItem && id > SpecialNodeID::DefaultNotesFolder)
+          || type == NodeItem::Type::TagItem)) {
         qDebug() << "Can not delete this row with id" << id;
         return;
     }
-    auto parentItem = static_cast<NodeTreeItem*>(parentIndex.internalPointer());
-    auto item = static_cast<NodeTreeItem*>(rowIndex.internalPointer());
+    auto parentItem = static_cast<NodeTreeItem *>(parentIndex.internalPointer());
+    auto item = static_cast<NodeTreeItem *>(rowIndex.internalPointer());
     int row = item->row();
 
     setData(rowIndex, "deleted", NodeItem::DisplayText);
@@ -517,7 +516,7 @@ void NodeTreeModel::deleteRow(const QModelIndex &rowIndex, const QModelIndex& pa
         emit topLevelItemLayoutChanged();
     } else {
         int count = item->recursiveNodeCount();
-        beginRemoveRows(parentIndex, row, row + count -1);
+        beginRemoveRows(parentIndex, row, row + count - 1);
         parentItem->removeChild(row);
         endRemoveRows();
     }
@@ -543,10 +542,9 @@ void NodeTreeModel::loadNodeTree(const QVector<NodeData> &nodeData, NodeTreeItem
 {
     QHash<int, NodeTreeItem *> itemMap;
     itemMap[SpecialNodeID::RootFolder] = rootNode;
-    for (const auto& node: nodeData) {
-        if (node.id() != SpecialNodeID::RootFolder &&
-                node.id() != SpecialNodeID::TrashFolder &&
-                node.parentId() != SpecialNodeID::TrashFolder) {
+    for (const auto &node : nodeData) {
+        if (node.id() != SpecialNodeID::RootFolder && node.id() != SpecialNodeID::TrashFolder
+            && node.parentId() != SpecialNodeID::TrashFolder) {
             auto hs = QHash<NodeItem::Roles, QVariant>{};
             if (node.nodeType() == NodeData::Folder) {
                 hs[NodeItem::Roles::ItemType] = NodeItem::Type::FolderItem;
@@ -566,15 +564,13 @@ void NodeTreeModel::loadNodeTree(const QVector<NodeData> &nodeData, NodeTreeItem
         }
     }
 
-    for (const auto& node: nodeData) {
-        if (node.id() != SpecialNodeID::RootFolder &&
-                node.parentId() != -1 &&
-                node.id() != SpecialNodeID::TrashFolder &&
-                node.parentId() != SpecialNodeID::TrashFolder) {
+    for (const auto &node : nodeData) {
+        if (node.id() != SpecialNodeID::RootFolder && node.parentId() != -1
+            && node.id() != SpecialNodeID::TrashFolder
+            && node.parentId() != SpecialNodeID::TrashFolder) {
             auto parentNode = itemMap.find(node.parentId());
             auto nodeItem = itemMap.find(node.id());
-            if (parentNode != itemMap.end() &&
-                    nodeItem != itemMap.end()) {
+            if (parentNode != itemMap.end() && nodeItem != itemMap.end()) {
                 (*parentNode)->appendChild(*nodeItem);
                 (*nodeItem)->setParentItem(*parentNode);
             } else {
@@ -625,7 +621,7 @@ void NodeTreeModel::appendTagsSeparator(NodeTreeItem *rootNode)
 
 void NodeTreeModel::loadTagList(const QVector<TagData> &tagData, NodeTreeItem *rootNode)
 {
-    for (const auto& tag: tagData) {
+    for (const auto &tag : tagData) {
         auto hs = QHash<NodeItem::Roles, QVariant>{};
         hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
         hs[NodeItem::Roles::DisplayText] = tag.name();
@@ -644,18 +640,16 @@ void NodeTreeModel::updateChildRelativePosition(NodeTreeItem *parent, const Node
     int relId = 0;
     for (int i = 0; i < parent->childCount(); ++i) {
         auto child = parent->child(i);
-        auto childType = static_cast<NodeItem::Type>(
-                    child->data(NodeItem::Roles::ItemType).toInt());
+        auto childType =
+                static_cast<NodeItem::Type>(child->data(NodeItem::Roles::ItemType).toInt());
         if (childType == type) {
             if (type == NodeItem::Type::FolderItem) {
-                emit requestUpdateNodeRelativePosition(
-                            child->data(NodeItem::Roles::NodeId).toInt(),
-                            relId);
+                emit requestUpdateNodeRelativePosition(child->data(NodeItem::Roles::NodeId).toInt(),
+                                                       relId);
                 ++relId;
             } else if (type == NodeItem::Type::TagItem) {
-                emit requestUpdateTagRelativePosition(
-                            child->data(NodeItem::Roles::NodeId).toInt(),
-                            relId);
+                emit requestUpdateTagRelativePosition(child->data(NodeItem::Roles::NodeId).toInt(),
+                                                      relId);
                 ++relId;
             } else {
                 qDebug() << __FUNCTION__ << "Wrong type";
@@ -678,21 +672,21 @@ bool NodeTreeModel::setData(const QModelIndex &index, const QVariant &value, int
 {
     if (index.isValid()) {
         if (role == NodeItem::Roles::DisplayText) {
-            static_cast<NodeTreeItem*>(index.internalPointer())->setData(
-                        static_cast<NodeItem::Roles>(role), value);
-            emit dataChanged(index, index, {role});
+            static_cast<NodeTreeItem *>(index.internalPointer())
+                    ->setData(static_cast<NodeItem::Roles>(role), value);
+            emit dataChanged(index, index, { role });
             return true;
         }
         if (role == NodeItem::Roles::TagColor) {
-            static_cast<NodeTreeItem*>(index.internalPointer())->setData(
-                        static_cast<NodeItem::Roles>(role), value);
-            emit dataChanged(index, index, {role});
+            static_cast<NodeTreeItem *>(index.internalPointer())
+                    ->setData(static_cast<NodeItem::Roles>(role), value);
+            emit dataChanged(index, index, { role });
             return true;
         }
         if (role == NodeItem::Roles::ChildCount) {
-            static_cast<NodeTreeItem*>(index.internalPointer())->setData(
-                        static_cast<NodeItem::Roles>(role), value);
-            emit dataChanged(index, index, {role});
+            static_cast<NodeTreeItem *>(index.internalPointer())
+                    ->setData(static_cast<NodeItem::Roles>(role), value);
+            emit dataChanged(index, index, { role });
             return true;
         }
     }
@@ -719,13 +713,11 @@ QMimeData *NodeTreeModel::mimeData(const QModelIndexList &indexes) const
     if (indexes.isEmpty()) {
         return nullptr;
     }
-    auto itemType = static_cast<NodeItem::Type>(
-                indexes[0].data(NodeItem::Roles::ItemType).toInt());
+    auto itemType = static_cast<NodeItem::Type>(indexes[0].data(NodeItem::Roles::ItemType).toInt());
     if (itemType == NodeItem::Type::TagItem) {
         QStringList d;
-        for (const auto& index : indexes) {
-            auto type = static_cast<NodeItem::Type>(
-                        index.data(NodeItem::Roles::ItemType).toInt());
+        for (const auto &index : indexes) {
+            auto type = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
             if (type != itemType) {
                 continue;
             }
@@ -739,7 +731,7 @@ QMimeData *NodeTreeModel::mimeData(const QModelIndexList &indexes) const
         mimeData->setData(TAG_MIME, d.join(QStringLiteral(PATH_SEPERATOR)).toUtf8());
         return mimeData;
     } else if (itemType == NodeItem::Type::FolderItem) {
-        const auto& index = indexes[0];
+        const auto &index = indexes[0];
         auto id = index.data(NodeItem::Roles::NodeId).toInt();
         if (id == SpecialNodeID::DefaultNotesFolder) {
             return nullptr;
@@ -753,15 +745,11 @@ QMimeData *NodeTreeModel::mimeData(const QModelIndexList &indexes) const
     }
 }
 
-bool NodeTreeModel::dropMimeData(const QMimeData *mime,
-                                 Qt::DropAction action,
-                                 int row, int column,
+bool NodeTreeModel::dropMimeData(const QMimeData *mime, Qt::DropAction action, int row, int column,
                                  const QModelIndex &parent)
 {
     Q_UNUSED(column);
-    if (!(mime->hasFormat(TAG_MIME) ||
-          mime->hasFormat(FOLDER_MIME)) &&
-            action == Qt::MoveAction) {
+    if (!(mime->hasFormat(TAG_MIME) || mime->hasFormat(FOLDER_MIME)) && action == Qt::MoveAction) {
         return false;
     }
     if (mime->hasFormat(TAG_MIME)) {
@@ -778,18 +766,20 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime,
         if ((sep.size() == 2) && (row <= sep[1].row())) {
             return false;
         }
-        auto idl = QString::fromUtf8(mime->data(TAG_MIME))
-                .split(QStringLiteral(PATH_SEPERATOR));
+        auto idl = QString::fromUtf8(mime->data(TAG_MIME)).split(QStringLiteral(PATH_SEPERATOR));
         beginResetModel();
         QSet<int> movedIds;
-        for (const auto& id_s : QT_AS_CONST(idl)) {
+        for (const auto &id_s : qAsConst(idl)) {
             auto id = id_s.toInt();
             for (int i = 0; i < rootItem->childCount(); ++i) {
                 auto child = rootItem->child(i);
-                auto childType = static_cast<NodeItem::Type>(
-                            child->data(NodeItem::Roles::ItemType).toInt());
-                if (childType == NodeItem::Type::TagItem &&
-                        child->data(NodeItem::Roles::NodeId).toInt() == id) {
+                auto childType =
+                        static_cast<NodeItem::Type>(child->data(NodeItem::Roles::ItemType).toInt());
+                if (childType == NodeItem::Type::TagItem
+                    && child->data(NodeItem::Roles::NodeId).toInt() == id) {
+                    if (row >= rootItem->childCount()) {
+                        row = rootItem->childCount() - 1;
+                    }
                     rootItem->moveChild(i, row);
                     movedIds.insert(id);
                     break;
@@ -821,16 +811,15 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime,
         if (!parent.isValid()) {
             parentItem = rootItem;
         } else {
-            parentItem = static_cast<NodeTreeItem*>(parent.internalPointer());
+            parentItem = static_cast<NodeTreeItem *>(parent.internalPointer());
         }
-        auto parentType = static_cast<NodeItem::Type>(
-                    parentItem->data(NodeItem::Roles::ItemType).toInt());
-        if (!(parentType == NodeItem::Type::FolderItem ||
-              parentType == NodeItem::Type::RootItem ||
-              parentType == NodeItem::Type::TrashButton)) {
+        auto parentType =
+                static_cast<NodeItem::Type>(parentItem->data(NodeItem::Roles::ItemType).toInt());
+        if (!(parentType == NodeItem::Type::FolderItem || parentType == NodeItem::Type::RootItem
+              || parentType == NodeItem::Type::TrashButton)) {
             return false;
         }
-        movingItem = static_cast<NodeTreeItem*>(index.internalPointer());
+        movingItem = static_cast<NodeTreeItem *>(index.internalPointer());
         if (parentType == NodeItem::Type::TrashButton) {
             auto abs = movingItem->data(NodeItem::Roles::AbsPath).toString();
             auto movingIndex = folderIndexFromIdPath(abs);
@@ -855,10 +844,11 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime,
             beginResetModel();
             for (int i = 0; i < parentItem->childCount(); ++i) {
                 auto child = parentItem->child(i);
-                auto childType = static_cast<NodeItem::Type>(
-                            child->data(NodeItem::Roles::ItemType).toInt());
-                if (childType == NodeItem::Type::FolderItem &&
-                        child->data(NodeItem::Roles::NodeId) == movingItem->data(NodeItem::Roles::NodeId)) {
+                auto childType =
+                        static_cast<NodeItem::Type>(child->data(NodeItem::Roles::ItemType).toInt());
+                if (childType == NodeItem::Type::FolderItem
+                    && child->data(NodeItem::Roles::NodeId)
+                            == movingItem->data(NodeItem::Roles::NodeId)) {
                     int targetRow = row;
                     if (row > i && row > 0) {
                         targetRow -= 1;
@@ -876,10 +866,11 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime,
             int r = -1;
             for (int i = 0; i < movingParent->childCount(); ++i) {
                 auto child = movingParent->child(i);
-                auto childType = static_cast<NodeItem::Type>(
-                            child->data(NodeItem::Roles::ItemType).toInt());
-                if ((childType == NodeItem::Type::FolderItem) &&
-                        (child->data(NodeItem::Roles::NodeId).toInt() == movingItem->data(NodeItem::Roles::NodeId).toInt())) {
+                auto childType =
+                        static_cast<NodeItem::Type>(child->data(NodeItem::Roles::ItemType).toInt());
+                if ((childType == NodeItem::Type::FolderItem)
+                    && (child->data(NodeItem::Roles::NodeId).toInt()
+                        == movingItem->data(NodeItem::Roles::NodeId).toInt())) {
                     r = i;
                     break;
                 }
@@ -890,7 +881,8 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime,
             movingItem = movingParent->child(r);
             auto oldAbsolutePath = movingItem->data(NodeItem::Roles::AbsPath).toString();
             QString newAbsolutePath = parentItem->data(NodeItem::Roles::AbsPath).toString()
-                    + PATH_SEPERATOR + QString::number(movingItem->data(NodeItem::Roles::NodeId).toInt());
+                    + PATH_SEPERATOR
+                    + QString::number(movingItem->data(NodeItem::Roles::NodeId).toInt());
             emit requestUpdateAbsPath(oldAbsolutePath, newAbsolutePath);
             beginResetModel();
             movingParent->takeChildAt(r);
@@ -909,4 +901,3 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime,
     }
     return false;
 }
-

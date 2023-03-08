@@ -3,12 +3,7 @@
 #include <QDebug>
 #include "nodepath.h"
 
-TagListModel::TagListModel(QObject *parent) :
-    QAbstractListModel(parent),
-    m_tagPool{nullptr}
-{
-
-}
+TagListModel::TagListModel(QObject *parent) : QAbstractListModel(parent), m_tagPool{ nullptr } { }
 
 void TagListModel::setTagPool(TagPool *tagPool)
 {
@@ -22,7 +17,7 @@ void TagListModel::setTagPool(TagPool *tagPool)
     endResetModel();
 }
 
-void TagListModel::setModelData(QSet<int> data)
+void TagListModel::setModelData(const QSet<int> &data)
 {
     if (!m_tagPool) {
         qDebug() << __FUNCTION__ << "Tag pool is not init yet";
@@ -49,12 +44,14 @@ void TagListModel::addTag(int tagId)
     }
 }
 
-int TagListModel::rowCount(const QModelIndex & parent) const {
+int TagListModel::rowCount(const QModelIndex &parent) const
+{
     Q_UNUSED(parent);
     return m_data.count();
 }
 
-QVariant TagListModel::data(const QModelIndex & index, int role) const {
+QVariant TagListModel::data(const QModelIndex &index, int role) const
+{
     if (!index.isValid()) {
         return QVariant();
     }
@@ -72,7 +69,7 @@ QVariant TagListModel::data(const QModelIndex & index, int role) const {
 void TagListModel::updateTagData()
 {
     m_data.clear();
-    for (const auto& id : QT_AS_CONST(m_ids)) {
+    for (const auto &id : qAsConst(m_ids)) {
         if (m_tagPool->contains(id)) {
             m_data.append(m_tagPool->getTag(id));
         } else {

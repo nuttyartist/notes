@@ -12,10 +12,8 @@ class AllNoteButtonTreeDelegateEditor : public QWidget
 {
     Q_OBJECT
 public:
-    explicit AllNoteButtonTreeDelegateEditor(QTreeView *view,
-                                       const QStyleOptionViewItem &option,
-                                      const QModelIndex &index,
-                                      QWidget *parent = nullptr);
+    explicit AllNoteButtonTreeDelegateEditor(QTreeView *view, const QStyleOptionViewItem &option,
+                                             const QModelIndex &index, QWidget *parent = nullptr);
 
 private:
     QStyleOptionViewItem m_option;

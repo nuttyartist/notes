@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2022 Ruby Mamistvalove -->
+<component type="desktop-application">
+    <id>@APP_ID@</id>
+    <launchable type="desktop-id">@APP_ID@.desktop</launchable>
+    <metadata_license>CC0-1.0</metadata_license>
+    <project_license>MPL-2.0</project_license>
+    <name>@PROJECT_NAME@</name>
+    <developer_name>Ruby Mamistvalove</developer_name>
+    <update_contact>ruby.mamistvalove_AT_gmail.com</update_contact>
+    <summary>Note-taking application, write down your thoughts</summary>
+    <url type="homepage">https://www.get-notes.com/</url>
+    <url type="bugtracker">https://github.com/nuttyartist/notes/issues</url>
+    <url type="donation">https://github.com/sponsors/nuttyartist</url>
+    <description>
+        <p>Notes is an open source and cross-platform note-taking app that is both beautiful and powerful.</p>
+        <p>Features overview:</p>
+        <ul>
+            <li>Native app (written in C++ with Qt)</li>
+            <li>Fast with a low memory footprint</li>
+            <li>Beautiful and sleek looking, yet still powerful</li>
+            <li>Fully open source and cross-platform (Linux, macOS, Windows)</li>
+            <li>Completely private: Tracks nothing</li>
+            <li>Folders and tags: Organize your ideas hierarchically using nested folders and universally using tags</li>
+            <li>Markdown Support: Format text without lifting your hands from the keyboard</li>
+            <li>Different themes: Switch between Light, Dark, and Sepia</li>
+            <li>Feed View: Select multiple notes to see them all one after another in the editor</li>
+            <li>Always runs in the background: Use the hotkey <code>Super</code> + <code>Shift</code> + <code>N</code> to summon Notes</li>
+        </ul>
+    </description>
+    <screenshots>
+        <!-- TODO: Upload these screenshots to a better place. -->
+        <screenshot type="default">
+            <image>https://user-images.githubusercontent.com/626206/222927528-64941f78-4093-4d3d-8000-fd0dca61980a.png</image>
+            <caption>Light theme</caption>
+        </screenshot>
+        <screenshot>
+            <image>https://user-images.githubusercontent.com/626206/222927531-a52cd062-acd1-49b2-9b58-543ff5772c6e.png</image>
+            <caption>Editor settings</caption>
+        </screenshot>
+        <screenshot>
+            <image>https://user-images.githubusercontent.com/626206/222927543-6c91792f-3fa3-430b-94b7-c2ff92f6ed4d.png</image>
+            <caption>Dark theme</caption>
+        </screenshot>
+        <screenshot>
+            <image>https://user-images.githubusercontent.com/626206/222927546-1d333c84-2d82-4e2d-8c96-a15f42d56af2.png</image>
+            <caption>Sepia theme</caption>
+        </screenshot>
+        <screenshot>
+            <image>https://user-images.githubusercontent.com/626206/222930768-87a1f5ef-1707-45c3-9322-fb0e64869cc2.png</image>
+            <caption>Compact mode</caption>
+        </screenshot>
+    </screenshots>
+    <content_rating type="oars-1.1" />
+    <releases>
+        <release date="2023-03-08" version="2.1.0">
+            <description>
+                <p>A new release is here with some new features and many bug fixes and improvements.</p>
+                <p>New features:</p>
+                <ul>
+                    <li>You can now open external links by holding <code>Ctrl</code> while clicking them</li>
+                    <li>You can now format text using keyboard shortcuts: <code>Ctrl</code> + <code>B</code> (Bold) | <code>Ctrl</code> + <code>I</code> (Italic) | <code>Ctrl</code> + <code>S</code> (Strikethrough)</li>
+                    <li>You can create different heading levels with <code>Ctrl</code> + <code>1</code>...<code>6</code></li>
+                    <li>You can increase or decrease levels by using <code>Ctrl</code> + <code>Shift</code> + (<code>+</code> or <code>-</code>)</li>
+                    <li>You can now access the app menu by pressing <code>F10</code> (<code>Fn</code> + <code>F10</code> on macOS)</li>
+                </ul>
+                <p>Improvements and bug fixes:</p>
+                <ul>
+                    <li>Automatic updates now work on Windows</li>
+                    <li>Fixed bugs with native window decoration</li>
+                    <li>We improved the style of selecting multiple notes</li>
+                    <li>Fixed a bug on Windows causing extreme input delay when editing text</li>
+                    <li>Streamlined the look and feel of some windows to match the OS better</li>
+                    <li>Fixed issues when resizing the window's splitters and resizing the window itself</li>
+                    <li>Fixed some bugs causing crashes</li>
+                    <li>Many more fixes and improvements under the hood</li>
+                </ul>
+            </description>
+        </release>
+        <release date="2022-09-08" version="2.0.0">
+            <description>
+                <p>A new release is here with major new features and many bug fixes and improvements:</p>
+                <ul>
+                    <li>Folders and tags: Organize your ideas hierarchically using nested folders and universally using tags</li>
+                    <li>Pinned notes: Pin your most important notes at the top of each folder</li>
+                    <li>Different themes: Switch between Light, Dark, and Sepia</li>
+                    <li>Editor settings window: Change between different fonts and change the size/width of your text</li>
+                    <li>Feed View: Select multiple notes to see them all one after another in the editor</li>
+                    <li>Option to change the database path, so you can more easily sync your notes with a cloud provider</li>
+                    <li>Many bug fixes</li>
+                </ul>
+            </description>
+        </release>
+    </releases>
+    <provides>
+        <binary>@BINARY_NAME@</binary>
+    </provides>
+</component>

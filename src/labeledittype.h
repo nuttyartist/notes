@@ -13,16 +13,15 @@ public:
 public slots:
     void openEditor();
 
-
 private slots:
     void onFinishedEdit();
 
 signals:
     void editingStarted();
-    void editingFinished(const QString& text);
+    void editingFinished(const QString &text);
 
 private:
-    QLineEdit* m_editor;
+    QLineEdit *m_editor;
 };
 
 #endif // LABELEDITTYPE_H

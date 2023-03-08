@@ -1,0 +1,277 @@
+name: Linux
+on:
+  push:
+  pull_request:
+env:
+  APP_ID: io.github.nuttyartist.notes
+jobs:
+  # This job is mainly to make sure Notes will compile with Qt from Ubuntu's repository.
+  # So it doesn't make much sense to have different build types other than 'debug' here.
+  # The release AppImage is built using aqtinstall instead (the job below this one).
+  build-apt:
+    name: Build (${{ matrix.build-type }}, apt (qt${{ matrix.qt-version-major }}), ${{ matrix.container != '' && matrix.container || matrix.os }})
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-20.04
+            # TODO: Replace 'ubuntu:18.04' by 'ubuntu:20.04' when:
+            # - Ubuntu 18.04 officially reaches EOL (scheduled to April, 2023 - https://wiki.ubuntu.com/Releases)
+            # - A new build of linuxdeployqt allows us to build on Ubuntu 20.04, without having to use -unsupported-allow-new-glibc.
+            container: ubuntu:18.04
+            qt-version-major: 5
+            build-type: debug
+
+          - os: ubuntu-latest
+            qt-version-major: 5
+            build-type: debug
+
+          - os: ubuntu-22.04
+            qt-version-major: 6
+            build-type: debug
+    steps:
+      - name: Install git PPA in docker container
+        # A more recent version of git is required by the checkout action: https://github.com/actions/checkout/issues/758
+        # TODO: Once we upgrade to Ubuntu 20.04, remove this and install git normally through apt.
+        if: matrix.container == 'ubuntu:18.04'
+        run: |
+          apt update
+          apt install -y ca-certificates curl gnupg
+          # Add the git PPA manually (https://launchpad.net/~git-core/+archive/ubuntu/ppa), because 'add-apt-repository' pulls a bunch of unnecessary dependencies.
+          curl -fL --retry 10 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xE1DD270288B4E6030699E45FA1715D88E1DF1F24' | gpg --dearmor > /etc/apt/trusted.gpg.d/git.gpg
+          echo 'deb https://ppa.launchpadcontent.net/git-core/ppa/ubuntu bionic main' > /etc/apt/sources.list.d/git.list
+          apt update
+
+      - name: Install other dependencies in docker container
+        # - sudo: Used by most GitHub actions to install things.
+        if: matrix.container != ''
+        run: |
+          apt update
+          apt install -y git sudo
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install Qt ${{ matrix.qt-version-major }} (apt)
+        env:
+          QT_PKGS: ${{ matrix.qt-version-major == '6' && 'qt6-base-private-dev libgl-dev' || 'qtbase5-private-dev' }}
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential cmake ${{ env.QT_PKGS }}
+
+      - name: Setup GCC problem matcher
+        if: matrix.build-type == 'debug'
+        uses: ammaraskar/gcc-problem-matcher@0.2.0
+
+      # TODO: Migrate to the Ninja generator once we drop support for Ubuntu 18.04.
+      - name: Build (${{ matrix.build-type }})
+        env:
+          VERBOSE: 1
+        run: |
+          mkdir build
+          cd build
+          cmake .. --warn-uninitialized --warn-unused-vars -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
+          make -j$(nproc)
+
+  # Build the AppImage using official Qt releases, downloaded by aqtinstall.
+  # This is also done for macOS and Windows, just to make sure we use the exact same Qt version across all three OSes.
+  #
+  # NOTE: This job uses a fixed Qt version (set in the 'qt-version' key below)!
+  # So, remember to keep it updated whenever a new Qt version is available on aqtinstall.
+  appimage-aqtinstall:
+    name: AppImage (${{ matrix.build-type }}, Qt ${{ matrix.qt-version }}, ${{ matrix.container != '' && matrix.container || matrix.os }})
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-20.04
+            container: ubuntu:18.04
+            build-type: release
+            qt-version: 5.15.2
+
+          - os: ubuntu-20.04
+            container: ubuntu:20.04
+            build-type: release
+            qt-version: 6.3.2
+    steps:
+      - name: Install git PPA in docker container
+        # A more recent version of git is required by the checkout action: https://github.com/actions/checkout/issues/758
+        # TODO: Once we upgrade to Ubuntu 20.04, remove this and install git normally through apt.
+        if: matrix.container == 'ubuntu:18.04'
+        run: |
+          apt update
+          apt install -y ca-certificates curl gnupg
+          # Add the git PPA manually (https://launchpad.net/~git-core/+archive/ubuntu/ppa), because 'add-apt-repository' pulls a bunch of unnecessary dependencies.
+          curl -fL --retry 10 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xE1DD270288B4E6030699E45FA1715D88E1DF1F24' | gpg --dearmor > /etc/apt/trusted.gpg.d/git.gpg
+          echo 'deb https://ppa.launchpadcontent.net/git-core/ppa/ubuntu bionic main' > /etc/apt/sources.list.d/git.list
+          apt update
+
+      - name: Install other dependencies in docker container
+        # - appstream: Used to validate the AppStream metadata file.
+        # - cmake: Used to help build the application.
+        # - curl: Used to download the linuxdeploy AppImage tool.
+        # - desktop-file-utils: Used to validate the desktop file.
+        # - git: To clone this repository.
+        # - libfontconfig1: Used as dependency of the resulting AppImage.
+        # - libxkbcommon-x11-0: Used as dependency of the resulting AppImage.
+        # - python3/python3-pip: Used by aqtinstall.
+        # - sudo: Used by most GitHub actions to install things.
+        if: matrix.container != ''
+        run: |
+          # Configure the timezone, otherwise 'install-qt-action' gets stuck at 'configuring tzdata'.
+          ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+          echo UTC > /etc/timezone
+          # install packages
+          apt update
+          apt install -y appstream cmake curl desktop-file-utils git libfontconfig1 libxkbcommon-x11-0 python3 python3-pip sudo
+          # Upgrade to the latest setuptools, as Ubuntu's python3-setuptools package has compatibility issues with aqtinstall.
+          python3 -m pip install --upgrade setuptools
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Setup variables
+        shell: bash
+        id: vars
+        run: |
+          set -x
+          version=$(grep -oPm1 '\bAPP_VERSION +\K[^)]+' CMakeLists.txt)
+          if [ -z "${version}" ]
+          then
+              echo 'Failed to extract app version from CMakeLists.txt.'
+              exit 1
+          fi
+          if [ '${{ github.ref_type }}' != 'tag' ]
+          then
+              version="${version}-g${GITHUB_SHA::7}"
+          fi
+          artifact_name="Notes_${version}-Qt${{ matrix.qt-version }}-x86_64"
+          if [ '${{ matrix.build-type }}' == 'debug' ]
+          then
+              file_name="${artifact_name}-debug.AppImage"
+          else
+              file_name="${artifact_name}.AppImage"
+          fi
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+          echo "artifact_name=${artifact_name}" >> "${GITHUB_OUTPUT}"
+          echo "file_name=${file_name}" >> "${GITHUB_OUTPUT}"
+
+      - name: Install Qt ${{ matrix.qt-version }} (aqtinstall)
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: ${{ matrix.qt-version }}
+          # Prevents the installation of a custom Python build, potentially linked against an unsupported version of glibc.
+          setup-python: false
+          cache: true
+
+      - name: Install Qt 6 system dependencies
+        # 'libmysqlclient21' is actually only needed by linuxdeploy for Qt 6 builds. I'm including it here just for convenience.
+        if: startsWith(matrix.qt-version, '6.')
+        run: |
+          sudo apt update
+          sudo apt install -y libxkbcommon-dev libmysqlclient21
+
+      # TODO: Figure out why this error only occurs on the Linux container when building with -DGIT_REVISION=ON
+      # The error: fatal: detected dubious ownership in repository
+      - name: Prevent git's dubious ownership message
+        if: github.ref_type != 'tag'
+        run: |
+          git config --global --add safe.directory "${PWD}"
+
+      # TODO: Migrate to the Ninja generator once we drop support for Ubuntu 18.04.
+      - name: Build (${{ matrix.build-type }})
+        env:
+          VERBOSE: 1
+        run: |
+          mkdir build
+          cd build
+          cmake .. --warn-uninitialized --warn-unused-vars \
+              -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
+              -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }} \
+              -DCMAKE_INSTALL_PREFIX=/usr
+          make -j$(nproc)
+
+      - name: Install (${{ matrix.build-type }})
+        run: |
+          make -C build DESTDIR=Notes install
+
+      - name: Setup linuxdeploy
+        run: |
+          cd build
+          curl -fLO --retry 10 https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          chmod +x linuxdeploy-x86_64.AppImage
+
+      - name: Setup Qt plugin for linuxdeploy
+        run: |
+          cd build
+          curl -fLO --retry 10 https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+          chmod +x linuxdeploy-plugin-qt-x86_64.AppImage
+
+      - name: Install useless dependencies to make linuxdeploy happy
+        # We won't use any of these sql drivers, but install them anyway so linuxdeploy doesn't fail.
+        run: |
+          sudo apt update
+          sudo apt install -y libpq5 libodbc1
+
+      - name: Deploy (${{ matrix.build-type }})
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: 1
+        run: |
+          cd build
+          ./linuxdeploy-x86_64.AppImage --appdir Notes --plugin qt
+
+      - name: Remove unnecessary Qt plugins and libraries
+        shell: bash
+        run: |
+          set -x
+          set -e
+          cd build/Notes
+          if [[ '${{ matrix.qt-version }}' == 5.* ]]
+          then
+              # The bearer plugin has caused problems for us in the past. Plus, it was removed altogether in Qt 6.
+              rm -rv usr/plugins/bearer
+          fi
+          # We only use the SQLite Qt driver, so it's fine to delete others.
+          rm -v usr/plugins/sqldrivers/libqsqlodbc.so
+          rm -v usr/plugins/sqldrivers/libqsqlpsql.so
+          if [[ '${{ matrix.qt-version }}' == 6.* ]]
+          then
+              # The Qt 6 build also has a MySQL Qt driver we don't use.
+              rm -v usr/plugins/sqldrivers/libqsqlmysql.so
+              rm -v usr/lib/libmysqlclient.so.*
+          fi
+
+      - name: Validate AppStream metadata
+        if: matrix.container != 'ubuntu:18.04'
+        run: |
+          cd build/Notes
+          appstreamcli validate --verbose 'usr/share/metainfo/${{ env.APP_ID }}.metainfo.xml'
+
+      - name: Validate desktop file
+        run: |
+          cd build/Notes
+          desktop-file-validate 'usr/share/applications/${{ env.APP_ID }}.desktop'
+
+      - name: Build AppImage (${{ matrix.build-type }})
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: 1
+        run: |
+          cd build
+          export VERSION='${{ steps.vars.outputs.version }}'
+          ./linuxdeploy-x86_64.AppImage --appdir Notes --output appimage
+          mv -v Notes*.AppImage '${{ steps.vars.outputs.file_name }}'
+
+      - name: Upload AppImage artifact (${{ matrix.build-type }})
+        uses: actions/upload-artifact@v3
+        with:
+          if-no-files-found: error
+          name: ${{ steps.vars.outputs.artifact_name }}-${{ runner.os }}-${{ matrix.build-type }}
+          path: build/${{ steps.vars.outputs.file_name }}

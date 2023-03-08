@@ -1,9 +1,0 @@
-[Desktop Entry]
-Type=Application
-Terminal=false
-StartupNotify=true
-Name=Notes
-Comment=Write down your thoughts
-Categories=Utility;
-Exec=notes
-Icon=notes
