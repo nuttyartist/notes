@@ -2,6 +2,8 @@ name: Linux
 on:
   push:
   pull_request:
+env:
+  APP_ID: io.github.nuttyartist.notes
 jobs:
   # This job is mainly to make sure Notes will compile with Qt from Ubuntu's repository.
   # So it doesn't make much sense to have different build types other than 'debug' here.
@@ -111,6 +113,7 @@ jobs:
           apt update
 
       - name: Install other dependencies in docker container
+        # - appstream: Used to validate the AppStream metadata file.
         # - cmake: Used to help build the application.
         # - curl: Used to download the linuxdeploy AppImage tool.
         # - git: To clone this repository.
@@ -125,7 +128,7 @@ jobs:
           echo UTC > /etc/timezone
           # install packages
           apt update
-          apt install -y cmake curl git libfontconfig1 libxkbcommon-x11-0 python3 python3-pip sudo
+          apt install -y appstream cmake curl git libfontconfig1 libxkbcommon-x11-0 python3 python3-pip sudo
           # Upgrade to the latest setuptools, as Ubuntu's python3-setuptools package has compatibility issues with aqtinstall.
           python3 -m pip install --upgrade setuptools
 
@@ -244,6 +247,12 @@ jobs:
               rm -v usr/plugins/sqldrivers/libqsqlmysql.so
               rm -v usr/lib/libmysqlclient.so.*
           fi
+
+      - name: Validate AppStream metadata
+        if: matrix.container != 'ubuntu:18.04'
+        run: |
+          cd build/Notes
+          appstreamcli validate --verbose 'usr/share/metainfo/${{ env.APP_ID }}.metainfo.xml'
 
       - name: Build AppImage (${{ matrix.build-type }})
         env:
