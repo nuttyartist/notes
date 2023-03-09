@@ -1,9 +1,15 @@
 name: Linux
+
 on:
   push:
+    branches:
+      - master
   pull_request:
+  workflow_dispatch:
+
 env:
   APP_ID: io.github.nuttyartist.notes
+
 jobs:
   # This job is mainly to make sure Notes will compile with Qt from Ubuntu's repository.
   # So it doesn't make much sense to have different build types other than 'debug' here.

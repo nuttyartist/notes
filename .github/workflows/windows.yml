@@ -1,7 +1,12 @@
 name: Windows
+
 on:
   push:
+    branches:
+      - master
   pull_request:
+  workflow_dispatch:
+
 jobs:
   # NOTE: This job uses a fixed Qt version (set in the 'qt-version' key below)!
   # So, remember to keep it updated whenever a new Qt version is available on aqtinstall.

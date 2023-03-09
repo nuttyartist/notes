@@ -1,7 +1,12 @@
 name: macOS
+
 on:
   push:
+    branches:
+      - master
   pull_request:
+  workflow_dispatch:
+
 jobs:
   # This job is mainly to make sure Notes will compile with Qt from homebrew's repository.
   # So it doesn't make much sense to have different build types other than 'debug' here.
