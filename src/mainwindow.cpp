@@ -1243,8 +1243,14 @@ void MainWindow::setupModelView()
  */
 void MainWindow::restoreStates()
 {
+#if defined(Q_OS_WIN)
+    bool nativeByDefault = true;
+#else
+    bool nativeByDefault = false;
+#endif
     setUseNativeWindowFrame(
-            m_settingsDatabase->value(QStringLiteral("useNativeWindowFrame"), false).toBool());
+            m_settingsDatabase->value(QStringLiteral("useNativeWindowFrame"), nativeByDefault)
+                    .toBool());
 
     setHideToTray(m_settingsDatabase->value(QStringLiteral("hideToTray"), true).toBool());
     if (m_hideToTray) {
