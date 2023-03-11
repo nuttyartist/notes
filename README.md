@@ -1,10 +1,9 @@
 # Notes
 
 [![Discord](https://dcbadge.vercel.app/api/server/RP6ReXRn5j?style=flat)](https://discord.gg/RP6ReXRn5j)
-[![GitHub Actions status on Linux](https://github.com/nuttyartist/notes/actions/workflows/linux.yml/badge.svg?branch=dev)](https://github.com/nuttyartist/notes/actions/workflows/linux.yml?query=branch%3Adev)
-[![GitHub Actions status on macOS](https://github.com/nuttyartist/notes/actions/workflows/macos.yml/badge.svg?branch=dev)](https://github.com/nuttyartist/notes/actions/workflows/macos.yml?query=branch%3Adev)
-[![GitHub Actions status on Windows](https://github.com/nuttyartist/notes/actions/workflows/windows.yml/badge.svg?branch=dev)](https://github.com/nuttyartist/notes/actions/workflows/windows.yml?query=branch%3Adev)
-[![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/github/nuttyartist/notes?branch=dev&svg=true)](https://ci.appveyor.com/project/nuttyartist/notes)
+[![GitHub Actions status on Linux](https://github.com/nuttyartist/notes/actions/workflows/linux.yml/badge.svg?branch=master)](https://github.com/nuttyartist/notes/actions/workflows/linux.yml?query=branch%3Amaster)
+[![GitHub Actions status on macOS](https://github.com/nuttyartist/notes/actions/workflows/macos.yml/badge.svg?branch=master)](https://github.com/nuttyartist/notes/actions/workflows/macos.yml?query=branch%3Amaster)
+[![GitHub Actions status on Windows](https://github.com/nuttyartist/notes/actions/workflows/windows.yml/badge.svg?branch=master)](https://github.com/nuttyartist/notes/actions/workflows/windows.yml?query=branch%3Amaster)
 
 Notes is an open source and cross-platform note-taking app that is both beautiful and powerful.
 
