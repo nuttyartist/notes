@@ -1821,6 +1821,7 @@ void MainWindow::changeEditorFontSizeFromStyleButtons(FontSizeAction fontSizeAct
         setCurrentFontBasedOnTypeface(m_currentFontTypeface);
         break;
     }
+    setTheme(m_currentTheme);
 }
 
 /*!
@@ -1967,7 +1968,7 @@ void MainWindow::setTheme(Theme theme)
     }
     }
     ui->tagListView->setBackground(m_currentThemeBackgroundColor);
-    m_noteEditorLogic->setTheme(theme, m_currentEditorTextColor);
+    m_noteEditorLogic->setTheme(theme, m_currentEditorTextColor, m_editorMediumFontSize);
 
     setSearchEditStyleSheet(false);
     alignTextEditText();

@@ -11,7 +11,7 @@ public:
 
     void drawPrimitive(PrimitiveElement element, const QStyleOption *option, QPainter *painter,
                        const QWidget *widget) const;
-    void setTheme(Theme newTheme);
+    void setTheme(Theme theme);
 
 private:
     Theme m_theme;
