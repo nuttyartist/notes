@@ -35,7 +35,7 @@ public:
 
     static QString getFirstLine(const QString &str);
     static QString getSecondLine(const QString &str);
-    void setTheme(Theme theme, QColor textColor);
+    void setTheme(Theme theme, QColor textColor, qreal fontSize);
 
     int currentAdaptableEditorPadding() const;
     void setCurrentAdaptableEditorPadding(int newCurrentAdaptableEditorPadding);

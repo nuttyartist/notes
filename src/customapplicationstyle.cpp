@@ -26,9 +26,9 @@ void CustomApplicationStyle::drawPrimitive(PrimitiveElement element, const QStyl
     }
 }
 
-void CustomApplicationStyle::setTheme(Theme newTheme)
+void CustomApplicationStyle::setTheme(Theme theme)
 {
-    m_theme = newTheme;
+    m_theme = theme;
 }
 
 CustomApplicationStyle::CustomApplicationStyle() : m_theme(Theme::Light) { }

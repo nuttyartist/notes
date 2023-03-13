@@ -16,7 +16,7 @@ public:
                        const QModelIndex &index) const override;
     virtual QSize sizeHint(const QStyleOptionViewItem &option,
                            const QModelIndex &index) const override;
-    void setTheme(Theme newTheme);
+    void setTheme(Theme theme);
 
 private:
     QString m_displayFont;

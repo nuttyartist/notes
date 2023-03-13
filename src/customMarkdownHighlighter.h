@@ -10,6 +10,8 @@ public:
                               HighlightingOptions highlightingOptions = HighlightingOption::None);
     ~CustomMarkdownHighlighter() override = default;
 
-    void setTheme(Theme theme, QColor textColor);
+    void setFontSize(qreal fontSize);
     void setHeaderColors(QColor color);
+
+    void setTheme(Theme theme, QColor textColor, qreal fontSize);
 };

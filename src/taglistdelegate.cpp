@@ -66,9 +66,9 @@ QSize TagListDelegate::sizeHint(const QStyleOptionViewItem &option, const QModel
     return size;
 }
 
-void TagListDelegate::setTheme(Theme newTheme)
+void TagListDelegate::setTheme(Theme theme)
 {
-    m_theme = newTheme;
+    m_theme = theme;
     switch (m_theme) {
     case Theme::Light: {
         m_titleColor = QColor(26, 26, 26);
