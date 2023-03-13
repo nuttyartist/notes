@@ -320,7 +320,8 @@ elseif(UNIX)
   string(TOLOWER ${PROJECT_NAME} BINARY_NAME)
   set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${BINARY_NAME})
 
-  target_link_libraries(${PROJECT_NAME} PUBLIC X11)
+  find_package(X11 REQUIRED)
+  target_link_libraries(${PROJECT_NAME} PUBLIC ${X11_LIBRARIES})
 
   include(GNUInstallDirs)
 
