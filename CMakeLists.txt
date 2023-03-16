@@ -396,6 +396,35 @@ elseif(UNIX)
       FILES ${CMAKE_BINARY_DIR}/copyright
       DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/doc/${PROJECT_NAME_LOWERCASE})
   endif()
+
+  # Include CPack for creating deb/rpm packages
+  # On Ubuntu 18.04 this is unset by default
+  set(CPACK_PACKAGE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+  set(CPACK_PACKAGE_NAME ${PROJECT_NAME_LOWERCASE})
+  set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION}${GIT_REV})
+  set(CPACK_PACKAGE_VENDOR ${APP_AUTHOR})
+  set(CPACK_PACKAGE_CONTACT "${APP_AUTHOR} <${APP_AUTHOR_EMAIL}>")
+
+  # Package description.
+  # Please keep the character count for every line at 80 (max) - it's a lintian rule.
+  string(CONCAT CPACK_PACKAGE_DESCRIPTION
+                "Note-taking app that is both beautiful and powerful.\n"
+                " It is written in C++ using the Qt framework.")
+
+  # Workaround for older CMake versions, where CPACK_PACKAGE_DESCRIPTION didn't exist.
+  if(CMAKE_VERSION VERSION_LESS 3.12)
+    string(CONCAT CPACK_DEBIAN_PACKAGE_DESCRIPTION "${PROJECT_DESCRIPTION}\n"
+                  " ${CPACK_PACKAGE_DESCRIPTION}")
+  endif()
+
+  # deb-specific
+  set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+  set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+  set(CPACK_DEBIAN_PACKAGE_HOMEPAGE ${APP_WEBSITE})
+  set(CPACK_DEBIAN_PACKAGE_SECTION "utils")
+
+  include(CPack)
 elseif(WIN32)
   target_compile_definitions(${PROJECT_NAME} PUBLIC QXT_STATIC)
 
