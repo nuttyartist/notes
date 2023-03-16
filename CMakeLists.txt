@@ -365,6 +365,11 @@ elseif(UNIX)
     FILES ${PROJECT_SOURCE_DIR}/packaging/linux/common/icons/scalable/notes.svg
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps
     RENAME ${APP_ID}.svg)
+
+  install(
+    FILES ${PROJECT_SOURCE_DIR}/LICENSE
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/licenses/${PROJECT_NAME_LOWERCASE})
+
 elseif(WIN32)
   target_compile_definitions(${PROJECT_NAME} PUBLIC QXT_STATIC)
 
