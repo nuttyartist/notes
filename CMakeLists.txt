@@ -6,6 +6,7 @@ set(APP_AUTHOR "Ruby Mamistvalove")
 set(APP_AUTHOR_EMAIL "ruby.mamistvalove@gmail.com")
 set(APP_WEBSITE "https://www.get-notes.com/")
 set(APP_REPOSITORY "https://github.com/nuttyartist/notes")
+string(TIMESTAMP CURRENT_YEAR "%Y")
 
 # Any of the options below can be changed by passing -D<option name>=<value> to CMake.
 set(CMAKE_OSX_DEPLOYMENT_TARGET
@@ -300,7 +301,6 @@ target_link_libraries(
          Qt${QT_VERSION_MAJOR}::WidgetsPrivate)
 
 if(APPLE)
-  string(TIMESTAMP CURRENT_YEAR "%Y")
   set(COPYRIGHT_TEXT
       "Copyright (c) 2015-${CURRENT_YEAR} ${APP_AUTHOR} and contributors.")
 
@@ -370,6 +370,32 @@ elseif(UNIX)
     FILES ${PROJECT_SOURCE_DIR}/LICENSE
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/licenses/${PROJECT_NAME_LOWERCASE})
 
+  # On Debian-based distros, compress the changelog file and install the copyright file.
+  # FIXME: Find out if it's possible to only do this when creating a deb package with CPack.
+  if(EXISTS /etc/debian_version)
+    string(TIMESTAMP DATE_NOW_UTC "%a, %d %b %Y %H:%M:%S +0000")
+
+    configure_file(${PROJECT_SOURCE_DIR}/packaging/linux/debian/changelog.in
+                   ${CMAKE_BINARY_DIR}/changelog.Debian)
+
+    add_custom_command(
+      COMMAND gzip ARGS -9 -c -f -k -n ${CMAKE_BINARY_DIR}/changelog.Debian >
+              ${CMAKE_BINARY_DIR}/changelog.gz
+      OUTPUT ${CMAKE_BINARY_DIR}/changelog.gz)
+
+    add_custom_target(changelog ALL DEPENDS ${CMAKE_BINARY_DIR}/changelog.gz)
+
+    install(
+      FILES ${CMAKE_BINARY_DIR}/changelog.gz
+      DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/doc/${PROJECT_NAME_LOWERCASE})
+
+    configure_file(${PROJECT_SOURCE_DIR}/packaging/linux/debian/copyright.in
+                   ${CMAKE_BINARY_DIR}/copyright)
+
+    install(
+      FILES ${CMAKE_BINARY_DIR}/copyright
+      DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/doc/${PROJECT_NAME_LOWERCASE})
+  endif()
 elseif(WIN32)
   target_compile_definitions(${PROJECT_NAME} PUBLIC QXT_STATIC)
 

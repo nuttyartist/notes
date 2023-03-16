@@ -67,7 +67,7 @@
                 <p>Improvements and bug fixes:</p>
                 <ul>
                     <li>Automatic updates now work on Windows</li>
-                    <li>Fixed bugs with custom window decorations</li>
+                    <li>Fixed bugs with native window decoration</li>
                     <li>We improved the style of selecting multiple notes</li>
                     <li>Fixed a bug on Windows causing extreme input delay when editing text</li>
                     <li>Streamlined the look and feel of some windows to match the OS better</li>

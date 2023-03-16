@@ -1,0 +1,17 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: @PROJECT_NAME_LOWERCASE@
+Upstream-Contact: @APP_AUTHOR@ <@APP_AUTHOR_EMAIL@>
+Source: @APP_REPOSITORY@
+
+Files: *
+Copyright: 2015-@CURRENT_YEAR@ @APP_AUTHOR@ <@APP_AUTHOR_EMAIL@>
+License: MPL-2.0
+
+Files: debian/*
+Copyright: 2015-@CURRENT_YEAR@ @APP_AUTHOR@ <@APP_AUTHOR_EMAIL@>
+License: MPL-2.0
+
+License: MPL-2.0
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this file, You can
+ obtain one at https://mozilla.org/MPL/2.0/.

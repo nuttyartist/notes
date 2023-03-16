@@ -1,0 +1,42 @@
+@PROJECT_NAME_LOWERCASE@ (@PROJECT_VERSION@) UNRELEASED; urgency=low
+
+  * No changelog is available yet
+
+ -- @APP_AUTHOR@ <@APP_AUTHOR_EMAIL@>  @DATE_NOW_UTC@
+
+@PROJECT_NAME_LOWERCASE@ (2.1.0) stable; urgency=low
+
+  * You can now open external links by holding Ctrl while clicking them
+  * You can now format text using keyboard shortcuts (see docs/keyboard_shortcuts.md)
+  * Fixed bugs with custom window decorations
+  * We improved the style of selecting multiple notes
+  * Streamlined the look and feel of some windows to match the OS better
+  * Fixed issues when resizing the window's splitters and resizing the window itself
+  * Fixed some bugs causing crashes
+  * Many more fixes and improvements under the hood
+
+ -- @APP_AUTHOR@ <@APP_AUTHOR_EMAIL@>  Wed, 08 Mar 2023 12:27:00 +0000
+
+@PROJECT_NAME_LOWERCASE@ (1.5.0) stable; urgency=low
+
+  * Fourth release
+
+ -- @APP_AUTHOR@ <@APP_AUTHOR_EMAIL@>  Tue, 18 Mar 2020 01:00:00 +0100
+
+@PROJECT_NAME_LOWERCASE@ (1.0.0) stable; urgency=low
+
+  * Third release
+
+ -- @APP_AUTHOR@ <@APP_AUTHOR_EMAIL@>  Tue, 3 Jul 2017 01:00:00 +0100
+
+@PROJECT_NAME_LOWERCASE@ (0.9.0) stable; urgency=low
+
+  * Second release
+
+ -- @APP_AUTHOR@ <@APP_AUTHOR_EMAIL@>  Tue, 3 May 2016 01:00:00 +0100
+
+@PROJECT_NAME_LOWERCASE@ (0.8.0) stable; urgency=low
+
+  * Initial release
+
+ -- @APP_AUTHOR@ <@APP_AUTHOR_EMAIL@>  Sun, 13 Dec 2015 14:43:39 +0100
