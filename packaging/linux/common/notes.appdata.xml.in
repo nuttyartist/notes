@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright 2022 Ruby Mamistvalove -->
+<!-- Copyright 2022 @APP_AUTHOR@ -->
 <component type="desktop-application">
     <id>@APP_ID@</id>
     <launchable type="desktop-id">@APP_ID@.desktop</launchable>
     <metadata_license>CC0-1.0</metadata_license>
     <project_license>MPL-2.0</project_license>
     <name>@PROJECT_NAME@</name>
-    <developer_name>Ruby Mamistvalove</developer_name>
-    <update_contact>ruby.mamistvalove_AT_gmail.com</update_contact>
+    <developer_name>@APP_AUTHOR@</developer_name>
+    <update_contact>@APP_AUTHOR_EMAIL@</update_contact>
     <summary>@PROJECT_DESCRIPTION@</summary>
-    <url type="homepage">https://www.get-notes.com/</url>
-    <url type="bugtracker">https://github.com/nuttyartist/notes/issues</url>
+    <url type="homepage">@APP_WEBSITE@</url>
+    <url type="bugtracker">@APP_REPOSITORY@/issues</url>
     <url type="donation">https://github.com/sponsors/nuttyartist</url>
     <description>
         <p>Notes is an open source and cross-platform note-taking app that is both beautiful and powerful.</p>

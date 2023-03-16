@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.10)
 
 set(APP_VERSION 2.1.0)
 set(APP_ID "io.github.nuttyartist.notes")
+set(APP_AUTHOR "Ruby Mamistvalove")
+set(APP_AUTHOR_EMAIL "ruby.mamistvalove@gmail.com")
+set(APP_WEBSITE "https://www.get-notes.com/")
+set(APP_REPOSITORY "https://github.com/nuttyartist/notes")
 
 # Any of the options below can be changed by passing -D<option name>=<value> to CMake.
 set(CMAKE_OSX_DEPLOYMENT_TARGET
@@ -298,7 +302,7 @@ target_link_libraries(
 if(APPLE)
   string(TIMESTAMP CURRENT_YEAR "%Y")
   set(COPYRIGHT_TEXT
-      "Copyright (c) 2015-${CURRENT_YEAR} Ruby Mamistvalove and contributors.")
+      "Copyright (c) 2015-${CURRENT_YEAR} ${APP_AUTHOR} and contributors.")
 
   set_target_properties(
     ${PROJECT_NAME}
