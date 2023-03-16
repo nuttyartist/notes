@@ -157,7 +157,7 @@ jobs:
           fi
           if [ '${{ github.ref_type }}' != 'tag' ]
           then
-              version="${version}-g${GITHUB_SHA::7}"
+              version="${version}+g${GITHUB_SHA::7}"
           fi
           artifact_name="Notes_${version}-Qt${{ matrix.qt-version }}-x86_64"
           if [ '${{ matrix.build-type }}' == 'debug' ]

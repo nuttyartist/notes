@@ -101,7 +101,7 @@ jobs:
           fi
           if [ '${{ github.ref_type }}' != 'tag' ]
           then
-              version="${version}-g${GITHUB_SHA::7}"
+              version="${version}+g${GITHUB_SHA::7}"
           fi
           arches='x86_64'
           if [[ '${{ matrix.qt-version }}' == 6.* ]]

@@ -47,7 +47,7 @@ jobs:
               throw "Failed to extract app version from CMakeLists.txt."
           }
           if ('${{ github.ref_type }}' -ne 'tag') {
-              $version += "-g$($env:GITHUB_SHA.Substring(0,7))"
+              $version += "+g$($env:GITHUB_SHA.Substring(0,7))"
           }
           $artifact_name = "Notes_$version-Qt${{ matrix.qt-version }}-${{ matrix.arch }}"
           Write-Output "version=$version" >> $env:GITHUB_OUTPUT
