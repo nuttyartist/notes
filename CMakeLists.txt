@@ -18,6 +18,7 @@ option(UPDATE_CHECKER
 project(
   Notes
   VERSION ${APP_VERSION}
+  DESCRIPTION "Note-taking app. Write down your thoughts"
   LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 14)

@@ -8,7 +8,7 @@
     <name>@PROJECT_NAME@</name>
     <developer_name>Ruby Mamistvalove</developer_name>
     <update_contact>ruby.mamistvalove_AT_gmail.com</update_contact>
-    <summary>Note-taking application, write down your thoughts</summary>
+    <summary>@PROJECT_DESCRIPTION@</summary>
     <url type="homepage">https://www.get-notes.com/</url>
     <url type="bugtracker">https://github.com/nuttyartist/notes/issues</url>
     <url type="donation">https://github.com/sponsors/nuttyartist</url>

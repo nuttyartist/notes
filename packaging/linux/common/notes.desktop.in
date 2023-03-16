@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=@PROJECT_NAME@
-Comment=Write down your thoughts
+Comment=@PROJECT_DESCRIPTION@
 Categories=Utility;
 Exec=@BINARY_NAME@
 Icon=@APP_ID@
