@@ -18,6 +18,8 @@ public:
     void openUrl(const QString &urlString);
     QMap<QString, QString> parseMarkdownUrlsFromText(const QString &text);
     QUrl getUrlUnderMouse();
+    void moveBlockUp();
+    void moveBlockDown();
 signals:
     void resized();
 

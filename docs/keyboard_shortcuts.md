@@ -40,6 +40,8 @@ These shortcuts are meant to be used while the Notes window is currently focused
 | <kbd>Ctrl</kbd> + <kbd>B</kbd>                        | Wrap current word or selection into \*\* \*\* **(bold)**      |
 | <kbd>Ctrl</kbd> + <kbd>I</kbd>                        | Wrap current word or selection into \* \* *(italic)*          |
 | <kbd>Ctrl</kbd> + <kbd>S</kbd>                        | Wrap current word or selection into \~ \~ ~~(strikethrough)~~ |
+| <kbd>Alt</kbd>  + <kbd>Up</kbd> 						| Move current block up                                         |
+| <kbd>Alt</kbd>  + <kbd>Down</kbd> 					| Move current block down                                       |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>-</kbd>     | Decrease heading size                                         |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>=</kbd>     | Increase heading size                                         |
 | <kbd>Ctrl</kbd> + (<kbd>1</kbd> through <kbd>6</kbd>) | Set a specific heading size                                   |
