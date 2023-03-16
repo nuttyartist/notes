@@ -93,6 +93,6 @@
         </release>
     </releases>
     <provides>
-        <binary>@BINARY_NAME@</binary>
+        <binary>@PROJECT_NAME_LOWERCASE@</binary>
     </provides>
 </component>

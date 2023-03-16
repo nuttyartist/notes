@@ -322,8 +322,9 @@ if(APPLE)
                                                "-framework Cocoa")
 elseif(UNIX)
   # On Linux, it's conventional for executables to be all lowercase.
-  string(TOLOWER ${PROJECT_NAME} BINARY_NAME)
-  set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${BINARY_NAME})
+  string(TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWERCASE)
+  set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME
+                                                   ${PROJECT_NAME_LOWERCASE})
 
   find_package(X11 REQUIRED)
   target_link_libraries(${PROJECT_NAME} PUBLIC ${X11_LIBRARIES})
