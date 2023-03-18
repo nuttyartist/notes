@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  format-lint:
+    name: Code Linting
+    uses: ./.github/workflows/format-lint.yml
+
+  linux:
+    name: Linux
+    needs:
+      - format-lint
+    uses: ./.github/workflows/linux.yml
+
+  macos:
+    name: macOS
+    needs:
+      - format-lint
+    uses: ./.github/workflows/macos.yml
+
+  windows:
+    name: Windows
+    needs:
+      - format-lint
+    uses: ./.github/workflows/windows.yml
