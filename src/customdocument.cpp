@@ -2,11 +2,14 @@
 #include <QDebug>
 #include <QGuiApplication>
 #include <QTextCursor>
+#include <QMessageBox>
 
 CustomDocument::CustomDocument(QWidget *parent) : QTextEdit(parent)
 {
     installEventFilter(this);
     viewport()->installEventFilter(this);
+
+    setAttribute(Qt::WidgetAttribute::WA_Hover, true);
 }
 
 /*!
@@ -36,18 +39,20 @@ bool CustomDocument::eventFilter(QObject *obj, QEvent *event)
     // qDebug() << event->type();
 
     if (event->type() == QEvent::HoverMove) {
-        auto *mouseEvent = static_cast<QMouseEvent *>(event);
-
-        // toggle cursor when control key has been pressed or released
-        viewport()->setCursor(mouseEvent->modifiers().testFlag(Qt::ControlModifier)
-                                      ? Qt::PointingHandCursor
-                                      : Qt::IBeamCursor);
+        // if hovering and the control key is active, check whether the mouse is over a link
+        if (QGuiApplication::keyboardModifiers() == Qt::ExtraButton24
+            && getUrlUnderMouse().isValid()) {
+            viewport()->setCursor(Qt::PointingHandCursor);
+        } else {
+            viewport()->setCursor(Qt::IBeamCursor);
+        }
     } else if (event->type() == QEvent::KeyPress) {
         auto *keyEvent = static_cast<QKeyEvent *>(event);
 
-        // set cursor to pointing hand if control key was pressed
-        if (keyEvent->modifiers().testFlag(Qt::ControlModifier)) {
-            viewport()->setCursor(Qt::PointingHandCursor);
+        if (keyEvent->key() == Qt::Key_Control) {
+            // check if mouse is over a link
+            auto url = getUrlUnderMouse();
+            viewport()->setCursor(url.isValid() ? Qt::PointingHandCursor : Qt::IBeamCursor);
         }
     } else if (event->type() == QEvent::MouseButtonRelease) {
 
@@ -59,7 +64,6 @@ bool CustomDocument::eventFilter(QObject *obj, QEvent *event)
             // open the link (if any) at the current position
             // in the noteTextEdit
 
-            qDebug("Ctrl+Click");
             viewport()->setCursor(Qt::IBeamCursor);
 
             openLinkAtCursorPosition();
@@ -71,8 +75,7 @@ bool CustomDocument::eventFilter(QObject *obj, QEvent *event)
 
         // reset cursor if control key was released
         if (keyEvent->key() == Qt::Key_Control) {
-            QWidget *viewPort = viewport();
-            viewPort->setCursor(Qt::IBeamCursor);
+            viewport()->setCursor(Qt::IBeamCursor);
         }
     }
 
@@ -103,7 +106,7 @@ QString CustomDocument::getMarkdownUrlAtPosition(const QString &text, int positi
             const int foundPositionEnd = foundPositionStart + linkText.size();
 
             // check if position is in found string range
-            if ((position >= foundPositionStart) && (position <= foundPositionEnd)) {
+            if ((position >= foundPositionStart) && (position < foundPositionEnd)) {
                 url = urlString;
                 break;
             }
@@ -114,33 +117,41 @@ QString CustomDocument::getMarkdownUrlAtPosition(const QString &text, int positi
 }
 
 /**
+ * @brief Returns the URL under the current mouse cursor
+ *
+ * @return QUrl
+ */
+QUrl CustomDocument::getUrlUnderMouse()
+{
+    // place a temp cursor at the mouse position
+    auto pos = viewport()->mapFromGlobal(QCursor::pos());
+    QTextCursor cursor = cursorForPosition(pos);
+    const int cursorPosition = cursor.position();
+
+    // select the text of the current block
+    cursor.movePosition(QTextCursor::StartOfBlock);
+    const int indexInBlock = cursorPosition - cursor.position();
+    cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
+
+    // get the correct link from the selected text, or an empty URL if none found
+    return QUrl(getMarkdownUrlAtPosition(cursor.selectedText(), indexInBlock));
+}
+
+/**
  * @brief Opens the link (if any) at the current cursor position
  */
 bool CustomDocument::openLinkAtCursorPosition()
 {
-    QTextCursor cursor = textCursor();
-    const int clickedPosition = cursor.position();
-
-    // select the text in the clicked block and find out on
-    // which position we clicked
-    cursor.movePosition(QTextCursor::StartOfBlock);
-    const int positionFromStart = clickedPosition - cursor.position();
-    cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
-
-    const QString selectedText = cursor.selectedText();
-
     // find out which url in the selected text was clicked
-    const QString urlString = getMarkdownUrlAtPosition(selectedText, positionFromStart);
+    QUrl const url = getUrlUnderMouse();
+    QString const urlString = url.toString();
 
-    const QUrl url = QUrl(urlString);
     const bool isFileUrl = urlString.startsWith(QLatin1String("file://"));
 
     const bool isLegacyAttachmentUrl = urlString.startsWith(QLatin1String("file://attachments"));
     const bool isLocalFilePath = urlString.startsWith(QLatin1String("/"));
 
     const bool convertLocalFilepathsToURLs = true;
-
-    // Q_EMIT urlClicked(urlString);
 
     if ((url.isValid() && isValidUrl(urlString)) || isFileUrl || isLocalFilePath
         || isLegacyAttachmentUrl) {
@@ -154,13 +165,20 @@ bool CustomDocument::openLinkAtCursorPosition()
         if (isFileUrl) {
             QString trimmed = urlString.mid(7);
             if (!QFile::exists(trimmed)) {
-                qDebug() << __func__ << "file does not exist:" << urlString;
+                qDebug() << __func__ << ": File does not exist:" << urlString;
+                // show a message box
+                QMessageBox::warning(
+                        nullptr, tr("File not found"),
+                        tr("The file <strong>%1</strong> does not exist.").arg(trimmed));
                 return false;
             }
         }
 
         if (isLocalFilePath && !QFile::exists(urlString)) {
-            qDebug() << __func__ << "file does not exist:" << urlString;
+            qDebug() << __func__ << ": File does not exist:" << urlString;
+            // show a message box
+            QMessageBox::warning(nullptr, tr("File not found"),
+                                 tr("The file <strong>%1</strong> does not exist.").arg(urlString));
             return false;
         }
 

@@ -17,6 +17,7 @@ public:
     bool isValidUrl(const QString &urlString);
     void openUrl(const QString &urlString);
     QMap<QString, QString> parseMarkdownUrlsFromText(const QString &text);
+    QUrl getUrlUnderMouse();
 signals:
     void resized();
 
