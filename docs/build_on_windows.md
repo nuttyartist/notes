@@ -56,10 +56,17 @@ set CMAKE_BUILD_PARALLEL_LEVEL=%NUMBER_OF_PROCESSORS%
 
 After that, we're ready to build Notes!
 
-Invoke CMake to build the project into a folder called `build`, in [`Release` mode](https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html):
+Invoke CMake to configure and build the project into a folder called `build`, in [`Release` mode](https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html):
 
 ```shell
 cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+```
+
+<!-- FIXME: Avoid hardcoding the output folder to `bin` on Windows? -->
+Now, let's move the `Notes.exe` executable we just built into a separate folder called `bin` inside the `build` folder, where later we will copy other libraries required to run the app:
+
+```shell
 cmake --install build --prefix build
 ```
 
