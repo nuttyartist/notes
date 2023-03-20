@@ -4,11 +4,19 @@ These are common steps to build Notes from source on Linux distributions.
 
 It's impossible to create a guide that will work for all Linux distros out there, but thankfully the only major difference between all of them will be package names, so feel free to add the appropriate package names for your favorite distro down here *(alphabetically, please)*.
 
-| Distro       | Packages                                                     |
-| ------------ | ------------------------------------------------------------ |
-| Arch Linux   | `base-devel` `cmake` `git` `qt6-base` `sqlite`               |
-| Ubuntu 18.04 | `build-essential` `cmake` `qtbase5-private-dev` `sqlite3`    |
-| Ubuntu 22.04 | `build-essential` `cmake` `qt6-base-private-dev` `libgl-dev` |
+| Distro                       | Build dependencies[^1]                                              | Runtime dependencies[^2]                       |
+| ---------------------------- | ------------------------------------------------------------------- | ---------------------------------------------- |
+| Arch Linux[^3]               | `cmake` `gcc` `git` `qt6-base`                                      | `hicolor-icon-theme` `qt6-base`                |
+| Fedora 36 - 39               | `cmake` `gcc` `git` `libxkbcommon-devel` `qt6-qtbase-private-devel` | `qt6-qtbase-gui`                               |
+| openSUSE Leap 15[^4]         | `cmake` `gcc` `git` `qt6-base-private-devel`                        | `libQt6Gui6`                                   |
+| Ubuntu 18.04 - 20.04[^5]     | `cmake` `gcc` `git` `qtbase5-private-dev`                           | `libqt5network5` `libqt5sql5` `libqt5widgets5` |
+| Ubuntu 22.04 - 22.10         | `cmake` `gcc` `git` `qt6-base-private-dev` `libgl-dev`              | `libqt6network6` `libqt6sql6` `libqt6widgets6` |
+
+[^1]: These packages are only required to build Notes, meaning you can remove all of them (or some of them) afterward.
+[^2]: These packages are required to actually run Notes.
+[^3]: We recommend building and installing through the [official AUR package](https://aur.archlinux.org/packages/notes).
+[^4]: You may need to tell `cmake` to use use GCC 8 (or newer), e.g. run `export CXX=g++-10` before you invoke `cmake`.
+[^5]: This distro can only build Notes with Qt 5.
 
 ### Build options
 
