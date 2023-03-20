@@ -34,10 +34,11 @@ export CMAKE_BUILD_PARALLEL_LEVEL=$(sysctl -n hw.logicalcpu)
 
 After that, we're ready to build Notes!
 
-Invoke CMake to build the project into a folder called `build`, in [`Release` mode](https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html):
+Invoke CMake to configure and build the project into a folder called `build`, in [`Release` mode](https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html):
 
 ```shell
-cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release'
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build
 ```
 
 Alternatively, if you want to target both `x86_64` and `arm64` (Apple Silicon) architectures in a single, universal binary, invoke CMake like this instead *(please note that this might be unsupported on Qt versions older than 6)*:
