@@ -7,7 +7,7 @@ Windows 7 (or newer) is required to build Notes.
 Additionally, you need to install the following tools/components:
 
 - [Git](https://gitforwindows.org/)
-- [Microsoft Visual C++](https://visualstudio.microsoft.com/downloads) `>= 2015` *(only the build tools are required)*
+- [Microsoft Visual C++](https://visualstudio.microsoft.com/downloads) `>= 2017` *(only the build tools are required)*
 - [Qt](https://www.qt.io/download-qt-installer) `>= 5.9` *(using the latest version is recommended)*
   - [CMake](https://cmake.org/download/) *(can be installed via the Qt installer)*
   - [Ninja](https://ninja-build.org/) *(can be installed via the Qt installer)*
@@ -36,7 +36,7 @@ Depending on what version of these softwares you have installed, you may need to
 Let's begin by invoking the `vcvars64.bat` script from MSVC 2017, which will set some helpful environment variables for us:
 
 ```shell
-@call "C:\Program Files (x86)\Microsoft Visual Studio\2015\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
+@call "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
 ```
 
 Now, we need to add CMake, Ninja, Qt sources and tools to our `Path` environment variable:
