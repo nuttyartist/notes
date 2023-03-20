@@ -430,6 +430,17 @@ elseif(UNIX)
   set(CPACK_DEBIAN_PACKAGE_HOMEPAGE ${APP_WEBSITE})
   set(CPACK_DEBIAN_PACKAGE_SECTION "utils")
 
+  # rpm-specific
+  set(CPACK_RPM_FILE_NAME RPM-DEFAULT)
+  set(CPACK_RPM_PACKAGE_LICENSE MPL-2.0)
+  set(CPACK_RPM_PACKAGE_URL ${APP_WEBSITE})
+  set(CPACK_RPM_PACKAGE_GROUP Applications/Text)
+  set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION /usr/share/icons)
+  # Remove any leading whitespace character from the description text we added for the deb package.
+  string(REGEX REPLACE "\n +" "\n" CPACK_RPM_PACKAGE_DESCRIPTION
+                       ${CPACK_PACKAGE_DESCRIPTION})
+  set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION /usr/share/icons)
+
   include(CPack)
 elseif(WIN32)
   target_compile_definitions(${PROJECT_NAME} PUBLIC QXT_STATIC)
