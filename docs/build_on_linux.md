@@ -58,3 +58,18 @@ If you want to install Notes like a regular, Linux desktop application (with its
 ```shell
 make install
 ```
+
+Alternatively, you can also create DEB or RPM packages (see the [Packaging section](#Packaging) below).
+
+### Packaging
+
+After building, you could also easily create DEB or RPM packages using [CPack](https://cmake.org/cmake/help/latest/manual/cpack.1.html):
+
+```shell
+# Create a DEB package
+cpack -G DEB
+# Create a RPM package
+cpack -G RPM
+```
+
+Please note that it only makes sense to create DEB or RPM packages on the same distro you intend to install and run Notes on.
