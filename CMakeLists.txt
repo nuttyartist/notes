@@ -33,6 +33,12 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
+if(POLICY CMP0083)
+  cmake_policy(SET CMP0083 NEW)
+  include(CheckPIESupported)
+  check_pie_supported()
+endif()
+
 # List of Qt components required to build the app.
 set(QT_COMPONENTS
     Core
