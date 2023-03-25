@@ -166,7 +166,6 @@ private:
     int m_trashCounter;
     int m_layoutMargin;
     int m_shadowWidth;
-    int m_noteListWidth;
     int m_nodeTreeWidth;
     int m_smallEditorWidth;
     int m_largeEditorWidth;
