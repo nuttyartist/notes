@@ -3700,7 +3700,7 @@ void MainWindow::setUseNativeWindowFrame(bool useNativeWindowFrame)
 void MainWindow::setHideToTray(bool enabled)
 {
     m_hideToTray = enabled;
-    m_settingsDatabase->setValue(QStringLiteral("hideToTrayEnabled"), enabled);
+    m_settingsDatabase->setValue(QStringLiteral("hideToTray"), enabled);
 }
 
 /*!
