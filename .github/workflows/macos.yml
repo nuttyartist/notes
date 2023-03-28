@@ -125,10 +125,10 @@ jobs:
           version: ${{ matrix.qt-version }}
           cache: true
 
-      - name: Install Ninja
+      - name: Install dependencies
         run: |
           brew update
-          brew install ninja
+          brew install create-dmg ninja
 
       - name: Build (${{ matrix.build-type }})
         env:
@@ -168,25 +168,23 @@ jobs:
               rm -rv Contents/PlugIns/bearer
           fi
 
-      - name: Install create-dmg and dependencies
-        run: |
-          brew install graphicsmagick imagemagick
-          npm install --global create-dmg@^6.0.0
-
       - name: Build dmg (${{ matrix.build-type }})
         run: |
           cd build
-          # TODO: Remove most of the code below once we support signing/notarization.
-          set +e
-          create-dmg 'Notes Better.app'
-          code=$?
-          set -e
-          if [[ ${code} -ne 0 && ${code} -ne 2 ]]
-          then
-              echo "create-dmg exited with code ${code}."
-              exit ${code}
-          fi
-          mv *.dmg '${{ steps.vars.outputs.file_name }}'
+          create-dmg \
+              --no-internet-enable \
+              --format ULFO \
+              --background ../packaging/macos/dmg-background.png \
+              --hide-extension 'Notes Better.app' \
+              --icon 'Notes Better.app' 180 170 \
+              --icon-size 160 \
+              --text-size 12 \
+              --volname Notes \
+              --volicon ../src/images/notes_icon.icns \
+              --window-size 660 400 \
+              --app-drop-link 480 170 \
+              '${{ steps.vars.outputs.file_name }}' \
+              'Notes Better.app'
 
       - name: Upload dmg artifact (${{ matrix.build-type }})
         uses: actions/upload-artifact@v3
