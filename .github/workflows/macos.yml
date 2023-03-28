@@ -168,6 +168,21 @@ jobs:
               rm -rv Contents/PlugIns/bearer
           fi
 
+      - name: Import signing certificate
+        if: github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request'
+        run: |
+          openssl base64 -d -out cert.p12 <<< '${{ secrets.MACOS_CERTIFICATE }}'
+          security create-keychain -p '${{ secrets.KEYCHAIN_PWD }}' nuttyartist/notes
+          security default-keychain -s nuttyartist/notes
+          security unlock-keychain -p '${{ secrets.KEYCHAIN_PWD }}' nuttyartist/notes
+          security -q import cert.p12 -f pkcs12 -k nuttyartist/notes -P '${{ secrets.MACOS_CERTIFICATE_PWD }}' -T /usr/bin/codesign -x
+          security set-key-partition-list -S 'apple-tool:,apple:' -s -k '${{ secrets.KEYCHAIN_PWD }}' nuttyartist/notes
+
+      - name: Sign
+        if: github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request'
+        run: |
+          codesign --deep --force --verify --verbose --sign Mamistvalove --options runtime 'build/Notes Better.app'
+
       - name: Build dmg (${{ matrix.build-type }})
         run: |
           cd build
@@ -185,6 +200,21 @@ jobs:
               --app-drop-link 480 170 \
               '${{ steps.vars.outputs.file_name }}' \
               'Notes Better.app'
+
+      - name: Notarize
+        if: github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request'
+        run: |
+          xcrun notarytool submit \
+              --apple-id '${{ secrets.NOTARIZATION_USERNAME }}' \
+              --password '${{ secrets.NOTARIZATION_PASSWORD }}' \
+              --team-id '${{ secrets.NOTARIZATION_TEAM }}' \
+              --wait \
+              'build/${{ steps.vars.outputs.file_name }}'
+
+      - name: Staple
+        if: github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request'
+        run: |
+          xcrun stapler staple 'build/${{ steps.vars.outputs.file_name }}'
 
       - name: Upload dmg artifact (${{ matrix.build-type }})
         uses: actions/upload-artifact@v3
