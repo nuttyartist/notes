@@ -1282,9 +1282,15 @@ void MainWindow::restoreStates()
     m_splitter->setCollapsible(1, true);
     m_splitter->resize(width() - m_layoutMargin, height() - m_layoutMargin);
 
-    if (m_settingsDatabase->value(QStringLiteral("splitterSizes"), "NULL") != "NULL")
+    if (m_settingsDatabase->contains(QStringLiteral("splitterSizes"))) {
         m_splitter->restoreState(
                 m_settingsDatabase->value(QStringLiteral("splitterSizes")).toByteArray());
+        // in rare cases, the splitter sizes can be zero, which causes bugs (issue #531)
+        auto splitterSizes = m_splitter->sizes();
+        splitterSizes[0] = std::max(splitterSizes[0], m_foldersWidget->minimumWidth());
+        splitterSizes[1] = std::max(splitterSizes[1], m_noteListWidget->minimumWidth());
+        m_splitter->setSizes(splitterSizes);
+    }
 
     m_foldersWidget->setHidden(
             m_settingsDatabase->value(QStringLiteral("isTreeCollapsed")).toBool());
