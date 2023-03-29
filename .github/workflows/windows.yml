@@ -29,7 +29,7 @@ jobs:
 
           - os: windows-2019
             arch: x64
-            qt-version: 6.3.2
+            qt-version: 6.4.3
             build-type: release
     outputs:
       version: ${{ steps.vars.outputs.version }}
