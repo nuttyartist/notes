@@ -9,20 +9,21 @@
 
 #include <QDialog>
 #include <QPushButton>
+#include "theme.h"
 
 namespace Ui {
 class StyleEditorWindow;
 }
 
 enum class FontTypeface { Mono, Serif, SansSerif };
+std::ostream &operator<<(std::ostream &os, const FontTypeface &fontTypeface);
+std::string to_string(FontTypeface fontTypeface);
 
 enum class FontSizeAction { Increase, Decrease };
 
 enum class EditorTextWidth { FullWidth, Increase, Decrease };
 
-enum class Theme { Light, Dark, Sepia };
-
-enum class ButtonState { Normal, Hovered, Clicked };
+enum class ButtonState { Normal, Clicked };
 
 class StyleEditorWindow : public QDialog
 {
@@ -32,7 +33,7 @@ public:
     explicit StyleEditorWindow(QWidget *parent = 0);
     ~StyleEditorWindow();
     void changeSelectedFont(FontTypeface selectedFontType, const QString &selectedFontName);
-    void setTheme(Theme theme, QColor themeColor, QColor textColor);
+    void setTheme(Theme theme);
     void restoreSelectedOptions(bool isTextFullWidth, FontTypeface selectedFontTypeface,
                                 Theme selectedTheme);
 
@@ -48,18 +49,13 @@ signals:
 
 private slots:
 
-protected:
-    bool eventFilter(QObject *object, QEvent *event);
-
 private:
-    QString getStyleSheetForButton(ButtonState buttonState);
+    void setButtonStyle(QPushButton *button, ButtonState buttonState, Theme theme);
     void buttonClicked(QPushButton *button);
     bool isSelectedButton(QPushButton *button);
 
     Ui::StyleEditorWindow *m_ui;
-    QColor m_currentFontColor;
     Theme m_currentTheme;
-    QColor m_currentThemeColor;
     QString m_selectedMonoFontFamilyName;
     QString m_selectedSerifFontFamilyName;
     QString m_selectedSansSerifFontFamilyName;

@@ -2,7 +2,7 @@
 #define EDITORSETTINGSBUTTON_H
 
 #include <QPushButton>
-#include "styleeditorwindow.h"
+#include "theme.h"
 
 class EditorSettingsButton : public QPushButton
 {
@@ -10,13 +10,12 @@ class EditorSettingsButton : public QPushButton
 public:
     EditorSettingsButton(QWidget *parent = nullptr);
     void paintEvent(QPaintEvent *p);
-    void changeFont(const QString &fontName, const QString &fontTypeface, QColor fontColor);
+    void changeFont(const QString &fontName, const QString &fontTypeface);
     void setTheme(Theme theme);
 
 private:
     QString m_currentFontName;
     QString m_currentFontTypeface;
-    QColor m_currentFontColor;
     Theme m_currentTheme;
 };
 

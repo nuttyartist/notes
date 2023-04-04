@@ -181,6 +181,8 @@ private:
     bool m_useNativeWindowFrame;
     bool m_hideToTray;
 
+    QString m_styleSheet;
+
     QStringList m_listOfSerifFonts;
     QStringList m_listOfSansSerifFonts;
     QStringList m_listOfMonoFonts;
@@ -199,11 +201,8 @@ private:
     QString m_currentFontFamily;
     QFont m_currentSelectedFont;
     QString m_displayFont;
-    QColor m_currentEditorBackgroundColor;
-    QColor m_currentRightFrameColor;
     Theme m_currentTheme;
     QColor m_currentEditorTextColor;
-    QColor m_currentThemeBackgroundColor;
     bool m_areNonEditorWidgetsVisible;
     bool m_isFrameRightTopWidgetsVisible;
 
@@ -213,9 +212,8 @@ private:
     void setupFonts();
     void setupTrayIcon();
     void setupKeyboardShortcuts();
-    void setupNewNoteButtonAndTrahButton();
+    void setupNewNoteButtonAndTrashButton();
     void setupSplitter();
-    void setupLine();
     void setupRightFrame();
     void setupTitleBarButtons();
     void setupSignalsSlots();
@@ -242,7 +240,6 @@ private:
     void setVisibilityOfFrameRightNonEditor(bool isVisible);
     void setWindowButtonsVisible(bool isVisible);
     void adjustUpperWidgets(bool shouldPushUp);
-    void setSearchEditStyleSheet(bool isFocused);
 
     void dropShadow(QPainter &painter, ShadowType type, ShadowSide side);
     void fillRectWithGradient(QPainter &painter, QRect rect, QGradient &gradient);
@@ -260,7 +257,6 @@ private slots:
     void onTrashButtonClicked();
     void onDotsButtonPressed();
     void onDotsButtonClicked();
-    void onStyleEditorButtonPressed();
     void onStyleEditorButtonClicked();
     void onClearButtonClicked();
     void onGreenMaximizeButtonPressed();
@@ -305,7 +301,6 @@ private slots:
     void changeEditorFontTypeFromStyleButtons(FontTypeface fontType);
     void changeEditorFontSizeFromStyleButtons(FontSizeAction fontSizeAction);
     void changeEditorTextWidthFromStyleButtons(EditorTextWidth editorTextWidth);
-    void resetEditorToDefaultSettings();
     void setTheme(Theme theme);
     void deleteSelectedNote();
     void clearSearch();

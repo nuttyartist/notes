@@ -1,0 +1,15 @@
+QTextBrowser#aboutText.light {
+    background-color: rgb(247, 247, 247);
+    color: rgb(26, 26, 26);
+}
+
+QTextBrowser#aboutText.dark {
+    background-color: rgb(30, 30, 30);
+    color: rgb(204, 204, 204);
+}
+
+QTextBrowser#aboutText.sepia {
+    background-color: rgb(251, 240, 217);
+    color: rgb(26, 26, 26);
+}
+

@@ -6,6 +6,8 @@
 #include <QDebug>
 #include <QMimeData>
 #include <QApplication>
+#include <QFile>
+#include <QScrollBar>
 #include "nodetreeview_p.h"
 
 NodeTreeView::NodeTreeView(QWidget *parent)
@@ -16,37 +18,16 @@ NodeTreeView::NodeTreeView(QWidget *parent)
       m_isLastSelectedFolder{ false }
 {
     setHeaderHidden(true);
+
+    QFile file(":/styles/nodetreeview.css");
+    file.open(QFile::ReadOnly);
+    setStyleSheet(file.readAll());
+
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
-    setStyleSheet(
-            R"(QTreeView {)"
-            R"(    border-style: none;)"
-            R"(    background-color: rgb(255, 255, 255);)"
-            R"(    selection-background-color: white;)"
-            R"(    selection-color: white;)"
-            R"(})"
-            R"()"
-            R"(QTreeView::branch{)"
-            R"(    border-image: url(none.png);)"
-            R"(})"
-            R"(QScrollBar::handle:vertical:hover { background: rgb(170, 170, 171); } )"
-            R"(QScrollBar::handle:vertical:pressed { background: rgb(149, 149, 149); } )"
-            R"(QScrollBar::handle:vertical { border-radius: 4px; background: rgb(188, 188, 188); min-height: 20px; }  )"
-            R"(QScrollBar::vertical {border-radius: 4px; width: 8px; color: rgba(255, 255, 255,0);} )"
-            R"(QScrollBar {margin: 0; background: transparent;} )"
-            R"(QScrollBar:hover { background-color: rgb(217, 217, 217);})"
-            R"(QScrollBar::add-line:vertical { width:0px; height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  )"
-            R"(QScrollBar::sub-line:vertical { width:0px; height: 0px; subcontrol-position: top; subcontrol-origin: margin; })");
-#else
-    setStyleSheet(R"(QTreeView {)"
-                  R"(    border-style: none;)"
-                  R"(    background-color: rgb(255, 255, 255);)"
-                  R"(    selection-background-color: white;)"
-                  R"(    selection-color: white;)"
-                  R"(})"
-                  R"()"
-                  R"(QTreeView::branch{)"
-                  R"(    border-image: url(none.png);)"
-                  R"(})");
+    QFile scollBarStyleFile(QStringLiteral(":/styles/components/custom-scrollbar.css"));
+    scollBarStyleFile.open(QFile::ReadOnly);
+    QString scrollbarStyleSheet = QString::fromLatin1(scollBarStyleFile.readAll());
+    verticalScrollBar()->setStyleSheet(scrollbarStyleSheet);
 #endif
 
     setRootIsDecorated(false);
@@ -458,53 +439,8 @@ void NodeTreeView::setCurrentIndexNC(const QModelIndex &index)
 
 void NodeTreeView::setTheme(Theme theme)
 {
+    setCSSThemeAndUpdate(this, theme);
     m_theme = theme;
-#if !defined(Q_OS_MACOS)
-    QString ss = QStringLiteral(
-            R"(QTreeView {)"
-            R"(    border-style: none;)"
-            R"(    background-color: %1;)"
-            R"(    selection-background-color: %1;)"
-            R"(    selection-color: white;)"
-            R"(})"
-            R"()"
-            R"(QTreeView::branch{)"
-            R"(    border-image: url(none.png);)"
-            R"(})"
-            R"(QScrollBar::handle:vertical:hover { background: rgba(40, 40, 40, 0.5); } )"
-            R"(QScrollBar::handle:vertical:pressed { background: rgba(40, 40, 40, 0.5); } )"
-            R"(QScrollBar::handle:vertical { border-radius: 4px; background: rgba(100, 100, 100, 0.5); min-height: 20px; }  )"
-            R"(QScrollBar::vertical {border-radius: 6px; width: 10px; color: rgba(255, 255, 255,0);} )"
-            R"(QScrollBar {margin-right: 2px; background: transparent;} )"
-            R"(QScrollBar::add-line:vertical { width:0px; height: 0px; subcontrol-position: bottom; subcontrol-origin: margin; }  )"
-            R"(QScrollBar::sub-line:vertical { width:0px; height: 0px; subcontrol-position: top; subcontrol-origin: margin; })");
-#else
-    QString ss = QStringLiteral(R"(QTreeView {)"
-                                R"(    border-style: none;)"
-                                R"(    background-color: %1;)"
-                                R"(    selection-background-color: %1;)"
-                                R"(    selection-color: white;)"
-                                R"(})"
-                                R"()"
-                                R"(QTreeView::branch{)"
-                                R"(    border-image: url(none.png);)"
-                                R"(})");
-#endif
-
-    switch (theme) {
-    case Theme::Light: {
-        setStyleSheet(ss.arg(QColor(247, 247, 247).name()));
-        break;
-    }
-    case Theme::Dark: {
-        setStyleSheet(ss.arg(QColor(26, 26, 26).name()));
-        break;
-    }
-    case Theme::Sepia: {
-        setStyleSheet(ss.arg(QColor(251, 240, 217).name()));
-        break;
-    }
-    }
 }
 
 void NodeTreeView::onCustomContextMenu(QPoint point)

@@ -2,6 +2,10 @@
 #include "ui_aboutwindow.h"
 
 #include <QDebug>
+#include <QFile>
+#include <QScrollBar>
+#include <qstyle.h>
+#include <sstream>
 
 /**
  * Initializes the window components and configures the AboutWindow
@@ -53,6 +57,18 @@ AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent), m_ui(new Ui::AboutW
 #else
     m_ui->aboutText->setFont(QFont(QStringLiteral("Roboto")));
 #endif
+
+    // load stylesheet for aboutText
+    QFile cssFile(":/styles/about-window.css");
+    cssFile.open(QFile::ReadOnly);
+    m_ui->aboutText->setStyleSheet(cssFile.readAll());
+
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    QFile scollBarStyleFile(QStringLiteral(":/styles/components/custom-scrollbar.css"));
+    scollBarStyleFile.open(QFile::ReadOnly);
+    QString scrollbarStyleSheet = QString::fromLatin1(scollBarStyleFile.readAll());
+    m_ui->aboutText->verticalScrollBar()->setStyleSheet(scrollbarStyleSheet);
+#endif
 }
 
 AboutWindow::~AboutWindow()
@@ -61,13 +77,7 @@ AboutWindow::~AboutWindow()
     delete m_ui;
 }
 
-void AboutWindow::setTheme(QColor backgroundColor, QColor textColor)
+void AboutWindow::setTheme(Theme theme)
 {
-    QString ss = "QTextBrowser { "
-                 "background-color: %1;"
-                 "color: %2;"
-                 "}";
-
-    ss = ss.arg(backgroundColor.name(), textColor.name());
-    m_ui->aboutText->setStyleSheet(ss);
+    setCSSThemeAndUpdate(m_ui->aboutText, theme);
 }

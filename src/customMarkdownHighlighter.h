@@ -1,7 +1,7 @@
 #pragma once
 
 #include "3rdParty/qmarkdowntextedit/markdownhighlighter.h"
-#include "styleeditorwindow.h"
+#include "theme.h"
 
 class CustomMarkdownHighlighter : public MarkdownHighlighter
 {

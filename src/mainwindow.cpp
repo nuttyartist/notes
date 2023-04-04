@@ -12,6 +12,7 @@
 #include "noteeditorlogic.h"
 #include "tagpool.h"
 #include "splitterstyle.h"
+#include <theme.h>
 
 #include <QScrollBar>
 #include <QShortcut>
@@ -104,11 +105,8 @@ MainWindow::MainWindow(QWidget *parent)
 #else
       m_displayFont(QStringLiteral("Roboto")),
 #endif
-      m_currentEditorBackgroundColor(247, 247, 247),
-      m_currentRightFrameColor(247, 247, 247),
       m_currentTheme(Theme::Light),
       m_currentEditorTextColor(26, 26, 26),
-      m_currentThemeBackgroundColor(247, 247, 247),
       m_areNonEditorWidgetsVisible(true),
       m_isFrameRightTopWidgetsVisible(true)
 {
@@ -116,9 +114,8 @@ MainWindow::MainWindow(QWidget *parent)
     setupMainWindow();
     setupFonts();
     setupKeyboardShortcuts();
-    setupNewNoteButtonAndTrahButton();
+    setupNewNoteButtonAndTrashButton();
     setupSplitter();
-    setupLine();
     setupRightFrame();
     setupTitleBarButtons();
     setupSearchEdit();
@@ -317,6 +314,39 @@ void MainWindow::setupMainWindow()
     setAttribute(Qt::WA_TranslucentBackground);
 #endif
 
+    // load stylesheet
+    QFile mainWindowStyleFile(QStringLiteral(":/styles/main-window.css"));
+    mainWindowStyleFile.open(QFile::ReadOnly);
+    m_styleSheet = QString::fromLatin1(mainWindowStyleFile.readAll());
+    setStyleSheet(m_styleSheet);
+    /**** Apply the stylesheet for all children we change classes for ****/
+    // middle frame
+    ui->searchEdit->setStyleSheet(m_styleSheet);
+    ui->verticalSpacer_upSearchEdit->setStyleSheet(m_styleSheet);
+    ui->verticalSpacer_upSearchEdit2->setStyleSheet(m_styleSheet);
+    ui->listviewLabel1->setStyleSheet(m_styleSheet);
+    ui->listviewLabel2->setStyleSheet(m_styleSheet);
+
+    // buttons
+    ui->toggleTreeViewButton->setStyleSheet(m_styleSheet);
+    ui->styleEditorButton->setStyleSheet(m_styleSheet);
+    ui->newNoteButton->setStyleSheet(m_styleSheet);
+    ui->trashButton->setStyleSheet(m_styleSheet);
+    ui->dotsButton->setStyleSheet(m_styleSheet);
+
+    // right frame (editor)
+    ui->textEdit->setStyleSheet(m_styleSheet);
+    ui->frameRight->setStyleSheet(m_styleSheet);
+    ui->frameRightTop->setStyleSheet(m_styleSheet);
+
+    // custom scrollbars on linux only
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    QFile scollBarStyleFile(QStringLiteral(":/styles/components/custom-scrollbar.css"));
+    scollBarStyleFile.open(QFile::ReadOnly);
+    QString scrollbarStyleSheet = QString::fromLatin1(scollBarStyleFile.readAll());
+    ui->textEdit->verticalScrollBar()->setStyleSheet(scrollbarStyleSheet);
+#endif
+
     m_greenMaximizeButton = new QPushButton(this);
     m_redCloseButton = new QPushButton(this);
     m_yellowMinimizeButton = new QPushButton(this);
@@ -384,12 +414,6 @@ void MainWindow::setupMainWindow()
     m_styleEditorButton->setFont(QFont(QStringLiteral("Roboto"), 16, QFont::Bold));
 
 #endif
-    QString ss = QStringLiteral("QPushButton { "
-                                "  border: none; "
-                                "  padding: 0px; "
-                                "  color: rgb(68, 138, 201);"
-                                "}");
-    m_styleEditorButton->setStyleSheet(ss);
     m_styleEditorButton->installEventFilter(this);
 
     ui->toggleTreeViewButton->setMaximumSize({ 33, 25 });
@@ -397,10 +421,6 @@ void MainWindow::setupMainWindow()
     ui->toggleTreeViewButton->setCursor(QCursor(Qt::PointingHandCursor));
     ui->toggleTreeViewButton->setFocusPolicy(Qt::TabFocus);
     ui->toggleTreeViewButton->setIconSize(QSize(16, 16));
-    ui->toggleTreeViewButton->setStyleSheet(QStringLiteral(R"(QPushButton { )"
-                                                           R"(    border: none; )"
-                                                           R"(    padding: 0px; )"
-                                                           R"(})"));
     ui->toggleTreeViewButton->setHoveredIcon(QIcon(QString::fromUtf8(":/images/drawer_icon.png")));
     ui->toggleTreeViewButton->setNormalIcon(QIcon(QString::fromUtf8(":/images/drawer_icon.png")));
     ui->toggleTreeViewButton->setPressedIcon(QIcon(QString::fromUtf8(":/images/drawer_icon.png")));
@@ -414,8 +434,6 @@ void MainWindow::setupMainWindow()
 #endif
     ui->listviewLabel1->setFont(titleFont);
     ui->listviewLabel2->setFont(titleFont);
-    ui->listviewLabel1->setStyleSheet("QLabel { color :  rgb(0, 0, 0); }");
-    ui->listviewLabel2->setStyleSheet("QLabel { color :  rgb(132, 132, 132); }");
     m_splitterStyle = new SplitterStyle();
     m_splitter->setStyle(m_splitterStyle);
     m_splitter->setHandleWidth(0);
@@ -542,24 +560,15 @@ void MainWindow::setupKeyboardShortcuts()
 }
 
 /*!
- * \brief MainWindow::setupNewNoteButtonAndTrahButton
+ * \brief MainWindow::setupNewNoteButtonAndTrashButton
  * We need to set up some different values when using apple os x
  * This is because if we want to get the native button look in os x,
  * due to some bug in Qt, I think, the values of width and height of buttons
  * needs to be more than 50 and less than 34 respectively.
  * So some modifications needs to be done.
  */
-void MainWindow::setupNewNoteButtonAndTrahButton()
+void MainWindow::setupNewNoteButtonAndTrashButton()
 {
-    QString ss = QStringLiteral("QPushButton { "
-                                "  border: none; "
-                                "  padding: 0px; "
-                                "}");
-
-    m_newNoteButton->setStyleSheet(ss);
-    m_trashButton->setStyleSheet(ss);
-    m_dotsButton->setStyleSheet(ss);
-
     m_newNoteButton->installEventFilter(this);
     m_trashButton->installEventFilter(this);
     m_dotsButton->installEventFilter(this);
@@ -578,16 +587,6 @@ void MainWindow::setupSplitter()
 }
 
 /*!
- * \brief MainWindow::setupLine
- * Set up the vertical line that separates between the scrollArea to the textEdit
- */
-void MainWindow::setupLine()
-{
-    ui->line->setStyleSheet(QStringLiteral("border: 1px solid rgb(191, 191, 191)"));
-    ui->line_2->setStyleSheet(QStringLiteral("border: 1px solid rgb(191, 191, 191)"));
-}
-
-/*!
  * \brief MainWindow::setupRightFrame
  * Set up a frame above textEdit and behind the other widgets for a unifed background
  * in thet editor section
@@ -595,13 +594,6 @@ void MainWindow::setupLine()
 void MainWindow::setupRightFrame()
 {
     ui->frameRightTop->installEventFilter(this);
-
-    QString ss = QStringLiteral("QFrame{ "
-                                "  background-color: %1; "
-                                "  border: none;"
-                                "}")
-                         .arg(m_currentRightFrameColor.name());
-    ui->frameRight->setStyleSheet(ss);
 }
 
 /*!
@@ -658,7 +650,7 @@ void MainWindow::setupSignalsSlots()
                 changeEditorTextWidthFromStyleButtons(editorTextWidth);
             });
     connect(&m_styleEditorWindow, &StyleEditorWindow::resetEditorToDefaultSettings, this,
-            [=]() { resetEditorToDefaultSettings(); });
+            [=]() { resetEditorSettings(); });
     connect(&m_styleEditorWindow, &StyleEditorWindow::changeTheme, this,
             [=](Theme theme) { setTheme(theme); });
     // actions
@@ -689,8 +681,6 @@ void MainWindow::setupSignalsSlots()
     connect(m_dotsButton, &QPushButton::pressed, this, &MainWindow::onDotsButtonPressed);
     connect(m_dotsButton, &QPushButton::clicked, this, &MainWindow::onDotsButtonClicked);
     // Style Editor Button
-    connect(m_styleEditorButton, &QPushButton::pressed, this,
-            &MainWindow::onStyleEditorButtonPressed);
     connect(m_styleEditorButton, &QPushButton::clicked, this,
             &MainWindow::onStyleEditorButtonClicked);
     // textEdit scrollbar triggered
@@ -814,30 +804,6 @@ void MainWindow::autoCheckForUpdates()
 }
 #endif
 
-void MainWindow::setSearchEditStyleSheet(bool isFocused = false)
-{
-    m_searchEdit->setStyleSheet(
-            QStringLiteral("QLineEdit{ "
-                           "  color: %3;"
-                           "  padding-left: 21px;"
-                           "  padding-right: 19px;"
-                           "  border: %2;"
-                           "  border-radius: 3px;"
-                           "  background: %1;"
-                           "  selection-background-color: rgb(61, 155, 218);"
-                           "} "
-                           "QLineEdit:focus { "
-                           "  border: 2px solid rgb(61, 155, 218);"
-                           "}"
-                           "QToolButton { "
-                           "  border: none; "
-                           "  padding: 0px;"
-                           "}")
-                    .arg(m_currentThemeBackgroundColor.name(),
-                         isFocused ? "2px solid rgb(61, 155, 218)" : "1px solid rgb(205, 205, 205)",
-                         m_currentEditorTextColor.name()));
-}
-
 /*!
  * \brief MainWindow::setupSearchEdit
  * Set the lineedit to start a bit to the right and end a bit to the left (pedding)
@@ -874,8 +840,6 @@ void MainWindow::setupSearchEdit()
     m_searchEdit->setLayout(layout);
 
     m_searchEdit->installEventFilter(this);
-
-    setSearchEditStyleSheet(false);
 }
 
 /*!
@@ -967,33 +931,7 @@ void MainWindow::resetEditorSettings()
 void MainWindow::setupTextEditStyleSheet(int paddingLeft, int paddingRight)
 {
     m_textEdit->setDocumentPadding(paddingLeft, 0, paddingRight, 2);
-
-#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
-    QString ss =
-            QString("QTextEdit {background-color: %1;} "
-                    "QTextEdit{selection-background-color: rgb(63, 99, 139);}"
-                    "QTextEdit{color: %2}"
-                    "QScrollBar::handle:vertical:hover { background: rgba(40, 40, 40, 0.5); }"
-                    "QScrollBar::handle:vertical:pressed { background: rgba(40, 40, 40, 0.5); }"
-                    "QScrollBar::handle:vertical { border-radius: 4px; background: rgba(100, 100, "
-                    "100, 0.5); min-height: 20px; }"
-                    "QScrollBar::vertical {border-radius: 6px; width: 10px; color: rgba(255, 255, "
-                    "255,0);}"
-                    "QScrollBar {margin-right: 2px; background: transparent;}"
-                    "QScrollBar::add-line:vertical { width:0px; height: 0px; subcontrol-position: "
-                    "bottom; subcontrol-origin: margin; }"
-                    "QScrollBar::sub-line:vertical { width:0px; height: 0px; subcontrol-position: "
-                    "top; subcontrol-origin: margin; }")
-                    .arg(m_currentEditorBackgroundColor.name(), m_currentEditorTextColor.name());
-#else
-    QString ss =
-            QString("QTextEdit {background-color: %1;} "
-                    "QTextEdit{selection-background-color: rgb(63, 99, 139);}"
-                    "QTextEdit{color: %2}")
-                    .arg(m_currentEditorBackgroundColor.name(), m_currentEditorTextColor.name());
-#endif
-
-    m_textEdit->setStyleSheet(ss);
+    setCSSThemeAndUpdate(m_textEdit, m_currentTheme);
 }
 
 /*!
@@ -1584,13 +1522,8 @@ void MainWindow::onDotsButtonClicked()
     connect(closeMenu, &QShortcut::activated, &mainMenu, &QMenu::close);
 
 #if defined(Q_OS_WINDOWS) || defined(Q_OS_WIN)
-    mainMenu.setStyleSheet(QStringLiteral("QMenu { "
-                                          "  background-color: rgb(255, 255, 255); "
-                                          "  border: 1px solid #C7C7C7; "
-                                          "  }"
-                                          "QMenu::item:selected { "
-                                          "  background: 1px solid #308CC6; "
-                                          "}"));
+    setStyleSheet(m_styleSheet);
+    setCSSClassesAndUpdate(&mainMenu, "menu");
 #endif
 
 #ifdef __APPLE__
@@ -1741,32 +1674,11 @@ void MainWindow::onDotsButtonClicked()
 }
 
 /*!
- * \brief MainWindow::onStyleEditorButtonPressed
- * When the Style Editor Button is pressed, set it's icon accordingly
- */
-void MainWindow::onStyleEditorButtonPressed()
-{
-    QString ss = QStringLiteral("QPushButton { "
-                                "  border: none; "
-                                "  padding: 0px; "
-                                "  color: rgb(39, 85, 125);"
-                                "}");
-    m_styleEditorButton->setStyleSheet(ss);
-}
-
-/*!
  * \brief MainWindow::onStyleEditorButtonClicked
  * Open up the editor's styling menu when clicking the Style Editor Button
  */
 void MainWindow::onStyleEditorButtonClicked()
 {
-    QString ss = QStringLiteral("QPushButton { "
-                                "  border: none; "
-                                "  padding: 0px; "
-                                "  color: rgb(68, 138, 201);"
-                                "}");
-    m_styleEditorButton->setStyleSheet(ss);
-
     if (m_settingsDatabase->value(QStringLiteral("editorSettingsWindowGeometry"), "NULL") == "NULL")
         m_styleEditorWindow.move(m_newNoteButton->mapToGlobal(
                 QPoint(-m_styleEditorWindow.width() - m_newNoteButton->width(),
@@ -1880,107 +1792,47 @@ void MainWindow::changeEditorTextWidthFromStyleButtons(EditorTextWidth editorTex
 }
 
 /*!
- * \brief MainWindow::resetEditorToDefaultSettings
- * Reset text editor to default settings
- */
-void MainWindow::resetEditorToDefaultSettings()
-{
-    resetEditorSettings();
-}
-
-/*!
  * \brief MainWindow::setTheme
  * Changes the app theme
  */
 void MainWindow::setTheme(Theme theme)
 {
     m_currentTheme = theme;
+
+    setCSSThemeAndUpdate(this, theme);
+    setCSSThemeAndUpdate(ui->verticalSpacer_upSearchEdit, theme);
+    setCSSThemeAndUpdate(ui->verticalSpacer_upSearchEdit2, theme);
+    setCSSThemeAndUpdate(ui->verticalSpacer_upTreeView, theme);
+    setCSSThemeAndUpdate(ui->styleEditorButton, theme);
+    setCSSThemeAndUpdate(ui->listviewLabel1, theme);
+    setCSSThemeAndUpdate(ui->searchEdit, theme);
+    setCSSThemeAndUpdate(ui->frameRight, m_currentTheme);
+    setCSSThemeAndUpdate(ui->frameRightTop, m_currentTheme);
+
     switch (theme) {
     case Theme::Light: {
-        m_currentThemeBackgroundColor = QColor(247, 247, 247);
         m_currentEditorTextColor = QColor(26, 26, 26);
-        m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
-        m_currentRightFrameColor = m_currentThemeBackgroundColor;
-        setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(247, 247, 247);}"));
-        ui->verticalSpacer_upSearchEdit->setStyleSheet(
-                QStringLiteral("QWidget{ background-color: %1;}")
-                        .arg(m_currentThemeBackgroundColor.name()));
-        ui->verticalSpacer_upSearchEdit2->setStyleSheet(
-                QStringLiteral("QWidget{ background-color: %1;}")
-                        .arg(m_currentThemeBackgroundColor.name()));
-        ui->verticalSpacer_upTreeView->setStyleSheet(
-                QStringLiteral("QWidget{ background-color: %1;}")
-                        .arg(m_currentThemeBackgroundColor.name()));
-        setupTextEditStyleSheet(m_noteEditorLogic->currentMinimumEditorPadding(),
-                                m_noteEditorLogic->currentMinimumEditorPadding());
-        m_listViewLogic->setTheme(Theme::Light);
-        m_styleEditorWindow.setTheme(Theme::Light, m_currentThemeBackgroundColor,
-                                     m_currentEditorTextColor);
-        m_aboutWindow.setTheme(m_currentThemeBackgroundColor, m_currentEditorTextColor);
-        ui->listviewLabel1->setStyleSheet(
-                QStringLiteral("QLabel { color : %1; }").arg(QColor(26, 26, 26).name()));
-        m_treeViewLogic->setTheme(theme);
         break;
     }
     case Theme::Dark: {
-        m_currentThemeBackgroundColor = QColor(30, 30, 30);
         m_currentEditorTextColor = QColor(204, 204, 204);
-        m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
-        m_currentRightFrameColor = m_currentThemeBackgroundColor;
-        setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(26, 26, 26); }"));
-        ui->verticalSpacer_upSearchEdit->setStyleSheet(
-                QStringLiteral("QWidget{ background-color: %1;}")
-                        .arg(m_currentThemeBackgroundColor.name()));
-        ui->verticalSpacer_upSearchEdit2->setStyleSheet(
-                QStringLiteral("QWidget{ background-color: %1;}")
-                        .arg(m_currentThemeBackgroundColor.name()));
-        ui->verticalSpacer_upTreeView->setStyleSheet(
-                QStringLiteral("QWidget{ background-color: %1;}")
-                        .arg(m_currentThemeBackgroundColor.name()));
-        setupTextEditStyleSheet(m_noteEditorLogic->currentMinimumEditorPadding(),
-                                m_noteEditorLogic->currentMinimumEditorPadding());
-        m_listViewLogic->setTheme(Theme::Dark);
-        m_styleEditorWindow.setTheme(Theme::Dark, m_currentThemeBackgroundColor,
-                                     m_currentEditorTextColor);
-        m_aboutWindow.setTheme(m_currentThemeBackgroundColor, m_currentEditorTextColor);
-        ui->listviewLabel1->setStyleSheet(
-                QStringLiteral("QLabel { color : %1; }").arg(QColor(204, 204, 204).name()));
-        m_treeViewLogic->setTheme(theme);
         break;
     }
     case Theme::Sepia: {
-        m_currentThemeBackgroundColor = QColor(251, 240, 217);
         m_currentEditorTextColor = QColor(95, 74, 50);
-        m_currentEditorBackgroundColor = m_currentThemeBackgroundColor;
-        m_currentRightFrameColor = m_currentThemeBackgroundColor;
-        setStyleSheet(QStringLiteral("QMainWindow { background-color: rgb(251, 240, 217); }"));
-        ui->verticalSpacer_upSearchEdit->setStyleSheet(
-                QStringLiteral("QWidget{ background-color: %1;}")
-                        .arg(m_currentThemeBackgroundColor.name()));
-        ui->verticalSpacer_upSearchEdit2->setStyleSheet(
-                QStringLiteral("QWidget{ background-color: %1;}")
-                        .arg(m_currentThemeBackgroundColor.name()));
-        ui->verticalSpacer_upTreeView->setStyleSheet(
-                QStringLiteral("QWidget{ background-color: %1;}")
-                        .arg(m_currentThemeBackgroundColor.name()));
-        setupTextEditStyleSheet(m_noteEditorLogic->currentMinimumEditorPadding(),
-                                m_noteEditorLogic->currentMinimumEditorPadding());
-        m_listViewLogic->setTheme(Theme::Sepia);
-        m_styleEditorWindow.setTheme(Theme::Sepia, m_currentThemeBackgroundColor,
-                                     QColor(26, 26, 26));
-        m_aboutWindow.setTheme(m_currentThemeBackgroundColor, QColor(26, 26, 26));
-        ui->listviewLabel1->setStyleSheet(
-                QStringLiteral("QLabel { color : %1; }").arg(QColor(26, 26, 26).name()));
-        m_treeViewLogic->setTheme(theme);
         break;
     }
     }
-    ui->tagListView->setBackground(m_currentThemeBackgroundColor);
+    setupTextEditStyleSheet(m_noteEditorLogic->currentMinimumEditorPadding(),
+                            m_noteEditorLogic->currentMinimumEditorPadding());
     m_noteEditorLogic->setTheme(theme, m_currentEditorTextColor, m_editorMediumFontSize);
+    m_listViewLogic->setTheme(theme);
+    m_styleEditorWindow.setTheme(theme);
+    m_aboutWindow.setTheme(theme);
+    m_treeViewLogic->setTheme(theme);
+    ui->tagListView->setTheme(theme);
 
-    setSearchEditStyleSheet(false);
     alignTextEditText();
-    setupRightFrame();
 }
 
 void MainWindow::deleteSelectedNote()
@@ -2246,31 +2098,8 @@ void MainWindow::QuitApplication()
     m_settingsDatabase->setValue(QStringLiteral("isNoteListCollapsed"),
                                  m_noteListWidget->isHidden());
 
-    QString currentFontTypefaceString;
-    switch (m_currentFontTypeface) {
-    case FontTypeface::Mono:
-        currentFontTypefaceString = "Mono";
-        break;
-    case FontTypeface::Serif:
-        currentFontTypefaceString = "Serif";
-        break;
-    case FontTypeface::SansSerif:
-        currentFontTypefaceString = "SansSerif";
-        break;
-    }
-    QString currentThemeString;
-    switch (m_currentTheme) {
-    case Theme::Light:
-        currentThemeString = "Light";
-        break;
-    case Theme::Dark:
-        currentThemeString = "Dark";
-        break;
-    case Theme::Sepia:
-        currentThemeString = "Sepia";
-        break;
-    }
-    m_settingsDatabase->setValue(QStringLiteral("selectedFontTypeface"), currentFontTypefaceString);
+    m_settingsDatabase->setValue(QStringLiteral("selectedFontTypeface"),
+                                 to_string(m_currentFontTypeface).c_str());
     m_settingsDatabase->setValue(QStringLiteral("editorMediumFontSize"), m_editorMediumFontSize);
     m_settingsDatabase->setValue(QStringLiteral("isTextFullWidth"),
                                  m_textEdit->lineWrapMode() == QTextEdit::WidgetWidth ? true
@@ -2281,7 +2110,7 @@ void MainWindow::QuitApplication()
                                  m_currentCharsLimitPerFont.serif);
     m_settingsDatabase->setValue(QStringLiteral("charsLimitPerFontSansSerif"),
                                  m_currentCharsLimitPerFont.sansSerif);
-    m_settingsDatabase->setValue(QStringLiteral("theme"), currentThemeString);
+    m_settingsDatabase->setValue(QStringLiteral("theme"), to_string(m_currentTheme).c_str());
     m_settingsDatabase->setValue(QStringLiteral("chosenMonoFont"),
                                  m_listOfMonoFonts.at(m_chosenMonoFontIndex));
     m_settingsDatabase->setValue(QStringLiteral("chosenSerifFont"),
@@ -3304,16 +3133,6 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                 m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Hovered.png")));
             }
 
-            if (object == m_styleEditorButton) {
-                setCursor(Qt::PointingHandCursor);
-                QString ss = QStringLiteral("QPushButton { "
-                                            "  border: none; "
-                                            "  padding: 0px; "
-                                            "  color: rgb(51, 110, 162);"
-                                            "}");
-                m_styleEditorButton->setStyleSheet(ss);
-            }
-
             if (object == ui->frameRightTop && !m_areNonEditorWidgetsVisible) {
                 setVisibilityOfFrameRightNonEditor(true);
             }
@@ -3364,16 +3183,6 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
             if (object == m_dotsButton) {
                 unsetCursor();
                 m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Regular.png")));
-            }
-
-            if (object == m_styleEditorButton) {
-                unsetCursor();
-                QString ss = QStringLiteral("QPushButton { "
-                                            "  border: none; "
-                                            "  padding: 0px; "
-                                            "  color: rgb(68, 138, 201);"
-                                            "}");
-                m_styleEditorButton->setStyleSheet(ss);
             }
         }
         break;
@@ -3459,16 +3268,9 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
             m_listView->setCurrentRowActive(true);
             m_textEdit->setFocus();
         }
-
-        if (object == m_searchEdit) {
-            setSearchEditStyleSheet(true);
-        }
         break;
     }
     case QEvent::FocusOut: {
-        if (object == m_searchEdit) {
-            setSearchEditStyleSheet(false);
-        }
         break;
     }
     case QEvent::Resize: {
@@ -3661,7 +3463,7 @@ void MainWindow::adjustUpperWidgets(bool shouldPushUp)
     // Force a full re-layout of the top right frame.
     // This fixes some widgets not properly updating after switching between native and non-native
     // window decoration modes.
-    ui->frameRightTop->setStyleSheet(ui->frameRightTop->styleSheet());
+    setCSSThemeAndUpdate(ui->frameRightTop, m_currentTheme);
 }
 
 /*!

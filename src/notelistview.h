@@ -3,7 +3,7 @@
 
 #include <QListView>
 #include <QScrollArea>
-#include "styleeditorwindow.h"
+#include "theme.h"
 #include "dbmanager.h"
 
 class TagPool;
@@ -86,7 +86,6 @@ private:
     bool m_isMousePressed;
     bool m_mousePressHandled;
     int m_rowHeight;
-    QColor m_currentBackgroundColor;
     QMenu *contextMenu;
     QMenu *m_tagsMenu;
     QAction *deleteNoteAction;
