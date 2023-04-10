@@ -479,6 +479,7 @@ void MainWindow::setupKeyboardShortcuts()
     // new QShortcut(QKeySequence(Qt::Key_Enter), this, SLOT(setFocusOnText()));
     // new QShortcut(QKeySequence(Qt::Key_Return), this, SLOT(setFocusOnText()));
     new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_F), this, SLOT(fullscreenWindow()));
+    new QShortcut(Qt::Key_F11, this, SLOT(fullscreenWindow()));
     new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_L), this, SLOT(maximizeWindow()));
     new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_M), this, SLOT(minimizeWindow()));
     new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q), this, SLOT(QuitApplication()));
@@ -3512,6 +3513,9 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                    && keyEvent->modifiers().testFlag(Qt::ControlModifier)) {
             setFocusOnText();
             return true;
+        } else if (keyEvent->key() == Qt::Key_Escape && isFullScreen()) {
+            // exit fullscreen
+            fullscreenWindow();
         }
         break;
     }
