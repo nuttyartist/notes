@@ -27,6 +27,8 @@ These shortcuts are meant to be used while the Notes window is currently focused
 | <kbd>Ctrl</kbd> + <kbd>↑</kbd> (or just <kbd>↑</kbd>) | Select note above                                             |
 | <kbd>Ctrl</kbd> + <kbd>Enter</kbd>                    | Focus on the text editor                                      |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd>     | Toggle full screen mode                                       |
+| <kbd>F11</kbd>                                        | Toggle full screen mode                                       |
+| <kbd>Esc</kbd>                                        | Exit full screen mode                                         |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>L</kbd>     | Maximize Notes                                                |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd>     | Minimize Notes                                                |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd>     | Toggle Editor Settings' window visibility                     |
