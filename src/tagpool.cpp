@@ -25,7 +25,7 @@ TagPool::TagPool(DBManager *dbManager, QObject *parent) : QObject(parent), m_dbM
 void TagPool::setTagPool(const QMap<int, TagData> &newPool)
 {
     m_pool = newPool;
-    emit dataReseted();
+    emit dataReset();
 }
 
 void TagPool::onTagDeleted(int id)

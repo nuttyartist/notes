@@ -113,8 +113,8 @@ signals:
     void requestUpdateNodeRelativePosition(int nodeId, int relativePosition);
     void requestUpdateTagRelativePosition(int nodeId, int relativePosition);
     void requestUpdateAbsPath(const QString &oldPath, const QString &newPath);
-    void dropFolderSuccessfull(const QString &paths);
-    void dropTagsSuccessfull(const QSet<int> &ids);
+    void dropFolderSuccessful(const QString &paths);
+    void dropTagsSuccessful(const QSet<int> &ids);
     void requestMoveFolderToTrash(const QModelIndex &index);
 
 private:

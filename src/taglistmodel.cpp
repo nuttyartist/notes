@@ -9,7 +9,7 @@ void TagListModel::setTagPool(TagPool *tagPool)
 {
     beginResetModel();
     m_tagPool = tagPool;
-    connect(tagPool, &TagPool::dataReseted, this, [this] {
+    connect(tagPool, &TagPool::dataReset, this, [this] {
         beginResetModel();
         updateTagData();
         endResetModel();

@@ -102,7 +102,7 @@ public:
     // 如果设置setCloseBtnQuit(false)，那么点击关闭按钮后，程序不会退出，而是会隐藏,只有在OS X 10.10
     // 及以后系统中有效 if setCloseBtnQuit(false), then when close button is clicked, the
     // application
-    //  will hide itself instead of quit be carefull, after you set this to false, you can NOT
+    //  will hide itself instead of quit be careful, after you set this to false, you can NOT
     //  change it to true again this function should be called inside of the constructor function of
     //  derived classes, and can NOT be called more than once only works for OS X 10.10 or later
     void setCloseBtnQuit(bool bQuit = true);

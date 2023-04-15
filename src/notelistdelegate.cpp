@@ -225,9 +225,9 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
     if (model && model->isFirstPinnedNote(index)) {
         thirdYOffset = NoteListConstant::pinnedHeaderToNoteSpace;
     }
-    int fouthYOffset = 0;
+    int fourthYOffset = 0;
     if (model && model->isFirstUnpinnedNote(index)) {
-        fouthYOffset = NoteListConstant::unpinnedHeaderToNoteSpace;
+        fourthYOffset = NoteListConstant::unpinnedHeaderToNoteSpace;
     }
     int fifthYOffset = 0;
     if (model && model->hasPinnedNote() && !m_view->isPinnedNotesCollapsed()
@@ -235,7 +235,7 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
         fifthYOffset = NoteListConstant::lastPinnedToUnpinnedHeader;
     }
 
-    int yOffsets = secondYOffset + thirdYOffset + fouthYOffset + fifthYOffset;
+    int yOffsets = secondYOffset + thirdYOffset + fourthYOffset + fifthYOffset;
     result.setHeight(result.height() - 10 + NoteListConstant::lastElSepSpace + yOffsets);
     return result;
 }
@@ -293,9 +293,9 @@ QSize NoteListDelegate::bufferSizeHint(const QStyleOptionViewItem &option,
     if (model && model->isFirstPinnedNote(index)) {
         thirdYOffset = NoteListConstant::pinnedHeaderToNoteSpace;
     }
-    int fouthYOffset = 0;
+    int fourthYOffset = 0;
     if (model && model->isFirstUnpinnedNote(index)) {
-        fouthYOffset = NoteListConstant::unpinnedHeaderToNoteSpace;
+        fourthYOffset = NoteListConstant::unpinnedHeaderToNoteSpace;
     }
     //    int fifthYOffset = 0;
     //    if (model && model->hasPinnedNote() && !m_view->isPinnedNotesCollapsed()
@@ -303,7 +303,7 @@ QSize NoteListDelegate::bufferSizeHint(const QStyleOptionViewItem &option,
     //        fifthYOffset = NoteListConstant::lastPinnedToUnpinnedHeader;
     //    }
 
-    int yOffsets = secondYOffset + thirdYOffset + fouthYOffset; // + fifthYOffset;
+    int yOffsets = secondYOffset + thirdYOffset + fourthYOffset; // + fifthYOffset;
     result.setHeight(result.height() - 10 + NoteListConstant::lastElSepSpace + yOffsets);
     return result;
 }
@@ -505,9 +505,9 @@ void NoteListDelegate::paintLabels(QPainter *painter, const QStyleOptionViewItem
         if (model && model->isFirstPinnedNote(index)) {
             thirdYOffset = NoteListConstant::pinnedHeaderToNoteSpace;
         }
-        int fouthYOffset = 0;
+        int fourthYOffset = 0;
         if (model && model->isFirstUnpinnedNote(index)) {
-            fouthYOffset = NoteListConstant::unpinnedHeaderToNoteSpace;
+            fourthYOffset = NoteListConstant::unpinnedHeaderToNoteSpace;
         }
 
         int fifthYOffset = 0;
@@ -516,7 +516,7 @@ void NoteListDelegate::paintLabels(QPainter *painter, const QStyleOptionViewItem
             fifthYOffset = NoteListConstant::lastPinnedToUnpinnedHeader;
         }
 
-        int yOffsets = secondYOffset + thirdYOffset + fouthYOffset + fifthYOffset;
+        int yOffsets = secondYOffset + thirdYOffset + fourthYOffset + fifthYOffset;
         double titleRectPosX = rowPosX + NoteListConstant::leftOffsetX;
         double titleRectPosY = rowPosY;
         double titleRectWidth = rowWidth - 2.0 * NoteListConstant::leftOffsetX;
@@ -708,12 +708,12 @@ void NoteListDelegate::paintLabels(QPainter *painter, const QStyleOptionViewItem
         if (model && model->isFirstPinnedNote(index)) {
             thirdYOffset = NoteListConstant::pinnedHeaderToNoteSpace;
         }
-        int fouthYOffset = 0;
+        int fourthYOffset = 0;
         if (model && model->isFirstUnpinnedNote(index)) {
-            fouthYOffset = NoteListConstant::unpinnedHeaderToNoteSpace;
+            fourthYOffset = NoteListConstant::unpinnedHeaderToNoteSpace;
         }
 
-        int yOffsets = secondYOffset + thirdYOffset + fouthYOffset;
+        int yOffsets = secondYOffset + thirdYOffset + fourthYOffset;
 
         double titleRectPosX = rowPosX + NoteListConstant::leftOffsetX;
         double titleRectPosY = rowPosY;

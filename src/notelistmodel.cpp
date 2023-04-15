@@ -374,7 +374,7 @@ QMimeData *NoteListModel::mimeData(const QModelIndexList &indexes) const
         return nullptr;
     }
     QMimeData *mimeData = new QMimeData;
-    mimeData->setData(NOTE_MIME, d.join(QStringLiteral(PATH_SEPERATOR)).toUtf8());
+    mimeData->setData(NOTE_MIME, d.join(QStringLiteral(PATH_SEPARATOR)).toUtf8());
     return mimeData;
 }
 
@@ -401,7 +401,7 @@ bool NoteListModel::dropMimeData(const QMimeData *mime, Qt::DropAction action, i
     } else {
         toPinned = true;
     }
-    auto idl = QString::fromUtf8(mime->data(NOTE_MIME)).split(QStringLiteral(PATH_SEPERATOR));
+    auto idl = QString::fromUtf8(mime->data(NOTE_MIME)).split(QStringLiteral(PATH_SEPARATOR));
     QSet<int> movedIds;
     QModelIndexList idxe;
     for (const auto &id_s : qAsConst(idl)) {

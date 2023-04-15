@@ -17,7 +17,7 @@ public:
     QList<int> tagIds() const;
 
 signals:
-    void dataReseted();
+    void dataReset();
     void dataUpdated(int tagId);
     void tagDeleted(int tagId);
 

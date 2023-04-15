@@ -91,7 +91,7 @@ NodeTreeView::NodeTreeView(QWidget *parent)
 
     connect(contextMenu, &QMenu::aboutToHide, this, [this] {
         m_isContextMenuOpened = false;
-        // this signal is emmited before QAction::triggered
+        // this signal is emitted before QAction::triggered
         contextMenuTimer.start();
     });
     connect(this, &NodeTreeView::expanded, this, &NodeTreeView::onExpanded);
@@ -140,7 +140,7 @@ void NodeTreeView::setIgnoreThisCurrentLoad(bool newIgnoreThisCurrentLoad)
     m_ignoreThisCurrentLoad = newIgnoreThisCurrentLoad;
 }
 
-void NodeTreeView::onFolderDropSuccessfull(const QString &path)
+void NodeTreeView::onFolderDropSuccessful(const QString &path)
 {
     auto m_model = dynamic_cast<NodeTreeModel *>(model());
     auto index = m_model->folderIndexFromIdPath(path);
@@ -151,7 +151,7 @@ void NodeTreeView::onFolderDropSuccessfull(const QString &path)
     }
 }
 
-void NodeTreeView::onTagsDropSuccessfull(const QSet<int> &ids)
+void NodeTreeView::onTagsDropSuccessful(const QSet<int> &ids)
 {
     auto m_model = dynamic_cast<NodeTreeModel *>(model());
     setCurrentIndex(QModelIndex());
@@ -383,7 +383,7 @@ void NodeTreeView::dropEvent(QDropEvent *event)
                     static_cast<NodeItem::Type>(dropIndex.data(NodeItem::Roles::ItemType).toInt());
             bool ok = false;
             auto idl = QString::fromUtf8(event->mimeData()->data(NOTE_MIME))
-                               .split(QStringLiteral(PATH_SEPERATOR));
+                               .split(QStringLiteral(PATH_SEPARATOR));
             for (const auto &s : qAsConst(idl)) {
                 auto nodeId = s.toInt(&ok);
                 if (ok) {

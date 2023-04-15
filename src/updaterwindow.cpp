@@ -1,7 +1,7 @@
 /*********************************************************************************************
- * Mozila License
+ * Mozilla License
  * Just a meantime project to see the ability of qt, the framework that my OS might be based on
- * And for those linux users that beleive in the power of notes
+ * And for those linux users that believe in the power of notes
  *********************************************************************************************/
 
 #include "updaterwindow.h"
@@ -203,7 +203,7 @@ void UpdaterWindow::resetControls()
         m_ui->changelog->setText("<p>No changelog found...</p>");
     } else {
         m_ui->changelog->setText(changelogText.append(
-                "\n")); // Don't know why currently changelog box is dissapearing at the bottom, so
+                "\n")); // Don't know why currently changelog box is disappearing at the bottom, so
                         // I add a new line to see the text.
     }
 
@@ -425,7 +425,7 @@ void UpdaterWindow::openDownloadFolder(const QString &file)
 }
 
 /**
- * Calculates the appropiate size units(bytes, KB or MB)for the received
+ * Calculates the appropriate size units(bytes, KB or MB)for the received
  * data and the total download size. Then, this function proceeds to update the
  * dialog controls/UI.
  */
@@ -483,7 +483,7 @@ void UpdaterWindow::updateProgress(qint64 received, qint64 total)
  * Uses two time samples(from the current time and a previous sample)to
  * calculate how many bytes have been downloaded.
  *
- * Then, this function proceeds to calculate the appropiate units of time
+ * Then, this function proceeds to calculate the appropriate units of time
  *(hours, minutes or seconds)and constructs a user-friendly string, which
  * is displayed in the dialog.
  */

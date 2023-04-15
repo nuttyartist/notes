@@ -54,7 +54,7 @@ signals:
     void requestRemoveTagDb(int noteId, int tagId);
     void requestRemoveNoteDb(const NodeData &noteData);
     void requestMoveNoteDb(int noteId, const NodeData &targetFolder);
-    void requestHightlightSearch();
+    void requestHighlightSearch();
     void closeNoteEditor();
     void noteTagListChanged(int noteId, const QSet<int> &tagIds);
     void requestSearchInDb(const QString &keyword, const ListViewInfo &inf);

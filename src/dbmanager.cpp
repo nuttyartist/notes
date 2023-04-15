@@ -300,7 +300,7 @@ int DBManager::addNode(const NodeData &node)
     if (node.parentId() != -1) {
         absolutePath = getNodeAbsolutePath(node.parentId()).path();
     }
-    absolutePath += PATH_SEPERATOR + QString::number(nodeId);
+    absolutePath += PATH_SEPARATOR + QString::number(nodeId);
     QString queryStr =
             R"(INSERT INTO "node_table")"
             R"(("id", "title", "creation_date", "modification_date", "deletion_date", "content", "node_type", "parent_id", "relative_position", "scrollbar_position", "absolute_path", "is_pinned_note", "relative_position_an", "child_notes_count"))"
@@ -1038,7 +1038,7 @@ NodeData DBManager::getNode(int nodeId)
 void DBManager::moveFolderToTrash(const NodeData &node)
 {
     QSqlQuery query(m_db);
-    QString parentPath = node.absolutePath() + PATH_SEPERATOR;
+    QString parentPath = node.absolutePath() + PATH_SEPARATOR;
     query.prepare(R"(SELECT id FROM "node_table" )"
                   R"(WHERE absolute_path like (:path_expr) || '%' AND node_type = (:node_type);)");
     query.bindValue(QStringLiteral(":path_expr"), parentPath);
@@ -1103,7 +1103,7 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
     QSqlQuery query(m_db);
     auto node = getNode(nodeId);
 
-    QString newAbsolutePath = target.absolutePath() + PATH_SEPERATOR + QString::number(nodeId);
+    QString newAbsolutePath = target.absolutePath() + PATH_SEPARATOR + QString::number(nodeId);
     if (target.id() == SpecialNodeID::TrashFolder) {
         qint64 deletionTime = QDateTime::currentMSecsSinceEpoch();
         query.prepare(QStringLiteral(
@@ -1130,7 +1130,7 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
 
     if (node.nodeType() == NodeData::Folder) {
         QString oldAbsolutePath = node.absolutePath();
-        QMap<int, QString> childs;
+        QMap<int, QString> children;
         query.clear();
         query.prepare(R"(SELECT id, absolute_path FROM "node_table" )"
                       R"(WHERE absolute_path like (:path_expr) || '%';)");
@@ -1138,14 +1138,14 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
         if (query.exec()) {
             while (query.next()) {
                 if (query.value(0).toInt() != node.id()) {
-                    childs[query.value(0).toInt()] = query.value(1).toString();
+                    children[query.value(0).toInt()] = query.value(1).toString();
                 }
             }
         } else {
             qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
         }
-        for (const auto id : childs.keys()) {
-            QString oldP = childs[id];
+        for (const auto id : children.keys()) {
+            QString oldP = children[id];
             QString newP = oldP.replace(oldP.indexOf(oldAbsolutePath), oldAbsolutePath.size(),
                                         newAbsolutePath);
             if (target.id() == SpecialNodeID::TrashFolder) {
@@ -1580,7 +1580,7 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive, boo
             qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
         }
     } else {
-        auto parentPath = getNodeAbsolutePath(parentID).path() + PATH_SEPERATOR;
+        auto parentPath = getNodeAbsolutePath(parentID).path() + PATH_SEPARATOR;
         query.prepare(
                 R"(SELECT )"
                 R"("id",)"
@@ -1876,7 +1876,7 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                             folderIdMap[id] = newId;
                         }
                     } else {
-                        auto prL = NodePath(node.absolutePath()).seperate();
+                        auto prL = NodePath(node.absolutePath()).separate();
                         for (const auto &pr : qAsConst(prL)) {
                             matchFolderFunctor(pr.toInt(), matchFolderFunctor);
                         }
@@ -2001,7 +2001,7 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                         auto oldId = node.id();
                         node.setId(nodeId);
                         node.setRelativePosition(parents[parentId].second);
-                        node.setAbsolutePath(parent.absolutePath() + PATH_SEPERATOR
+                        node.setAbsolutePath(parent.absolutePath() + PATH_SEPARATOR
                                              + QString::number(nodeId));
                         node.setParentId(parentId);
                         addNodePreComputed(node);
@@ -2064,7 +2064,7 @@ void DBManager::onImportNotesRequested(const QString &fileName)
             for (auto &note : noteList) {
                 note.setId(nodeId);
                 note.setRelativePosition(notePos);
-                note.setAbsolutePath(parentAbsPath + PATH_SEPERATOR + QString::number(nodeId));
+                note.setAbsolutePath(parentAbsPath + PATH_SEPARATOR + QString::number(nodeId));
                 note.setNodeType(NodeData::Note);
                 note.setParentId(SpecialNodeID::DefaultNotesFolder);
                 note.setParentName("Notes");
@@ -2130,7 +2130,7 @@ void DBManager::onRestoreNotesRequested(const QString &fileName)
             for (auto &note : noteList) {
                 note.setId(nodeId);
                 note.setRelativePosition(notePos);
-                note.setAbsolutePath(parentAbsPath + PATH_SEPERATOR + QString::number(nodeId));
+                note.setAbsolutePath(parentAbsPath + PATH_SEPARATOR + QString::number(nodeId));
                 note.setNodeType(NodeData::Note);
                 note.setParentId(defaultNoteFolder.id());
                 note.setParentName("Notes");
@@ -2191,7 +2191,7 @@ void DBManager::onMigrateNotesFromV0_9_0Requested(QVector<NodeData> &noteList)
     for (auto &note : noteList) {
         note.setId(nodeId);
         note.setRelativePosition(notePos);
-        note.setAbsolutePath(parentAbsPath + PATH_SEPERATOR + QString::number(nodeId));
+        note.setAbsolutePath(parentAbsPath + PATH_SEPARATOR + QString::number(nodeId));
         note.setNodeType(NodeData::Note);
         note.setParentId(defaultNoteFolder.id());
         note.setParentName("Notes");
@@ -2225,7 +2225,7 @@ void DBManager::onMigrateTrashFrom0_9_0Requested(QVector<NodeData> &noteList)
     for (auto &note : noteList) {
         note.setId(nodeId);
         note.setRelativePosition(notePos);
-        note.setAbsolutePath(parentAbsPath + PATH_SEPERATOR + QString::number(nodeId));
+        note.setAbsolutePath(parentAbsPath + PATH_SEPARATOR + QString::number(nodeId));
         note.setNodeType(NodeData::Note);
         note.setParentId(trashFolder.id());
         note.setParentName("Trash");
@@ -2321,7 +2321,7 @@ void DBManager::onMigrateNotesFrom1_5_0Requested(const QString &fileName)
     for (auto &note : notes) {
         note.setId(nodeId);
         note.setRelativePosition(notePos);
-        note.setAbsolutePath(parentAbsPath + PATH_SEPERATOR + QString::number(nodeId));
+        note.setAbsolutePath(parentAbsPath + PATH_SEPARATOR + QString::number(nodeId));
         note.setNodeType(NodeData::Note);
         note.setParentId(defaultNoteFolder.id());
         note.setParentName("Notes");
@@ -2335,7 +2335,7 @@ void DBManager::onMigrateNotesFrom1_5_0Requested(const QString &fileName)
     for (auto &note : trash) {
         note.setId(nodeId);
         note.setRelativePosition(notePos);
-        note.setAbsolutePath(parentAbsPath + PATH_SEPERATOR + QString::number(nodeId));
+        note.setAbsolutePath(parentAbsPath + PATH_SEPARATOR + QString::number(nodeId));
         note.setNodeType(NodeData::Note);
         note.setParentId(trashFolder.id());
         note.setParentName("Trash");

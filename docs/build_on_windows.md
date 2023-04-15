@@ -31,7 +31,7 @@ cd notes
 
 Now, let's configure our build environment. In this example, we will be using Microsoft Visual C++ 2017 and Qt 5.15.2 (the MSVC 2019 build), targeting a 64-bit system.
 
-Depending on what version of these softwares you have installed, you may need to make some path adjustments in the following steps.
+Depending on what versions of these applications you have installed, you may need to make some path adjustments in the following steps.
 
 Let's begin by invoking the `vcvars64.bat` script from MSVC 2017, which will set some helpful environment variables for us:
 

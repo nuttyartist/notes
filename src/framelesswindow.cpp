@@ -26,7 +26,7 @@ CFramelessWindow::CFramelessWindow(QWidget *parent)
     //    setWindowFlag(Qt::Window,true);
     //    setWindowFlag(Qt::FramelessWindowHint, true);
     //    setWindowFlag(Qt::WindowSystemMenuHint, true);
-    //    setWindowFlag() is not avaliable before Qt v5.9, so we should use setWindowFlags instead
+    //    setWindowFlag() is not available before Qt v5.9, so we should use setWindowFlags instead
 
     setWindowFlags(windowFlags() | Qt::Window | Qt::FramelessWindowHint | Qt::WindowSystemMenuHint);
 
