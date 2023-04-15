@@ -499,6 +499,7 @@ void MainWindow::setupKeyboardShortcuts()
                   SLOT(decreaseHeading()));
     new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_Equal), this,
                   SLOT(increaseHeading()));
+    new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_Plus), this, SLOT(increaseHeading()));
     connect(new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_0), this), &QShortcut::activated, this,
             [=]() { setHeading(0); });
     connect(new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_1), this), &QShortcut::activated, this,
