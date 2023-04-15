@@ -1,7 +1,7 @@
 /*********************************************************************************************
- * Mozila License
+ * Mozilla License
  * Just a meantime project to see the ability of qt, the framework that my OS might be based on
- * And for those linux users that beleive in the power of notes
+ * And for those linux users that believe in the power of notes
  *********************************************************************************************/
 
 #ifndef STYLEEDITORWINDOW_H

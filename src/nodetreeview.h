@@ -44,8 +44,8 @@ public slots:
     void onChangeTagColorAction();
     void onRequestExpand(const QString &folderPath);
     void onUpdateAbsPath(const QString &oldPath, const QString &newPath);
-    void onFolderDropSuccessfull(const QString &path);
-    void onTagsDropSuccessfull(const QSet<int> &ids);
+    void onFolderDropSuccessful(const QString &path);
+    void onTagsDropSuccessful(const QSet<int> &ids);
 
 signals:
     void addFolderRequested();

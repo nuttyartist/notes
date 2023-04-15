@@ -578,7 +578,7 @@ void MainWindow::setupSplitter()
 
 /*!
  * \brief MainWindow::setupLine
- * Set up the vertical line that seperate between the scrollArea to the textEdit
+ * Set up the vertical line that separates between the scrollArea to the textEdit
  */
 void MainWindow::setupLine()
 {
@@ -1602,7 +1602,7 @@ void MainWindow::onDotsButtonClicked()
     importExportNotesMenu->setFont(QFont(m_displayFont, 10, QFont::Normal));
 #endif
 
-    // note list visiblity action
+    // note list visibility action
     bool isNoteListCollapsed = (m_noteListWidget->isHidden());
     QString actionLabel = isNoteListCollapsed ? tr("Show &notes list") : tr("Hide &notes list");
 
@@ -1617,7 +1617,7 @@ void MainWindow::onDotsButtonClicked()
         connect(noteListVisbilityAction, &QAction::triggered, this, &MainWindow::collapseNoteList);
     }
 
-    // folder tree view visiblity action
+    // folder tree view visibility action
     bool isFolderTreeCollapsed = (m_foldersWidget->isHidden());
     QString factionLabel =
             isFolderTreeCollapsed ? tr("Show &folders tree") : tr("Hide &folders tree");
@@ -1639,12 +1639,12 @@ void MainWindow::onDotsButtonClicked()
     QString markDownLabel =
             m_noteEditorLogic->markdownEnabled() ? tr("Disable &Markdown") : tr("Enable &Markdown");
 
-    QAction *noteMarkdownVisibiltyAction = viewMenu->addAction(markDownLabel);
+    QAction *noteMarkdownVisibilityAction = viewMenu->addAction(markDownLabel);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
-    noteMarkdownVisibiltyAction->setShortcutVisibleInContextMenu(true);
+    noteMarkdownVisibilityAction->setShortcutVisibleInContextMenu(true);
 #endif
 
-    connect(noteMarkdownVisibiltyAction, &QAction::triggered, m_noteEditorLogic, [this] {
+    connect(noteMarkdownVisibilityAction, &QAction::triggered, m_noteEditorLogic, [this] {
         m_noteEditorLogic->setMarkdownEnabled(!m_noteEditorLogic->markdownEnabled());
     });
 
@@ -2130,8 +2130,8 @@ void MainWindow::makeStrikethrough()
 /*!
  * \brief MainWindow::applyFormat
  * Make selected text bold, italic, or strikethrough it, by inserting the passed formatting char(s)
- * before and after the selection. If nothing is selected, insert formating char(s) before/after the
- * word under the cursor
+ * before and after the selection. If nothing is selected, insert formatting char(s) before/after
+ * the word under the cursor
  */
 void MainWindow::applyFormat(const QString &formatChars)
 {
@@ -3240,7 +3240,7 @@ void MainWindow::setWindowButtonsVisible(bool isVisible)
 
 /*!
  * \brief MainWindow::eventFilter
- * Mostly take care on the event happened on widget whose filter installed to tht mainwindow
+ * Mostly take care on the event happened on widget whose filter installed to the mainwindow
  * \param object
  * \param event
  * \return

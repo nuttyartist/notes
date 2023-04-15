@@ -66,10 +66,10 @@ TreeViewLogic::TreeViewLogic(NodeTreeView *treeView, NodeTreeModel *treeModel, D
             &DBManager::updateRelPosNode, Qt::QueuedConnection);
     connect(m_treeModel, &NodeTreeModel::requestUpdateTagRelativePosition, m_dbManager,
             &DBManager::updateRelPosTag, Qt::QueuedConnection);
-    connect(m_treeModel, &NodeTreeModel::dropFolderSuccessfull, m_treeView,
-            &NodeTreeView::onFolderDropSuccessfull);
-    connect(m_treeModel, &NodeTreeModel::dropTagsSuccessfull, m_treeView,
-            &NodeTreeView::onTagsDropSuccessfull);
+    connect(m_treeModel, &NodeTreeModel::dropFolderSuccessful, m_treeView,
+            &NodeTreeView::onFolderDropSuccessful);
+    connect(m_treeModel, &NodeTreeModel::dropTagsSuccessful, m_treeView,
+            &NodeTreeView::onTagsDropSuccessful);
     connect(m_treeModel, &NodeTreeModel::requestMoveFolderToTrash, this,
             &TreeViewLogic::onDeleteFolderRequested);
     connect(m_dbManager, &DBManager::childNotesCountUpdatedFolder, this,
@@ -203,14 +203,14 @@ void TreeViewLogic::onAddFolderRequested(bool fromPlusButton)
 
     if (parentId != SpecialNodeID::RootFolder) {
         hs[NodeItem::Roles::AbsPath] = currentIndex.data(NodeItem::Roles::AbsPath).toString()
-                + PATH_SEPERATOR + QString::number(newlyCreatedNodeId);
+                + PATH_SEPARATOR + QString::number(newlyCreatedNodeId);
         m_treeModel->appendChildNodeToParent(currentIndex, hs);
         if (!m_treeView->isExpanded(currentIndex)) {
             m_treeView->expand(currentIndex);
         }
     } else {
-        hs[NodeItem::Roles::AbsPath] = PATH_SEPERATOR + QString::number(SpecialNodeID::RootFolder)
-                + PATH_SEPERATOR + QString::number(newlyCreatedNodeId);
+        hs[NodeItem::Roles::AbsPath] = PATH_SEPARATOR + QString::number(SpecialNodeID::RootFolder)
+                + PATH_SEPARATOR + QString::number(newlyCreatedNodeId);
         m_treeModel->appendChildNodeToParent(m_treeModel->rootIndex(), hs);
     }
     if (fromPlusButton) {

@@ -331,7 +331,7 @@ QModelIndex NodeTreeModel::folderIndexFromIdPath(const NodePath &idPath)
     if (!rootItem) {
         return QModelIndex();
     }
-    auto ps = idPath.seperate();
+    auto ps = idPath.separate();
     auto item = rootItem;
     for (const auto &ite : qAsConst(ps)) {
         bool ok = false;
@@ -728,7 +728,7 @@ QMimeData *NodeTreeModel::mimeData(const QModelIndexList &indexes) const
             return nullptr;
         }
         QMimeData *mimeData = new QMimeData;
-        mimeData->setData(TAG_MIME, d.join(QStringLiteral(PATH_SEPERATOR)).toUtf8());
+        mimeData->setData(TAG_MIME, d.join(QStringLiteral(PATH_SEPARATOR)).toUtf8());
         return mimeData;
     } else if (itemType == NodeItem::Type::FolderItem) {
         const auto &index = indexes[0];
@@ -766,7 +766,7 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime, Qt::DropAction action, i
         if ((sep.size() == 2) && (row <= sep[1].row())) {
             return false;
         }
-        auto idl = QString::fromUtf8(mime->data(TAG_MIME)).split(QStringLiteral(PATH_SEPERATOR));
+        auto idl = QString::fromUtf8(mime->data(TAG_MIME)).split(QStringLiteral(PATH_SEPARATOR));
         beginResetModel();
         QSet<int> movedIds;
         for (const auto &id_s : qAsConst(idl)) {
@@ -788,7 +788,7 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime, Qt::DropAction action, i
         }
         endResetModel();
         emit topLevelItemLayoutChanged();
-        emit dropTagsSuccessfull(movedIds);
+        emit dropTagsSuccessful(movedIds);
         updateChildRelativePosition(rootItem, NodeItem::Type::TagItem);
         return true;
     }
@@ -860,7 +860,7 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime, Qt::DropAction action, i
             endResetModel();
             emit topLevelItemLayoutChanged();
             updateChildRelativePosition(parentItem, NodeItem::Type::FolderItem);
-            emit dropFolderSuccessfull(movingItem->data(NodeItem::Roles::AbsPath).toString());
+            emit dropFolderSuccessful(movingItem->data(NodeItem::Roles::AbsPath).toString());
         } else {
             auto movingParent = movingItem->parentItem();
             int r = -1;
@@ -881,7 +881,7 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime, Qt::DropAction action, i
             movingItem = movingParent->child(r);
             auto oldAbsolutePath = movingItem->data(NodeItem::Roles::AbsPath).toString();
             QString newAbsolutePath = parentItem->data(NodeItem::Roles::AbsPath).toString()
-                    + PATH_SEPERATOR
+                    + PATH_SEPARATOR
                     + QString::number(movingItem->data(NodeItem::Roles::NodeId).toInt());
             emit requestUpdateAbsPath(oldAbsolutePath, newAbsolutePath);
             beginResetModel();
@@ -895,7 +895,7 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime, Qt::DropAction action, i
             emit requestMoveNode(movingItem->data(NodeItem::Roles::NodeId).toInt(),
                                  parentItem->data(NodeItem::Roles::NodeId).toInt());
             updateChildRelativePosition(parentItem, NodeItem::Type::FolderItem);
-            emit dropFolderSuccessfull(movingItem->data(NodeItem::Roles::AbsPath).toString());
+            emit dropFolderSuccessful(movingItem->data(NodeItem::Roles::AbsPath).toString());
         }
         return true;
     }
