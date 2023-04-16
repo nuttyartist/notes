@@ -48,6 +48,7 @@ MainWindow::MainWindow(QWidget *parent)
       m_dotsButton(nullptr),
       m_styleEditorButton(nullptr),
       m_textEdit(nullptr),
+      m_noteEditorLogic(nullptr),
       m_searchEdit(nullptr),
       m_editorDateLabel(nullptr),
       m_splitter(nullptr),
@@ -62,6 +63,10 @@ MainWindow::MainWindow(QWidget *parent)
       m_treeView(nullptr),
       m_treeModel(new NodeTreeModel(this)),
       m_treeViewLogic(nullptr),
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+      m_kanbanQuickView(nullptr),
+      m_kanbanWidget(this),
+#endif
       m_tagPool(nullptr),
       m_dbManager(nullptr),
       m_dbThread(nullptr),
@@ -120,6 +125,9 @@ MainWindow::MainWindow(QWidget *parent)
     setupTitleBarButtons();
     setupSearchEdit();
     setupDatabases();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+    setupKanbanView();
+#endif
     setupModelView();
     setupTextEdit();
     restoreStates();
@@ -561,6 +569,17 @@ void MainWindow::setupKeyboardShortcuts()
         m_textEdit->setDisabled(false);
         m_searchEdit->setDisabled(false);
     });
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+    connect(new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_K), this),
+            &QShortcut::activated, this, [=]() {
+                if (m_kanbanWidget->isHidden()) {
+                    emit m_noteEditorLogic->showKanbanView();
+                } else {
+                    emit m_noteEditorLogic->hideKanbanView();
+                    m_textEdit->setFocus();
+                }
+            });
+#endif
 }
 
 /*!
@@ -895,6 +914,11 @@ void MainWindow::setCurrentFontBasedOnTypeface(FontTypeface selectedFontTypeFace
 #endif
 
     alignTextEditText();
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+    m_noteEditorLogic->kanbanFontChanged(
+            QVariant(m_listOfSansSerifFonts.at(m_chosenSansSerifFontIndex)));
+#endif
 }
 
 /*!
@@ -1026,6 +1050,41 @@ void MainWindow::setupTextEdit()
     // In future versions, where we'll support rich text, we'll need to change that.
     m_textEdit->setAcceptRichText(false);
 }
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+void MainWindow::setupKanbanView()
+{
+    // Using QQuickWidget -> some say it is slower but better support?
+    // Source:
+    // https://doc.qt.io/qt-6/qtquick-quickwidgets-qquickwidgetversuswindow-opengl-example.html
+    //    m_kanbanWidget.setParent(this);
+    //    m_kanbanWidget.setSource(source);
+    //    m_kanbanWidget.setResizeMode(QQuickWidget::SizeRootObjectToView);
+    //    m_kanbanWidget.hide();
+    //    m_kanbanWidget.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    //    ui->verticalLayout_textEdit->insertWidget(ui->verticalLayout_textEdit->indexOf(m_textEdit),
+    //    &m_kanbanWidget);
+    // Using QQuickView and QWindow -> some say it's faster with limitation?
+    // Source:
+    // https://doc.qt.io/qt-6/qtquick-quickwidgets-qquickwidgetversuswindow-opengl-example.html
+
+    QUrl source("qrc:/qt/qml/kanbanMain.qml");
+    m_kanbanQuickView.rootContext()->setContextProperty("noteEditorLogic", m_noteEditorLogic);
+    m_kanbanQuickView.rootContext()->setContextProperty("mainWindow", this);
+    m_kanbanQuickView.setSource(source);
+    m_kanbanQuickView.setResizeMode(QQuickView::SizeRootObjectToView);
+    m_kanbanWidget = QWidget::createWindowContainer(&m_kanbanQuickView);
+    m_kanbanWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    m_kanbanWidget->hide();
+    ui->verticalLayout_textEdit->insertWidget(ui->verticalLayout_textEdit->indexOf(m_textEdit),
+                                              m_kanbanWidget);
+#  ifdef __APPLE__
+    emit platformSet(QVariant(QString("Apple")));
+#  else
+    emit platformSet(QVariant(QString("Other")));
+#  endif
+}
+#endif
 
 /*!
  * \brief MainWindow::initializeSettingsDatabase
@@ -1175,9 +1234,16 @@ void MainWindow::setupModelView()
     m_treeView = static_cast<NodeTreeView *>(ui->treeView);
     m_treeView->setModel(m_treeModel);
     m_treeViewLogic = new TreeViewLogic(m_treeView, m_treeModel, m_dbManager, this);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+    m_noteEditorLogic = new NoteEditorLogic(
+            m_textEdit, m_editorDateLabel, m_searchEdit, m_kanbanWidget,
+            static_cast<TagListView *>(ui->tagListView), m_tagPool, m_dbManager, this);
+    m_kanbanQuickView.rootContext()->setContextProperty("noteEditorLogic", m_noteEditorLogic);
+#else
     m_noteEditorLogic = new NoteEditorLogic(m_textEdit, m_editorDateLabel, m_searchEdit,
                                             static_cast<TagListView *>(ui->tagListView), m_tagPool,
                                             m_dbManager, this);
+#endif
 }
 
 /*!
@@ -1817,14 +1883,23 @@ void MainWindow::setTheme(Theme theme)
 
     switch (theme) {
     case Theme::Light: {
+        QJsonObject themeData{ { "theme", QStringLiteral("Light") },
+                               { "backgroundColor", "#f7f7f7" } };
+        emit themeChanged(QVariant(themeData));
         m_currentEditorTextColor = QColor(26, 26, 26);
         break;
     }
     case Theme::Dark: {
+        QJsonObject themeData{ { "theme", QStringLiteral("Dark") },
+                               { "backgroundColor", "#1e1e1e" } };
+        emit themeChanged(QVariant(themeData));
         m_currentEditorTextColor = QColor(212, 212, 212);
         break;
     }
     case Theme::Sepia: {
+        QJsonObject themeData{ { "theme", QStringLiteral("Sepia") },
+                               { "backgroundColor", "#fbf0d9" } };
+        emit themeChanged(QVariant(themeData));
         m_currentEditorTextColor = QColor(95, 74, 50);
         break;
     }

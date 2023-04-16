@@ -64,5 +64,6 @@
         <file>images/pin.png</file>
         <file>images/pinned-collasped.png</file>
         <file>images/pinned-expand.png</file>
+        <file>images/confetti.png</file>
     </qresource>
 </RCC>

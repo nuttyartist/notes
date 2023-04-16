@@ -15,14 +15,25 @@
 
 #define FIRST_LINE_MAX 80
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+
+NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLabel,
+                                 QLineEdit *searchEdit, QWidget *kanbanWidget,
+                                 TagListView *tagListView, TagPool *tagPool, DBManager *dbManager,
+                                 QObject *parent)
+#else
 NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLabel,
                                  QLineEdit *searchEdit, TagListView *tagListView, TagPool *tagPool,
                                  DBManager *dbManager, QObject *parent)
+#endif
     : QObject(parent),
       m_textEdit{ textEdit },
       m_highlighter{ new CustomMarkdownHighlighter{ m_textEdit->document() } },
       m_editorDateLabel{ editorDateLabel },
       m_searchEdit{ searchEdit },
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+      m_kanbanWidget{ kanbanWidget },
+#endif
       m_tagListView{ tagListView },
       m_dbManager{ dbManager },
       m_isContentModified{ false },
@@ -51,6 +62,26 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLab
             m_autoSaveTimer.start();
         }
     });
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+    connect(this, &NoteEditorLogic::showKanbanView, this, [this]() {
+        if (m_kanbanWidget != nullptr) {
+            bool shouldRecheck = checkForTasksInEditor();
+            if (shouldRecheck) {
+                checkForTasksInEditor();
+            }
+            m_kanbanWidget->show();
+            m_textEdit->hide();
+            m_textEdit->clearFocus();
+        }
+    });
+    connect(this, &NoteEditorLogic::hideKanbanView, this, [this]() {
+        if (m_kanbanWidget != nullptr) {
+            m_kanbanWidget->hide();
+            m_textEdit->show();
+            clearKanbanModel();
+        }
+    });
+#endif
 }
 
 bool NoteEditorLogic::markdownEnabled() const
@@ -65,11 +96,22 @@ void NoteEditorLogic::setMarkdownEnabled(bool enabled)
 
 void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+    if (m_kanbanWidget != nullptr) {
+        emit hideKanbanView();
+    }
+#endif
+
+    auto currentId = currentEditingNoteId();
     if (notes.size() == 1 && notes[0].id() != SpecialNodeID::InvalidNodeId) {
-        auto currentId = currentEditingNoteId();
         if (currentId != SpecialNodeID::InvalidNodeId && notes[0].id() != currentId) {
             emit noteEditClosed(m_currentNotes[0], false);
         }
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+        emit resetKanbanSettings();
+#endif
+
         m_textEdit->blockSignals(true);
         m_textEdit->setVisible(true);
         m_currentNotes = notes;
@@ -82,7 +124,8 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
         int scrollbarPos = notes[0].scrollBarPosition();
 
         // set text and date
-        m_textEdit->setText(content);
+        if (notes[0].id() != currentId)
+            m_textEdit->setText(content);
         QString noteDate = dateTime.toString(Qt::ISODate);
         QString noteDateEditor = getNoteDateEditor(noteDate);
         m_editorDateLabel->setText(noteDateEditor);
@@ -94,6 +137,9 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
         m_textEdit->setFocusPolicy(Qt::StrongFocus);
         highlightSearch();
     } else if (notes.size() > 1) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+        emit kanbanForceReadOnly();
+#endif
         m_currentNotes = notes;
         m_tagListView->setVisible(false);
         m_textEdit->blockSignals(true);
@@ -162,12 +208,466 @@ void NoteEditorLogic::onTextEditTextChanged()
             m_isContentModified = true;
             m_autoSaveTimer.start();
             emit setVisibilityOfFrameRightNonEditor(false);
+
+            //             In the future, make this work only when editing text
+            //             and not when changing it programmatically
+            //             #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+            //                         if (m_kanbanWidget != nullptr && !m_kanbanWidget->isHidden())
+            //                         {
+            //                             checkForTasksInEditor();
+            //                         }
+            //             #endif
         }
         m_textEdit->blockSignals(false);
     } else {
         qDebug() << "NoteEditorLogic::onTextEditTextChanged() : m_currentNote is not valid";
     }
 }
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+
+void NoteEditorLogic::rearrangeTasksInTextEditor(int startLinePosition, int endLinePosition,
+                                                 int newLinePosition)
+{
+    QTextDocument *document = m_textEdit->document();
+    QTextCursor cursor(document);
+    cursor.setPosition(document->findBlockByNumber(startLinePosition).position());
+    cursor.setPosition(document->findBlockByNumber(endLinePosition).position(),
+                       QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
+    if (document->findBlockByNumber(endLinePosition + 1).isValid()) {
+        cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor);
+    }
+    QString selectedText = cursor.selectedText();
+    cursor.removeSelectedText();
+
+    if (newLinePosition <= startLinePosition) {
+        cursor.setPosition(document->findBlockByLineNumber(newLinePosition).position());
+    } else {
+        int newPositionBecauseOfRemoval =
+                newLinePosition - (endLinePosition - startLinePosition + 1);
+        if (newPositionBecauseOfRemoval == document->lineCount()) {
+            cursor.setPosition(
+                    document->findBlockByLineNumber(newPositionBecauseOfRemoval - 1).position());
+            cursor.movePosition(QTextCursor::EndOfBlock);
+            selectedText = "\n" + selectedText;
+        } else {
+            cursor.setPosition(
+                    document->findBlockByLineNumber(newPositionBecauseOfRemoval).position());
+        }
+    }
+    cursor.insertText(selectedText);
+
+    checkForTasksInEditor();
+}
+
+void NoteEditorLogic::rearrangeColumnsInTextEditor(int startLinePosition, int endLinePosition,
+                                                   int newLinePosition)
+{
+    QTextDocument *document = m_textEdit->document();
+    QTextCursor cursor(document);
+    cursor.setPosition(document->findBlockByNumber(startLinePosition).position());
+    cursor.setPosition(document->findBlockByNumber(endLinePosition).position(),
+                       QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
+    if (document->findBlockByNumber(endLinePosition + 1).isValid()) {
+        cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor);
+    }
+    QString selectedText = cursor.selectedText();
+    cursor.removeSelectedText();
+    cursor.setPosition(document->findBlockByNumber(startLinePosition).position());
+    if (document->findBlockByNumber(startLinePosition + 1).isValid()) {
+        cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor);
+        cursor.removeSelectedText();
+    }
+
+    if (startLinePosition < newLinePosition) {
+        // Goes down
+        int newPositionBecauseOfRemoval =
+                newLinePosition - (endLinePosition - startLinePosition + 1);
+        cursor.setPosition(document->findBlockByLineNumber(newPositionBecauseOfRemoval).position());
+        cursor.movePosition(QTextCursor::EndOfBlock);
+        cursor.insertText("\n" + selectedText);
+    } else {
+        // Goes up
+        cursor.setPosition(document->findBlockByLineNumber(newLinePosition).position());
+        cursor.insertText(selectedText + "\n");
+    }
+
+    checkForTasksInEditor();
+}
+
+QMap<QString, int> NoteEditorLogic::getTaskDataInLine(const QString &line)
+{
+    QStringList taskExpressions = { "- [ ]", "- [x]", "* [ ]", "* [x]", "- [X]", "* [X]" };
+    QMap<QString, int> taskMatchLineData;
+    taskMatchLineData["taskMatchIndex"] = -1;
+
+    int taskMatchIndex = -1;
+    for (int j = 0; j < taskExpressions.size(); j++) {
+        taskMatchIndex = line.indexOf(taskExpressions[j]);
+        if (taskMatchIndex != -1) {
+            taskMatchLineData["taskMatchIndex"] = taskMatchIndex;
+            taskMatchLineData["taskExpressionSize"] = taskExpressions[j].size();
+            taskMatchLineData["taskChecked"] = taskExpressions[j][3] == 'x' ? 1 : 0;
+            return taskMatchLineData;
+        }
+    }
+
+    return taskMatchLineData;
+}
+
+void NoteEditorLogic::checkTaskInLine(int lineNumber)
+{
+    QTextDocument *document = m_textEdit->document();
+    QTextBlock block = document->findBlockByLineNumber(lineNumber);
+
+    if (block.isValid()) {
+        int indexOfTaskInLine = getTaskDataInLine(block.text())["taskMatchIndex"];
+        if (indexOfTaskInLine == -1)
+            return;
+        QTextCursor cursor(block);
+        cursor.setPosition(block.position() + indexOfTaskInLine + 3, QTextCursor::MoveAnchor);
+
+        // Remove the old character and insert the new one
+        cursor.deleteChar();
+        cursor.insertText("x");
+    }
+}
+
+void NoteEditorLogic::uncheckTaskInLine(int lineNumber)
+{
+    QTextDocument *document = m_textEdit->document();
+    QTextBlock block = document->findBlockByLineNumber(lineNumber);
+
+    if (block.isValid()) {
+        int indexOfTaskInLine = getTaskDataInLine(block.text())["taskMatchIndex"];
+        if (indexOfTaskInLine == -1)
+            return;
+        QTextCursor cursor(block);
+        cursor.setPosition(block.position() + indexOfTaskInLine + 3, QTextCursor::MoveAnchor);
+
+        // Remove the old character and insert the new one
+        cursor.deleteChar();
+        cursor.insertText(" ");
+    }
+}
+
+void NoteEditorLogic::replaceTextBetweenLines(int startLinePosition, int endLinePosition,
+                                              QString &newText)
+{
+    QTextDocument *document = m_textEdit->document();
+    QTextBlock startBlock = document->findBlockByLineNumber(startLinePosition);
+    QTextBlock endBlock = document->findBlockByLineNumber(endLinePosition);
+    QTextCursor cursor(startBlock);
+    cursor.setPosition(endBlock.position() + endBlock.length() - 1, QTextCursor::KeepAnchor);
+    cursor.removeSelectedText();
+    cursor.insertText(newText);
+}
+
+void NoteEditorLogic::updateTaskText(int startLinePosition, int endLinePosition,
+                                     const QString &newText)
+{
+    QTextDocument *document = m_textEdit->document();
+    QTextBlock block = document->findBlockByLineNumber(startLinePosition);
+    if (block.isValid()) {
+        QMap<QString, int> taskData = getTaskDataInLine(block.text());
+        int indexOfTaskInLine = taskData["taskMatchIndex"];
+        if (indexOfTaskInLine == -1)
+            return;
+        QString taskExpressionText =
+                block.text().mid(0, taskData["taskMatchIndex"] + taskData["taskExpressionSize"]);
+
+        QString newTextModified = newText;
+        newTextModified.replace("\n\n", "\n");
+        newTextModified.replace("~~", "");
+        QStringList taskExpressions = { "- [ ]", "- [x]", "* [ ]", "* [x]", "- [X]", "* [X]" };
+        for (const auto &taskExpression : taskExpressions) {
+            newTextModified.replace(taskExpression, "");
+        }
+
+        // We must allow hashtags solely for the first line, otherwise it will mess up
+        // the parser - interprate the task's description as columns
+        if (newTextModified.count('\n') > 1) {
+            QStringList newTextModifiedSplitted = newTextModified.split('\n');
+
+            if (newTextModifiedSplitted.size() > 1) {
+                for (int i = 1; i < newTextModifiedSplitted.size(); i++) {
+                    // Skipping the first line
+                    newTextModifiedSplitted[i].replace("# ", "");
+                    newTextModifiedSplitted[i].replace("#", "");
+                }
+
+                newTextModified = newTextModifiedSplitted.join('\n');
+            }
+        }
+
+        QString newTaskText = taskExpressionText + " " + newTextModified;
+        if (newTaskText.size() > 0 && newTaskText[newTaskText.size() - 1] == '\n') {
+            newTaskText.remove(newTaskText.size() - 1, 1);
+        }
+        replaceTextBetweenLines(startLinePosition, endLinePosition, newTaskText);
+        checkForTasksInEditor();
+    }
+}
+
+void NoteEditorLogic::addNewTask(int startLinePosition)
+{
+    QString newText = "- [ ] New task\n";
+    QTextDocument *document = m_textEdit->document();
+    QTextBlock startBlock = document->findBlockByLineNumber(startLinePosition);
+
+    if (!startBlock.isValid())
+        return;
+
+    QTextCursor cursor(startBlock);
+    cursor.insertText(newText);
+
+    checkForTasksInEditor();
+}
+
+void NoteEditorLogic::removeTextBetweenLines(int startLinePosition, int endLinePosition)
+{
+    if (startLinePosition < 0 || endLinePosition < startLinePosition) {
+        return;
+    }
+
+    QTextDocument *document = m_textEdit->document();
+    QTextCursor cursor(document);
+    cursor.setPosition(document->findBlockByNumber(startLinePosition).position());
+    cursor.setPosition(document->findBlockByNumber(endLinePosition).position(),
+                       QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
+    if (document->findBlockByNumber(endLinePosition + 1).isValid()) {
+        cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor);
+    }
+    cursor.removeSelectedText();
+}
+
+void NoteEditorLogic::removeTask(int startLinePosition, int endLinePosition)
+{
+    removeTextBetweenLines(startLinePosition, endLinePosition);
+    checkForTasksInEditor();
+}
+
+void NoteEditorLogic::addNewColumn(int startLinePosition, const QString &columnTitle)
+{
+    if (startLinePosition < 0)
+        return;
+
+    QTextDocument *document = m_textEdit->document();
+    QTextBlock block = document->findBlockByNumber(startLinePosition);
+
+    if (block.isValid()) {
+        QTextCursor cursor(block);
+        if (startLinePosition == 0) {
+            cursor.movePosition(QTextCursor::StartOfBlock);
+        } else {
+            cursor.movePosition(QTextCursor::EndOfBlock);
+        }
+        cursor.insertText(columnTitle);
+        m_textEdit->setTextCursor(cursor);
+    } else {
+        m_textEdit->append(columnTitle);
+    }
+
+    checkForTasksInEditor();
+}
+
+void NoteEditorLogic::removeColumn(int startLinePosition, int endLinePosition)
+{
+    removeTextBetweenLines(startLinePosition, endLinePosition);
+
+    if (startLinePosition < 0 || endLinePosition < startLinePosition)
+        return;
+    QTextDocument *document = m_textEdit->document();
+    QTextCursor cursor(document);
+    cursor.setPosition(document->findBlockByNumber(startLinePosition).position());
+    if (cursor.block().isValid() && cursor.block().text().isEmpty()) {
+        cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor);
+        cursor.removeSelectedText();
+    }
+
+    checkForTasksInEditor();
+}
+
+void NoteEditorLogic::updateColumnTitle(int lineNumber, const QString &newText)
+{
+    QTextDocument *document = m_textEdit->document();
+    QTextBlock block = document->findBlockByLineNumber(lineNumber);
+
+    if (block.isValid()) {
+        // Header by hashtag
+        int lastIndexOfHashTag = block.text().lastIndexOf("#");
+        if (lastIndexOfHashTag != -1) {
+            QTextCursor cursor(block);
+            cursor.setPosition(block.position() + lastIndexOfHashTag + 1, QTextCursor::MoveAnchor);
+            cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
+            cursor.removeSelectedText();
+            cursor.setPosition(block.position() + lastIndexOfHashTag + 1);
+            cursor.insertText(" " + newText);
+
+        } else {
+            int lastIndexofColon = block.text().lastIndexOf("::");
+            if (lastIndexofColon != -1) {
+                // Header by double colons
+                QTextCursor cursor(block);
+                cursor.setPosition(block.position(), QTextCursor::MoveAnchor);
+                cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
+                cursor.removeSelectedText();
+                cursor.setPosition(block.position());
+                cursor.insertText(newText + "::");
+            } else {
+                // Header by dashes
+                QTextCursor cursor(block);
+                cursor.setPosition(block.position(), QTextCursor::MoveAnchor);
+                cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
+                cursor.removeSelectedText();
+                cursor.setPosition(block.position());
+                cursor.insertText(newText);
+            }
+        }
+    }
+}
+
+void NoteEditorLogic::addUntitledColumnToTextEditor(int startLinePosition)
+{
+    QString columnTitle = "# Untitled\n\n";
+    QTextDocument *document = m_textEdit->document();
+    QTextBlock block = document->findBlockByNumber(startLinePosition);
+
+    if (block.isValid()) {
+        QTextCursor cursor(block);
+        cursor.movePosition(QTextCursor::StartOfBlock);
+        cursor.insertText(columnTitle);
+    }
+}
+
+void NoteEditorLogic::appendNewColumn(QJsonArray &data, QJsonObject &currentColumn,
+                                      QString &currentTitle, QJsonArray &tasks)
+{
+    if (!tasks.isEmpty()) {
+        currentColumn["title"] = currentTitle;
+        currentColumn["tasks"] = tasks;
+        currentColumn["columnEndLine"] = tasks.last()["taskEndLine"];
+        data.append(currentColumn);
+        currentColumn = QJsonObject();
+        tasks = QJsonArray();
+    }
+}
+
+// Check if there are any tasks in the current note.
+// If there are, sends the data to the kanban view.
+// Structure:
+// QJsonArray([
+// {
+//    "title":"TODO",
+//    "columnStartLine": 1
+//    "columnEndLine": 4
+//    "tasks":[
+//              {"checked":false,"text":"todo 1", "taskStartine": 3, "taskEndLine": 3},
+//              {"checked":false,"text":"todo 2", "taskStartine": 4, "taskEndLine": 4}}]
+// },
+// ])
+bool NoteEditorLogic::checkForTasksInEditor()
+{
+    QStringList lines = m_textEdit->toPlainText().split("\n");
+    QJsonArray data;
+    QJsonObject currentColumn;
+    QJsonArray tasks;
+    QString currentTitle = "";
+    bool isPreviousLineATask = false;
+
+    for (int i = 0; i < lines.size(); i++) {
+        QString line = lines[i];
+        QString lineTrimmed = line.trimmed();
+
+        // Header title with dashes
+        if (i + 1 < lines.size() && lines[i + 1].trimmed().startsWith("---")) {
+            if (!tasks.isEmpty() && currentTitle.isEmpty()) {
+                // If we have only tasks without a header we insert one and call this function again
+                addUntitledColumnToTextEditor(tasks.first()["taskStartLine"].toInt());
+                return true;
+            }
+            appendNewColumn(data, currentColumn, currentTitle, tasks);
+            currentColumn["columnStartLine"] = i;
+            currentTitle = lineTrimmed;
+            i++; // Skip the next line (dashes)
+            isPreviousLineATask = false;
+        }
+        // Header title
+        else if (lineTrimmed.startsWith("#")) {
+            if (!tasks.isEmpty() && currentTitle.isEmpty()) {
+                // If we have only tasks without a header we insert one and call this function again
+                addUntitledColumnToTextEditor(tasks.first()["taskStartLine"].toInt());
+                return true;
+            }
+            appendNewColumn(data, currentColumn, currentTitle, tasks);
+            currentColumn["columnStartLine"] = i;
+            int countOfHashTags = lineTrimmed.count('#');
+            currentTitle = lineTrimmed.mid(countOfHashTags);
+            isPreviousLineATask = false;
+        }
+        // Non-header text with double colons
+        else if (lineTrimmed.endsWith("::") && getTaskDataInLine(line)["taskMatchIndex"] == -1) {
+            if (!tasks.isEmpty() && currentTitle.isEmpty()) {
+                // If we have only tasks without a header we insert one and call this function again
+                addUntitledColumnToTextEditor(tasks.first()["taskStartLine"].toInt());
+                return true;
+            }
+            appendNewColumn(data, currentColumn, currentTitle, tasks);
+            currentColumn["columnStartLine"] = i;
+            QStringList parts = line.split("::");
+            currentTitle = parts[0].trimmed();
+            isPreviousLineATask = false;
+        }
+        // Todo item
+        else {
+            QMap<QString, int> taskDataInLine = getTaskDataInLine(line);
+            int indexOfTaskInLine = taskDataInLine["taskMatchIndex"];
+
+            if (indexOfTaskInLine != -1) {
+                QJsonObject taskObject;
+                QString taskText =
+                        line.mid(indexOfTaskInLine + taskDataInLine["taskExpressionSize"])
+                                .trimmed();
+                taskObject["text"] = taskText;
+                taskObject["checked"] = taskDataInLine["taskChecked"] == 1;
+                taskObject["taskStartLine"] = i;
+                taskObject["taskEndLine"] = i;
+                tasks.append(taskObject);
+                isPreviousLineATask = true;
+            }
+            // If it's a continues description of the task push current line's text to the last task
+            else if (!line.isEmpty() && isPreviousLineATask) {
+                if (tasks.size() > 0) {
+                    QJsonObject newTask = tasks[tasks.size() - 1].toObject();
+                    QString newTaskText = newTask["text"].toString() + "  \n"
+                            + lineTrimmed; // For markdown rendering a line break needs two white
+                                           // spaces
+                    newTask["text"] = newTaskText;
+                    newTask["taskEndLine"] = i;
+                    tasks[tasks.size() - 1] = newTask;
+                }
+            } else {
+                isPreviousLineATask = false;
+            }
+        }
+    }
+
+    if (!tasks.isEmpty() && currentTitle.isEmpty()) {
+        // If we have only tasks without a header we insert one and call this function again
+        addUntitledColumnToTextEditor(tasks.first()["taskStartLine"].toInt());
+        return true;
+    }
+
+    appendNewColumn(data, currentColumn, currentTitle, tasks);
+
+    emit tasksFoundInEditor(QVariant(data));
+
+    return false;
+}
+#endif
 
 QDateTime NoteEditorLogic::getQDateTime(const QString &date)
 {
