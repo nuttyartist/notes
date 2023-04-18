@@ -102,11 +102,6 @@ jobs:
               -DUSE_QT_VERSION=${{ matrix.qt-version-major }}
           make -j$(nproc)
 
-      - name: Strip debug symbols (release-only)
-        if: matrix.build-type == 'release'
-        run: |
-          strip -s build/notes
-
       - name: Create deb package
         run: |
           cd build
@@ -207,11 +202,6 @@ jobs:
               -DUPDATE_CHECKER=OFF \
               -DUSE_QT_VERSION=${{ matrix.qt-version-major }}
           cmake --build build --parallel $(nproc)
-
-      - name: Strip debug symbols (release-only)
-        if: matrix.build-type == 'release'
-        run: |
-          strip -s build/notes
 
       - name: Create rpm package
         run: |

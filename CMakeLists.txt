@@ -484,6 +484,7 @@ elseif(UNIX)
   set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION}${GIT_REV})
   set(CPACK_PACKAGE_VENDOR ${APP_AUTHOR})
   set(CPACK_PACKAGE_CONTACT "${APP_AUTHOR} <${APP_AUTHOR_EMAIL}>")
+  set(CPACK_STRIP_FILES TRUE)
 
   # Package description.
   # Please keep the character count for every line at 80 (max) - it's a lintian rule.
