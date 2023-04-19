@@ -1,14 +1,15 @@
-#ifndef TAGLISTVIEW_H
-#define TAGLISTVIEW_H
+#pragma once
 
 #include <QListView>
+#include "theme.h"
 
 class TagListView : public QListView
 {
     Q_OBJECT
 public:
     explicit TagListView(QWidget *parent = nullptr);
-    void setBackground(const QColor &color);
+    void setTheme(Theme theme);
+    void setBackground(const QColor color);
 signals:
     // QAbstractItemView interface
 public slots:
@@ -25,5 +26,3 @@ protected:
 private:
     QColor m_backgroundColor;
 };
-
-#endif // TAGLISTVIEW_H

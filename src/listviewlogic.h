@@ -5,7 +5,7 @@
 #include <QVector>
 #include "nodedata.h"
 #include "dbmanager.h"
-#include "styleeditorwindow.h"
+#include "theme.h"
 #include <QModelIndex>
 
 class NoteListView;

@@ -393,7 +393,6 @@ void TreeViewLogic::setTheme(Theme theme)
 {
     m_treeView->setTheme(theme);
     m_treeDelegate->setTheme(theme);
-    m_treeView->update();
     m_style->setTheme(theme);
 }
 

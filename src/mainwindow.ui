@@ -166,7 +166,7 @@ NoteData #dateLabel{
             </layout>
            </item>
            <item>
-            <widget class="Line" name="line_2">
+            <widget class="Line" name="verticalSplitterLine_left">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
                <horstretch>0</horstretch>
@@ -578,7 +578,7 @@ NoteData #dateLabel{
             </layout>
            </item>
            <item>
-            <widget class="Line" name="line">
+            <widget class="Line" name="verticalSplitterLine_middle">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
                <horstretch>0</horstretch>

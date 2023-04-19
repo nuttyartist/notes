@@ -1002,6 +1002,7 @@ void NoteListDelegate::setTheme(Theme theme)
         m_ActiveColor = QColor(218, 233, 239);
         m_notActiveColor = QColor(175, 212, 228);
         m_hoverColor = QColor(207, 207, 207);
+        m_applicationInactiveColor = QColor(207, 207, 207);
         break;
     }
     case Theme::Dark: {
@@ -1011,6 +1012,7 @@ void NoteListDelegate::setTheme(Theme theme)
         m_ActiveColor = QColor(0, 59, 148);
         m_notActiveColor = QColor(0, 59, 148);
         m_hoverColor = QColor(15, 45, 90);
+        m_applicationInactiveColor = QColor(15, 45, 90);
         break;
     }
     case Theme::Sepia: {
@@ -1020,6 +1022,7 @@ void NoteListDelegate::setTheme(Theme theme)
         m_ActiveColor = QColor(218, 233, 239);
         m_notActiveColor = QColor(175, 212, 228);
         m_hoverColor = QColor(207, 207, 207);
+        m_applicationInactiveColor = QColor(207, 207, 207);
         break;
     }
     }

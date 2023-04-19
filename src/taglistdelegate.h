@@ -2,7 +2,7 @@
 #define TAGLISTDELEGATE_H
 
 #include <QStyledItemDelegate>
-#include "styleeditorwindow.h"
+#include "theme.h"
 
 class TagListDelegate : public QStyledItemDelegate
 {

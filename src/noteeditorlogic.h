@@ -3,8 +3,10 @@
 
 #include <QObject>
 #include <QTimer>
+#include <QColor>
+#include <QVector>
 #include "nodedata.h"
-#include "styleeditorwindow.h"
+#include "theme.h"
 
 class CustomDocument;
 class CustomMarkdownHighlighter;

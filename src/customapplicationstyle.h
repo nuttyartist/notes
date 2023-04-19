@@ -2,7 +2,7 @@
 #define CUSTOMAPPLICATIONSTYLE_H
 
 #include <QProxyStyle>
-#include "styleeditorwindow.h"
+#include "theme.h"
 
 class CustomApplicationStyle : public QProxyStyle
 {

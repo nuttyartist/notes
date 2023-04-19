@@ -25,7 +25,6 @@ void EditorSettingsButton::paintEvent(QPaintEvent *p)
     int currentY = rowPosY;
 
     QPainter painter(this);
-    painter.setPen(m_currentFontColor);
 
 #ifdef __APPLE__
     currentY += 10;
@@ -83,22 +82,17 @@ void EditorSettingsButton::paintEvent(QPaintEvent *p)
  * Change the font used for the button
  * \param fontName
  * \param fontTypeface
- * \param fontColor
  */
-void EditorSettingsButton::changeFont(const QString &fontName, const QString &fontTypeface,
-                                      QColor fontColor)
+void EditorSettingsButton::changeFont(const QString &fontName, const QString &fontTypeface)
 {
     m_currentFontName = fontName;
     m_currentFontTypeface = fontTypeface;
-    m_currentFontColor = fontColor;
+    repaint();
 }
 
 /*!
- * \brief EditorSettingsButton::changeFont
- * Change the font used for the button
- * \param fontName
- * \param fontTypeface
- * \param fontColor
+ * \brief EditorSettingsButton::setTheme
+ * Change the theme used for the button
  */
 void EditorSettingsButton::setTheme(Theme theme)
 {

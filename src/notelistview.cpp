@@ -9,6 +9,7 @@
 #include <QTimer>
 #include <QScrollBar>
 #include <QMenu>
+#include <QFile>
 #include <QAction>
 #include <QDrag>
 #include <QMimeData>
@@ -28,7 +29,6 @@ NoteListView::NoteListView(QWidget *parent)
       m_isMousePressed(false),
       m_mousePressHandled(false),
       m_rowHeight(38),
-      m_currentBackgroundColor(247, 247, 247),
       m_tagPool(nullptr),
       m_dbManager(nullptr),
       m_currentFolderId{ SpecialNodeID::InvalidNodeId },
@@ -39,6 +39,15 @@ NoteListView::NoteListView(QWidget *parent)
       m_isDraggingInsidePinned{ false }
 {
     setAttribute(Qt::WA_MacShowFocusRect, false);
+
+    setupStyleSheet();
+
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    QFile scollBarStyleFile(QStringLiteral(":/styles/components/custom-scrollbar.css"));
+    scollBarStyleFile.open(QFile::ReadOnly);
+    QString scrollbarStyleSheet = QString::fromLatin1(scollBarStyleFile.readAll());
+    verticalScrollBar()->setStyleSheet(scrollbarStyleSheet);
+#endif
 
     QTimer::singleShot(0, this, SLOT(init()));
     setContextMenuPolicy(Qt::CustomContextMenu);
@@ -247,7 +256,6 @@ void NoteListView::init()
     setUpdatesEnabled(true);
     viewport()->setAttribute(Qt::WA_Hover);
 
-    setupStyleSheet();
     setupSignalsSlots();
 }
 
@@ -630,25 +638,9 @@ void NoteListView::setupSignalsSlots()
  */
 void NoteListView::setupStyleSheet()
 {
-#if !defined(Q_OS_MACOS)
-    QString ss =
-            QString("QListView {background-color: %1;} "
-                    "QScrollBar::handle:vertical:hover { background: rgba(40, 40, 40, 0.5); }"
-                    "QScrollBar::handle:vertical:pressed { background: rgba(40, 40, 40, 0.5); }"
-                    "QScrollBar::handle:vertical { border-radius: 4px; background: rgba(100, 100, "
-                    "100, 0.5); min-height: 20px; }"
-                    "QScrollBar::vertical {border-radius: 6px; width: 10px; color: rgba(255, 255, "
-                    "255,0);}"
-                    "QScrollBar {margin-right: 2px; background: transparent;}"
-                    "QScrollBar::add-line:vertical { width:0px; height: 0px; subcontrol-position: "
-                    "bottom; subcontrol-origin: margin; }"
-                    "QScrollBar::sub-line:vertical { width:0px; height: 0px; subcontrol-position: "
-                    "top; subcontrol-origin: margin; }")
-                    .arg(m_currentBackgroundColor.name());
-#else
-    QString ss = QString("QListView {background-color: %1;} ").arg(m_currentBackgroundColor.name());
-#endif
-    setStyleSheet(ss);
+    QFile file(":/styles/notelistview.css");
+    file.open(QFile::ReadOnly);
+    setStyleSheet(file.readAll());
 }
 
 void NoteListView::addNotesToTag(QSet<int> notesId, int tagId)
@@ -693,22 +685,7 @@ void NoteListView::selectionChanged(const QItemSelection &selected,
  */
 void NoteListView::setTheme(Theme theme)
 {
-    switch (theme) {
-    case Theme::Light: {
-        m_currentBackgroundColor = QColor(247, 247, 247);
-        break;
-    }
-    case Theme::Dark: {
-        m_currentBackgroundColor = QColor(30, 30, 30);
-        break;
-    }
-    case Theme::Sepia: {
-        m_currentBackgroundColor = QColor(251, 240, 217);
-        break;
-    }
-    }
-
-    setupStyleSheet();
+    setCSSThemeAndUpdate(this, theme);
 }
 
 void NoteListView::onCustomContextMenu(QPoint point)

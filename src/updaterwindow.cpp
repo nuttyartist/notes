@@ -54,7 +54,7 @@ UpdaterWindow::UpdaterWindow(QWidget *parent)
       m_manager(new QNetworkAccessManager(this))
 {
     /* Load the stylesheet */
-    QFile file(":/styles/style.css");
+    QFile file(":/styles/updater-window.css");
     if (file.open(QIODevice::ReadOnly)) {
         setStyleSheet(QString::fromUtf8(file.readAll()).toLatin1());
         file.close();

@@ -1,4 +1,5 @@
 #include "taglistview.h"
+#include <QFile>
 #include <QDebug>
 #include <QMouseEvent>
 
@@ -7,11 +8,20 @@ TagListView::TagListView(QWidget *parent) : QListView(parent)
     setFlow(QListView::LeftToRight);
     setSpacing(3);
     setWrapping(true);
-    setBackground(Qt::white);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    QFile file(":/styles/taglistview.css");
+    file.open(QFile::ReadOnly);
+    setStyleSheet(file.readAll());
+    setTheme(Theme::Light);
 }
 
-void TagListView::setBackground(const QColor &color)
+void TagListView::setTheme(Theme theme)
+{
+    setCSSThemeAndUpdate(this, theme);
+}
+
+void TagListView::setBackground(const QColor color)
 {
     if (m_backgroundColor != color) {
         m_backgroundColor = color;

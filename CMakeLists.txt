@@ -190,6 +190,8 @@ set(SOURCES
     ${PROJECT_SOURCE_DIR}/src/tagpool.h
     ${PROJECT_SOURCE_DIR}/src/tagtreedelegateeditor.cpp
     ${PROJECT_SOURCE_DIR}/src/tagtreedelegateeditor.h
+    ${PROJECT_SOURCE_DIR}/src/theme.cpp
+    ${PROJECT_SOURCE_DIR}/src/theme.h
     ${PROJECT_SOURCE_DIR}/src/trashbuttondelegateeditor.cpp
     ${PROJECT_SOURCE_DIR}/src/trashbuttondelegateeditor.h
     ${PROJECT_SOURCE_DIR}/src/treeviewlogic.cpp

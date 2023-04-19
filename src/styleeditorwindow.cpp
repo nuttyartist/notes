@@ -4,6 +4,9 @@
 #include <QDebug>
 #include <QTimer>
 #include <QShortcut>
+#include <qstyle.h>
+#include <sstream>
+#include <QFile>
 
 /**
  * Initializes the window components and configures the StyleEditorWindow
@@ -32,7 +35,7 @@ StyleEditorWindow::StyleEditorWindow(QWidget *parent)
     m_ui->decreaseWidthButton->setToolTip("Decrease the text width by one character");
     m_ui->lightButton->setToolTip("Change app theme to Light");
     m_ui->darkButton->setToolTip("Change app theme to Dark");
-    m_ui->sepiaButton->setToolTip("Chaneg app theme to Sepia");
+    m_ui->sepiaButton->setToolTip("Change app theme to Sepia");
     m_ui->resetDefaultButton->setToolTip("Reset all to default settings");
 
     connect(m_ui->serifButton, &QPushButton::clicked, this, [this] {
@@ -84,12 +87,7 @@ StyleEditorWindow::StyleEditorWindow(QWidget *parent)
         buttonClicked(m_ui->resetDefaultButton);
     });
 
-    QString ss = QString("QPushButton {background-color: white;} "
-                         "QPushButton {border: none;}"
-                         "QPushButton {padding: 0px;}");
-
     QString fontDisplayName;
-
 #ifdef __APPLE__
 
     if (QFont(QStringLiteral("SF Pro Text")).exactMatch()) {
@@ -107,11 +105,8 @@ StyleEditorWindow::StyleEditorWindow(QWidget *parent)
                                                                      : QStringLiteral("Roboto");
 
 #else
-
     fontDisplayName = QStringLiteral("Roboto");
-
 #endif
-
     setFont(QFont(fontDisplayName));
 
 #ifdef __APPLE__
@@ -119,20 +114,18 @@ StyleEditorWindow::StyleEditorWindow(QWidget *parent)
 #else
     int fontDisplaySize = 9;
 #endif
-    m_ui->fullWidthButton->setFont(QFont(fontDisplayName, fontDisplaySize, QFont::Bold));
-    m_ui->increaseButton->setFont(QFont(fontDisplayName, fontDisplaySize, QFont::Bold));
-    m_ui->decreaseButton->setFont(QFont(fontDisplayName, fontDisplaySize, QFont::Bold));
-    m_ui->increaseWidthButton->setFont(QFont(fontDisplayName, fontDisplaySize, QFont::Bold));
-    m_ui->decreaseWidthButton->setFont(QFont(fontDisplayName, fontDisplaySize, QFont::Bold));
-    m_ui->lightButton->setFont(QFont(fontDisplayName, fontDisplaySize, QFont::Bold));
-    m_ui->darkButton->setFont(QFont(fontDisplayName, fontDisplaySize, QFont::Bold));
-    m_ui->sepiaButton->setFont(QFont(fontDisplayName, fontDisplaySize, QFont::Bold));
-    m_ui->resetDefaultButton->setFont(QFont(fontDisplayName, fontDisplaySize, QFont::Bold));
 
+    // load stylesheet
+    QFile file(QStringLiteral(":/styles/style-editor-window.css"));
+    file.open(QFile::ReadOnly);
+    QString styleSheet = QString::fromLatin1(file.readAll());
+
+    // apply stylesheet to all buttons
     QList<QPushButton *> listChildrenButtons = findChildren<QPushButton *>();
     foreach (QPushButton *childButton, listChildrenButtons) {
-        childButton->setStyleSheet(ss);
-        childButton->installEventFilter(this);
+        childButton->setFont(QFont(fontDisplayName, fontDisplaySize, QFont::Bold));
+        childButton->setStyleSheet(styleSheet);
+        setButtonStyle(childButton, ButtonState::Normal, m_currentTheme);
     }
 
     new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_S), this,
@@ -165,47 +158,46 @@ StyleEditorWindow::~StyleEditorWindow()
 void StyleEditorWindow::buttonClicked(QPushButton *button)
 {
     m_currentlyClickedButton = button;
-    bool shouldBeClicked = true;
 
+    // font buttons
     if (button == m_ui->serifButton || button == m_ui->sansSerifButton
         || button == m_ui->monoButton) {
-        if (m_currentSelectedFontButton) {
-            m_currentSelectedFontButton->setStyleSheet(getStyleSheetForButton(ButtonState::Normal));
+        if (m_currentSelectedFontButton != nullptr) {
+            setButtonStyle(m_currentSelectedFontButton, ButtonState::Normal, m_currentTheme);
         }
         m_currentSelectedFontButton = button;
     }
 
+    // theme buttons
     if (button == m_ui->lightButton || button == m_ui->darkButton || button == m_ui->sepiaButton) {
-        if (m_currentSelectedThemeButton) {
-            m_currentSelectedThemeButton->setStyleSheet(
-                    getStyleSheetForButton(ButtonState::Normal));
+        if (m_currentSelectedThemeButton != nullptr) {
+            setButtonStyle(m_currentSelectedThemeButton, ButtonState::Normal, m_currentTheme);
         }
         m_currentSelectedThemeButton = button;
+        setButtonStyle(m_currentSelectedThemeButton, ButtonState::Clicked, m_currentTheme);
     }
 
+    // full width button
     if (button == m_ui->fullWidthButton) {
         if (m_isFullWidthClicked) {
-            m_ui->fullWidthButton->setStyleSheet(getStyleSheetForButton(ButtonState::Hovered));
+            setButtonStyle(m_ui->fullWidthButton, ButtonState::Normal, m_currentTheme);
             m_isFullWidthClicked = false;
-            shouldBeClicked = false;
         } else {
-            m_ui->fullWidthButton->setStyleSheet(getStyleSheetForButton(ButtonState::Clicked));
+            setButtonStyle(m_ui->fullWidthButton, ButtonState::Clicked, m_currentTheme);
             m_isFullWidthClicked = true;
         }
     }
 
+    // increase/decrease width buttons
     if (button == m_ui->increaseWidthButton || button == m_ui->decreaseWidthButton) {
-        m_ui->fullWidthButton->setStyleSheet(getStyleSheetForButton(ButtonState::Normal));
+        setButtonStyle(m_ui->fullWidthButton, ButtonState::Normal, m_currentTheme);
         m_isFullWidthClicked = false;
     }
-
-    if (shouldBeClicked)
-        button->setStyleSheet(getStyleSheetForButton(ButtonState::Clicked));
 
     if (button != m_currentSelectedFontButton && button != m_currentSelectedThemeButton
         && button != m_ui->fullWidthButton) {
         QTimer::singleShot(200, this, [this] {
-            m_currentlyClickedButton->setStyleSheet(getStyleSheetForButton(ButtonState::Normal));
+            setButtonStyle(m_currentlyClickedButton, ButtonState::Normal, m_currentTheme);
         });
     }
 }
@@ -223,70 +215,27 @@ void StyleEditorWindow::changeSelectedFont(FontTypeface selectedFontType,
     switch (selectedFontType) {
     case FontTypeface::Mono:
         m_selectedMonoFontFamilyName = selectedFontName;
-        m_ui->monoButton->changeFont(selectedFontName, QStringLiteral("mono"), m_currentFontColor);
-        m_ui->monoButton->repaint();
+        m_ui->monoButton->changeFont(selectedFontName, QStringLiteral("mono"));
         break;
     case FontTypeface::Serif:
         m_selectedSerifFontFamilyName = selectedFontName;
-        m_ui->serifButton->changeFont(selectedFontName, QStringLiteral("serif"),
-                                      m_currentFontColor);
-        m_ui->serifButton->repaint();
+        m_ui->serifButton->changeFont(selectedFontName, QStringLiteral("serif"));
         break;
     case FontTypeface::SansSerif:
         m_selectedSansSerifFontFamilyName = selectedFontName;
-        m_ui->sansSerifButton->changeFont(selectedFontName, QStringLiteral("sansSerif"),
-                                          m_currentFontColor);
-        m_ui->sansSerifButton->repaint();
+        m_ui->sansSerifButton->changeFont(selectedFontName, QStringLiteral("sansSerif"));
         break;
     }
 }
 
-/*!
- * \brief StyleEditorWindow::getStyleSheetForButton
- * Get the required stylesheet of a button based on the provided button's
- * state: Normal, Hovered, Clicked.
- * \param buttonState
- */
-QString StyleEditorWindow::getStyleSheetForButton(ButtonState buttonState)
+void StyleEditorWindow::setButtonStyle(QPushButton *button, ButtonState buttonState, Theme theme)
 {
-    QString ss = QStringLiteral("QPushButton{ "
-                                "  background-color: %1; "
-                                "  border: none;"
-                                "  padding: 0px;");
-
-    // Font color
-    if (m_currentTheme == Theme::Dark) {
-        ss.append(QStringLiteral("color: rgb(204, 204, 204);"));
-    } else {
-        ss.append(QStringLiteral("color: rgb(26, 26, 26);"));
+    std::ostringstream classes;
+    classes << QString::fromStdString(to_string(theme)).toLower().toStdString();
+    if (buttonState == ButtonState::Clicked) {
+        classes << " selected";
     }
-
-    ss.append("}");
-
-    switch (buttonState) {
-    case ButtonState::Normal: {
-        ss = ss.arg(m_currentThemeColor.name());
-        break;
-    }
-    case ButtonState::Hovered: {
-        if (m_currentTheme == Theme::Dark) {
-            ss = ss.arg(QColor(43, 43, 43).name());
-        } else {
-            ss = ss.arg(QColor(207, 207, 207).name());
-        }
-        break;
-    }
-    case ButtonState::Clicked: {
-        if (m_currentTheme == Theme::Dark) {
-            ss = ss.arg(QColor(0, 59, 148).name());
-        } else {
-            ss = ss.arg(QColor(218, 233, 239).name());
-        }
-        break;
-    }
-    }
-
-    return ss;
+    setCSSClassesAndUpdate(button, classes.str());
 }
 
 /*!
@@ -297,12 +246,8 @@ QString StyleEditorWindow::getStyleSheetForButton(ButtonState buttonState)
  */
 bool StyleEditorWindow::isSelectedButton(QPushButton *button)
 {
-    if ((button != m_currentSelectedFontButton && button != m_currentSelectedThemeButton)
-        && !(button == m_ui->fullWidthButton && m_isFullWidthClicked)) {
-        return false;
-    }
-
-    return true;
+    return button == m_currentSelectedFontButton || button == m_currentSelectedThemeButton
+            || (button == m_ui->fullWidthButton && m_isFullWidthClicked);
 }
 
 /*!
@@ -315,11 +260,9 @@ bool StyleEditorWindow::isSelectedButton(QPushButton *button)
  * \param themeColor
  * \param textColor
  */
-void StyleEditorWindow::setTheme(Theme theme, QColor themeColor, QColor textColor)
+void StyleEditorWindow::setTheme(Theme theme)
 {
     m_currentTheme = theme;
-    m_currentThemeColor = themeColor;
-    m_currentFontColor = textColor;
 
     if (theme == Theme::Dark) {
         m_ui->decreaseButton->setIcon(QIcon(QStringLiteral(":images/minus-dark.png")));
@@ -348,22 +291,17 @@ void StyleEditorWindow::setTheme(Theme theme, QColor themeColor, QColor textColo
     m_ui->monoButton->setTheme(theme);
     m_ui->serifButton->setTheme(theme);
     m_ui->sansSerifButton->setTheme(theme);
-    m_ui->monoButton->changeFont(m_selectedMonoFontFamilyName, QStringLiteral("mono"),
-                                 m_currentFontColor);
-    m_ui->serifButton->changeFont(m_selectedSerifFontFamilyName, QStringLiteral("serif"),
-                                  m_currentFontColor);
+    m_ui->monoButton->changeFont(m_selectedMonoFontFamilyName, QStringLiteral("mono"));
+    m_ui->serifButton->changeFont(m_selectedSerifFontFamilyName, QStringLiteral("serif"));
     m_ui->sansSerifButton->changeFont(m_selectedSansSerifFontFamilyName,
-                                      QStringLiteral("sansSerif"), m_currentFontColor);
-    m_ui->monoButton->repaint();
-    m_ui->serifButton->repaint();
-    m_ui->sansSerifButton->repaint();
+                                      QStringLiteral("sansSerif"));
 
     QList<QPushButton *> listChildrenButtons = findChildren<QPushButton *>();
     foreach (QPushButton *childButton, listChildrenButtons) {
         if (!isSelectedButton(childButton)) {
-            childButton->setStyleSheet(getStyleSheetForButton(ButtonState::Normal));
+            setButtonStyle(childButton, ButtonState::Normal, theme);
         } else {
-            childButton->setStyleSheet(getStyleSheetForButton(ButtonState::Clicked));
+            setButtonStyle(childButton, ButtonState::Clicked, theme);
         }
     }
 }
@@ -382,6 +320,10 @@ void StyleEditorWindow::restoreSelectedOptions(bool isTextFullWidth,
 {
     if (isTextFullWidth) {
         buttonClicked(m_ui->fullWidthButton);
+    } else {
+        // deselect the button
+        m_isFullWidthClicked = false;
+        setButtonStyle(m_ui->fullWidthButton, ButtonState::Normal, m_currentTheme);
     }
 
     switch (selectedFontTypeface) {
@@ -421,37 +363,25 @@ void StyleEditorWindow::toggleWindowVisibility()
     }
 }
 
-/*!
- * \brief StyleEditorWindow::eventFilter
- * Handle buttons event when hovered upon/unhovered
- * and set the appropriate stylesheet for them
- * \param object
- * \param event
- */
-bool StyleEditorWindow::eventFilter(QObject *object, QEvent *event)
+std::ostream &operator<<(std::ostream &os, const FontTypeface &fontTypeface)
 {
-    switch (event->type()) {
-    case QEvent::Enter: {
-        QList<QPushButton *> listChildrenButtons = findChildren<QPushButton *>();
-        foreach (QPushButton *childButton, listChildrenButtons) {
-            if ((object == childButton && !isSelectedButton(childButton))) {
-                childButton->setStyleSheet(getStyleSheetForButton(ButtonState::Hovered));
-            }
-        }
+    switch (fontTypeface) {
+    case FontTypeface::Mono:
+        os << "Mono";
+        break;
+    case FontTypeface::Serif:
+        os << "Serif";
+        break;
+    case FontTypeface::SansSerif:
+        os << "SansSerif";
         break;
     }
-    case QEvent::Leave: {
-        QList<QPushButton *> listChildrenButtons = findChildren<QPushButton *>();
-        foreach (QPushButton *childButton, listChildrenButtons) {
-            if (object == childButton && !isSelectedButton(childButton)) {
-                childButton->setStyleSheet(getStyleSheetForButton(ButtonState::Normal));
-            }
-        }
-        break;
-    }
-    default:
-        break;
-    }
+    return os;
+}
 
-    return QObject::eventFilter(object, event);
+std::string to_string(FontTypeface fontTypeface)
+{
+    std::ostringstream os;
+    os << fontTypeface;
+    return os.str();
 }

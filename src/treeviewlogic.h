@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include "dbmanager.h"
-#include "styleeditorwindow.h"
+#include "theme.h"
 
 class NodeTreeView;
 class NodeTreeModel;

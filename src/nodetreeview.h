@@ -3,7 +3,7 @@
 
 #include <QTreeView>
 #include <QTimer>
-#include "styleeditorwindow.h"
+#include "theme.h"
 #include "nodedata.h"
 
 class QMenu;

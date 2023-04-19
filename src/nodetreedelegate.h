@@ -2,7 +2,7 @@
 #define NODETREEDELEGATE_H
 
 #include <QStyledItemDelegate>
-#include "styleeditorwindow.h"
+#include "theme.h"
 
 class QTreeView;
 
