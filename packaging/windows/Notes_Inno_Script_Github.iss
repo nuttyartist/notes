@@ -21,6 +21,7 @@ SolidCompression=yes
 ; Inno Setup can't seem to calculate the required disk space correctly, and asks for only 3.1 MB.
 ; Let's use an approximate value to represent the size of the app while installed on disk (70 MB).
 ExtraDiskSpaceRequired=73400320
+OutputManifestFile=Setup-Manifest.txt
 
 [Code]
 function GetDefaultInstallDir(Param: string): string;
