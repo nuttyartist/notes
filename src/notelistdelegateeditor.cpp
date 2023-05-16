@@ -389,7 +389,7 @@ void NoteListDelegateEditor::paintSeparator(QPainter *painter, const QStyleOptio
     Q_UNUSED(option);
 
     painter->setPen(QPen(m_separatorColor));
-    const int leftOffsetX = 11;
+    const int leftOffsetX = NoteListConstant::leftOffsetX;
     int posX1 = rect().x() + leftOffsetX;
     int posX2 = rect().x() + rect().width() - leftOffsetX - 1;
     int posY = rect().y() + rect().height() - 1;
@@ -470,7 +470,8 @@ void NoteListDelegateEditor::resizeEvent(QResizeEvent *event)
 
             y += yOffsets;
         }
-        m_tagListView->setGeometry(10, y - 5, rect().width() - 15, m_tagListView->height());
+        m_tagListView->setGeometry(NoteListConstant::leftOffsetX - 5, y + 5, rect().width() - 15,
+                                   m_tagListView->height());
     } else {
         int y = 70;
         auto model = dynamic_cast<NoteListModel *>(m_view->model());
@@ -493,7 +494,8 @@ void NoteListDelegateEditor::resizeEvent(QResizeEvent *event)
 
             y += yOffsets;
         }
-        m_tagListView->setGeometry(10, y - 5, rect().width() - 15, m_tagListView->height());
+        m_tagListView->setGeometry(NoteListConstant::leftOffsetX - 5, y, rect().width() - 15,
+                                   m_tagListView->height());
     }
     recalculateSize();
 }
@@ -592,7 +594,11 @@ void NoteListDelegateEditor::recalculateSize()
         }
 
         int yOffsets = secondYOffset + thirdYOffset + fourthYOffset + fifthYOffset;
-        result.setHeight(result.height() - 10 + NoteListConstant::lastElSepSpace + yOffsets);
+        if (m_delegate->isInAllNotes()) {
+            result.setHeight(result.height() - 2 + NoteListConstant::lastElSepSpace + yOffsets);
+        } else {
+            result.setHeight(result.height() - 10 + NoteListConstant::lastElSepSpace + yOffsets);
+        }
         emit updateSizeHint(m_id, result, m_index);
     }
 }
@@ -624,16 +630,18 @@ void NoteListDelegateEditor::setTheme(Theme theme)
         m_notActiveColor = QColor(175, 212, 228);
         m_hoverColor = QColor(207, 207, 207);
         m_applicationInactiveColor = QColor(207, 207, 207);
+        m_separatorColor = QColor(191, 191, 191);
         break;
     }
     case Theme::Dark: {
-        m_titleColor = QColor(204, 204, 204);
-        m_dateColor = QColor(204, 204, 204);
-        m_defaultColor = QColor(30, 30, 30);
-        m_ActiveColor = QColor(0, 59, 148);
-        m_notActiveColor = QColor(0, 59, 148);
-        m_hoverColor = QColor(15, 45, 90);
-        m_applicationInactiveColor = QColor(15, 45, 90);
+        m_titleColor = QColor(212, 212, 212);
+        m_dateColor = QColor(212, 212, 212);
+        m_defaultColor = QColor(25, 25, 25);
+        m_ActiveColor = QColor(35, 52, 69, 127);
+        m_notActiveColor = QColor(35, 52, 69);
+        m_hoverColor = QColor(35, 52, 69);
+        m_applicationInactiveColor = QColor(35, 52, 69);
+        m_separatorColor = QColor(255, 255, 255, 127);
         break;
     }
     case Theme::Sepia: {
@@ -644,6 +652,7 @@ void NoteListDelegateEditor::setTheme(Theme theme)
         m_notActiveColor = QColor(175, 212, 228);
         m_hoverColor = QColor(207, 207, 207);
         m_applicationInactiveColor = QColor(207, 207, 207);
+        m_separatorColor = QColor(191, 191, 191);
         break;
     }
     }
