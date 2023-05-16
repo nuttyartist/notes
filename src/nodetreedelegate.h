@@ -36,8 +36,6 @@ private:
     QFont m_titleFont;
     QFont m_titleSelectedFont;
     QFont m_dateFont;
-    QFont m_separatorFont;
-    QFont m_numberOfNotesFont;
     QColor m_titleColor;
     QColor m_titleSelectedColor;
     QColor m_dateColor;
@@ -49,8 +47,6 @@ private:
     QColor m_defaultColor;
     QColor m_separatorTextColor;
     QColor m_currentBackgroundColor;
-    QColor m_numberOfNotesColor;
-    QColor m_numberOfNotesSelectedColor;
     QTreeView *m_view;
     Theme m_theme;
 };

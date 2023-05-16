@@ -75,7 +75,7 @@ void TagListDelegate::setTheme(Theme theme)
         break;
     }
     case Theme::Dark: {
-        m_titleColor = QColor(212, 212, 212);
+        m_titleColor = QColor(204, 204, 204);
         break;
     }
     case Theme::Sepia: {

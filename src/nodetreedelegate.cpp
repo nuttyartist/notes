@@ -29,14 +29,10 @@ NodeTreeDelegate::NodeTreeDelegate(QTreeView *view, QObject *parent)
       m_titleFont(m_displayFont, 13, QFont::DemiBold),
       m_titleSelectedFont(m_displayFont, 13),
       m_dateFont(m_displayFont, 13),
-      m_separatorFont(m_displayFont, 12, QFont::Normal),
-      m_numberOfNotesFont(m_displayFont, 12, QFont::DemiBold),
 #else
       m_titleFont(m_displayFont, 10, QFont::DemiBold),
       m_titleSelectedFont(m_displayFont, 10),
       m_dateFont(m_displayFont, 10),
-      m_separatorFont(m_displayFont, 9, QFont::Normal),
-      m_numberOfNotesFont(m_displayFont, 9, QFont::DemiBold),
 #endif
       m_titleColor(26, 26, 26),
       m_titleSelectedColor(255, 255, 255),
@@ -49,8 +45,6 @@ NodeTreeDelegate::NodeTreeDelegate(QTreeView *view, QObject *parent)
       m_defaultColor(247, 247, 247),
       m_separatorTextColor(143, 143, 143),
       m_currentBackgroundColor(255, 255, 255),
-      m_numberOfNotesColor(26, 26, 26, 127),
-      m_numberOfNotesSelectedColor(255, 255, 255),
       m_view(view),
       m_theme(Theme::Light)
 {
@@ -68,18 +62,16 @@ void NodeTreeDelegate::setTheme(Theme theme)
         m_notActiveColor = QColor(175, 212, 228);
         m_hoverColor = QColor(207, 207, 207);
         m_currentBackgroundColor = QColor(247, 247, 247);
-        m_numberOfNotesColor = QColor(26, 26, 26, 127);
         break;
     }
     case Theme::Dark: {
-        m_titleColor = QColor(212, 212, 212);
-        m_dateColor = QColor(212, 212, 212);
-        m_defaultColor = QColor(25, 25, 25);
+        m_titleColor = QColor(204, 204, 204);
+        m_dateColor = QColor(204, 204, 204);
+        m_defaultColor = QColor(30, 30, 30);
         //        m_ActiveColor = QColor(0, 59, 148);
-        m_notActiveColor = QColor(35, 52, 69);
+        m_notActiveColor = QColor(0, 59, 148);
         m_hoverColor = QColor(15, 45, 90);
-        m_currentBackgroundColor = QColor(25, 25, 25);
-        m_numberOfNotesColor = QColor(212, 212, 212, 127);
+        m_currentBackgroundColor = QColor(30, 30, 30);
         break;
     }
     case Theme::Sepia: {
@@ -90,7 +82,6 @@ void NodeTreeDelegate::setTheme(Theme theme)
         m_notActiveColor = QColor(175, 212, 228);
         m_hoverColor = QColor(207, 207, 207);
         m_currentBackgroundColor = QColor(251, 240, 217);
-        m_numberOfNotesColor = QColor(26, 26, 26, 127);
         break;
     }
     }
@@ -138,11 +129,11 @@ void NodeTreeDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         childCountRect.setWidth(childCountRect.width() - 5);
         auto childCount = index.data(NodeItem::Roles::ChildCount).toInt();
         if ((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
-            painter->setPen(m_numberOfNotesSelectedColor);
+            painter->setPen(m_titleSelectedColor);
         } else {
-            painter->setPen(m_numberOfNotesColor);
+            painter->setPen(m_titleColor);
         }
-        painter->setFont(m_numberOfNotesFont);
+        painter->setFont(m_titleFont);
         painter->drawText(childCountRect, Qt::AlignHCenter | Qt::AlignVCenter,
                           QString::number(childCount));
         break;
@@ -153,7 +144,7 @@ void NodeTreeDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         textRect.moveLeft(textRect.x() + 5);
         auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
         painter->setPen(m_separatorColor);
-        painter->setFont(m_separatorFont);
+        painter->setFont(m_titleFont);
         painter->drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter, displayName);
         break;
     }
@@ -196,11 +187,11 @@ void NodeTreeDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         childCountRect.setWidth(childCountRect.width() - 5);
         auto childCount = index.data(NodeItem::Roles::ChildCount).toInt();
         if ((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
-            painter->setPen(m_numberOfNotesSelectedColor);
+            painter->setPen(m_titleSelectedColor);
         } else {
-            painter->setPen(m_numberOfNotesColor);
+            painter->setPen(m_titleColor);
         }
-        painter->setFont(m_numberOfNotesFont);
+        painter->setFont(m_titleFont);
         painter->drawText(childCountRect, Qt::AlignHCenter | Qt::AlignVCenter,
                           QString::number(childCount));
         break;
@@ -233,7 +224,7 @@ void NodeTreeDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         painter->setBrush(Qt::black);
         painter->setPen(Qt::black);
         QRect nameRect(option.rect);
-        nameRect.setLeft(iconRect.x() + iconRect.width() + 11);
+        nameRect.setLeft(iconRect.x() + iconRect.width() + 5);
         nameRect.setWidth(nameRect.width() - 5 - 40);
         auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
         QFontMetrics fm(m_titleFont);
@@ -250,11 +241,11 @@ void NodeTreeDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         childCountRect.setWidth(childCountRect.width() - 5);
         auto childCount = index.data(NodeItem::Roles::ChildCount).toInt();
         if ((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
-            painter->setPen(m_numberOfNotesSelectedColor);
+            painter->setPen(m_titleSelectedColor);
         } else {
-            painter->setPen(m_numberOfNotesColor);
+            painter->setPen(m_titleColor);
         }
-        painter->setFont(m_numberOfNotesFont);
+        painter->setFont(m_titleFont);
         painter->drawText(childCountRect, Qt::AlignHCenter | Qt::AlignVCenter,
                           QString::number(childCount));
         break;
@@ -316,7 +307,7 @@ QWidget *NodeTreeDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
                                      .arg(QString::number(m_separatorTextColor.red()),
                                           QString::number(m_separatorTextColor.green()),
                                           QString::number(m_separatorTextColor.blue())));
-        label->setFont(m_separatorFont);
+        label->setFont(m_titleFont);
         label->setText(displayName);
         layout->addWidget(label);
         auto addButton = new PushButtonType(parent);

@@ -1,24 +1,24 @@
 QTreeView {
-  border-style: none;
+	border-style: none;
 
-  selection-color: white;
+	selection-color: white;
 }
 
 QTreeView.light {
-  background-color: rgb(247, 247, 247);
-  selection-background-color: rgb(247, 247, 247);
+	background-color: rgb(247, 247, 247);
+	selection-background-color: rgb(247, 247, 247);
 }
 
 QTreeView.dark {
-  background-color: rgb(25, 25, 25);
-  selection-background-color: rgb(25, 25, 25);
+	background-color: rgb(30, 30, 30);
+	selection-background-color: rgb(30, 30, 30);
 }
 
 QTreeView.sepia {
-  background-color: rgb(251, 240, 217);
-  selection-background-color: rgb(251, 240, 217);
+	background-color: rgb(251, 240, 217);
+	selection-background-color: rgb(251, 240, 217);
 }
 
 QTreeView::branch {
-  border-image: url(none.png);
+	border-image: url(none.png);
 }
