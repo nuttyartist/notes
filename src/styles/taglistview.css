@@ -1,15 +1,15 @@
 QListView#tagListView {
-	border: none;
+  border: none;
 }
 
 QListView#tagListView.light {
-	background: rgb(247, 247, 247);
+  background: rgb(247, 247, 247);
 }
 
 QListView#tagListView.dark {
-	background: rgb(30, 30, 30);
+  background: rgb(25, 25, 25);
 }
 
 QListView#tagListView.sepia {
-	background: rgb(251, 240, 217);
+  background: rgb(251, 240, 217);
 }

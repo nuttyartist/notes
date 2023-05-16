@@ -12,12 +12,12 @@ class TagListDelegate;
 class NoteListModel;
 struct NoteListConstant
 {
-    static constexpr int leftOffsetX = 10;
-    static constexpr int topOffsetY = 5; // space on top of title
-    static constexpr int titleDateSpace = 1; // space between title and date
-    static constexpr int dateDescSpace = 4; // space between date and description
-    static constexpr int descFolderSpace = 9; // space between description and folder name
-    static constexpr int lastElSepSpace = 10; // space between the last element and the separator
+    static constexpr int leftOffsetX = 20;
+    static constexpr int topOffsetY = 10; // space on top of title
+    static constexpr int titleDateSpace = 2; // space between title and date
+    static constexpr int dateDescSpace = 5; // space between date and description
+    static constexpr int descFolderSpace = 14; // space between description and folder name
+    static constexpr int lastElSepSpace = 12; // space between the last element and the separator
     static constexpr int nextNoteOffset =
             0; // space between the separator and the next note underneath it
     static constexpr int pinnedHeaderToNoteSpace =
