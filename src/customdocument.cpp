@@ -53,6 +53,15 @@ bool CustomDocument::eventFilter(QObject *obj, QEvent *event)
             // check if mouse is over a link
             auto url = getUrlUnderMouse();
             viewport()->setCursor(url.isValid() ? Qt::PointingHandCursor : Qt::IBeamCursor);
+        } else if (keyEvent->modifiers().testFlag(Qt::AltModifier)) {
+            // alt + arrow up/down
+            if (keyEvent->key() == Qt::Key_Up) {
+                moveBlockUp();
+                return true;
+            } else if (keyEvent->key() == Qt::Key_Down) {
+                moveBlockDown();
+                return true;
+            }
         }
     } else if (event->type() == QEvent::MouseButtonRelease) {
 
@@ -292,4 +301,67 @@ QMap<QString, QString> CustomDocument::parseMarkdownUrlsFromText(const QString &
     }
 
     return urlMap;
+}
+
+void CustomDocument::moveBlockUp()
+{
+    QTextCursor cursor = textCursor();
+
+    if (cursor.blockNumber() > 0) {
+        QString currentBlock = cursor.block().text();
+        const int currentHorizontalPosition = cursor.positionInBlock();
+
+        cursor.movePosition(QTextCursor::StartOfBlock);
+        cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
+        cursor.removeSelectedText();
+        // also remove empty line
+        cursor.deletePreviousChar();
+
+        // cursor is now at end of prev line, move to start
+        if (!cursor.movePosition(QTextCursor::StartOfBlock)) {
+            // block above is empty, this is fine
+        }
+        // insert the removed block again
+        cursor.insertText(currentBlock);
+        cursor.insertBlock();
+
+        // move cursor to previous block
+        if (!cursor.movePosition(QTextCursor::PreviousBlock)) {
+            qDebug() << "Could not move to previous block";
+        }
+        const int startPosition = cursor.position();
+        cursor.setPosition(startPosition + currentHorizontalPosition);
+
+        setTextCursor(cursor);
+    }
+}
+
+void CustomDocument::moveBlockDown()
+{
+    QTextCursor cursor = textCursor();
+
+    QString currentBlock = cursor.block().text();
+    const int currentHorizontalPosition = cursor.positionInBlock();
+
+    cursor.movePosition(QTextCursor::StartOfBlock);
+    cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
+    cursor.removeSelectedText();
+    // also remove empty line
+    cursor.deleteChar();
+
+    if (!cursor.movePosition(QTextCursor::EndOfBlock)) {
+        // block below is empty, this is fine
+    }
+    // insert the removed block again
+    cursor.insertBlock();
+    cursor.insertText(currentBlock);
+
+    // move cursor to next block
+    if (!cursor.movePosition(QTextCursor::StartOfBlock)) {
+        qDebug() << "Could not move to start of next block";
+    }
+    const int startPosition = cursor.position();
+    cursor.setPosition(startPosition + currentHorizontalPosition);
+
+    setTextCursor(cursor);
 }
