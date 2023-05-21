@@ -139,7 +139,7 @@ QFrame#verticalSplitterLine_middle.light {
 QMainWindow.dark,
 QFrame#verticalSplitterLine_left.dark,
 QFrame#verticalSplitterLine_middle.dark {
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(68, 68, 68);
 }
 QMainWindow.sepia,
 QFrame#verticalSplitterLine_left.sepia,
