@@ -327,6 +327,10 @@ void MainWindow::setupMainWindow()
     ui->listviewLabel1->setStyleSheet(m_styleSheet);
     ui->listviewLabel2->setStyleSheet(m_styleSheet);
 
+    // splitters
+    ui->verticalSplitterLine_left->setStyleSheet(m_styleSheet);
+    ui->verticalSplitterLine_middle->setStyleSheet(m_styleSheet);
+
     // buttons
     ui->toggleTreeViewButton->setStyleSheet(m_styleSheet);
     ui->styleEditorButton->setStyleSheet(m_styleSheet);
@@ -1806,6 +1810,8 @@ void MainWindow::setTheme(Theme theme)
     setCSSThemeAndUpdate(ui->styleEditorButton, theme);
     setCSSThemeAndUpdate(ui->listviewLabel1, theme);
     setCSSThemeAndUpdate(ui->searchEdit, theme);
+    setCSSThemeAndUpdate(ui->verticalSplitterLine_left, theme);
+    setCSSThemeAndUpdate(ui->verticalSplitterLine_middle, theme);
     setCSSThemeAndUpdate(ui->frameRight, m_currentTheme);
     setCSSThemeAndUpdate(ui->frameRightTop, m_currentTheme);
 
@@ -1815,7 +1821,7 @@ void MainWindow::setTheme(Theme theme)
         break;
     }
     case Theme::Dark: {
-        m_currentEditorTextColor = QColor(204, 204, 204);
+        m_currentEditorTextColor = QColor(212, 212, 212);
         break;
     }
     case Theme::Sepia: {

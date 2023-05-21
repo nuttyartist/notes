@@ -6,7 +6,7 @@ QFrame#frameRightTop.light,
 QFrame#frameRight.light,
 QListView#tagListView.light,
 QTextEdit#textEdit.light {
-	background-color: rgb(247, 247, 247);
+  background-color: rgb(247, 247, 247);
 }
 
 QMainWindow.dark,
@@ -17,7 +17,7 @@ QFrame#frameRightTop.dark,
 QFrame#frameRight.dark,
 QListView#tagListView.dark,
 QTextEdit#textEdit.dark {
-	background-color: rgb(30, 30, 30);
+  background-color: rgb(25, 25, 25);
 }
 
 QMainWindow.sepia,
@@ -28,88 +28,88 @@ QFrame#frameRightTop.sepia,
 QFrame#frameRight.sepia,
 QListView#tagListView.sepia,
 QTextEdit#textEdit.sepia {
-	background-color: rgb(251, 240, 217);
+  background-color: rgb(251, 240, 217);
 }
 
 QFrame#frameRight,
 QFrame#frameRightTop {
-	border: none;
+  border: none;
 }
 
 /* Main editor */
 QTextEdit#textEdit {
-	selection-background-color: rgb(63, 99, 139);
+  selection-background-color: rgb(63, 99, 139);
 }
 
 QTextEdit#textEdit.light {
-	color: rgb(26, 26, 26);
+  color: rgb(26, 26, 26);
 }
 
 QTextEdit#textEdit.dark {
-	color: rgb(204, 204, 204);
+  color: rgb(212, 212, 212);
 }
 
 QTextEdit#textEdit.sepia {
-	color: rgb(95, 74, 50);
+  color: rgb(95, 74, 50);
 }
 
 /* Label showing the name of the selected folder */
 QLabel#listviewLabel1.light {
-	color: rgb(26, 26, 26);
+  color: rgb(26, 26, 26);
 }
 
 QLabel#listviewLabel1.dark {
-	color: rgb(204, 204, 204);
+  color: rgb(212, 212, 212);
 }
 
 QLabel#listviewLabel1.sepia {
-	color: rgb(26, 26, 26);
+  color: rgb(26, 26, 26);
 }
 
 /* Label showing the amount of notes in the selected folder/tags */
 QLabel#listviewLabel2 {
-	color: rgb(132, 132, 132);
+  color: rgb(132, 132, 132);
 }
 
 /* Aa Style Editor  Button */
 QPushButton#styleEditorButton {
-	color: rgb(68, 138, 201);
+  color: rgb(68, 138, 201);
 }
 
 QPushButton#styleEditorButton:hover {
-	color: rgb(51, 110, 162);
+  color: rgb(51, 110, 162);
 }
 
 QPushButton#styleEditorButton:pressed {
-	color: rgb(39, 85, 125);
+  color: rgb(39, 85, 125);
 }
 
 /* Search bar */
 QLineEdit#searchEdit {
-	padding-left: 21px;
-	padding-right: 19px;
-	border: 1px solid rgb(205, 205, 205);
-	border-radius: 3px;
-	selection-background-color: rgb(61, 155, 218);
+  padding-left: 21px;
+  padding-right: 19px;
+  border: 1px solid rgb(205, 205, 205);
+  border-radius: 3px;
+  selection-background-color: rgb(61, 155, 218);
 }
 
 QLineEdit#searchEdit.light {
-	background-color: rgb(247, 247, 247);
-	color: rgb(26, 26, 26);
+  background-color: rgb(247, 247, 247);
+  color: rgb(26, 26, 26);
 }
 
 QLineEdit#searchEdit.dark {
-	background-color: rgb(30, 30, 30);
-	color: rgb(204, 204, 204);
+  background-color: rgb(25, 25, 25);
+  color: rgb(212, 212, 212);
 }
 
 QLineEdit#searchEdit.sepia {
-	background-color: rgb(251, 240, 217);
-	color: rgb(95, 74, 50);
+  background-color: rgb(251, 240, 217);
+  color: rgb(95, 74, 50);
 }
 
 QLineEdit#searchEdit:focus {
-	border: 2px solid rgb(61, 155, 218);
+  border: 2px solid rgb(61, 155, 218);
 }
 
 /* Buttons */
@@ -125,23 +125,34 @@ QPushButton#dotsButton,
 QPushButton#toggleTreeViewButton,
 /* The Aa button to open the style editor */
 QPushButton#styleEditorButton {
-	border: none;
-	padding: 0px;
-	outline: none;
+  border: none;
+  padding: 0px;
+  outline: none;
 }
 
 /* The two vertical lines that seperate 3 MainWindow frames */
-QFrame#verticalSplitterLine_left,
-QFrame#verticalSplitterLine_middle {
-	border: 1px solid rgb(191, 191, 191);
+QMainWindow.light,
+QFrame#verticalSplitterLine_left.light,
+QFrame#verticalSplitterLine_middle.light {
+  border: 1px solid rgb(191, 191, 191);
+}
+QMainWindow.dark,
+QFrame#verticalSplitterLine_left.dark,
+QFrame#verticalSplitterLine_middle.dark {
+  border: 1px solid rgb(68, 68, 68);
+}
+QMainWindow.sepia,
+QFrame#verticalSplitterLine_left.sepia,
+QFrame#verticalSplitterLine_middle.sepia {
+  border: 1px solid rgb(191, 191, 191);
 }
 
 /* Main menu */
 QMenu.menu {
-	background-color: rgb(255, 255, 255);
-	border: 1px solid #C7C7C7;
+  background-color: rgb(255, 255, 255);
+  border: 1px solid #c7c7c7;
 }
 
 QMenu::item:selected {
-	background: 1px solid rgb(48, 140, 198);
+  background: 1px solid rgb(48, 140, 198);
 }

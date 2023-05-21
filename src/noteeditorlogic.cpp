@@ -331,7 +331,7 @@ void NoteEditorLogic::setTheme(Theme theme, QColor textColor, qreal fontSize)
         break;
     }
     case Theme::Dark: {
-        m_spacerColor = QColor(204, 204, 204);
+        m_spacerColor = QColor(212, 212, 212);
         break;
     }
     case Theme::Sepia: {

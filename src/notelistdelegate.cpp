@@ -236,7 +236,11 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
     }
 
     int yOffsets = secondYOffset + thirdYOffset + fourthYOffset + fifthYOffset;
-    result.setHeight(result.height() - 10 + NoteListConstant::lastElSepSpace + yOffsets);
+    if (m_isInAllNotes) {
+        result.setHeight(result.height() - 2 + NoteListConstant::lastElSepSpace + yOffsets);
+    } else {
+        result.setHeight(result.height() - 10 + NoteListConstant::lastElSepSpace + yOffsets);
+    }
     return result;
 }
 
@@ -304,7 +308,11 @@ QSize NoteListDelegate::bufferSizeHint(const QStyleOptionViewItem &option,
     //    }
 
     int yOffsets = secondYOffset + thirdYOffset + fourthYOffset; // + fifthYOffset;
-    result.setHeight(result.height() - 10 + NoteListConstant::lastElSepSpace + yOffsets);
+    if (m_isInAllNotes) {
+        result.setHeight(result.height() - 2 + NoteListConstant::lastElSepSpace + yOffsets);
+    } else {
+        result.setHeight(result.height() - 10 + NoteListConstant::lastElSepSpace + yOffsets);
+    }
     return result;
 }
 
@@ -776,7 +784,7 @@ void NoteListDelegate::paintSeparator(QPainter *painter, QRect rect, const QMode
 {
     Q_UNUSED(index);
     painter->setPen(QPen(m_separatorColor));
-    const int leftOffsetX = 11;
+    const int leftOffsetX = NoteListConstant::leftOffsetX;
     int posX1 = rect.x() + leftOffsetX;
     int posX2 = rect.x() + rect.width() - leftOffsetX - 1;
     int posY = rect.y() + rect.height() - 1;
@@ -998,31 +1006,37 @@ void NoteListDelegate::setTheme(Theme theme)
     case Theme::Light: {
         m_titleColor = QColor(26, 26, 26);
         m_dateColor = QColor(26, 26, 26);
+        m_contentColor = QColor(142, 146, 150);
         m_defaultColor = QColor(247, 247, 247);
         m_ActiveColor = QColor(218, 233, 239);
         m_notActiveColor = QColor(175, 212, 228);
         m_hoverColor = QColor(207, 207, 207);
         m_applicationInactiveColor = QColor(207, 207, 207);
+        m_separatorColor = QColor(191, 191, 191);
         break;
     }
     case Theme::Dark: {
-        m_titleColor = QColor(204, 204, 204);
-        m_dateColor = QColor(204, 204, 204);
-        m_defaultColor = QColor(30, 30, 30);
-        m_ActiveColor = QColor(0, 59, 148);
-        m_notActiveColor = QColor(0, 59, 148);
-        m_hoverColor = QColor(15, 45, 90);
-        m_applicationInactiveColor = QColor(15, 45, 90);
+        m_titleColor = QColor(255, 255, 255);
+        m_dateColor = QColor(255, 255, 255);
+        m_contentColor = QColor(255, 255, 255, 127);
+        m_defaultColor = QColor(25, 25, 25);
+        m_ActiveColor = QColor(35, 52, 69, 127);
+        m_notActiveColor = QColor(35, 52, 69);
+        m_hoverColor = QColor(35, 52, 69, 127);
+        m_applicationInactiveColor = QColor(35, 52, 69);
+        m_separatorColor = QColor(255, 255, 255, 127);
         break;
     }
     case Theme::Sepia: {
         m_titleColor = QColor(26, 26, 26);
         m_dateColor = QColor(26, 26, 26);
+        m_contentColor = QColor(142, 146, 150);
         m_defaultColor = QColor(251, 240, 217);
         m_ActiveColor = QColor(218, 233, 239);
         m_notActiveColor = QColor(175, 212, 228);
         m_hoverColor = QColor(207, 207, 207);
         m_applicationInactiveColor = QColor(207, 207, 207);
+        m_separatorColor = QColor(191, 191, 191);
         break;
     }
     }
