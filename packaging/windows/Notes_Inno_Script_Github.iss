@@ -19,8 +19,8 @@ OutputBaseFilename=NotesSetup_{#Version}
 Compression=lzma
 SolidCompression=yes
 ; Inno Setup can't seem to calculate the required disk space correctly, and asks for only 3.1 MB.
-; Let's use an approximate value to represent the size of the app while installed on disk (70 MB).
-ExtraDiskSpaceRequired=73400320
+; Let's use an approximate value to represent the size of the Qt 6 build while installed on disk (100 MiB).
+ExtraDiskSpaceRequired=104857600
 OutputManifestFile=Setup-Manifest.txt
 
 [Code]
