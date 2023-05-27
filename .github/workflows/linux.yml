@@ -354,6 +354,11 @@ jobs:
               -DCMAKE_INSTALL_PREFIX=/usr
           make -j$(nproc)
 
+      - name: (FIXME) Run qmllint
+        if: startsWith(matrix.qt-version, '6.')
+        run: |
+          cmake --build build --target all_qmllint || true
+
       - name: Install (${{ matrix.build-type }})
         run: |
           make -C build DESTDIR=Notes install

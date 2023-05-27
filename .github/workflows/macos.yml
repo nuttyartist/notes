@@ -145,6 +145,11 @@ jobs:
               -DCMAKE_OSX_ARCHITECTURES="${{ env.TARGET_ARCH }}"
           cmake --build build
 
+      - name: (FIXME) Run qmllint
+        if: startsWith(matrix.qt-version, '6.')
+        run: |
+          cmake --build build --target all_qmllint || true
+
       - name: Install (${{ matrix.build-type }})
         run: |
           cmake --install build --prefix .
