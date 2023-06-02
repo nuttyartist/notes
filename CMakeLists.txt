@@ -437,6 +437,18 @@ elseif(UNIX)
 
   # rpm-specific
   set(CPACK_RPM_FILE_NAME RPM-DEFAULT)
+  if(QT_VERSION_MAJOR VERSION_GREATER_EQUAL 6)
+    if(UNIX
+       AND NOT APPLE
+       AND EXISTS /etc/os-release)
+      file(READ /etc/os-release DISTRO_INFO)
+      if(DISTRO_INFO MATCHES "SUSE")
+        # Note: Different from Fedora 36, the SQLite library we need is not a dependency
+        # of the base Qt 6 package on openSUSE Leap 15.4, so we have to manually include it here.
+        set(CPACK_RPM_PACKAGE_REQUIRES "qt6-sql-sqlite")
+      endif()
+    endif()
+  endif()
   set(CPACK_RPM_PACKAGE_LICENSE MPL-2.0)
   set(CPACK_RPM_PACKAGE_URL ${APP_WEBSITE})
   set(CPACK_RPM_PACKAGE_GROUP Applications/Text)
