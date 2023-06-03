@@ -73,7 +73,7 @@ cmake --install build --prefix build
 Now, use the `windeployqt` tool from Qt to copy the required Qt libraries to run Notes:
 
 ```shell
-windeployqt build\bin
+windeployqt --qmldir src\qml build\bin
 ```
 
 And then, finally, copy the required OpenSSL libraries to make internet-dependent features work properly (like the auto-updater):

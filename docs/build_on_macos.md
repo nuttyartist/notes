@@ -50,7 +50,7 @@ cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES='x8
 After Notes is built, you can use the `macdeployqt` tool from Qt to include the required libraries to your app bundle:
 
 ```shell
-macdeployqt 'build/Notes.app' -appstore-compliant
+macdeployqt 'build/Notes.app' -qmldir=./src/qml -appstore-compliant
 ```
 
 You can now install Notes by either dragging the `Notes.app` folder (found in `build/bin`), into the `Applications` folder.
