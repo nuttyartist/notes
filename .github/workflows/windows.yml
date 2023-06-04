@@ -80,13 +80,18 @@ jobs:
               -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }}
           cmake --build build
 
+      - name: (FIXME) Run qmllint
+        if: startsWith(matrix.qt-version, '6.')
+        run: |
+          cmake --build build --target all_qmllint || $(exit 0)
+
       - name: Install (${{ matrix.build-type }}, ${{ matrix.arch }})
         run: |
           cmake --install build --prefix build
 
       - name: Deploy (${{ matrix.build-type }}, ${{ matrix.arch }})
         run: |
-          windeployqt build\bin
+          windeployqt --qmldir src\qml build\bin
 
       - name: Remove unnecessary Qt plugins and libraries
         run: |

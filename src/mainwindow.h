@@ -24,6 +24,14 @@
 #include <QAction>
 #include <QAutostart>
 #include <QtGlobal>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+// #include <QQuickWidget>
+#  include <QWidget>
+#  include <QQuickView>
+#  include <QQmlContext>
+#  include <QVariant>
+#  include <QJsonObject>
+#endif
 
 #include "nodedata.h"
 #include "notelistmodel.h"
@@ -150,6 +158,11 @@ private:
     NodeTreeView *m_treeView;
     NodeTreeModel *m_treeModel;
     TreeViewLogic *m_treeViewLogic;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+    //    QQuickWidget m_kanbanWidget;
+    QQuickView m_kanbanQuickView;
+    QWidget *m_kanbanWidget;
+#endif
     TagPool *m_tagPool;
     DBManager *m_dbManager;
     QThread *m_dbThread;
@@ -225,6 +238,9 @@ private:
     void setupTextEditStyleSheet(int paddingLeft, int paddingRight);
     void alignTextEditText();
     void setupTextEdit();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+    void setupKanbanView();
+#endif
     void setupDatabases();
     void setupModelView();
     void initializeSettingsDatabase();
@@ -320,6 +336,8 @@ signals:
     void requestMigrateTrashFromV0_9_0(QVector<NodeData> &noteList);
     void requestMigrateNotesFromV1_5_0(const QString &path);
     void requestChangeDatabasePath(const QString &newPath);
+    void themeChanged(QVariant theme);
+    void platformSet(QVariant platform);
 };
 
 #endif // MAINWINDOW_H

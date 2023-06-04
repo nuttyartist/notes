@@ -145,6 +145,11 @@ jobs:
               -DCMAKE_OSX_ARCHITECTURES="${{ env.TARGET_ARCH }}"
           cmake --build build
 
+      - name: (FIXME) Run qmllint
+        if: startsWith(matrix.qt-version, '6.')
+        run: |
+          cmake --build build --target all_qmllint || true
+
       - name: Install (${{ matrix.build-type }})
         run: |
           cmake --install build --prefix .
@@ -155,7 +160,7 @@ jobs:
           plutil -insert NSRequiresAquaSystemAppearance -bool true Notes.app/Contents/Info.plist
           # Rename the app folder to "Notes Better", so it doesn't conflict with macOS' "Notes" app.
           mv Notes.app 'Notes Better.app'
-          macdeployqt 'Notes Better.app' -appstore-compliant
+          macdeployqt 'Notes Better.app' -qmldir=../src/qml -appstore-compliant
 
       - name: Remove unnecessary Qt plugins and libraries
         run: |

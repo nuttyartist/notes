@@ -83,7 +83,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt update
-          sudo apt install -y gcc cmake lintian ${{ matrix.qt-version-major == '6' && 'qt6-base-private-dev libgl-dev' || 'qtbase5-private-dev' }}
+          sudo apt install -y gcc cmake lintian ${{ matrix.qt-version-major == '6' && 'qt6-base-private-dev qt6-declarative-dev libgl-dev' || 'qtbase5-private-dev' }}
 
       - name: Setup GCC problem matcher
         uses: ammaraskar/gcc-problem-matcher@0.2.0
@@ -101,11 +101,6 @@ jobs:
               -DUPDATE_CHECKER=OFF \
               -DUSE_QT_VERSION=${{ matrix.qt-version-major }}
           make -j$(nproc)
-
-      - name: Strip debug symbols (release-only)
-        if: matrix.build-type == 'release'
-        run: |
-          strip -s build/notes
 
       - name: Create deb package
         run: |
@@ -158,7 +153,7 @@ jobs:
         env:
           PKG_MANAGER: ${{ startsWith(matrix.container, 'fedora') && 'dnf' || 'zypper' }}
           # Fedora doesn't include libxkbcommon-devel as a dependency of Qt 6, so have to install it manually.
-          PKG_LIST: ${{ startsWith(matrix.container, 'fedora') && 'libxkbcommon-devel qt6-qtbase-private-devel' || 'qt6-base-private-devel' }}
+          PKG_LIST: ${{ startsWith(matrix.container, 'fedora') && 'libxkbcommon-devel qt6-qtbase-private-devel qt6-qtdeclarative-devel' || 'qt6-base-private-devel qt6-declarative-devel' }}
         run: |
           ${{ env.PKG_MANAGER }} update -y
           ${{ env.PKG_MANAGER }} install -y cmake gcc git ${{ env.PKG_LIST }} rpm-build rpmlint
@@ -207,11 +202,6 @@ jobs:
               -DUPDATE_CHECKER=OFF \
               -DUSE_QT_VERSION=${{ matrix.qt-version-major }}
           cmake --build build --parallel $(nproc)
-
-      - name: Strip debug symbols (release-only)
-        if: matrix.build-type == 'release'
-        run: |
-          strip -s build/notes
 
       - name: Create rpm package
         run: |
@@ -364,6 +354,11 @@ jobs:
               -DCMAKE_INSTALL_PREFIX=/usr
           make -j$(nproc)
 
+      - name: (FIXME) Run qmllint
+        if: startsWith(matrix.qt-version, '6.')
+        run: |
+          cmake --build build --target all_qmllint || true
+
       - name: Install (${{ matrix.build-type }})
         run: |
           make -C build DESTDIR=Notes install
@@ -390,6 +385,7 @@ jobs:
         env:
           APPIMAGE_EXTRACT_AND_RUN: 1
         run: |
+          export QML_SOURCES_PATHS="${PWD}/src/qml"
           cd build
           ./linuxdeploy-x86_64.AppImage --appdir Notes --plugin qt
 
