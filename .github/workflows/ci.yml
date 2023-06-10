@@ -11,21 +11,25 @@ jobs:
   format-lint:
     name: Code Linting
     uses: ./.github/workflows/format-lint.yml
+    secrets: inherit
 
   linux:
     name: Linux
     needs:
       - format-lint
     uses: ./.github/workflows/linux.yml
+    secrets: inherit
 
   macos:
     name: macOS
     needs:
       - format-lint
     uses: ./.github/workflows/macos.yml
+    secrets: inherit
 
   windows:
     name: Windows
     needs:
       - format-lint
     uses: ./.github/workflows/windows.yml
+    secrets: inherit
