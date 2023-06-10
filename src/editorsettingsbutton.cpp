@@ -87,7 +87,7 @@ void EditorSettingsButton::changeFont(const QString &fontName, const QString &fo
 {
     m_currentFontName = fontName;
     m_currentFontTypeface = fontTypeface;
-    repaint();
+    update();
 }
 
 /*!
