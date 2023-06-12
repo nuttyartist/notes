@@ -41,7 +41,6 @@ void setCSSClassesAndUpdate(QWidget *obj, std::string classNames)
     // set the class
     obj->setProperty("class", classNames.c_str());
     // update the widget
-    obj->style()->unpolish(obj);
     obj->style()->polish(obj);
     obj->update();
 }
