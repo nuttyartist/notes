@@ -1940,6 +1940,10 @@ void MainWindow::onClearButtonClicked()
 void MainWindow::createNewNote()
 {
     m_listView->scrollToTop();
+    auto inf = m_listViewLogic->listViewInfo();
+    if(inf.parentFolderId == SpecialNodeID::TrashFolder){
+        return;
+    }
     QModelIndex newNoteIndex;
     if (!m_noteEditorLogic->isTempNote()) {
         // clear the textEdit
@@ -1951,7 +1955,6 @@ void MainWindow::createNewNote()
         tmpNote.setCreationDateTime(noteDate);
         tmpNote.setLastModificationDateTime(noteDate);
         tmpNote.setFullTitle(QStringLiteral("New Note"));
-        auto inf = m_listViewLogic->listViewInfo();
         if ((!inf.isInTag) && (inf.parentFolderId > SpecialNodeID::RootFolder)) {
             NodeData parent;
             QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection,
