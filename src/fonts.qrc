@@ -34,5 +34,7 @@
         <file>fonts/ptserif/PTSerif-BoldItalic.ttf</file>
         <file>fonts/ptserif/PTSerif-Italic.ttf</file>
         <file>fonts/ptserif/PTSerif-Regular.ttf</file>
+        <file>fonts/fontawesome/fa-solid-900.ttf</file>
+        <file>fonts/material/material-symbols-outlined.ttf</file>
     </qresource>
 </RCC>

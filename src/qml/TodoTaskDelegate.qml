@@ -1,6 +1,6 @@
-import QtQuick
-import QtQuick.Controls
-//import QtQuick.Controls.Material
+import QtQuick 2.12
+import QtQuick.Controls 2.12
+import QtQuick.Controls.Universal 2.12
 
 MouseArea {
     id: taskDragArea
@@ -11,10 +11,9 @@ MouseArea {
     property var rootContainer
     property var rootTodoContainer
     property var listViewParent
-    property int originalHeight
     property var todosColumnsViewPointerFromTask
     property bool makeRoomForTask: false
-    property string makeRoomDirection: "up"
+    property string makeRoomDirection: "down"
     property bool isAnotherTaskEntered: false
     property int columnHeight
     property var currentTargetTaskDraggedInto: null
@@ -27,53 +26,88 @@ MouseArea {
     property bool isMouseEnteredTaskContent: false
     property bool isDeletingTask: false
     property var columnParent
-    property int taskContentHeight: taskTextEdit.height + 30
+    property int taskContentHeight: taskTextEdit.visible ? taskTextEdit.implicitHeight + 23 : taskTextNonEditable.implicitHeight + 35 // 30, 42
+    property int originalHeight: taskDragArea.taskContentHeight + taskDragArea.spacingInPractice
+    property bool makingRoomAnimationFinished: true
+    property alias taskContentAlias: taskContent
+    property var previouslyEnteredTask: null
+    property int spacing: 10
+    property int spacingInPractice: taskDragArea.index === listViewParent.count-1 ? 0 : taskDragArea.spacing // TODO: why taskDragArea.model.count, listViewParent.count, are all unreliable?
+    property bool shouldRestoreOriginalSize: false
+    property bool shouldHideRoot: false
+    property var currentlyEnteredColumn: listViewParent
+    property real moveTaskBeforeDeletionX
+    property real moveTaskBeforeDeletionY
+    property bool shouldMoveTaskBeforeDeletion: false
 
-    // This properties are initialized by the model's view
+    // These properties are initialized by the model's view
+    required property var model
+    required property int index
     required property string taskText
     required property bool taskChecked
     required property int taskStartLine
     required property int taskEndLine
-    required property bool doNeedAnimateFirstNote
-
-    // required property var model // If we want to change the underline model
-
+    required property bool doNeedAnimateTaskCreation
 
     anchors {
         left: parent !== null ? parent.left : undefined
         right: parent !== null ? parent.right : undefined
     }
     width: taskContent.width
-    height: taskContent.height
+    height: originalHeight
     drag.target: held ? taskContent : undefined
     drag.axis: Drag.XAndYAxis
     hoverEnabled: true
-    pressAndHoldInterval: 100
+    pressAndHoldInterval: 200
 
-//    onPressAndHold: {
-//        held = true;
-//    }
-
-    onPressed: {
+    onPressAndHold: {
         taskContent.forceActiveFocus(); // For some reason this is needed for taskContent to update its height when taskTextEdit's onEditFinished is called
         held = true;
-        taskDragArea.cursorShape = Qt.ClosedHandCursor
+        cursorShape = Qt.ClosedHandCursor
     }
 
     onEntered: {
         isMouseEnteredTaskContent = true;
-        taskDragArea.cursorShape = Qt.OpenHandCursor
+        cursorShape = Qt.OpenHandCursor
     }
 
     onExited: {
         isMouseEnteredTaskContent = false;
-        if (!held) taskDragArea.cursorShape = Qt.ArrowCursor
+        if (!held) {
+            cursorShape = Qt.ArrowCursor;
+        }
+    }
+
+    FontIconLoader {
+        id: fontIconLoader
     }
 
     PropertyAnimation {
         id: firstTaskAnimation
         target: taskContent
-        running: taskDragArea.doNeedAnimateFirstNote
+        running: taskDragArea.doNeedAnimateTaskCreation
+        property: "height"
+        to: taskDragArea.taskContentHeight
+        from: 0
+        duration: 500
+        easing.type: Easing.OutExpo
+
+        onStarted: {
+            // Rather than using listViewParent.positionViewAtEnd(); This will smoothly scroll based on the animation
+           taskDragArea.listViewParent.contentY = Qt.binding(function () { return taskDragArea.listViewParent.contentHeight - taskDragArea.listViewParent.height });
+        }
+
+        onFinished: {
+            taskDragArea.doNeedAnimateTaskCreation = false;
+            // Break the binding
+            taskDragArea.listViewParent.contentY = taskDragArea.listViewParent.contentY;
+        }
+    }
+
+    PropertyAnimation {
+        id: firstTaskAnimation2
+        target: taskDragArea
+        running: taskDragArea.doNeedAnimateTaskCreation
         property: "height"
         to: taskDragArea.originalHeight
         from: 0
@@ -81,21 +115,8 @@ MouseArea {
         easing.type: Easing.OutExpo
 
         onFinished: {
-            taskDragArea.doNeedAnimateFirstNote = false;
-//            taskDragArea.columnParent.isFirstTaskFinishedAnimating = true;
-            taskDragArea.originalHeight = taskContent.height;
+            taskDragArea.height = Qt.binding(function () { return taskDragArea.originalHeight });
         }
-    }
-
-    PropertyAnimation {
-        id: firstTaskAnimation2
-        target: taskDragArea
-        running: taskDragArea.doNeedAnimateFirstNote
-        property: "height"
-        to: taskDragArea.originalHeight
-        from: 0
-        duration: 500
-        easing.type: Easing.OutExpo
     }
 
     PropertyAnimation {
@@ -133,7 +154,7 @@ MouseArea {
 
     PropertyAnimation {
         id: deleteTaskAnimation3
-        target: taskTextEdit
+        target: taskTextEdit.visible ? taskTextEdit : taskTextNonEditable
         running: taskDragArea.isDeletingTask
         property: "opacity"
         to: 0.0
@@ -151,6 +172,66 @@ MouseArea {
         easing.type: Easing.OutExpo
     }
 
+    PropertyAnimation {
+        id: restoreOriginalSizeAnimation
+        target: taskDragArea
+        running: taskDragArea.shouldRestoreOriginalSize
+        property: "height"
+        to: taskDragArea.originalHeight
+        duration: 300
+        easing.type: Easing.OutCirc
+
+        onFinished: {
+            taskDragArea.shouldRestoreOriginalSize = false;
+            taskDragArea.makeRoomForTask = false;
+            taskDragArea.height = Qt.binding(function () { return taskDragArea.originalHeight });
+        }
+    }
+
+    PropertyAnimation {
+        id: hideRootAnimation
+        target: taskDragArea
+        running: taskDragArea.shouldHideRoot
+        property: "height"
+        to: 0
+        duration: 300
+        easing.type: Easing.OutCirc
+    }
+
+    PropertyAnimation {
+        id: moveTaskBeforeDeletionXAnimation
+        target: taskContent
+        running: taskDragArea.shouldMoveTaskBeforeDeletion
+        property: "x"
+        to: taskDragArea.moveTaskBeforeDeletionX
+        duration: 300
+        easing.type: Easing.OutCirc
+
+        onFinished: {
+            timerBeforeDeletion.start();
+        }
+    }
+
+    Timer {
+        id: timerBeforeDeletion
+        interval: 100
+
+        onTriggered: {
+            taskDragArea.shouldMoveTaskBeforeDeletion = false;
+            taskDragArea.onReleaseAction();
+        }
+    }
+
+    PropertyAnimation {
+        id: moveTaskBeforeDeletionYAnimation
+        target: taskContent
+        running: taskDragArea.shouldMoveTaskBeforeDeletion
+        property: "y"
+        to: taskDragArea.moveTaskBeforeDeletionY
+        duration: 300
+        easing.type: Easing.OutCirc
+    }
+
     function callForTasksRearrangement (columnEntered, endLinePosition, taskIndexToInsert) {
         if (columnEntered !== taskDragArea.columnParent && taskDragArea.taskChecked) {
             columnEntered.numberOfCompletedTasks++;
@@ -160,34 +241,63 @@ MouseArea {
         var columnInsertingIntoID = columnEntered.columnID;
         var columnRemovingFromID = taskDragArea.columnParent.columnID;
         var taskIndexToRemove = DelegateModel.itemsIndex;
-        var taskObject = {"taskText": taskDragArea.taskText, "taskChecked": taskDragArea.taskChecked, "taskStartLine": taskDragArea.taskStartLine, "taskEndLine": taskDragArea.taskEndLine, "doNeedAnimateFirstNote": false};
+        var taskObject = {"taskText": taskDragArea.taskText, "taskChecked": taskDragArea.taskChecked, "taskStartLine": taskDragArea.taskStartLine, "taskEndLine": taskDragArea.taskEndLine, "doNeedAnimateTaskCreation": false};
 //        var taskObject = Object.assign({}, model);
         rootContainer.rearrangeTasks(taskDragArea.taskStartLine, taskDragArea.taskEndLine, endLinePosition, columnInsertingIntoID, taskIndexToInsert, columnRemovingFromID, taskIndexToRemove, taskObject);
     }
 
-    onReleased: {
-        taskDragArea.cursorShape = Qt.ArrowCursor
+    function moveTaskBeforeDeletion () {
+        if (taskDragArea.currentTargetTaskDraggedInto !== null) {
+            taskDragArea.moveTaskBeforeDeletionX = taskDragArea.currentTargetTaskDraggedInto.taskContentAlias.mapToItem(taskDragArea.rootTodoContainer, 0, 0).x;
+            if (taskDragArea.currentTargetTaskDraggedInto.makeRoomDirection === "down") {
+                taskDragArea.moveTaskBeforeDeletionY = taskDragArea.currentTargetTaskDraggedInto.mapToItem(taskDragArea.rootTodoContainer, 0, 0).y;
+            } else {
+                taskDragArea.moveTaskBeforeDeletionY = taskDragArea.currentTargetTaskDraggedInto.mapToItem(taskDragArea.rootTodoContainer, 0, 0).y + taskDragArea.currentTargetTaskDraggedInto.taskContentAlias.height + taskDragArea.spacing;
+            }
+            taskContent.scale = 1.0;
+            taskDragArea.shouldMoveTaskBeforeDeletion = true;
+        } else if (taskDragArea.currentTargetColumnDraggedInto !== null) {
+            var lastItemInCurrentColumn = taskDragArea.currentTargetColumnDraggedInto.tasksViewPointer.itemAtIndex(taskDragArea.currentTargetColumnDraggedInto.tasksViewPointer.count - 1);
+            if (lastItemInCurrentColumn) {
+                taskDragArea.moveTaskBeforeDeletionX = lastItemInCurrentColumn.taskContentAlias.mapToItem(taskDragArea.rootTodoContainer, 0, 0).x;
+                taskDragArea.moveTaskBeforeDeletionY = lastItemInCurrentColumn.mapToItem(taskDragArea.rootTodoContainer, 0, 0).y + lastItemInCurrentColumn.taskContentAlias.height + taskDragArea.spacing;
+                taskContent.scale = 1.0;
+                taskDragArea.shouldMoveTaskBeforeDeletion = true;
+            } else {
+                onReleaseAction();
+            }
+        } else {
+            onReleaseAction();
+        }
+    }
 
-        if(currentTargetTaskDraggedInto !== null && !taskDragArea.rootContainer.isReadOnlyMode) {
+    function onReleaseAction () {
+        taskDragArea.cursorShape = Qt.ArrowCursor;
+
+        if (taskDragArea.rootContainer.isReadOnlyMode) {
+            taskDragArea.shouldRestoreOriginalSize = true;
+        }
+
+        if (taskDragArea.currentTargetTaskDraggedInto !== null && !taskDragArea.rootContainer.isReadOnlyMode) {
             var colParent = currentTargetTaskDraggedInto.columnParent;
             var endLinePosition;
             var taskIndexToInsert;
-            if(currentTargetTaskDraggedInto.makeRoomDirection === "down") {
+            if(taskDragArea.currentTargetTaskDraggedInto.makeRoomDirection === "down") {
                 if (!areTasksReversed) {
-                    endLinePosition = currentTargetTaskDraggedInto.taskStartLine;
-                    taskIndexToInsert = currentTargetTaskDraggedInto.DelegateModel.itemsIndex;
+                    endLinePosition = taskDragArea.currentTargetTaskDraggedInto.taskStartLine;
+                    taskIndexToInsert = taskDragArea.currentTargetTaskDraggedInto.DelegateModel.itemsIndex;
                 } else {
-                    endLinePosition = currentTargetTaskDraggedInto.taskEndLine + 1;
-                    taskIndexToInsert = currentTargetTaskDraggedInto.DelegateModel.itemsIndex;
+                    endLinePosition = taskDragArea.currentTargetTaskDraggedInto.taskEndLine + 1;
+                    taskIndexToInsert = taskDragArea.currentTargetTaskDraggedInto.DelegateModel.itemsIndex;
                 }
 
-            } else if (currentTargetTaskDraggedInto.makeRoomDirection === "up"){
+            } else if (taskDragArea.currentTargetTaskDraggedInto.makeRoomDirection === "up"){
                 if (!areTasksReversed) {
-                    endLinePosition = currentTargetTaskDraggedInto.taskEndLine + 1;
-                    taskIndexToInsert = currentTargetTaskDraggedInto.DelegateModel.itemsIndex + 1;
+                    endLinePosition = taskDragArea.currentTargetTaskDraggedInto.taskEndLine + 1;
+                    taskIndexToInsert = taskDragArea.currentTargetTaskDraggedInto.DelegateModel.itemsIndex + 1;
                 } else {
-                    endLinePosition = currentTargetTaskDraggedInto.taskStartLine;
-                    taskIndexToInsert = currentTargetTaskDraggedInto.DelegateModel.itemsIndex + 1;
+                    endLinePosition = taskDragArea.currentTargetTaskDraggedInto.taskStartLine;
+                    taskIndexToInsert = taskDragArea.currentTargetTaskDraggedInto.DelegateModel.itemsIndex + 1;
                 }
             }
 
@@ -195,9 +305,9 @@ MouseArea {
         }
 
         // Drag and drop into columns
-        if ((currentTargetTaskDraggedInto === null || currentTargetTaskDraggedInto === undefined) && !taskDragArea.rootContainer.isReadOnlyMode) {
-            for (let i = 0; i < todosColumnsViewPointerFromTask.model.items.count; i++) {
-                let currentColumn = todosColumnsViewPointerFromTask.itemAtIndex(i);
+        if ((taskDragArea.currentTargetTaskDraggedInto === null || taskDragArea.currentTargetTaskDraggedInto === undefined) && !taskDragArea.rootContainer.isReadOnlyMode) {
+            for (let i = 0; i < taskDragArea.todosColumnsViewPointerFromTask.model.items.count; i++) {
+                let currentColumn = taskDragArea.todosColumnsViewPointerFromTask.itemAtIndex(i);
                 if (currentColumn !== null) {
                     let taskContentX = taskContent.mapToItem(currentColumn.parent, 0, 0).x;
                     let taskContentY = taskContent.mapToItem(currentColumn.parent, 0, 0).y;
@@ -230,9 +340,9 @@ MouseArea {
             }
         }
 
-        if ((currentTargetTaskDraggedInto !== null ||
-             currentTargetTaskDraggedInto === null ||
-             currentTargetTaskDraggedInto === undefined)
+        if ((taskDragArea.currentTargetTaskDraggedInto !== null ||
+             taskDragArea.currentTargetTaskDraggedInto === null ||
+             taskDragArea.currentTargetTaskDraggedInto === undefined)
                 && taskDragArea.rootContainer.isReadOnlyMode) {
             taskDragArea.rootContainer.informationPopupText = qsTr("Can't edit while in Read-only mode.");
             taskDragArea.rootContainer.showInformationPopup = true;
@@ -240,34 +350,46 @@ MouseArea {
 
         held = false;
         if (currentTargetColumnDraggedInto) {
-            currentTargetColumnDraggedInto.tasksScrollingDirection = 0;
+            taskDragArea.currentTargetColumnDraggedInto.tasksScrollingDirection = 0;
         }
         if (taskDragArea.columnParent) {
             taskDragArea.columnParent.isTaskFromCurrentColumnScrolling = false;
         }
+
+        taskDragArea.rootTodoContainer.isItemScrollingColumnsView = false;
+
+        if (taskDragArea.height === 0) {
+            taskDragArea.shouldRestoreOriginalSize = true;
+        }
     }
 
-    Component.onCompleted: {
-        taskDragArea.originalHeight = taskTextEdit.height + 30;
+    function onReleasedTask () {
+        taskDragArea.moveTaskBeforeDeletion();
+    }
+
+    onReleased: {
+        onReleasedTask();
     }
 
     Rectangle {
         id: taskContent
         radius: 5
         width: taskDragArea.taskContentWidth - 20
-        height: taskDragArea.doNeedAnimateFirstNote ? 0 : taskTextEdit.height + 30
+        height: taskDragArea.doNeedAnimateTaskCreation ? 0 : taskDragArea.taskContentHeight
         antialiasing: true
         border.width: 1
         border.color: {
-            if (taskDragArea.taskChecked) {
+            if(taskDragArea.held) {
+                taskDragArea.accentColor;
+            } else if (taskDragArea.taskChecked) {
                 if (taskDragArea.themeData.theme === "Dark") {
-                    "gray"
+                    "gray";
                 } else {
                     Qt.rgba(55/255, 53/255, 47/255, 0.45)
                 }
             } else {
                 if (taskDragArea.themeData.theme === "Dark") {
-                    "white"
+                    "white";
                 } else {
                     "#4f4d4d";
                 }
@@ -276,11 +398,11 @@ MouseArea {
         color: taskDragArea.themeData.backgroundColor
         scale: taskDragArea.held ? 1.07 : 1.0
         anchors {
-            id: taskContentAnchors
             horizontalCenter: parent.horizontalCenter
         }
         anchors.leftMargin: 5
         anchors.rightMargin: 5
+        anchors.bottomMargin: taskDragArea.spacingInPractice
         Drag.active: taskDragArea.held
         Drag.source: taskDragArea
         Drag.hotSpot.x: width / 2
@@ -288,14 +410,17 @@ MouseArea {
         Drag.keys: ["task"]
 
         onYChanged: {
-            if (taskDragArea.currentTargetTaskDraggedInto) {
-                // Entering another ListView
-                let taskContentY = taskContent.mapToGlobal(taskContent.x, taskContent.y).y;
-                let currentTargetTaskDraggedIntoY = taskDragArea.currentTargetTaskDraggedInto.mapToGlobal(taskDragArea.currentTargetTaskDraggedInto.x, taskDragArea.currentTargetTaskDraggedInto.y).y;
-                if (taskContentY - taskContent.height*2 > currentTargetTaskDraggedIntoY) {
+            if (taskDragArea.currentTargetTaskDraggedInto && taskDragArea.currentTargetTaskDraggedInto.makingRoomAnimationFinished) {
+                let taskContentY = taskContent.mapToItem(taskDragArea.rootContainer, 0, 0).y;
+                let currentTargetTaskDraggedIntoY = taskDragArea.currentTargetTaskDraggedInto.mapToItem(taskDragArea.rootContainer, 0, 0).y;
+                if (taskContentY + taskContent.height/2 > currentTargetTaskDraggedIntoY + taskDragArea.currentTargetTaskDraggedInto.height/2) {
+                    taskDragArea.shouldHideRoot = true;
                     taskDragArea.currentTargetTaskDraggedInto.makeRoomDirection = "up";
+                    taskDragArea.currentTargetTaskDraggedInto.makeRoomForTask = true;
                 } else {
+                    taskDragArea.shouldHideRoot = true;
                     taskDragArea.currentTargetTaskDraggedInto.makeRoomDirection = "down";
+                    taskDragArea.currentTargetTaskDraggedInto.makeRoomForTask = true;
                 }
             }
 
@@ -311,7 +436,9 @@ MouseArea {
                         taskDragArea.columnParent.isTaskFromCurrentColumnScrolling = true;
                     }
                 } else if (taskContentY !==  0 && taskContentY < currentColumnY + taskContent.height +taskDragArea.currentTargetColumnDraggedInto.yUntilTasks) {
-                    taskDragArea.currentTargetColumnDraggedInto.tasksScrollingDirection = -1;
+                    if (taskDragArea.currentTargetColumnDraggedInto.tasksViewPointer.contentY !== 0) {
+                        taskDragArea.currentTargetColumnDraggedInto.tasksScrollingDirection = -1;
+                    }
                     if (taskDragArea.currentTargetColumnDraggedInto === taskDragArea.columnParent) {
                         taskDragArea.columnParent.isTaskFromCurrentColumnScrolling = true;
                     }
@@ -326,8 +453,10 @@ MouseArea {
                 let taskContentX = taskContent.mapToItem(todosColumnsViewPointerFromTask, 0, 0).x;
                 if (taskContentX < taskDragArea.scrollEdgeSize - taskContent.width/2 + taskDragArea.rootTodoContainer.scrollEdgeSize - 10) {
                     taskDragArea.rootTodoContainer.scrollingDirection = -1;
+                    taskDragArea.rootTodoContainer.isItemScrollingColumnsView = true;
                 } else if (taskContentX + taskContent.width/2 + taskDragArea.rootTodoContainer.scrollEdgeSize > todosColumnsViewPointerFromColumn.width) {
                     taskDragArea.rootTodoContainer.scrollingDirection = 1;
+                    taskDragArea.rootTodoContainer.isItemScrollingColumnsView = true;
                 } else {
                     taskDragArea.rootTodoContainer.scrollingDirection = 0;
                 }
@@ -346,6 +475,8 @@ MouseArea {
                                 taskContentY < currentColumnY + currentColumn.height - currentColumn.yUntilTasks) {
                                 taskDragArea.currentTargetColumnDraggedInto = currentColumn;
                             break;
+                        } else {
+                            taskDragArea.currentTargetColumnDraggedInto = null;
                         }
                     }
                 }
@@ -363,57 +494,18 @@ MouseArea {
         Transition {
             enabled: taskDragArea.makeRoomForTask && taskDragArea.isAnotherTaskEntered
             AnchorAnimation {
-                duration: 100;
+                id: anchorAnimationMakingRoon
+                duration: 300;
                 easing.type: Easing.OutCirc;
-
             }
-        },
-        Transition {
-            enabled: taskDragArea.makeRoomForTask && taskDragArea.isAnotherTaskEntered === false
-            SequentialAnimation {
 
-                PropertyAnimation {
-                    target: taskDragArea
-                    property: "height"
-                    to: taskDragArea.originalHeight
-                    duration: 100
-                    easing.type: Easing.OutCirc
-                }
-
-                ScriptAction {
-                    script: {
-                        if (taskDragArea.isAnotherTaskEntered === false) {
-                            taskDragArea.makeRoomForTask = false;
-                        }
-                    }
-
+            onRunningChanged: {
+                if (running) {
+                    taskDragArea.makingRoomAnimationFinished = false;
+                } else {
+                    taskDragArea.makingRoomAnimationFinished = true;
                 }
             }
-
-        },
-        Transition {
-            enabled: taskDragArea.held
-
-            PropertyAnimation {
-                target: taskDragArea
-                property: "height"
-                to: 0
-                duration: 100
-                easing.type: Easing.OutCirc
-            }
-
-        },
-        Transition {
-            enabled: !taskDragArea.held
-
-            PropertyAnimation {
-                target: taskDragArea
-                property: "height"
-                to: taskDragArea.originalHeight
-                duration: 100
-                easing.type: Easing.OutCirc
-            }
-
         }
         ]
 
@@ -441,18 +533,26 @@ MouseArea {
                     target: taskContent
                     anchors { top: undefined; bottom: taskDragArea.bottom}
                 }
+            }
+            ,State {
+                when: taskDragArea.makingRoomAnimationFinished
+
+                AnchorChanges {
+                    target: taskContent
+                    anchors { top: taskDragArea.top; bottom: undefined}
+                }
             }]
 
         Row {
             id: taskTextContentContainer
-            property int rightLeftMargins: 10
+            property int rightLeftMargins: 12
             width: taskContent.width - rightLeftMargins*2
-            y: taskContent.height/2 - taskTextEdit.height/2
+            y: taskContent.height/2 - (taskTextEdit.visible ? taskTextEdit.height : taskTextNonEditable.height) /2
 
             CheckBoxMaterial {
                 id: taskCheckBox
                 checked: taskDragArea.taskChecked
-                anchors.verticalCenter: taskTextEdit.verticalCenter
+                anchors.verticalCenter: taskTextEdit.visible ? taskTextEdit.verticalCenter : taskTextNonEditable.verticalCenter
                 isReadOnlyMode: taskDragArea.rootContainer.isReadOnlyMode
 
                 onTaskChecked: {
@@ -471,115 +571,19 @@ MouseArea {
                 }
             }
 
-            TextArea {
-                id: taskTextEdit
-                property int rightLeftMargins: 10
-                width: taskTextContentContainer.width - taskCheckBox.width - trashButton.width/2 // - rightLeftMargins/2
+            Item {
+                visible: taskTextNonEditable.visible
+                width: taskTextContentContainer.rightLeftMargins
+                height: 1
+            }
+
+            Text {
+                id: taskTextNonEditable
+                width: taskTextContentContainer.width - taskCheckBox.width - trashButton.width/2 - taskTextContentContainer.rightLeftMargins
                 text: taskDragArea.taskText
                 font.family: taskDragArea.rootContainer.bodyFontFamily
-                font.pointSize: taskDragArea.rootContainer.platform === "Apple" ? 13 : 11 // TODO: Why setting pixel size causes lines to be rendered differently?
+                font.pointSize: taskDragArea.rootContainer.platform === "Apple" ? 13 : 10 // TODO: Why setting pixel size causes lines to be rendered differently?
                 textFormat: TextEdit.MarkdownText
-                background: Rectangle {
-                    color: "transparent"
-                }
-                selectionColor: taskDragArea.accentColor
-                selectedTextColor: "white"
-                property bool isTextReallyChanged: false
-
-                property bool cursorAnimationRunning: true
-                signal anyKeyPressed
-                signal cursorHidden
-                signal cursorShowed
-                readOnly: taskDragArea.rootContainer.isReadOnlyMode
-
-                Keys.onPressed: {
-                    taskTextEdit.isTextReallyChanged = true;
-                    taskTextEdit.anyKeyPressed();
-                    taskTextEdit.cursorAnimationRunning = false;
-                }
-
-                Keys.onReleased: {
-                    taskTextEdit.cursorAnimationRunning = true;
-                }
-
-                onPressed: {
-                    taskTextEdit.cursorShowed();
-                }
-
-//                Keys.onPressed: {
-//                    var textToSend = taskTextEdit.text;
-//                    var tempCurs = taskTextEdit.cursorPosition;
-//                    taskTextEdit.clear();
-//                    taskTextEdit.append(textToSend);
-//                    taskTextEdit.forceActiveFocus();
-//                    taskTextEdit.cursorPosition = tempCurs;
-//                }
-
-                onTextChanged: {
-                    if (taskTextEdit.isTextReallyChanged && !taskDragArea.rootContainer.isReadOnlyMode) {
-                        var textToSend = taskTextEdit.text;
-                        taskDragArea.taskText = taskTextEdit.text;
-
-                        textToSend = textToSend.replace("\n", ""); // We need this due to wrapping
-                        root.updateTaskText(taskDragArea.taskStartLine, taskDragArea.taskEndLine, textToSend);
-                    }
-                }
-
-                onHeightChanged: {
-                    if (!taskDragArea.held) {
-                        taskContent.height = taskTextEdit.height + 30;
-                        taskDragArea.originalHeight = taskTextEdit.height + 30;
-                        taskDragArea.height = taskTextEdit.height + 30;
-                    }
-                }
-
-                cursorDelegate: Rectangle {
-                    id: cursorDelegateObject
-                    visible: true
-                    color: taskDragArea.accentColor
-                    width: 2
-
-                    Connections {
-                        target: taskTextEdit
-
-                        function onAnyKeyPressed () {
-                            cursorDelegateObject.visible = true;
-                        }
-
-                        function onCursorHidden () {
-                            cursorDelegateObject.visible = false;
-                        }
-
-                        function onCursorShowed () {
-                            cursorDelegateObject.visible = true;
-                        }
-                    }
-
-                    SequentialAnimation {
-                        loops: Animation.Infinite
-                        running: taskTextEdit.cursorAnimationRunning
-
-                        PropertyAction {
-                            target: cursorDelegateObject
-                            property: 'visible'
-                            value: true
-                        }
-
-                        PauseAnimation {
-                            duration: 500
-                        }
-
-                        PropertyAction {
-                            target: cursorDelegateObject
-                            property: 'visible'
-                            value: false
-                        }
-
-                        PauseAnimation {
-                            duration: 500
-                        }
-                    }
-                }
                 color: {
                     if (taskDragArea.taskChecked) {
                         if (taskDragArea.themeData.theme === "Dark") {
@@ -598,23 +602,120 @@ MouseArea {
                 font.strikeout: taskDragArea.taskChecked
                 wrapMode: Text.Wrap
 
-                onEditingFinished: {
-                    if (!taskDragArea.rootContainer.isReadOnlyMode) {
-                        taskTextEdit.isTextReallyChanged = false;
-                        var tempText = taskTextEdit.text;
-                        taskTextEdit.clear();
-                        taskTextEdit.append(tempText);
-                        taskTextEdit.cursorAnimationRunning = false;
-                        taskTextEdit.cursorHidden();
+                MouseArea {
+                    anchors.fill: parent
+                    drag.target: taskDragArea.held ? taskContent : undefined
+                    drag.axis: Drag.XAndYAxis
+                    pressAndHoldInterval: 200
+                    hoverEnabled: true
+
+                    onReleased: {
+                        taskDragArea.onReleasedTask();
+                    }
+
+                    onPressAndHold: {
+                        taskContent.forceActiveFocus(); // For some reason this is needed for taskContent to update its height when taskTextEdit's onEditFinished is called
+                        taskDragArea.held = true;
+                        cursorShape = Qt.ClosedHandCursor
+                    }
+
+                    onDoubleClicked: {
+                        taskTextNonEditable.visible = false;
+                        taskTextEdit.visible = true;
+                        taskTextEdit.cursorPosition = taskTextEdit.length;
+                        taskTextEdit.forceActiveFocus();
+                    }
+
+                    onEntered: {
+                        cursorShape = Qt.OpenHandCursor
+                    }
+
+                    onExited: {
+                        if (!taskDragArea.held) {
+                            cursorShape = Qt.ArrowCursor;
+                        }
                     }
                 }
             }
 
-            TrashButton {
-                id: trashButton
-                visible: taskDragArea.isMouseEnteredTaskContent && !taskDragArea.held && !taskDragArea.isDeletingTask
+            CustomTextArea {
+                id: taskTextEdit
+                width: taskTextContentContainer.width - taskCheckBox.width - trashButton.width/2
+                visible: false
+                text: taskDragArea.taskText
+                font.family: taskDragArea.rootContainer.bodyFontFamily
+                font.pointSize: taskDragArea.rootContainer.platform === "Apple" ? 13 : 10 // TODO: Why setting pixel size causes lines to be rendered differently?
                 themeData: taskDragArea.themeData
-                anchors.verticalCenter: taskTextEdit.verticalCenter
+                color: {
+                    if (taskDragArea.taskChecked) {
+                        if (taskDragArea.themeData.theme === "Dark") {
+                            "gray"
+                        } else {
+                            Qt.rgba(55/255, 53/255, 47/255, 0.45)
+                        }
+                    } else {
+                        if (taskDragArea.themeData.theme === "Dark") {
+                            "white"
+                        } else {
+                            "black";
+                        }
+                    }
+                }
+                font.strikeout: taskDragArea.taskChecked
+                selectionColor: taskDragArea.accentColor
+                selectedTextColor: "white"
+                accentColor: taskDragArea.accentColor
+                readOnly: taskDragArea.rootContainer.isReadOnlyMode
+
+                onReturnPressed: {
+                    if (!taskDragArea.rootContainer.isReadOnlyMode) {
+                        if (!taskTextEdit.isHoldingShift) {
+                            var textToSend = taskTextEdit.text;
+                            taskDragArea.taskText = taskTextEdit.text;
+                            taskDragArea.rootContainer.updateTaskText(taskDragArea.taskStartLine, taskDragArea.taskEndLine, textToSend);
+                            taskTextEdit.visible = false;
+                            taskTextNonEditable.visible = true;
+                        } else {
+                            taskTextEdit.insert(taskTextEdit.cursorPosition, '\n');
+                        }
+                    }
+                }
+
+                Keys.onEscapePressed: {
+                    taskTextEdit.text = taskTextNonEditable.text;
+                    taskTextEdit.visible = false;
+                    taskTextNonEditable.visible = true;
+                }
+            }
+
+            IconButton {
+                id: cancelEditingButton
+                visible: taskTextEdit.visible
+                themeData: taskDragArea.themeData
+                anchors.verticalCenter: taskTextEdit.visible ? taskTextEdit.verticalCenter : taskTextNonEditable.verticalCenter
+                platform: taskDragArea.rootContainer.platform
+                icon: fontIconLoader.icons.fa_circle_xmark
+                iconPointSizeOffset: taskDragArea.rootContainer.platform === "Apple" ? -4 : -5
+                width: 32
+                height: 34
+
+                onClicked: {
+                    taskTextEdit.text = taskTextNonEditable.text;
+                    taskTextEdit.visible = false;
+                    taskTextNonEditable.visible = true;
+                }
+            }
+
+            IconButton {
+                id: trashButton
+                visible: taskDragArea.isMouseEnteredTaskContent && !taskDragArea.held && !taskDragArea.isDeletingTask && !taskTextEdit.visible
+                themeData: taskDragArea.themeData
+                anchors.verticalCenter: taskTextEdit.visible ? taskTextEdit.verticalCenter : taskTextNonEditable.verticalCenter
+                platform: taskDragArea.rootContainer.platform
+                icon: fontIconLoader.icons.fa_trash
+                iconPointSizeOffset: taskDragArea.rootContainer.platform === "Apple" ? -4 : -5
+                width: 28
+                height: 34
 
                 onClicked: {
                     if (!taskDragArea.rootContainer.isReadOnlyMode) {
@@ -636,30 +737,53 @@ MouseArea {
         keys: ["task"]
 
         onEntered: (drag)=> {
-                       taskDragArea.isAnotherTaskEntered = true;
-                       var sourceListView = drag.source.listViewParent;
-                       var targetListView = taskDragArea.listViewParent;
+           taskDragArea.isAnotherTaskEntered = true;
 
-                       drag.source.currentTargetTaskDraggedInto = taskDragArea;
-                       taskDragArea.height = taskContent.height + drag.source.originalHeight + taskDragArea.listViewParent.spacing;
-                       taskDragArea.makeRoomForTask = true;
-                   }
+           if (drag.source.previouslyEnteredTask !== taskDragArea) {
+               if(drag.source.previouslyEnteredTask !== null) {
+                   drag.source.previouslyEnteredTask.makeRoomForTask = true;
+                   drag.source.previouslyEnteredTask.shouldRestoreOriginalSize = true;
+               }
+
+               drag.source.previouslyEnteredTask = taskDragArea;
+           }
+
+           drag.source.currentTargetTaskDraggedInto = taskDragArea;
+           // TODO: Animate this for a smoother experience
+           taskDragArea.height = taskDragArea.taskContentHeight + drag.source.originalHeight + taskDragArea.spacing;
+           let taskContentY = drag.source.taskContentAlias.mapToItem(taskDragArea.rootContainer, 0, 0).y;
+           let currentTargetTaskDraggedIntoY = taskDragArea.mapToItem(taskDragArea.rootContainer, 0, 0).y;
+
+           if (drag.source.currentlyEnteredColumn !== taskDragArea.listViewParent) {
+               drag.source.shouldHideRoot = true;
+               taskDragArea.makeRoomDirection = "down";
+               taskDragArea.makeRoomForTask = true;
+               drag.source.currentlyEnteredColumn = taskDragArea.listViewParent;
+           } else if (taskContentY + drag.source.taskContentHeight/2 < currentTargetTaskDraggedIntoY + taskContent.height/2) {
+               if (taskDragArea.makeRoomDirection !== "up") {
+                   drag.source.shouldHideRoot = true;
+                   taskDragArea.makeRoomDirection = "up";
+                   taskDragArea.makeRoomForTask = true;
+                   drag.source.currentlyEnteredColumn = taskDragArea.listViewParent;
+               } else if (taskDragArea.makeRoomDirection !== "down") {
+                   drag.source.shouldHideRoot = true;
+                   taskDragArea.makeRoomDirection = "down";
+                   taskDragArea.makeRoomForTask = true;
+                   drag.source.currentlyEnteredColumn = taskDragArea.listViewParent;
+               }
+           }
+       }
 
         onExited: {
             taskDragArea.isAnotherTaskEntered = false;
-            var sourceListView = drag.source.listViewParent;
-            var targetListView = taskDragArea.listViewParent;
-
-
-            if (taskDragArea.makeRoomDirection === "up") {
-                taskDragArea.makeRoomDirection = "down";
-            } else if (taskDragArea.makeRoomDirection === "down"){
-                taskDragArea.makeRoomDirection = "up";
+            if (drag.source.held) {
+                taskDragArea.shouldRestoreOriginalSize = true;
+            } else {
+                taskDragArea.height = Qt.binding(function () { return taskDragArea.originalHeight });
+                taskDragArea.makeRoomForTask = false;
+                taskDragArea.makingRoomAnimationFinished = true;
             }
-            taskDragArea.makeRoomForTask = true;
 
-//                taskContent.anchors.top = undefined;
-//                taskContent.anchors.bottom = undefined;
             drag.source.currentTargetTaskDraggedInto = null;
         }
     }

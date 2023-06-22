@@ -42,9 +42,14 @@ void TagListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
         painter->fillPath(path, QColor(218, 235, 248));
     }
     auto iconRect = QRect(rect.x() + 5, rect.y() + (rect.height() - 12) / 2, 12, 12);
-    painter->setBrush(QColor(color));
     painter->setPen(QColor(color));
-    painter->drawEllipse(iconRect);
+#ifdef __APPLE__
+    int iconPointSizeOffset = 0;
+#else
+    int iconPointSizeOffset = -4;
+#endif
+    painter->setFont(QFont("Font Awesome 6 Free Solid", 12 + iconPointSizeOffset));
+    painter->drawText(iconRect, u8"\uf111"); // fa-circle
     painter->setBrush(m_titleColor);
     painter->setPen(m_titleColor);
 
@@ -66,7 +71,7 @@ QSize TagListDelegate::sizeHint(const QStyleOptionViewItem &option, const QModel
     return size;
 }
 
-void TagListDelegate::setTheme(Theme theme)
+void TagListDelegate::setTheme(Theme::Value theme)
 {
     m_theme = theme;
     switch (m_theme) {

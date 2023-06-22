@@ -14,7 +14,7 @@
 #endif
 
 #include "nodedata.h"
-#include "theme.h"
+#include "editorsettingsoptions.h"
 
 class CustomDocument;
 class CustomMarkdownHighlighter;
@@ -52,7 +52,7 @@ public:
 
     static QString getFirstLine(const QString &str);
     static QString getSecondLine(const QString &str);
-    void setTheme(Theme theme, QColor textColor, qreal fontSize);
+    void setTheme(Theme::Value theme, QColor textColor, qreal fontSize);
 
     int currentAdaptableEditorPadding() const;
     void setCurrentAdaptableEditorPadding(int newCurrentAdaptableEditorPadding);
@@ -74,7 +74,7 @@ public slots:
     void checkTaskInLine(int lineNumber);
     void uncheckTaskInLine(int lineNumber);
     void updateTaskText(int startLinePosition, int endLinePosition, const QString &newText);
-    void addNewTask(int startLinePosition);
+    void addNewTask(int startLinePosition, const QString newTaskText);
     void removeTask(int startLinePosition, int endLinePosition);
     void addNewColumn(int startLinePosition, const QString &columnTitle);
     void removeColumn(int startLinePosition, int endLinePosition);
@@ -83,18 +83,20 @@ public slots:
 signals:
     void requestCreateUpdateNote(const NodeData &note);
     void noteEditClosed(const NodeData &note, bool selectNext);
+    void setVisibilityOfFrameRightWidgets(bool);
     void setVisibilityOfFrameRightNonEditor(bool);
     void moveNoteToListViewTop(const NodeData &note);
     void updateNoteDataInList(const NodeData &note);
     void deleteNoteRequested(const NodeData &note);
     void showKanbanView();
     void hideKanbanView();
+    void textShown();
+    void kanbanShown();
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
     void tasksFoundInEditor(QVariant data);
     void clearKanbanModel();
     void resetKanbanSettings();
-    void kanbanForceReadOnly();
-    void kanbanFontChanged(QVariant data);
+    void kanbanForceReadOnly(QVariant shouldForcedReadOnly);
 #endif
 
 private:

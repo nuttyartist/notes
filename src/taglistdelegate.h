@@ -2,7 +2,7 @@
 #define TAGLISTDELEGATE_H
 
 #include <QStyledItemDelegate>
-#include "theme.h"
+#include "editorsettingsoptions.h"
 
 class TagListDelegate : public QStyledItemDelegate
 {
@@ -16,7 +16,7 @@ public:
                        const QModelIndex &index) const override;
     virtual QSize sizeHint(const QStyleOptionViewItem &option,
                            const QModelIndex &index) const override;
-    void setTheme(Theme theme);
+    void setTheme(Theme::Value theme);
 
 private:
     QString m_displayFont;
@@ -24,7 +24,7 @@ private:
     QFont m_titleSelectedFont;
     QFont m_dateFont;
     QColor m_titleColor;
-    Theme m_theme;
+    Theme::Value m_theme;
 };
 
 #endif // TAGLISTDELEGATE_H

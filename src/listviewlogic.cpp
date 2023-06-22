@@ -714,7 +714,7 @@ void ListViewLogic::selectFirstNote()
     }
 }
 
-void ListViewLogic::setTheme(Theme theme)
+void ListViewLogic::setTheme(Theme::Value theme)
 {
     m_listView->setTheme(theme);
     m_listDelegate->setTheme(theme);

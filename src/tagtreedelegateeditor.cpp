@@ -9,9 +9,11 @@
 #include "nodetreemodel.h"
 #include "nodetreeview.h"
 #include "labeledittype.h"
+#include "notelistview.h"
 
 TagTreeDelegateEditor::TagTreeDelegateEditor(QTreeView *view, const QStyleOptionViewItem &option,
-                                             const QModelIndex &index, QWidget *parent)
+                                             const QModelIndex &index, QListView *listView,
+                                             QWidget *parent)
     : QWidget(parent),
       m_option(option),
       m_index(index),
@@ -34,14 +36,15 @@ TagTreeDelegateEditor::TagTreeDelegateEditor(QTreeView *view, const QStyleOption
       m_titleSelectedColor(255, 255, 255),
       m_activeColor(68, 138, 201),
       m_hoverColor(207, 207, 207),
-      m_view(view)
+      m_view(view),
+      m_listView(listView)
 {
     setContentsMargins(0, 0, 0, 0);
     auto layout = new QHBoxLayout(this);
-    layout->setContentsMargins(5, 0, 0, 0);
+    layout->setContentsMargins(22, 0, 0, 0);
     layout->setSpacing(5);
     setLayout(layout);
-    layout->addSpacing(24);
+    layout->addSpacing(27);
 
     m_label = new LabelEditType(this);
     m_label->setFont(m_titleFont);
@@ -68,10 +71,38 @@ TagTreeDelegateEditor::TagTreeDelegateEditor(QTreeView *view, const QStyleOption
     m_contextButton->setCursor(QCursor(Qt::PointingHandCursor));
     m_contextButton->setFocusPolicy(Qt::TabFocus);
     m_contextButton->setIconSize(QSize(16, 16));
-    m_contextButton->setStyleSheet(QStringLiteral(R"(QPushButton { )"
-                                                  R"(    border: none; )"
-                                                  R"(    padding: 0px; )"
-                                                  R"(})"));
+    if (m_view->selectionModel()->isSelected(m_index)) {
+        m_contextButton->setStyleSheet(QStringLiteral(R"(QPushButton { )"
+                                                      R"(    border: none; )"
+                                                      R"(    padding: 0px; )"
+                                                      R"(    color: white; )"
+                                                      R"(})"
+                                                      R"(QPushButton:pressed { )"
+                                                      R"(    border: none; )"
+                                                      R"(    padding: 0px; )"
+                                                      R"(    color: rgb(210, 210, 210); )"
+                                                      R"(})"));
+    } else {
+        m_contextButton->setStyleSheet(QStringLiteral(R"(QPushButton { )"
+                                                      R"(    border: none; )"
+                                                      R"(    padding: 0px; )"
+                                                      R"(    color: rgb(68, 138, 201); )"
+                                                      R"(})"
+                                                      R"(QPushButton:pressed { )"
+                                                      R"(    border: none; )"
+                                                      R"(    padding: 0px; )"
+                                                      R"(    color: rgb(39, 85, 125); )"
+                                                      R"(})"));
+    }
+
+#ifdef __APPLE__
+    int pointSizeOffset = 0;
+#else
+    int pointSizeOffset = -4;
+#endif
+    m_contextButton->setFont(QFont("Font Awesome 6 Free Solid", 14 + pointSizeOffset));
+    m_contextButton->setText(u8"\uf141"); // fa-ellipsis-h
+
     connect(m_contextButton, &QPushButton::clicked, m_view, [this](bool) {
         auto tree_view = dynamic_cast<NodeTreeView *>(m_view);
         if (!m_view->selectionModel()->selectedIndexes().contains(m_index)) {
@@ -96,17 +127,11 @@ void TagTreeDelegateEditor::updateDelegate()
                                        .arg(QString::number(m_titleSelectedColor.red()),
                                             QString::number(m_titleSelectedColor.green()),
                                             QString::number(m_titleSelectedColor.blue())));
-        m_contextButton->setNormalIcon(QIcon(QString::fromUtf8(":/images/3dots_Highlighted.png")));
-        m_contextButton->setHoveredIcon(QIcon(QString::fromUtf8(":/images/3dots_Highlighted.png")));
-        m_contextButton->setPressedIcon(QIcon(QString::fromUtf8(":/images/3dots_Highlighted.png")));
     } else {
         m_label->setStyleSheet(QStringLiteral("QLabel{color: rgb(%1, %2, %3);}")
                                        .arg(QString::number(m_titleColor.red()),
                                             QString::number(m_titleColor.green()),
                                             QString::number(m_titleColor.blue())));
-        m_contextButton->setNormalIcon(QIcon(QString::fromUtf8(":/images/3dots_Regular.png")));
-        m_contextButton->setHoveredIcon(QIcon(QString::fromUtf8(":/images/3dots_Hovered.png")));
-        m_contextButton->setPressedIcon(QIcon(QString::fromUtf8(":/images/3dots_Pressed.png")));
     }
     m_label->setText(displayName);
 }
@@ -118,14 +143,28 @@ void TagTreeDelegateEditor::paintEvent(QPaintEvent *event)
     if (m_view->selectionModel()->selectedIndexes().contains(m_index)) {
         painter.fillRect(rect(), QBrush(m_activeColor));
     } else {
-        painter.fillRect(rect(), QBrush(m_hoverColor));
+        auto listView = dynamic_cast<NoteListView *>(m_listView);
+        if (listView->isDragging()) {
+            if (m_theme == Theme::Dark) {
+                painter.fillRect(rect(), QBrush(QColor(35, 52, 69)));
+            } else {
+                painter.fillRect(rect(), QBrush(QColor(180, 208, 233)));
+            }
+        } else {
+            painter.fillRect(rect(), QBrush(m_hoverColor));
+        }
     }
 
-    auto iconRect = QRect(rect().x() + 10, rect().y() + (rect().height() - 14) / 2, 14, 14);
+    auto iconRect = QRect(rect().x() + 22, rect().y() + (rect().height() - 14) / 2, 16, 16);
     auto tagColor = m_index.data(NodeItem::Roles::TagColor).toString();
-    painter.setBrush(QColor(tagColor));
     painter.setPen(QColor(tagColor));
-    painter.drawEllipse(iconRect);
+#ifdef __APPLE__
+    int iconPointSizeOffset = 0;
+#else
+    int iconPointSizeOffset = -4;
+#endif
+    painter.setFont(QFont("Font Awesome 6 Free Solid", 16 + iconPointSizeOffset));
+    painter.drawText(iconRect, u8"\uf111"); // fa-circle
     QWidget::paintEvent(event);
 }
 
@@ -138,5 +177,27 @@ void TagTreeDelegateEditor::mouseDoubleClickEvent(QMouseEvent *event)
         m_label->openEditor();
     } else {
         QWidget::mouseDoubleClickEvent(event);
+    }
+}
+
+void TagTreeDelegateEditor::setTheme(Theme::Value theme)
+{
+    m_theme = theme;
+    switch (theme) {
+    case Theme::Light: {
+        m_hoverColor = QColor(247, 247, 247);
+        m_titleColor = QColor(26, 26, 26);
+        break;
+    }
+    case Theme::Dark: {
+        m_hoverColor = QColor(25, 25, 25);
+        m_titleColor = QColor(212, 212, 212);
+        break;
+    }
+    case Theme::Sepia: {
+        m_hoverColor = QColor(251, 240, 217);
+        m_titleColor = QColor(26, 26, 26);
+        break;
+    }
     }
 }

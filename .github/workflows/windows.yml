@@ -88,7 +88,7 @@ jobs:
 
       - name: Deploy (${{ matrix.build-type }}, ${{ matrix.arch }})
         run: |
-          windeployqt --qmldir src\qml build\bin
+          windeployqt ${{ startsWith(matrix.qt-version, '5.') && '--no-qmltooling' || ' ' }} --qmldir src\qml build\bin
 
       - name: Remove unnecessary Qt plugins and libraries
         run: |

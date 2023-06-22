@@ -4,7 +4,6 @@
         <file>styles/main-window.css</file>
         <file>styles/nodetreeview.css</file>
         <file>styles/notelistview.css</file>
-        <file>styles/style-editor-window.css</file>
         <file>styles/taglistview.css</file>
         <file>styles/updater-window.css</file>
         <file>styles/components/custom-scrollbar.css</file>

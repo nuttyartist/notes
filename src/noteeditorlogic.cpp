@@ -65,6 +65,7 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLab
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
     connect(this, &NoteEditorLogic::showKanbanView, this, [this]() {
         if (m_kanbanWidget != nullptr) {
+            emit setVisibilityOfFrameRightNonEditor(false);
             bool shouldRecheck = checkForTasksInEditor();
             if (shouldRecheck) {
                 checkForTasksInEditor();
@@ -72,13 +73,16 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLab
             m_kanbanWidget->show();
             m_textEdit->hide();
             m_textEdit->clearFocus();
+            emit kanbanShown();
         }
     });
     connect(this, &NoteEditorLogic::hideKanbanView, this, [this]() {
         if (m_kanbanWidget != nullptr) {
+            emit setVisibilityOfFrameRightNonEditor(true);
             m_kanbanWidget->hide();
             m_textEdit->show();
-            clearKanbanModel();
+            emit clearKanbanModel();
+            emit textShown();
         }
     });
 #endif
@@ -96,12 +100,6 @@ void NoteEditorLogic::setMarkdownEnabled(bool enabled)
 
 void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
 {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-    if (m_kanbanWidget != nullptr) {
-        emit hideKanbanView();
-    }
-#endif
-
     auto currentId = currentEditingNoteId();
     if (notes.size() == 1 && notes[0].id() != SpecialNodeID::InvalidNodeId) {
         if (currentId != SpecialNodeID::InvalidNodeId && notes[0].id() != currentId) {
@@ -110,10 +108,11 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
         emit resetKanbanSettings();
+        emit kanbanForceReadOnly(QVariant(false)); // TODO: if not PRO version, should be true
 #endif
 
         m_textEdit->blockSignals(true);
-        m_textEdit->setVisible(true);
+
         m_currentNotes = notes;
         showTagListForCurrentNote();
         //     fixing bug #202
@@ -124,8 +123,10 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
         int scrollbarPos = notes[0].scrollBarPosition();
 
         // set text and date
-        if (notes[0].id() != currentId)
+        bool isTextChanged = content != m_textEdit->toPlainText();
+        if (isTextChanged) {
             m_textEdit->setText(content);
+        }
         QString noteDate = dateTime.toString(Qt::ISODate);
         QString noteDateEditor = getNoteDateEditor(noteDate);
         m_editorDateLabel->setText(noteDateEditor);
@@ -136,9 +137,25 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
         m_textEdit->setTextInteractionFlags(Qt::TextEditorInteraction);
         m_textEdit->setFocusPolicy(Qt::StrongFocus);
         highlightSearch();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+        if (m_kanbanWidget != nullptr && m_kanbanWidget->isVisible()) {
+            emit clearKanbanModel();
+            bool shouldRecheck = checkForTasksInEditor();
+            if (shouldRecheck) {
+                checkForTasksInEditor();
+            }
+            m_textEdit->setVisible(false);
+            return;
+        } else {
+            m_textEdit->setVisible(true);
+        }
+#else
+        m_textEdit->setVisible(true);
+#endif
+        emit textShown();
     } else if (notes.size() > 1) {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-        emit kanbanForceReadOnly();
+        emit kanbanForceReadOnly(QVariant(true));
 #endif
         m_currentNotes = notes;
         m_tagListView->setVisible(false);
@@ -207,7 +224,7 @@ void NoteEditorLogic::onTextEditTextChanged()
             emit updateNoteDataInList(m_currentNotes[0]);
             m_isContentModified = true;
             m_autoSaveTimer.start();
-            emit setVisibilityOfFrameRightNonEditor(false);
+            emit setVisibilityOfFrameRightWidgets(false);
 
             //             In the future, make this work only when editing text
             //             and not when changing it programmatically
@@ -411,9 +428,9 @@ void NoteEditorLogic::updateTaskText(int startLinePosition, int endLinePosition,
     }
 }
 
-void NoteEditorLogic::addNewTask(int startLinePosition)
+void NoteEditorLogic::addNewTask(int startLinePosition, const QString newTaskText)
 {
-    QString newText = "- [ ] New task\n";
+    QString newText = "\n- [ ] " + newTaskText;
     QTextDocument *document = m_textEdit->document();
     QTextBlock startBlock = document->findBlockByLineNumber(startLinePosition);
 
@@ -421,6 +438,7 @@ void NoteEditorLogic::addNewTask(int startLinePosition)
         return;
 
     QTextCursor cursor(startBlock);
+    cursor.movePosition(QTextCursor::EndOfBlock);
     cursor.insertText(newText);
 
     checkForTasksInEditor();
@@ -517,14 +535,6 @@ void NoteEditorLogic::updateColumnTitle(int lineNumber, const QString &newText)
                 cursor.removeSelectedText();
                 cursor.setPosition(block.position());
                 cursor.insertText(newText + "::");
-            } else {
-                // Header by dashes
-                QTextCursor cursor(block);
-                cursor.setPosition(block.position(), QTextCursor::MoveAnchor);
-                cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
-                cursor.removeSelectedText();
-                cursor.setPosition(block.position());
-                cursor.insertText(newText);
             }
         }
     }
@@ -582,21 +592,8 @@ bool NoteEditorLogic::checkForTasksInEditor()
         QString line = lines[i];
         QString lineTrimmed = line.trimmed();
 
-        // Header title with dashes
-        if (i + 1 < lines.size() && lines[i + 1].trimmed().startsWith("---")) {
-            if (!tasks.isEmpty() && currentTitle.isEmpty()) {
-                // If we have only tasks without a header we insert one and call this function again
-                addUntitledColumnToTextEditor(tasks.first()["taskStartLine"].toInt());
-                return true;
-            }
-            appendNewColumn(data, currentColumn, currentTitle, tasks);
-            currentColumn["columnStartLine"] = i;
-            currentTitle = lineTrimmed;
-            i++; // Skip the next line (dashes)
-            isPreviousLineATask = false;
-        }
         // Header title
-        else if (lineTrimmed.startsWith("#")) {
+        if (lineTrimmed.startsWith("#")) {
             if (!tasks.isEmpty() && currentTitle.isEmpty()) {
                 // If we have only tasks without a header we insert one and call this function again
                 addUntitledColumnToTextEditor(tasks.first()["taskStartLine"].toInt());
@@ -821,7 +818,7 @@ QString NoteEditorLogic::getSecondLine(const QString &str)
     return ts.readLine(FIRST_LINE_MAX);
 }
 
-void NoteEditorLogic::setTheme(Theme theme, QColor textColor, qreal fontSize)
+void NoteEditorLogic::setTheme(Theme::Value theme, QColor textColor, qreal fontSize)
 {
     m_tagListDelegate->setTheme(theme);
     m_highlighter->setTheme(theme, textColor, fontSize);

@@ -1,6 +1,6 @@
-import QtQuick
-import QtQuick.Controls
-import QtQuick.Controls.Material
+import QtQuick 2.12
+import QtQuick.Controls 2.12
+import QtQuick.Controls.Material 2.12
 
 MouseArea {
     id: dragArea
@@ -24,7 +24,7 @@ MouseArea {
     property var columnModelPointer
     property var taskModel
     property bool isTaskFromCurrentColumnScrolling: false
-    //    property bool isFirstTaskFinishedAnimating: true
+    property string accentColor: "#2383e2"
 
     // This properties are initialized by the view's model
     required property int columnID
@@ -41,11 +41,25 @@ MouseArea {
     drag.target: held ? todoColumnContent : undefined
     drag.axis: Drag.XAxis
     hoverEnabled: true
+    pressAndHoldInterval: 200
 
     function checkTasksForConfetti () {
         if (numberOfCompletedTasks === tasksView.model.items.count) {
             rootContainer.showConfetti1 = true;
             rootContainer.emitConfetti = true;
+        }
+    }
+
+    function createNewTask (newTaskText : string) {
+        if (!dragArea.rootContainer.isReadOnlyMode) {
+            let lastTaskEndLine = taskModel.count === 0 ? dragArea.columnStartLine+1 : taskModel.get(taskModel.count-1).taskEndLine;
+            dragArea.rootContainer.addNewTask(lastTaskEndLine, dragArea.columnID, newTaskText);
+            var somet = tasksView.contentHeight - tasksView.height;
+        }
+
+        if (dragArea.rootContainer.isReadOnlyMode) {
+            dragArea.rootContainer.informationPopupText = qsTr("Can't edit while in Read-only mode.");
+            dragArea.rootContainer.showInformationPopup = true;
         }
     }
 
@@ -67,10 +81,16 @@ MouseArea {
         dragArea.cursorShape = Qt.ArrowCursor
     }
 
-    onPressed: {
+    onPressAndHold: {
         held = true
         dragArea.modelIndexBeforeDragged = DelegateModel.itemsIndex
         dragArea.cursorShape = Qt.ClosedHandCursor
+    }
+
+    onPressed: {
+        newTaskTextEdit.text = "";
+        addNewTaskEditorRect.visible = false;
+        addNewTaskButton.visible = true;
     }
 
     onReleased: {
@@ -94,6 +114,12 @@ MouseArea {
             dragArea.rootContainer.informationPopupText = qsTr("Can't edit while in Read-only mode.");
             dragArea.rootContainer.showInformationPopup = true;
         }
+
+        dragArea.rootTodoContainer.isItemScrollingColumnsView = false;
+    }
+
+    FontIconLoader {
+        id: fontIconLoader
     }
 
     PropertyAnimation {
@@ -139,8 +165,10 @@ MouseArea {
                 let todoColumnContentX = todoColumnContent.mapToItem(todosColumnsViewPointerFromColumn, 0, 0).x;
                 if (todoColumnContentX < dragArea.rootTodoContainer.scrollEdgeSize) {
                     dragArea.rootTodoContainer.scrollingDirection = -1;
+                    dragArea.rootTodoContainer.isItemScrollingColumnsView = true;
                 } else if (todoColumnContentX + todoColumnContent.width/2 > todosColumnsViewPointerFromColumn.width - dragArea.rootTodoContainer.scrollEdgeSize) {
                     dragArea.rootTodoContainer.scrollingDirection = 1;
+                    dragArea.rootTodoContainer.isItemScrollingColumnsView = true;
                 } else {
                     dragArea.rootTodoContainer.scrollingDirection = 0;
                 }
@@ -171,22 +199,22 @@ MouseArea {
 
             Text {
                 id: columnTitle
-                property int topMargin: 10
-                width: todoColumnContent.width - plusButton.width - trashButton.width - 35
+                property int topMargin: !dragArea.rootContainer.showColumnsBorders ? 0 : 10
+                width: todoColumnContent.width - trashButton.width*2 - 35
                 elide: Text.ElideRight
                 anchors.horizontalCenter: parent.horizontalCenter
                 horizontalAlignment: Text.AlignHCenter
                 y: topMargin
                 text: dragArea.title
                 color: dragArea.themeData.theme === "Dark" ? "white" : "black"
-                font.pointSize: root.platform === "Apple" ? 17 : 15
+                font.pointSize: dragArea.rootContainer.platform === "Apple" ? 17 : 17 + dragArea.rootContainer.pointSizeOffset
                 font.bold: true
                 font.family: dragArea.rootContainer.headerFamilyFont
 
                 MouseArea {
                     anchors.fill: parent
 
-                    onClicked: {
+                    onDoubleClicked: {
                         if (!dragArea.rootContainer.isReadOnlyMode) {
                             columnTitle.visible = false;
                             columnTitleEditable.text = columnTitle.text;
@@ -205,21 +233,31 @@ MouseArea {
             TextField {
                 id: columnTitleEditable
                 visible: false
-                property int topMargin: 10
-                width: todoColumnContent.width - plusButton.width - trashButton.width - 35
+                property int topMargin: !dragArea.rootContainer.showColumnsBorders ? 0 : 10
+                width: todoColumnContent.width - trashButton.width - columnTitleCancelEditingButton.width - 35
+                height: columnTitleEditable.implicitHeight
                 anchors.horizontalCenter: parent.horizontalCenter
                 horizontalAlignment: Text.AlignHCenter
                 y: topMargin - 8
                 text: dragArea.title
                 color: dragArea.themeData.theme === "Dark" ? "white" : "black"
-                background: Rectangle { // TODO: Causes type error on macOS, but looks fine?
-                    color: "transparent"
+                background: Rectangle {
+                    height: columnTitleEditable.height - 14 // Needed because of Material theme
+                    y: 3
+                    radius: 5
+                    color: dragArea.themeData.theme === "Dark" ? "#313131" : "#efefef"
                 }
-                font.pointSize: root.platform === "Apple" ? 17 : 15
+                font.pointSize: dragArea.rootContainer.platform === "Apple" ? 17 : 17 + dragArea.rootContainer.pointSizeOffset
                 font.bold: true
                 font.family: dragArea.rootContainer.headerFamilyFont
 
                 onEditingFinished: {
+                    columnTitle.visible = true;
+                    columnTitleEditable.visible = false;
+                }
+
+                Keys.onEscapePressed: {
+                    columnTitleEditable.text = columnTitle.text;
                     columnTitle.visible = true;
                     columnTitleEditable.visible = false;
                 }
@@ -232,37 +270,36 @@ MouseArea {
                 }
             }
 
-            PlusButton {
-                id: plusButton
+            IconButton {
+                id: columnTitleCancelEditingButton
+                visible: columnTitleEditable.visible
+                themeData: dragArea.themeData
                 anchors.verticalCenter: columnTitle.verticalCenter
                 anchors.right: titleContainer.right
                 anchors.rightMargin: numberOfTaks.topMargin
-                themeData: dragArea.themeData
+                platform: dragArea.rootContainer.platform
+                icon: fontIconLoader.icons.fa_circle_xmark
+                iconPointSizeOffset: dragArea.rootContainer.platform === "Apple" ? -4 : -5
 
                 onClicked: {
-                    if (!dragArea.rootContainer.isReadOnlyMode) {
-//                    if (dragArea.isFirstTaskFinishedAnimating) { // This slows down new tasks creation, if we want that
-//                        dragArea.isFirstTaskFinishedAnimating = false;
-                        tasksView.positionViewAtBeginning();
-                        let firstTaskStartLine = taskModel.count === 0 ? dragArea.columnStartLine+1 : taskModel.get(0).taskStartLine;
-                        dragArea.rootContainer.addNewTask(firstTaskStartLine, dragArea.columnID);
-//                    }
-                    }
-
-                    if (dragArea.rootContainer.isReadOnlyMode) {
-                        dragArea.rootContainer.informationPopupText = qsTr("Can't edit while in Read-only mode.");
-                        dragArea.rootContainer.showInformationPopup = true;
-                    }
+                    columnTitleEditable.text = columnTitle.text;
+                    columnTitle.visible = true;
+                    columnTitleEditable.visible = false;
                 }
             }
 
-            TrashButton {
+            IconButton {
                 id: trashButton
                 visible: dragArea.isMouseEnteredColumn && dragArea.mouseY < tasksContainer.y
                 anchors.verticalCenter: columnTitle.verticalCenter
                 anchors.left: titleContainer.left
                 anchors.leftMargin: numberOfTaks.topMargin
                 themeData: dragArea.rootContainer.themeData
+                icon: fontIconLoader.icons.fa_trash
+                platform: dragArea.rootContainer.platform
+                iconPointSizeOffset: dragArea.rootContainer.platform === "Apple" ? -5 : -6
+                width: 32
+                height: 30
 
                 onClicked: {
                     if (!dragArea.rootContainer.isReadOnlyMode){
@@ -276,6 +313,9 @@ MouseArea {
                 }
 
                 Dialog {
+                    parent: Overlay.overlay
+                    x: Math.round((dragArea.rootContainer.width - width) / 2)
+                    y: Math.round((dragArea.rootContainer.height - height) / 2)
                     id: deleteColumnDialog
                     visible: dragArea.isDeleteColumnDialogShown
                     title: qsTr("Are you sure you want to delete column ") + dragArea.title + "?"
@@ -283,11 +323,12 @@ MouseArea {
                     font.family: dragArea.rootContainer.bodyFontFamily
                     Material.theme: dragArea.themeData.theme === "Dark" ? Material.Dark : Material.Light
                     Material.accent: "#5b94f5"
+//                    Material.roundedScale: Material.SmallScale
 
                     Text {
                         text: qsTr("This will delete ALL tasks inside ") + dragArea.title + "."
                         font.family: dragArea.rootContainer.bodyFontFamily
-                        font.pointSize: root.platform === "Apple" ? 15 : 13
+                        font.pointSize: root.platform === "Apple" ? 15 : 15 + dragArea.rootContainer.pointSizeOffset
                         color: dragArea.themeData.theme === "Dark" ? "white" : "black"
                     }
 
@@ -304,14 +345,13 @@ MouseArea {
                 }
             }
 
-
             Text {
                 id: numberOfTaks
                 property int topMargin: 12
                 x: todoColumnContent.width / 2 - numberOfTaks.width/2
                 y: columnTitle.y + numberOfTaks.height + topMargin
                 color: dragArea.themeData.theme === "Dark" ? "white" : "black"
-                font.pointSize: root.platform === "Apple" ? 11 : 9
+                font.pointSize: dragArea.rootContainer.platform === "Apple" ? 11 : 11 + dragArea.rootContainer.pointSizeOffset
                 font.family: dragArea.rootContainer.bodyFontFamily
                 text: tasksView.model.items.count.toString() + (tasksView.model.items.count === 1 ? " task" : " tasks")
             }
@@ -325,7 +365,7 @@ MouseArea {
                 color: dragArea.themeData.theme === "Dark" ? "white" : "black"
                 text: dragArea.numberOfCompletedTasks.toString() + " of " + tasksView.model.items.count.toString()
                 font.family: dragArea.rootContainer.bodyFontFamily
-                font.pointSize: root.platform === "Apple" ? 13 : 11
+                font.pointSize: dragArea.rootContainer.platform === "Apple" ? 13 : 13 + dragArea.rootContainer.pointSizeOffset
             }
 
             ProgressBar {
@@ -343,8 +383,9 @@ MouseArea {
             id: tasksContainer
             property int marginTop: 5
             width: todoColumnContent.width
-            height: todoColumnContent.height - (titleContainer.height + marginTop * 2)
+            height: todoColumnContent.height - (titleContainer.height + marginTop*2)
             y: titleContainer.y + titleContainer.height + marginTop
+            property int rightLeftMargin: 10
 
             DelegateModel {
                 id: tasksVisualModel
@@ -364,14 +405,119 @@ MouseArea {
 
             ListView {
                 id: tasksView
+                property var itemAtBottom: addNewTaskButton.visible ? addNewTaskButton :addNewTaskEditorRect
                 model: tasksVisualModel
-                anchors { fill: parent }
+//                anchors { fill: parent }
+                width: parent.width
+                height: tasksView.contentHeight < parent.height - itemAtBottom.height - parent.marginTop*2 ? tasksView.contentHeight : parent.height - itemAtBottom.height - parent.marginTop*2
                 clip: true
                 orientation: ListView.Vertical
-                spacing: 10
                 cacheBuffer: dragArea.isTaskFromCurrentColumnScrolling ? 100000000 : 1000 // TODO: is this a good solution
 //                // so tasks won't be destroyed while dragging them during scrolling? Or maybe we can recreate a taskContent not tied to the
 //                // ListView just when scrolling.
+
+                ScrollBar.vertical: CustomVerticalScrollBar {
+                    themeData: dragArea.themeData
+                }
+            }
+
+            Rectangle {
+                id: addNewTaskEditorRect
+                visible: false
+                anchors.top: tasksView.contentHeight < parent.height ? tasksView.bottom : undefined
+                anchors.bottom: tasksView.contentHeight >= parent.height ? parent.bottom : undefined
+                anchors.topMargin: 10
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: parent.width - parent.rightLeftMargin*2
+                height: newTaskTextEdit.height + 20
+                radius: 5
+                border.width: 1
+                border.color: dragArea.accentColor
+                color: dragArea.themeData.backgroundColor
+                x: parent.rightLeftMargin
+
+                CustomTextArea {
+                    id: newTaskTextEdit
+                    width: parent.width - tasksContainer.rightLeftMargin*2 - cancelEditingButton.width
+                    height: newTaskTextEdit.implicitHeight
+                    anchors.left: parent.left
+                    anchors.leftMargin: tasksContainer.rightLeftMargin
+                    anchors.verticalCenter: parent.verticalCenter
+                    placeholderText: "Enter a new task..."
+                    font.family: dragArea.rootContainer.bodyFontFamily
+                    font.pointSize: dragArea.rootContainer.platform === "Apple" ? 13 : 10 // TODO: Why setting pixel size causes lines to be rendered differently?
+                    themeData: dragArea.themeData
+                    color: dragArea.themeData.theme === "Dark" ? "white" : "black"
+                    placeholderTextColor: dragArea.themeData.theme === "Dark" ? "#676767" : "#787878"
+                    selectionColor: dragArea.accentColor
+                    selectedTextColor: "white"
+                    accentColor: dragArea.accentColor
+                    readOnly: dragArea.rootContainer.isReadOnlyMode
+
+                    onReturnPressed: {
+                        if (!newTaskTextEdit.isHoldingShift) {
+                            if (newTaskTextEdit.text.trim() !== "") {
+                                createNewTask(newTaskTextEdit.text);
+                                newTaskTextEdit.text = "";
+                            }
+                        } else {
+                            newTaskTextEdit.insert(newTaskTextEdit.cursorPosition, '\n');
+                        }
+                    }
+
+                    Keys.onEscapePressed: {
+                        newTaskTextEdit.text = "";
+                        addNewTaskEditorRect.visible = false;
+                        addNewTaskButton.visible = true;
+                    }
+
+                    onEditingFinished: {
+                        newTaskTextEdit.text = "";
+                        addNewTaskEditorRect.visible = false;
+                        addNewTaskButton.visible = true;
+                    }
+                }
+
+                IconButton {
+                    id: cancelEditingButton
+                    themeData: dragArea.themeData
+                    anchors.verticalCenter: newTaskTextEdit.verticalCenter
+                    anchors.left: newTaskTextEdit.right
+                    anchors.leftMargin: tasksContainer.rightLeftMargin/2
+                    platform: dragArea.rootContainer.platform
+                    icon: fontIconLoader.icons.fa_circle_xmark
+                    iconPointSizeOffset: dragArea.rootContainer.platform === "Apple" ? -4 : -5
+
+                    onClicked: {
+                        newTaskTextEdit.text = "";
+                        addNewTaskEditorRect.visible = false;
+                        addNewTaskButton.visible = true;
+                    }
+                }
+            }
+
+            TextButton {
+                id: addNewTaskButton
+                anchors.top: tasksView.contentHeight < parent.height ? tasksView.bottom : undefined
+                anchors.bottom: tasksView.contentHeight >= parent.height ? parent.bottom : undefined
+                anchors.topMargin: 10
+                x: parent.rightLeftMargin
+                text: qsTr("Add a task")
+                icon: fontIconLoader.icons.fa_plus
+                backgroundWidth: parent.width - parent.rightLeftMargin*2
+                platform: dragArea.rootContainer.platform
+                displayFontFamily: dragArea.rootContainer.bodyFontFamily
+                textAlignment: TextButton.TextAlign.Middle
+                themeData: dragArea.themeData
+                iconColor: dragArea.themeData.theme === "Dark" ? "#5b94f5" : "black"
+
+                onClicked: {
+                    if (!dragArea.rootContainer.isReadOnlyMode) {
+                        addNewTaskButton.visible = false;
+                        addNewTaskEditorRect.visible = true;
+                        newTaskTextEdit.forceActiveFocus();
+                    }
+                }
             }
         }
     }

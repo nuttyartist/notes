@@ -3,23 +3,24 @@
 
 #include <QObject>
 #include "dbmanager.h"
-#include "theme.h"
+#include "editorsettingsoptions.h"
 
 class NodeTreeView;
 class NodeTreeModel;
 class NodeTreeDelegate;
 class DBManager;
 class CustomApplicationStyle;
+class NoteListView;
 
 class TreeViewLogic : public QObject
 {
     Q_OBJECT
 public:
     explicit TreeViewLogic(NodeTreeView *treeView, NodeTreeModel *treeModel, DBManager *dbManager,
-                           QObject *parent = nullptr);
+                           NoteListView *listView, QObject *parent = nullptr);
     void openFolder(int id);
     void onMoveNodeRequested(int nodeId, int targetId);
-    void setTheme(Theme theme);
+    void setTheme(Theme::Value theme);
     void setLastSavedState(bool isLastSelectFolder, const QString &lastSelectFolder,
                            const QSet<int> &lastSelectTag, const QStringList &expandedFolder);
 private slots:
@@ -48,6 +49,7 @@ private:
 private:
     NodeTreeView *m_treeView;
     NodeTreeModel *m_treeModel;
+    NoteListView *m_listView;
     NodeTreeDelegate *m_treeDelegate;
     DBManager *m_dbManager;
     CustomApplicationStyle *m_style;

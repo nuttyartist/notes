@@ -1,14 +1,14 @@
 #pragma once
 
 #include <QListView>
-#include "theme.h"
+#include "editorsettingsoptions.h"
 
 class TagListView : public QListView
 {
     Q_OBJECT
 public:
     explicit TagListView(QWidget *parent = nullptr);
-    void setTheme(Theme theme);
+    void setTheme(Theme::Value theme);
     void setBackground(const QColor color);
 signals:
     // QAbstractItemView interface

@@ -1,7 +1,8 @@
-import QtQuick
-import QtQuick.Controls
-import QtQuick.Controls.Material
-import QtQuick.Particles
+import QtQuick 2.12
+import QtQuick.Controls 2.12
+import QtQuick.Controls.Material 2.12
+import QtQuick.Particles 2.12
+import QtQuick.Layouts 2.12
 
 Item {
     id: root
@@ -31,6 +32,9 @@ Item {
     property int newTaskInColumnID: -1
     property var taskModelByColumnIDDict: ({})
     property string platform: ""
+    property bool showEditorSettings: false
+    property int pointSizeOffset: -4
+    property bool alignKanbanToMiddleOfRoot: false
 
     Material.theme: themeData.theme === "Dark" ? Material.Dark : Material.Light
     Material.accent: "#2383e2";
@@ -64,15 +68,15 @@ Item {
             for (var n = 0; n < taskModelsRepeater.count; n++) {
                 root.titlesAndTasksData[n].tasks.forEach(taskData => {
 
-                    if (taskData.checked) {
-                         root.totalCompletedTasks++;
-                     }
+                                                             if (taskData.checked) {
+                                                                 root.totalCompletedTasks++;
+                                                             }
 
-                     taskModelsRepeater.itemAt(n).taskModel.append({"taskText": taskData.text, "taskChecked": taskData.checked,
-                                                             "taskStartLine": taskData.taskStartLine,
-                                                         "taskEndLine": taskData.taskEndLine,
-                                                         "doNeedAnimateFirstNote": false});
-                 });
+                                                             taskModelsRepeater.itemAt(n).taskModel.append({"taskText": taskData.text, "taskChecked": taskData.checked,
+                                                                                                               "taskStartLine": taskData.taskStartLine,
+                                                                                                               "taskEndLine": taskData.taskEndLine,
+                                                                                                               "doNeedAnimateTaskCreation": false});
+                                                         });
             }
         } else {
             // Update colums and tasks
@@ -87,24 +91,28 @@ Item {
 
                     root.titlesAndTasksData[k].tasks.forEach(taskData => {
 
-                         var animateFirstNote = false;
-                         if (root.newTaskInColumnID === colID && taskIndex === 0) {
-                             root.newTaskInColumnID = -1;
-                             animateFirstNote = true;
-                         }
+                                                                 var animateNoteCreation = false;
+                                                                 if (root.newTaskInColumnID === colID && taskIndex === tasksLength-1) {
+                                                                     root.newTaskInColumnID = -1;
+                                                                     animateNoteCreation = true;
+                                                                 }
 
 
-                         root.taskModelByColumnIDDict[colID].set(taskIndex, {  "taskText": taskData.text, "doNeedAnimateFirstNote": animateFirstNote ? true : false,
-                                                   "taskChecked": taskData.checked,
-                                                  "taskStartLine": taskData.taskStartLine,
-                                              "taskEndLine": taskData.taskEndLine});
+                                                                 root.taskModelByColumnIDDict[colID].set(taskIndex, {  "taskText": taskData.text, "doNeedAnimateTaskCreation": animateNoteCreation ? true : false,
+                                                                                                             "taskChecked": taskData.checked,
+                                                                                                             "taskStartLine": taskData.taskStartLine,
+                                                                                                             "taskEndLine": taskData.taskEndLine});
 
-                       taskIndex++;
+                                                                 taskIndex++;
 
-                     });
+                                                             });
                 }
             }
         }
+    }
+
+    FontIconLoader {
+        id: fontIconLoader
     }
 
     ListModel {
@@ -144,12 +152,12 @@ Item {
         }
 
         onItemAdded: (index, item) => {
-            root.taskModelByColumnIDDict[item.columnID] = item.taskModel;
-        }
+                         root.taskModelByColumnIDDict[item.columnID] = item.taskModel;
+                     }
 
         onItemRemoved: (index, item) => {
-            delete root.taskModelByColumnIDDict[item.columID];
-        }
+                           delete root.taskModelByColumnIDDict[item.columID];
+                       }
     }
 
     Connections {
@@ -164,26 +172,23 @@ Item {
             root.showSettingsPopup = false;
 
             if (root.isForcedReadOnly) {
-                root.informationPopupText = qsTr("Since you select multiple notes you're in Read-only mode.");
+                root.informationPopupText = qsTr("Since you selected multiple notes you're in Read-only mode.");
                 root.showInformationPopup = true;
             }
         }
 
         function onClearKanbanModel () {
             columnModel.clear();
+            root.showEditorSettings = false;
         }
 
         function onResetKanbanSettings () {
             root.areTasksReversed = false;
         }
 
-        function onKanbanForceReadOnly () {
-            root.isReadOnlyMode = true;
-            root.isForcedReadOnly = true;
-        }
-
-        function onKanbanFontChanged (data) {
-            root.bodyFontFamily = data;
+        function onKanbanForceReadOnly (shouldForcedReadOnly) {
+            root.isReadOnlyMode = shouldForcedReadOnly;
+            root.isForcedReadOnly = shouldForcedReadOnly;
         }
     }
 
@@ -196,6 +201,15 @@ Item {
 
         function onPlatformSet (data) {
             root.platform = data;
+        }
+
+        function onFontsChanged (data) {
+            root.bodyFontFamily = data.listOfSansSerifFonts[data.chosenSansSerifFontIndex];
+        }
+
+        function onToggleEditorSettingsKeyboardShorcutFired () {
+            root.showEditorSettings = !root.showEditorSettings;
+            mainWindow.setEditorSettingsFromQuickViewVisibility(root.showEditorSettings);
         }
     }
 
@@ -236,11 +250,11 @@ Item {
         noteEditorLogic.updateTaskText(startLinePosition, endLinePosition, newText);
     }
 
-    function addNewTask (startLinePosition: int, columnID: int) {
+    function addNewTask (endLinePosition: int, columnID: int, newTaskText: string) {
         root.totalTasks++;
         root.newTaskInColumnID = columnID;
-        root.taskModelByColumnIDDict[columnID].insert(0, {"taskText": "New task", "taskStartLine:": startLinePosition, "taskEndLine": startLinePosition, "taskChecked": false, "doNeedAnimateFirstNote": true})
-        noteEditorLogic.addNewTask(startLinePosition);
+        root.taskModelByColumnIDDict[columnID].insert(root.taskModelByColumnIDDict[columnID].count, {"taskText": newTaskText, "taskStartLine:": endLinePosition, "taskEndLine": endLinePosition, "taskChecked": false, "doNeedAnimateTaskCreation": true})
+        noteEditorLogic.addNewTask(endLinePosition, newTaskText);
     }
 
     function removeTask (startLinePosition: int, endLinePosition: int, columnRemovingFromID, taskIndex) {
@@ -314,8 +328,8 @@ Item {
 
     function reRenderTask(columnID, taskIndex, taskObject) {
         root.taskModelByColumnIDDict[columnID].remove(taskIndex);
-//        taskObject.taskText = "# Something\nYo";
-//        console.log(taskObject.taskText);
+        //        taskObject.taskText = "# Something\nYo";
+        //        console.log(taskObject.taskText);
         root.taskModelByColumnIDDict[columnID].insert(taskIndex, taskObject);
     }
 
@@ -329,7 +343,7 @@ Item {
             visible: columnModel.count === 0
             text: "No tasks found in this note.<br/>Create a new column using the <b>+ button</b>."
             color: root.themeData.theme === "Dark" ? "white" : "black"
-            font.pointSize: root.platform === "Apple" ? 23 : 21
+            font.pointSize: root.platform === "Apple" ? 23 : 23 + root.pointSizeOffset
             anchors.centerIn: parent
             horizontalAlignment: Text.AlignHCenter
             font.family: root.bodyFontFamily
@@ -338,13 +352,31 @@ Item {
 
         Item {
             id: todosContainer
-            x: root.marginsSize
-            width: root.width - root.marginsSize
+            width: root.alignKanbanToMiddleOfRoot && todosColumnsView.contentWidth < root.width - root.marginsSize ? todosColumnsView.contentWidth + root.marginsSize : root.width - root.marginsSize
             height: root.height - y
             anchors.top: parent.top
             anchors.topMargin: toolBarRow.height
+            anchors.leftMargin: root.alignKanbanToMiddleOfRoot && todosColumnsView.contentWidth < root.width - root.marginsSize ? 0 : root.marginsSize
             property int scrollEdgeSize: 50
             property int scrollingDirection: 0
+            property bool isItemScrollingColumnsView: false
+
+            states:
+            [State {
+                when: root.alignKanbanToMiddleOfRoot && todosColumnsView.contentWidth < root.width - root.marginsSize
+                AnchorChanges {
+                    target: todosContainer
+                    anchors { left: undefined; horizontalCenter: appBackgroundContainer.horizontalCenter }
+                }
+            }
+            ,State {
+                when: !root.alignKanbanToMiddleOfRoot || todosColumnsView.contentWidth >= root.width - root.marginsSize
+                AnchorChanges {
+                    target: todosContainer
+                    anchors { left: appBackgroundContainer.left; horizontalCenter: undefined }
+                }
+            }
+            ]
 
             SmoothedAnimation {
                 id: columnsLeftAnimation
@@ -389,25 +421,60 @@ Item {
                 anchors.rightMargin: root.marginsSize
                 clip: true
                 orientation: ListView.Horizontal
-                spacing: 25
-                cacheBuffer: 1000000  // This must be very large so while we drag a task to different column that's far,
+                spacing: root.showColumnsBorders ? 25 : 5
+                cacheBuffer: todosContainer.isItemScrollingColumnsView ? 100000000 : 1000
+                // This must be very large so while we drag a task to different column that's far,
                 // the task won't be destroyed by the window/virtual rendering
+
+                ScrollBar.horizontal: CustomHorizontalScrollBar {
+                    themeData: root.themeData
+                }
             }
         }
 
-        Row {
+        RowLayout {
             id: toolBarRow
-            visible: true
-            anchors.right: parent.right
-            anchors.rightMargin: root.marginsSize
+            width: parent.width - root.marginsSize*4
+            anchors.left: parent.left
+            anchors.leftMargin: root.marginsSize*2
             spacing: 15
 
-            MouseArea {
-                width: appBackgroundContainer.width
-                height: toolBarRow.height
+            IconButton {
+                icon: fontIconLoader.icons.mt_article
+                themeData: root.themeData
+                themeColor: root.themeData.theme === "Dark" ? "#5b94f5" : "#55534E"
+                platform: root.platform
+                iconPointSize: root.platform === "Apple" ? 24 : 18
+                iconFontFamily: fontIconLoader.mt_symbols
 
                 onClicked: {
-                    root.showSettingsPopup = false;
+                    mainWindow.setKanbanVisibility(false);
+                }
+            }
+
+            IconButton {
+                icon: fontIconLoader.icons.mt_view_kanban
+                themeData: root.themeData
+                themeColor: root.themeData.theme === "Dark" ? "#5b94f5" : "#55534E"
+                platform: root.platform
+                iconPointSize: root.platform === "Apple" ? 24 : 18
+                iconFontFamily: fontIconLoader.mt_symbols
+                enabled: false
+            }
+
+            Item {
+                Layout.fillWidth: true
+            }
+
+            IconButton {
+                id: settingsPlusButton
+                icon: fontIconLoader.icons.fa_plus
+                themeData: root.themeData
+                themeColor: root.themeData.theme === "Dark" ? "#5b94f5" : "#55534E"
+                platform: root.platform
+
+                onClicked: {
+                    root.addNewColumn();
                 }
             }
 
@@ -416,32 +483,24 @@ Item {
                 visible: root.showProgressBar
                 color: root.themeData.theme === "Dark" ? "white" : "black"
                 text: root.totalCompletedTasks.toString() + " of " + root.totalTasks.toString() + " tasks"
-                anchors.verticalCenter: settingsPlusButton.verticalCenter
                 font.family: root.bodyFontFamily
-                font.pointSize: root.platform === "Apple" ? 13 : 11
+                font.pointSize: root.platform === "Apple" ? 13 : 13 + root.pointSizeOffset
             }
 
             ProgressBar {
                 id: progressBar
                 visible: root.showProgressBar
-                width: root.width/2 - progressBarText.width
-                anchors.verticalCenter: settingsPlusButton.verticalCenter
+                width: 150
                 value: root.totalCompletedTasks / root.totalTasks
             }
 
-            PlusButton {
-                id: settingsPlusButton
-                themeData: root.themeData
-                themeColor: root.themeData.theme === "Dark" ? "#5b94f5" : "#55534E"
-
-                onClicked: {
-                    root.addNewColumn();
-                }
-            }
-
-            DotsButton {
+            IconButton {
                 id: settingsDotsButton
                 themeData: root.themeData
+                icon: fontIconLoader.icons.fa_sliders
+                platform: root.platform
+                iconPointSizeOffset: -4
+
                 onClicked: {
                     if (root.showSettingsPopup) {
                         closeSettignsPopupAnimation.start();
@@ -450,156 +509,133 @@ Item {
                     }
                 }
 
-                Pane {
-                    id: settingsPopup
+                Item {
+                    id: settingsPopupContainer
                     visible: root.showSettingsPopup
-                    Material.elevation: 5
-                    Material.background: root.themeData.theme === "Dark" ? "#252525" : "white"
                     anchors.top: settingsDotsButton.bottom
                     anchors.right: settingsDotsButton.right
-                    width:  210
-                    height: settingsPopupColumn.height + 15
-                    property int rowWidth: width - 15
-//                     TODO: Find a way to make Pane's with rounded corners without Meterial's drop shadow disappearing
-//                    background: Rectangle {
-//                        color: root.themeData.theme === "Dark" ? "#252525" : "white"
-//                        radius: 5
-//                    }
+                    width: settingsPopup.width
+                    height: settingsPopup.height
 
-                    Column {
-                        id: settingsPopupColumn
+                    Popup {
+                        id: settingsPopup
+                        visible: root.showSettingsPopup
+                        width:  230
+                        height: settingsPopupColumn.height + 22
+                        Material.elevation: 8
+                        Material.background: root.themeData.theme === "Dark" ? "#252525" : "white"
+                        //                        Material.roundedScale: Material.SmallScale
+                        property int rowWidth: width - settingsPopup.padding*2
+                        padding: 10
 
-                        Row {
-                            id: reverseActionRow
+                        Column {
+                            id: settingsPopupColumn
 
-                            Text {
-                                id: reverseActionText
-                                text: qsTr("Reverse tasks' order");
-                                color: root.themeData.theme === "Dark" ? "white" : "black"
-                                font.family: root.bodyFontFamily
-                                font.weight: Font.Normal
-                                font.pointSize: root.platform === "Apple" ? 13 : 11
-                            }
+                            Row {
+                                OptionItemButton {
+                                    contentWidth: settingsPopup.rowWidth
+                                    displayText: qsTr("Reverse tasks' order")
+                                    displayFontFamily: root.bodyFontFamily
+                                    platform: root.platform
+                                    themeData: root.themeData
+                                    checked: root.areTasksReversed
 
-                            Item {
-                                // Spacer
-                                height: 1
-                                width: settingsPopup.rowWidth - reverseActionText.width - reverseActionSwitch.width
-                            }
+                                    onSwitched: {
+                                        root.toggleReverseTasks();
+                                    }
 
-                            SwitchButton {
-                                id: reverseActionSwitch
-                                anchors.verticalCenter: reverseActionText.verticalCenter
-                                checked: root.areTasksReversed
-                                themeData: root.themeData
-
-                                onSwitched: {
-                                    root.toggleReverseTasks();
-                                }
-                            }
-
-                        }
-
-                        Row {
-                            id: progressBarVisibilityActionRow
-
-                            Text {
-                                id: progressBarVisibilityActionText
-                                text: qsTr("Show progress bar");
-                                color: root.themeData.theme === "Dark" ? "white" : "black"
-                                font.family: root.bodyFontFamily
-                                font.weight: Font.Normal
-                                font.pointSize: root.platform === "Apple" ? 13 : 11
-                            }
-
-                            Item {
-                                // Spacer
-                                height: 1
-                                width: settingsPopup.rowWidth - progressBarVisibilityActionText.width - progressBarVisibilityActionSwitch.width
-                            }
-
-                            SwitchButton {
-                                id: progressBarVisibilityActionSwitch
-                                anchors.verticalCenter: progressBarVisibilityActionText.verticalCenter
-                                checked: root.showProgressBar
-                                themeData: root.themeData
-
-                                onSwitched: {
-                                    root.showProgressBar = !root.showProgressBar;
-                                }
-                            }
-
-                        }
-
-                        Row {
-                            id: readOnlyModeActionRow
-
-                            Text {
-                                id: readOnlyModeActionText
-                                text: qsTr("Read-only mode");
-                                color: root.themeData.theme === "Dark" ? "white" : "black"
-                                font.family: root.bodyFontFamily
-                                font.weight: Font.Normal
-                                font.pointSize: root.platform === "Apple" ? 13 : 11
-                            }
-
-                            Item {
-                                // Spacer
-                                height: 1
-                                width: settingsPopup.rowWidth - readOnlyModeActionText.width - readOnlyModeActionSwitch.width
-                            }
-
-                            SwitchButton {
-                                id: readOnlyModeActionSwitch
-                                anchors.verticalCenter: readOnlyModeActionText.verticalCenter
-                                checked: root.isForcedReadOnly || root.isReadOnlyMode
-                                themeData: root.themeData
-                                enabled: !root.isForcedReadOnly
-
-                                onSwitched: {
-                                    if (!root.isForcedReadOnly) {
-                                        root.isReadOnlyMode = !root.isReadOnlyMode;
+                                    onUnswitched: {
+                                        root.toggleReverseTasks();
                                     }
                                 }
                             }
 
-                        }
+                            Row {
+                                OptionItemButton {
+                                    contentWidth: settingsPopup.rowWidth
+                                    displayText: qsTr("Show progress bar")
+                                    displayFontFamily: root.bodyFontFamily
+                                    platform: root.platform
+                                    themeData: root.themeData
+                                    checked: root.showProgressBar
 
-                        Row {
-                            id: showColumnsBordersActionRow
+                                    onSwitched: {
+                                        root.showProgressBar = !root.showProgressBar;
+                                    }
 
-                            Text {
-                                id: showColumnsBordersActionText
-                                text: qsTr("Show column border");
-                                color: root.themeData.theme === "Dark" ? "white" : "black"
-                                font.family: root.bodyFontFamily
-                                font.weight: Font.Normal
-                                font.pointSize: root.platform === "Apple" ? 13 : 11
-                            }
-
-                            Item {
-                                // Spacer
-                                height: 1
-                                width: settingsPopup.rowWidth - showColumnsBordersActionText.width - showColumnsBordersActionSwitch.width
-                            }
-
-                            SwitchButton {
-                                id: showColumnsBordersActionSwitch
-                                anchors.verticalCenter: showColumnsBordersActionText.verticalCenter
-                                checked: root.showColumnsBorders
-                                themeData: root.themeData
-
-                                onSwitched: {
-                                    root.showColumnsBorders = !root.showColumnsBorders;
+                                    onUnswitched: {
+                                        root.showProgressBar = !root.showProgressBar;
+                                    }
                                 }
                             }
 
+                            Row {
+                                OptionItemButton {
+                                    contentWidth: settingsPopup.rowWidth
+                                    displayText: qsTr("Read-only mode")
+                                    displayFontFamily: root.bodyFontFamily
+                                    platform: root.platform
+                                    themeData: root.themeData
+                                    checked: root.isForcedReadOnly || root.isReadOnlyMode
+                                    enabled: !root.isForcedReadOnly
+
+                                    onSwitched: {
+                                        if (!root.isForcedReadOnly) {
+                                            root.isReadOnlyMode = !root.isReadOnlyMode;
+                                        }
+                                    }
+
+                                    onUnswitched: {
+                                        if (!root.isForcedReadOnly) {
+                                            root.isReadOnlyMode = !root.isReadOnlyMode;
+                                        }
+                                    }
+                                }
+                            }
+
+                            Row {
+                                OptionItemButton {
+                                    contentWidth: settingsPopup.rowWidth
+                                    displayText: qsTr("Show column border")
+                                    displayFontFamily: root.bodyFontFamily
+                                    platform: root.platform
+                                    themeData: root.themeData
+                                    checked: root.showColumnsBorders
+
+                                    onSwitched: {
+                                        root.showColumnsBorders = !root.showColumnsBorders;
+                                    }
+
+                                    onUnswitched: {
+                                        root.showColumnsBorders = !root.showColumnsBorders;
+                                    }
+                                }
+                            }
+
+                            Row {
+                                OptionItemButton {
+                                    contentWidth: settingsPopup.rowWidth
+                                    displayText: qsTr("Align to middle")
+                                    displayFontFamily: root.bodyFontFamily
+                                    platform: root.platform
+                                    themeData: root.themeData
+                                    checked: root.alignKanbanToMiddleOfRoot
+
+                                    onSwitched: {
+                                        root.alignKanbanToMiddleOfRoot = !root.alignKanbanToMiddleOfRoot;
+                                    }
+
+                                    onUnswitched: {
+                                        root.alignKanbanToMiddleOfRoot = !root.alignKanbanToMiddleOfRoot;
+                                    }
+                                }
+                            }
                         }
                     }
 
                     PropertyAnimation {
-                        target: settingsPopup
-                        running: settingsPopup.visible
+                        target: settingsPopupContainer
+                        running: settingsPopupContainer.visible
                         property: "opacity"
                         from: 0.0
                         to: 1.0
@@ -609,8 +645,8 @@ Item {
 
                     PropertyAnimation {
                         id: closeSettignsPopupAnimation
-                        target: settingsPopup
-                        running: !settingsPopup.visible
+                        target: settingsPopupContainer
+                        running: !settingsPopupContainer.visible
                         property: "opacity"
                         to: 0.0
                         duration: 300
@@ -622,12 +658,61 @@ Item {
                     }
                 }
             }
+
+            IconButton {
+                id: editorSettingsPopupButton
+                themeData: root.themeData
+                icon: fontIconLoader.icons.fa_ellipsis_h
+                platform: root.platform
+
+                Item {
+                    id: editorSettingsPopupContainer
+                    visible: root.showEditorSettings
+                    anchors.top: editorSettingsPopupButton.bottom
+                    anchors.right: editorSettingsPopupButton.right
+                    width: editorSettings.width
+                    height: editorSettings.height
+                    Popup {
+                        visible: root.showEditorSettings
+                        width: editorSettings.width
+                        height: editorSettings.height
+                        padding: 0
+                        background: Rectangle {
+                            color: "transparent"
+                        }
+
+                        EditorSettings {
+                            id: editorSettings
+                            visible: root.showEditorSettings
+                            anchors.centerIn: parent
+                            extraWidthForQWidgets: 0
+                            extraHeightForQWidgets: 0
+
+                            onVisibleChanged: {
+                                if (editorSettingsPopupContainer.visible) {
+                                    editorSettings.upadteScrollBarPosition();
+                                }
+                            }
+                        }
+
+                        onClosed: {
+                            root.showEditorSettings = false;
+                            mainWindow.setEditorSettingsFromQuickViewVisibility(root.showEditorSettings);
+                        }
+                    }
+                }
+
+                onClicked: {
+                    root.showEditorSettings = !root.showEditorSettings
+                    mainWindow.setEditorSettingsFromQuickViewVisibility(root.showEditorSettings);
+                }
+            }
         }
     }
 
     Timer {
         id: informationPopupTimer
-        interval: 1500
+        interval: 2500
         running: root.showInformationPopup
 
         onTriggered: {
@@ -667,12 +752,7 @@ Item {
         x: root.width/2 - informationPopup.width / 2
         width:  informationPopupText.width + 50
         height: informationPopupText.height + 40
-//         TODO: Find a way to make Pane's with rounded corners without Meterial's drop shadow disappearing
-//                    background: Rectangle {
-//                        color: root.themeData.theme === "Dark" ? "#252525" : "white"
-//                        radius: 5
-//                    }
-
+//        Material.roundedScale: Material.SmallScale
 
         Text {
             id: informationPopupText
@@ -681,7 +761,7 @@ Item {
             color: root.themeData.theme === "Dark" ? "white" : "black"
             font.family: root.bodyFontFamily
             font.weight: Font.Bold
-            font.pointSize: root.platform === "Apple" ? 16 : 14
+            font.pointSize: root.platform === "Apple" ? 16 : 16 + root.pointSizeOffset
         }
     }
 
@@ -698,9 +778,9 @@ Item {
         source: "qrc:/images/confetti.png"
         colorVariation: 1.0
         //            sizeVariation: 0.5
-//        rotation: -90
-//        rotationVelocity: 180
-//        rotationVariation: 180
+        //        rotation: -90
+        //        rotationVelocity: 180
+        //        rotationVariation: 180
         //            opacityVariation: 0.5
     }
 
@@ -714,12 +794,12 @@ Item {
         lifeSpan: 1500
         size: 12
         // size: 10
-//        size: 50
-//        x: root.x
-//        y: root.y
+        //        size: 50
+        //        x: root.x
+        //        y: root.y
         velocity: AngleDirection {
             angle: 90
-//            angleVariation: 360
+            //            angleVariation: 360
             magnitude: 400
             magnitudeVariation: 100
         }

@@ -42,7 +42,7 @@ NoteListView::NoteListView(QWidget *parent)
 
     setupStyleSheet();
 
-#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+#if (defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)) || defined(Q_OS_WIN) || defined(Q_OS_WINDOWS)
     QFile scollBarStyleFile(QStringLiteral(":/styles/components/custom-scrollbar.css"));
     scollBarStyleFile.open(QFile::ReadOnly);
     QString scrollbarStyleSheet = QString::fromLatin1(scollBarStyleFile.readAll());
@@ -78,7 +78,7 @@ NoteListView::NoteListView(QWidget *parent)
     newNoteAction = new QAction(tr("New Note"), this);
     connect(newNoteAction, &QAction::triggered, this, [this] { emit newNoteRequested(); });
 
-    m_dragPixmap.load("qrc:/images/notes_icon.icns");
+    m_dragPixmap.load("qrc:/images/notepad.icns");
     setDragEnabled(true);
     setAcceptDrops(true);
     setSelectionMode(QAbstractItemView::SingleSelection);
@@ -479,8 +479,8 @@ void NoteListView::startDrag(Qt::DropActions supportedActions)
         }
         rect.adjust(horizontalOffset(), verticalOffset(), 0, 0);
     } else {
-        pixmap.load(":/images/notes_icon.ico");
-        pixmap = pixmap.scaled(pixmap.width() / 3, pixmap.height() / 3, Qt::KeepAspectRatio,
+        pixmap.load(":/images/notepad.ico");
+        pixmap = pixmap.scaled(pixmap.width() / 4, pixmap.height() / 4, Qt::KeepAspectRatio,
                                Qt::SmoothTransformation);
 #ifdef __APPLE__
         QFont m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch()
@@ -683,7 +683,7 @@ void NoteListView::selectionChanged(const QItemSelection &selected,
 /**
  * @brief Set theme color for noteView
  */
-void NoteListView::setTheme(Theme theme)
+void NoteListView::setTheme(Theme::Value theme)
 {
     setCSSThemeAndUpdate(this, theme);
 }
@@ -714,9 +714,14 @@ void NoteListView::onCustomContextMenu(QPoint point)
                 QPainter painter{ &pix };
                 painter.setRenderHint(QPainter::Antialiasing);
                 auto iconRect = QRect((pix.width() - 30) / 2, (pix.height() - 30) / 2, 30, 30);
-                painter.setBrush(QColor(color));
                 painter.setPen(QColor(color));
-                painter.drawEllipse(iconRect);
+#ifdef __APPLE__
+                int iconPointSizeOffset = 0;
+#else
+                int iconPointSizeOffset = -4;
+#endif
+                painter.setFont(QFont("Font Awesome 6 Free Solid", 24 + iconPointSizeOffset));
+                painter.drawText(iconRect, u8"\uf111"); // fa-circle
                 return QIcon{ pix };
             };
             QSet<int> tagInNote;

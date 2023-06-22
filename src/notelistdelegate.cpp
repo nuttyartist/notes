@@ -60,8 +60,6 @@ NoteListDelegate::NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject
     m_timeLine->setUpdateInterval(10);
     m_timeLine->setEasingCurve(QEasingCurve::InCurve);
     m_folderIcon = QImage(":/images/folder.png");
-    m_pinnedExpandIcon = QImage(":/images/pinned-expand.png");
-    m_pinnedCollapseIcon = QImage(":/images/pinned-collasped.png");
     connect(m_timeLine, &QTimeLine::frameChanged, this, [this]() {
         for (const auto &index : qAsConst(m_animatedIndexes)) {
             emit sizeHintChanged(index);
@@ -626,22 +624,30 @@ void NoteListDelegate::paintLabels(QPainter *painter, const QStyleOptionViewItem
         }
         if (model && model->hasPinnedNote()) {
             if (model->isFirstPinnedNote(index)) {
-                QRect headerRect(option.rect.x() + NoteListConstant::leftOffsetX, option.rect.y(),
-                                 option.rect.width() - NoteListConstant::leftOffsetX, 25);
+                QRect headerRect(option.rect.x() + NoteListConstant::leftOffsetX / 2,
+                                 option.rect.y(),
+                                 option.rect.width() - NoteListConstant::leftOffsetX / 2, 25);
+#ifdef __APPLE__
+                int iconPointSizeOffset = 0;
+#else
+                int iconPointSizeOffset = -4;
+#endif
+                painter->setFont(QFont("Font Awesome 6 Free Solid", 14 + iconPointSizeOffset));
+                painter->setPen(QColor(68, 138, 201));
                 if (m_view->isPinnedNotesCollapsed()) {
-                    painter->drawImage(QRect(headerRect.right() - 25, headerRect.y() + 2, 20, 20),
-                                       m_pinnedCollapseIcon);
+                    painter->drawText(QRect(headerRect.right() - 25, headerRect.y() + 5, 16, 16),
+                                      u8"\uf054"); // fa-chevron-right
                 } else {
-                    painter->drawImage(QRect(headerRect.right() - 25, headerRect.y() + 2, 20, 20),
-                                       m_pinnedExpandIcon);
+                    painter->drawText(QRect(headerRect.right() - 25, headerRect.y() + 5, 16, 16),
+                                      u8"\uf078"); // fa-chevron-down
                 }
                 painter->setPen(m_contentColor);
                 painter->setFont(m_headerFont);
                 painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Pinned");
             } else if (model->hasPinnedNote() && model->isFirstUnpinnedNote(index)) {
-                QRect headerRect(option.rect.x() + NoteListConstant::leftOffsetX,
+                QRect headerRect(option.rect.x() + NoteListConstant::leftOffsetX / 2,
                                  option.rect.y() + fifthYOffset,
-                                 option.rect.width() - NoteListConstant::leftOffsetX, 25);
+                                 option.rect.width() - NoteListConstant::leftOffsetX / 2, 25);
                 painter->setPen(m_contentColor);
                 painter->setFont(m_headerFont);
                 painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Notes");
@@ -678,14 +684,21 @@ void NoteListDelegate::paintLabels(QPainter *painter, const QStyleOptionViewItem
         }
         if (model) {
             if (model->isFirstPinnedNote(index)) {
-                QRect headerRect(rowPosX + NoteListConstant::leftOffsetX, rowPosY,
-                                 option.rect.width() - NoteListConstant::leftOffsetX, 25);
+                QRect headerRect(rowPosX + NoteListConstant::leftOffsetX / 2, rowPosY,
+                                 option.rect.width() - NoteListConstant::leftOffsetX / 2, 25);
+#ifdef __APPLE__
+                int iconPointSizeOffset = 0;
+#else
+                int iconPointSizeOffset = -4;
+#endif
+                painter->setFont(QFont("Font Awesome 6 Free Solid", 14 + iconPointSizeOffset));
+                painter->setPen(QColor(68, 138, 201));
                 if (m_view->isPinnedNotesCollapsed()) {
-                    painter->drawImage(QRect(headerRect.right() - 25, headerRect.y() + 2, 20, 20),
-                                       m_pinnedCollapseIcon);
+                    painter->drawText(QRect(headerRect.right() - 25, headerRect.y() + 5, 16, 16),
+                                      u8"\uf054"); // fa-chevron-right
                 } else {
-                    painter->drawImage(QRect(headerRect.right() - 25, headerRect.y() + 2, 20, 20),
-                                       m_pinnedExpandIcon);
+                    painter->drawText(QRect(headerRect.right() - 25, headerRect.y() + 5, 16, 16),
+                                      u8"\uf078"); // fa-chevron-down
                 }
                 painter->setPen(m_contentColor);
                 painter->setFont(m_headerFont);
@@ -693,8 +706,8 @@ void NoteListDelegate::paintLabels(QPainter *painter, const QStyleOptionViewItem
                 rowPosY += 25;
             } else if (model->hasPinnedNote() && model->isFirstUnpinnedNote(index)) {
                 rowPosY += fifthYOffset;
-                QRect headerRect(rowPosX + NoteListConstant::leftOffsetX, rowPosY,
-                                 option.rect.width() - NoteListConstant::leftOffsetX, 25);
+                QRect headerRect(rowPosX + NoteListConstant::leftOffsetX / 2, rowPosY,
+                                 option.rect.width() - NoteListConstant::leftOffsetX / 2, 25);
                 painter->setPen(m_contentColor);
                 painter->setFont(m_headerFont);
                 painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Notes");
@@ -787,7 +800,7 @@ void NoteListDelegate::paintSeparator(QPainter *painter, QRect rect, const QMode
     const int leftOffsetX = NoteListConstant::leftOffsetX;
     int posX1 = rect.x() + leftOffsetX;
     int posX2 = rect.x() + rect.width() - leftOffsetX - 1;
-    int posY = rect.y() + rect.height() - 1;
+    int posY = rect.y() + rect.height();
 
     painter->drawLine(QPoint(posX1, posY), QPoint(posX2, posY));
 }
@@ -821,10 +834,15 @@ void NoteListDelegate::paintTagList(int top, QPainter *painter, const QStyleOpti
         } else {
             painter->fillPath(path, QColor(227, 234, 243));
         }
-        auto iconRect = QRect(rect.x() + 5, rect.y() + (rect.height() - 12) / 2, 12, 12);
-        painter->setBrush(QColor(tag.color()));
+        auto iconRect = QRect(rect.x() + 5, rect.y() + (rect.height() - 12) / 2, 14, 14);
         painter->setPen(QColor(tag.color()));
-        painter->drawEllipse(iconRect);
+#ifdef __APPLE__
+        int iconPointSizeOffset = 0;
+#else
+        int iconPointSizeOffset = -4;
+#endif
+        painter->setFont(QFont("Font Awesome 6 Free Solid", 14 + iconPointSizeOffset));
+        painter->drawText(iconRect, u8"\uf111"); // fa-circle
         painter->setBrush(m_titleColor);
         painter->setPen(m_titleColor);
 
@@ -929,7 +947,7 @@ bool NoteListDelegate::isInAllNotes() const
     return m_isInAllNotes;
 }
 
-Theme NoteListDelegate::theme() const
+Theme::Value NoteListDelegate::theme() const
 {
     return m_theme;
 }
@@ -999,7 +1017,7 @@ void NoteListDelegate::setHoveredIndex(const QModelIndex &hoveredIndex)
     m_hoveredIndex = hoveredIndex;
 }
 
-void NoteListDelegate::setTheme(Theme theme)
+void NoteListDelegate::setTheme(Theme::Value theme)
 {
     m_theme = theme;
     switch (m_theme) {

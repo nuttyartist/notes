@@ -4,6 +4,7 @@
 #include <QWidget>
 #include "notelistview.h"
 #include <QTimeLine>
+#include "editorsettingsoptions.h"
 
 class NoteListDelegate;
 class TagListModel;
@@ -46,7 +47,7 @@ public:
     QPixmap renderToPixmap();
 
 public slots:
-    void setTheme(Theme theme);
+    void setTheme(Theme::Value theme);
 signals:
     void updateSizeHint(int id, const QSize &sz, const QModelIndex &index);
     void nearDestroyed(int id, const QModelIndex &index);
@@ -84,9 +85,7 @@ private:
     int m_rowRightOffset;
     bool m_isActive;
     QImage m_folderIcon;
-    QImage m_pinnedExpandIcon;
-    QImage m_pinnedCollapseIcon;
-    Theme m_theme;
+    Theme::Value m_theme;
     bool m_containsMouse;
     QModelIndex m_animatedIndex;
 

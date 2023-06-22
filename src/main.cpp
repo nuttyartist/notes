@@ -20,6 +20,12 @@ int main(int argc, char *argv[])
     app.setAttribute(Qt::AA_DisableWindowContextHelpButton);
 #endif
 
+    if (QFontDatabase::addApplicationFont(":/fonts/fontawesome/fa-solid-900.ttf") < 0)
+        qWarning() << "FontAwesome cannot be loaded !";
+
+    if (QFontDatabase::addApplicationFont(":/fonts/material/material-symbols-outlined.ttf") < 0)
+        qWarning() << "Material Icons cannot be loaded !";
+
     // Load fonts from resources
     // Roboto
     QFontDatabase::addApplicationFont(":/fonts/roboto-hinted/Roboto-Bold.ttf");
