@@ -8,7 +8,7 @@ Additionally, you need to install the following tools/components:
 
 - [Git](https://gitforwindows.org/)
 - [Microsoft Visual C++](https://visualstudio.microsoft.com/downloads) `>= 2017` *(only the build tools are required)*
-- [Qt](https://www.qt.io/download-qt-installer) `>= 5.9` *(using the latest version is recommended)*
+- [Qt](https://www.qt.io/download-qt-installer) `>= 5.12` *(using the latest version is recommended)*
   - [CMake](https://cmake.org/download/) *(can be installed via the Qt installer)*
   - [Ninja](https://ninja-build.org/) *(can be installed via the Qt installer)*
 
