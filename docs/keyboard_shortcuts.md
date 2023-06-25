@@ -30,7 +30,7 @@ These shortcuts are meant to be used while the Notes window is currently focused
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>K</kbd>     | Toggle kanban view                                            |
 | <kbd>F11</kbd>                                        | Toggle full screen mode                                       |
 | <kbd>Esc</kbd>                                        | Exit full screen mode                                         |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>L</kbd>     | Maximize Notes                                                |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>L</kbd>     | Focus on the notes list                                       |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd>     | Minimize Notes                                                |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd>     | Toggle Editor Settings' window visibility                     |
 | <kbd>Ctrl</kbd> + <kbd>Q</kbd>                        | Quit Notes                                                    |
