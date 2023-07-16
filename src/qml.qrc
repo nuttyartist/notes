@@ -1,0 +1,22 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/CheckBoxMaterial.qml</file>
+        <file>qml/CustomHorizontalScrollBar.qml</file>
+        <file>qml/CustomTextArea.qml</file>
+        <file>qml/CustomVerticalScrollBar.qml</file>
+        <file>qml/EditorSettings.qml</file>
+        <file>qml/FontChooserButton.qml</file>
+        <file>qml/FontIconLoader.qml</file>
+        <file>qml/FontIconsCodes.qml</file>
+        <file>qml/IconButton.qml</file>
+        <file>qml/kanbanMain.qml</file>
+        <file>qml/OptionItemButton.qml</file>
+        <file>qml/SwitchButton.qml</file>
+        <file>qml/TextButton.qml</file>
+        <file>qml/ThemeChooserButton.qml</file>
+        <file>qml/TodoColumnDelegate.qml</file>
+        <file>qml/TodoTaskDelegate.qml</file>
+        <file>qml/ViewChooserButton.qml</file>
+        <file>qml/EditorSettingsQt512.qml</file>
+    </qresource>
+</RCC>

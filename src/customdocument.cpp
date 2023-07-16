@@ -8,7 +8,7 @@ CustomDocument::CustomDocument(QWidget *parent) : QTextEdit(parent)
 {
     installEventFilter(this);
     viewport()->installEventFilter(this);
-
+    setMouseTracking(true);
     setAttribute(Qt::WidgetAttribute::WA_Hover, true);
 }
 
@@ -32,6 +32,12 @@ void CustomDocument::resizeEvent(QResizeEvent *event)
 {
     QTextEdit::resizeEvent(event);
     emit resized();
+}
+
+void CustomDocument::mouseMoveEvent(QMouseEvent *event)
+{
+    QTextEdit::mouseMoveEvent(event);
+    emit mouseMoved();
 }
 
 bool CustomDocument::eventFilter(QObject *obj, QEvent *event)

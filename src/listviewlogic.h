@@ -5,7 +5,7 @@
 #include <QVector>
 #include "nodedata.h"
 #include "dbmanager.h"
-#include "theme.h"
+#include "editorsettingsoptions.h"
 #include <QModelIndex>
 
 class NoteListView;
@@ -27,7 +27,7 @@ public:
 
     const ListViewInfo &listViewInfo() const;
     void selectFirstNote();
-    void setTheme(Theme theme);
+    void setTheme(Theme::Value theme);
     bool isAnimationRunning();
     void setLastSavedState(const QSet<int> &lastSelectedNotes, int needLoadSavedState = 2);
     void requestLoadSavedState(int needLoadSavedState);

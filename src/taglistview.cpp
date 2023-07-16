@@ -16,7 +16,7 @@ TagListView::TagListView(QWidget *parent) : QListView(parent)
     setTheme(Theme::Light);
 }
 
-void TagListView::setTheme(Theme theme)
+void TagListView::setTheme(Theme::Value theme)
 {
     setCSSThemeAndUpdate(this, theme);
 }

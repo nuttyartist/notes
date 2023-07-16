@@ -23,7 +23,7 @@ NodeTreeView::NodeTreeView(QWidget *parent)
     file.open(QFile::ReadOnly);
     setStyleSheet(file.readAll());
 
-#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+#if (defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)) || defined(Q_OS_WIN) || defined(Q_OS_WINDOWS)
     QFile scollBarStyleFile(QStringLiteral(":/styles/components/custom-scrollbar.css"));
     scollBarStyleFile.open(QFile::ReadOnly);
     QString scrollbarStyleSheet = QString::fromLatin1(scollBarStyleFile.readAll());
@@ -152,7 +152,7 @@ void NodeTreeView::onTagsDropSuccessful(const QSet<int> &ids)
     }
 }
 
-Theme NodeTreeView::theme() const
+Theme::Value NodeTreeView::theme() const
 {
     return m_theme;
 }
@@ -437,7 +437,7 @@ void NodeTreeView::setCurrentIndexNC(const QModelIndex &index)
     setCurrentIndex(index);
 }
 
-void NodeTreeView::setTheme(Theme theme)
+void NodeTreeView::setTheme(Theme::Value theme)
 {
     setCSSThemeAndUpdate(this, theme);
     m_theme = theme;

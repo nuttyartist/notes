@@ -2,7 +2,7 @@
 #define ABOUTWINDOW_H
 
 #include <QDialog>
-#include "theme.h"
+#include "editorsettingsoptions.h"
 
 namespace Ui {
 class AboutWindow;
@@ -15,7 +15,7 @@ class AboutWindow : public QDialog
 public:
     explicit AboutWindow(QWidget *parent = 0);
     ~AboutWindow();
-    void setTheme(Theme theme);
+    void setTheme(Theme::Value theme);
 
 public slots:
 

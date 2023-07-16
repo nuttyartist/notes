@@ -2,19 +2,22 @@
 #define NODETREEDELEGATE_H
 
 #include <QStyledItemDelegate>
-#include "theme.h"
+#include "editorsettingsoptions.h"
 
 class QTreeView;
+class QListView;
 
 class NodeTreeDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
 public:
-    explicit NodeTreeDelegate(QTreeView *view, QObject *parent = nullptr);
-    void setTheme(Theme theme);
+    explicit NodeTreeDelegate(QTreeView *view, QObject *parent = nullptr,
+                              QListView *listView = nullptr);
+    void setTheme(Theme::Value theme);
 signals:
     void addFolderRequested();
     void addTagRequested();
+    void themeChanged(Theme::Value theme);
 
     // QAbstractItemDelegate interface
 public:
@@ -51,8 +54,10 @@ private:
     QColor m_currentBackgroundColor;
     QColor m_numberOfNotesColor;
     QColor m_numberOfNotesSelectedColor;
+    QColor m_folderIconColor;
     QTreeView *m_view;
-    Theme m_theme;
+    QListView *m_listView;
+    Theme::Value m_theme;
 };
 
 #endif // NODETREEDELEGATE_H

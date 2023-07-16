@@ -114,6 +114,9 @@ NoteData #dateLabel{
             <height>0</height>
            </size>
           </property>
+          <property name="lineWidth">
+           <number>0</number>
+          </property>
           <layout class="QHBoxLayout" name="horizontalLayout_2">
            <property name="spacing">
             <number>0</number>
@@ -131,34 +134,105 @@ NoteData #dateLabel{
             <number>0</number>
            </property>
            <item>
-            <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0">
+            <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,0,0">
              <property name="spacing">
               <number>0</number>
              </property>
              <item>
-              <widget class="QWidget" name="verticalSpacer_upTreeView" native="true">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
+              <spacer name="verticalSpacer_aboveTitleBarButtons">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
                </property>
-               <property name="minimumSize">
+               <property name="sizeType">
+                <enum>QSizePolicy::Minimum</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
                 <size>
                  <width>20</width>
-                 <height>25</height>
+                 <height>3</height>
                 </size>
                </property>
-               <property name="maximumSize">
+              </spacer>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_aboveTreeView">
+               <property name="spacing">
+                <number>0</number>
+               </property>
+               <item>
+                <spacer name="horizontalSpacer">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QPushButton" name="globalSettingsButton">
+                 <property name="minimumSize">
+                  <size>
+                   <width>33</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>33</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="cursor">
+                  <cursorShape>PointingHandCursor</cursorShape>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="autoDefault">
+                  <bool>false</bool>
+                 </property>
+                 <property name="default">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_2">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeType">
+                  <enum>QSizePolicy::Minimum</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>3</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <spacer name="verticalSpacer_aoveTreeView">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Minimum</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
                 <size>
-                 <width>16777215</width>
-                 <height>25</height>
+                 <width>20</width>
+                 <height>2</height>
                 </size>
                </property>
-               <property name="styleSheet">
-                <string notr="true">QWidget{\n    background-color: #ffffff;\n}</string>
-               </property>
-              </widget>
+              </spacer>
              </item>
              <item>
               <widget class="NodeTreeView" name="treeView"/>
@@ -264,13 +338,13 @@ NoteData #dateLabel{
                   <property name="minimumSize">
                    <size>
                     <width>20</width>
-                    <height>25</height>
+                    <height>0</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
                     <width>16777215</width>
-                    <height>25</height>
+                    <height>0</height>
                    </size>
                   </property>
                   <property name="styleSheet">
@@ -282,8 +356,48 @@ NoteData #dateLabel{
                 </item>
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <spacer name="horizontalSpacer_6">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Minimum</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>2</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
                   <item>
                    <widget class="PushButtonType" name="toggleTreeViewButton">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="minimumSize">
+                     <size>
+                      <width>35</width>
+                      <height>35</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>33</width>
+                      <height>35</height>
+                     </size>
+                    </property>
+                    <property name="cursor">
+                     <cursorShape>PointingHandCursor</cursorShape>
+                    </property>
                     <property name="text">
                      <string/>
                     </property>
@@ -502,10 +616,6 @@ NoteData #dateLabel{
                     <property name="text">
                      <string/>
                     </property>
-                    <property name="icon">
-                     <iconset resource="images.qrc">
-                      <normaloff>:/images/newNote_Regular.png</normaloff>:/images/newNote_Regular.png</iconset>
-                    </property>
                     <property name="iconSize">
                      <size>
                       <width>16</width>
@@ -513,6 +623,22 @@ NoteData #dateLabel{
                      </size>
                     </property>
                    </widget>
+                  </item>
+                  <item>
+                   <spacer name="horizontalSpacer_7">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Minimum</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>0</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
                   </item>
                  </layout>
                 </item>
@@ -557,6 +683,9 @@ NoteData #dateLabel{
                </property>
                <property name="frameShape">
                 <enum>QFrame::NoFrame</enum>
+               </property>
+               <property name="lineWidth">
+                <number>0</number>
                </property>
                <property name="verticalScrollBarPolicy">
                 <enum>Qt::ScrollBarAsNeeded</enum>
@@ -674,7 +803,7 @@ NoteData #dateLabel{
                 <property name="sizeHint" stdset="0">
                  <size>
                   <width>20</width>
-                  <height>25</height>
+                  <height>5</height>
                  </size>
                 </property>
                </spacer>
@@ -685,7 +814,7 @@ NoteData #dateLabel{
                  <number>0</number>
                 </property>
                 <item>
-                 <spacer name="horizontalSpacer">
+                 <spacer name="horizontalSpacer_leftDateLabel_1">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
@@ -701,8 +830,55 @@ NoteData #dateLabel{
                  </spacer>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="styleEditorButton">
+                 <widget class="QPushButton" name="switchToTextViewButton">
+                  <property name="enabled">
+                   <bool>false</bool>
+                  </property>
                   <property name="minimumSize">
+                   <size>
+                    <width>33</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>33</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="cursor">
+                   <cursorShape>ArrowCursor</cursorShape>
+                  </property>
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_8">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeType">
+                   <enum>QSizePolicy::Minimum</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>15</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="switchToKanbanViewButton">
+                  <property name="minimumSize">
+                   <size>
+                    <width>33</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
                    <size>
                     <width>33</width>
                     <height>25</height>
@@ -717,7 +893,7 @@ NoteData #dateLabel{
                  </widget>
                 </item>
                 <item>
-                 <spacer name="horizontalSpacer_rightNewNoteButton">
+                 <spacer name="horizontalSpacer_leftDateLabel_2">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
@@ -761,7 +937,7 @@ color: rgb(132, 132, 132);
                  </widget>
                 </item>
                 <item>
-                 <spacer name="horizontalSpacer_leftTrashBUtton">
+                 <spacer name="horizontalSpacer_leftDotsButton">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
@@ -769,57 +945,6 @@ color: rgb(132, 132, 132);
                    <size>
                     <width>40</width>
                     <height>25</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="trashButton">
-                  <property name="minimumSize">
-                   <size>
-                    <width>33</width>
-                    <height>25</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>33</width>
-                    <height>25</height>
-                   </size>
-                  </property>
-                  <property name="cursor">
-                   <cursorShape>PointingHandCursor</cursorShape>
-                  </property>
-                  <property name="focusPolicy">
-                   <enum>Qt::TabFocus</enum>
-                  </property>
-                  <property name="text">
-                   <string/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="images.qrc">
-                    <normaloff>:/images/trashCan_Regular.png</normaloff>:/images/trashCan_Regular.png</iconset>
-                  </property>
-                  <property name="iconSize">
-                   <size>
-                    <width>14</width>
-                    <height>18</height>
-                   </size>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer_2">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeType">
-                   <enum>QSizePolicy::Minimum</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>24</width>
-                    <height>20</height>
                    </size>
                   </property>
                  </spacer>
@@ -847,14 +972,10 @@ color: rgb(132, 132, 132);
                   <property name="text">
                    <string/>
                   </property>
-                  <property name="icon">
-                   <iconset resource="images.qrc">
-                    <normaloff>:/images/3dots_Regular.png</normaloff>:/images/3dots_Regular.png</iconset>
-                  </property>
                  </widget>
                 </item>
                 <item>
-                 <spacer name="horizontalSpacer_rightTrashButton">
+                 <spacer name="horizontalSpacer_rightDotsButton">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
@@ -871,24 +992,24 @@ color: rgb(132, 132, 132);
                 </item>
                </layout>
               </item>
-              <item>
-               <spacer name="verticalSpacer_upTextEdit">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeType">
-                 <enum>QSizePolicy::Minimum</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>6</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
              </layout>
             </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_upTextEdit">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Minimum</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>6</height>
+              </size>
+             </property>
+            </spacer>
            </item>
            <item>
             <widget class="CustomDocument" name="textEdit">
@@ -943,6 +1064,8 @@ color: rgb(132, 132, 132);
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: &quot;\2610&quot;; }
+li.checked::marker { content: &quot;\2612&quot;; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.AppleSystemUIFont'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Ubuntu'; font-size:14pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
@@ -1016,8 +1139,6 @@ hr { height: 1px; border-width: 0; }
    <header location="global">elidedlabel.h</header>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="images.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

@@ -2,6 +2,7 @@
 #include "nodetreeview.h"
 #include "nodetreemodel.h"
 #include "nodetreedelegate.h"
+#include "notelistview.h"
 #include <QDebug>
 #include <QMetaObject>
 #include <QMessageBox>
@@ -11,10 +12,11 @@
 #include "customapplicationstyle.h"
 
 TreeViewLogic::TreeViewLogic(NodeTreeView *treeView, NodeTreeModel *treeModel, DBManager *dbManager,
-                             QObject *parent)
+                             NoteListView *listView, QObject *parent)
     : QObject(parent),
       m_treeView{ treeView },
       m_treeModel{ treeModel },
+      m_listView{ listView },
       m_dbManager{ dbManager },
       m_needLoadSavedState{ false },
       m_isLastSelectFolder{ true },
@@ -22,7 +24,7 @@ TreeViewLogic::TreeViewLogic(NodeTreeView *treeView, NodeTreeModel *treeModel, D
       m_lastSelectTags{},
       m_expandedFolder{}
 {
-    m_treeDelegate = new NodeTreeDelegate(m_treeView, m_treeView);
+    m_treeDelegate = new NodeTreeDelegate(m_treeView, m_treeView, m_listView);
     m_treeView->setItemDelegate(m_treeDelegate);
     connect(m_dbManager, &DBManager::nodesTagTreeReceived, this, &TreeViewLogic::loadTreeModel,
             Qt::QueuedConnection);
@@ -389,7 +391,7 @@ void TreeViewLogic::onMoveNodeRequested(int nodeId, int targetId)
     emit requestMoveNodeInDB(nodeId, target);
 }
 
-void TreeViewLogic::setTheme(Theme theme)
+void TreeViewLogic::setTheme(Theme::Value theme)
 {
     m_treeView->setTheme(theme);
     m_treeDelegate->setTheme(theme);

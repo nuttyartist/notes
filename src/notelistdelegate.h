@@ -5,6 +5,7 @@
 #include <QStyledItemDelegate>
 #include <QTimeLine>
 #include <QQueue>
+#include "editorsettingsoptions.h"
 
 class TagPool;
 class NoteListModel;
@@ -32,8 +33,8 @@ public:
     void setHoveredIndex(const QModelIndex &hoveredIndex);
     void setRowRightOffset(int rowRightOffset);
     void setActive(bool isActive);
-    void setTheme(Theme theme);
-    Theme theme() const;
+    void setTheme(Theme::Value theme);
+    Theme::Value theme() const;
     void setIsInAllNotes(bool newIsInAllNotes);
     bool isInAllNotes() const;
     void clearSizeMap();
@@ -50,7 +51,7 @@ public:
     bool shouldPaintSeparator(const QModelIndex &index, const NoteListModel &model) const;
 
 signals:
-    void themeChanged(Theme theme);
+    void themeChanged(Theme::Value theme);
     void animationFinished(NoteListState animationState);
 
 private:
@@ -87,9 +88,7 @@ private:
     bool m_isActive;
     bool m_isInAllNotes;
     QImage m_folderIcon;
-    QImage m_pinnedExpandIcon;
-    QImage m_pinnedCollapseIcon;
-    Theme m_theme;
+    Theme::Value m_theme;
     QTimeLine *m_timeLine;
     QModelIndexList m_animatedIndexes;
     QModelIndex m_hoveredIndex;

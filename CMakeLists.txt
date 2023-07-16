@@ -47,7 +47,8 @@ set(QT_COMPONENTS
     Network
     Sql
     Test
-    Widgets)
+    Widgets
+    Quick)
 
 # No Qt version was specified, try to use either Qt 6 (preferred) or Qt 5.
 if(USE_QT_VERSION STREQUAL "")
@@ -67,12 +68,6 @@ if(USE_QT_VERSION STREQUAL "")
     endif()
   endif()
 
-  # When building with Qt 6.2+, QtQuick is now added as a hard dependency.
-  # TODO: Probably make this feature optional?
-  if(QT_VERSION VERSION_GREATER_EQUAL 6.2)
-    list(APPEND QT_COMPONENTS Quick)
-  endif()
-
   find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS ${QT_COMPONENTS})
 else()
   if(NOT USE_QT_VERSION STREQUAL "5" AND NOT USE_QT_VERSION STREQUAL "6")
@@ -88,12 +83,6 @@ else()
   if(NOT DEFINED QT_VERSION_MAJOR)
     message(
       FATAL_ERROR "Could not find Qt ${USE_QT_VERSION}, aborting compilation.")
-  endif()
-
-  # When building with Qt 6.2+, QtQuick is now added as a hard dependency.
-  # TODO: Probably make this feature optional?
-  if(QT_VERSION VERSION_GREATER_EQUAL 6.2)
-    list(APPEND QT_COMPONENTS Quick)
   endif()
 
   find_package(Qt${USE_QT_VERSION} REQUIRED COMPONENTS ${QT_COMPONENTS})
@@ -147,8 +136,8 @@ set(SOURCES
     ${PROJECT_SOURCE_DIR}/src/dbmanager.h
     ${PROJECT_SOURCE_DIR}/src/defaultnotefolderdelegateeditor.cpp
     ${PROJECT_SOURCE_DIR}/src/defaultnotefolderdelegateeditor.h
-    ${PROJECT_SOURCE_DIR}/src/editorsettingsbutton.cpp
-    ${PROJECT_SOURCE_DIR}/src/editorsettingsbutton.h
+    ${PROJECT_SOURCE_DIR}/src/editorsettingsoptions.h
+    ${PROJECT_SOURCE_DIR}/src/editorsettingsoptions.cpp
     ${PROJECT_SOURCE_DIR}/src/elidedlabel.cpp
     ${PROJECT_SOURCE_DIR}/src/elidedlabel.h
     ${PROJECT_SOURCE_DIR}/src/foldertreedelegateeditor.cpp
@@ -157,6 +146,7 @@ set(SOURCES
     ${PROJECT_SOURCE_DIR}/src/labeledittype.h
     ${PROJECT_SOURCE_DIR}/src/listviewlogic.cpp
     ${PROJECT_SOURCE_DIR}/src/listviewlogic.h
+    ${PROJECT_SOURCE_DIR}/src/lqtutils_enum.h
     ${PROJECT_SOURCE_DIR}/src/main.cpp
     ${PROJECT_SOURCE_DIR}/src/mainwindow.cpp
     ${PROJECT_SOURCE_DIR}/src/mainwindow.h
@@ -188,8 +178,6 @@ set(SOURCES
     ${PROJECT_SOURCE_DIR}/src/singleinstance.h
     ${PROJECT_SOURCE_DIR}/src/splitterstyle.cpp
     ${PROJECT_SOURCE_DIR}/src/splitterstyle.h
-    ${PROJECT_SOURCE_DIR}/src/styleeditorwindow.cpp
-    ${PROJECT_SOURCE_DIR}/src/styleeditorwindow.h
     ${PROJECT_SOURCE_DIR}/src/tagdata.cpp
     ${PROJECT_SOURCE_DIR}/src/tagdata.h
     ${PROJECT_SOURCE_DIR}/src/taglistdelegate.cpp
@@ -202,8 +190,6 @@ set(SOURCES
     ${PROJECT_SOURCE_DIR}/src/tagpool.h
     ${PROJECT_SOURCE_DIR}/src/tagtreedelegateeditor.cpp
     ${PROJECT_SOURCE_DIR}/src/tagtreedelegateeditor.h
-    ${PROJECT_SOURCE_DIR}/src/theme.cpp
-    ${PROJECT_SOURCE_DIR}/src/theme.h
     ${PROJECT_SOURCE_DIR}/src/trashbuttondelegateeditor.cpp
     ${PROJECT_SOURCE_DIR}/src/trashbuttondelegateeditor.h
     ${PROJECT_SOURCE_DIR}/src/treeviewlogic.cpp
@@ -211,11 +197,14 @@ set(SOURCES
     # ui
     ${PROJECT_SOURCE_DIR}/src/aboutwindow.ui
     ${PROJECT_SOURCE_DIR}/src/mainwindow.ui
-    ${PROJECT_SOURCE_DIR}/src/styleeditorwindow.ui
     # qrc files
     ${PROJECT_SOURCE_DIR}/src/fonts.qrc
     ${PROJECT_SOURCE_DIR}/src/images.qrc
     ${PROJECT_SOURCE_DIR}/src/styles.qrc)
+
+if(QT_VERSION VERSION_LESS 6.0)
+  list(APPEND SOURCES ${PROJECT_SOURCE_DIR}/src/qml.qrc)
+endif()
 
 # Third-party source files.
 set(SOURCES_3RD_PARTY
@@ -309,17 +298,26 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" AND MSVC_VERSION GREATER_EQUAL
 endif()
 
 if(QT_VERSION VERSION_GREATER_EQUAL 6.2)
-  set(KANBAN_QML_FILES
+  set(QML_FILES
+      src/qml/CheckBoxMaterial.qml
+      src/qml/CustomTextArea.qml
+      src/qml/CustomHorizontalScrollBar.qml
+      src/qml/CustomVerticalScrollBar.qml
+      src/qml/EditorSettings.qml
+      src/qml/FontIconsCodes.qml
+      src/qml/FontIconLoader.qml
+      src/qml/FontChooserButton.qml
+      src/qml/IconButton.qml
       src/qml/kanbanMain.qml
+      src/qml/OptionItemButton.qml
+      src/qml/SwitchButton.qml
+      src/qml/TextButton.qml
+      src/qml/ThemeChooserButton.qml
       src/qml/TodoColumnDelegate.qml
       src/qml/TodoTaskDelegate.qml
-      src/qml/DotsButton.qml
-      src/qml/CheckBoxMaterial.qml
-      src/qml/PlusButton.qml
-      src/qml/TrashButton.qml
-      src/qml/SwitchButton.qml)
+      src/qml/ViewChooserButton.qml)
 
-  foreach(file IN LISTS KANBAN_QML_FILES)
+  foreach(file IN LISTS QML_FILES)
     get_filename_component(fileName ${file} NAME)
     set_source_files_properties(${file} PROPERTIES QT_RESOURCE_ALIAS
                                                    ${fileName})
@@ -354,17 +352,15 @@ if(QT_VERSION VERSION_GREATER_EQUAL 6.2)
   qt_add_qml_module(
     ${PROJECT_NAME}
     URI
-    kanban
+    ${APP_ID}
     VERSION
     ${PROJECT_VERSION}
     NO_PLUGIN
     RESOURCE_PREFIX
     "/qt/qml"
     QML_FILES
-    ${KANBAN_QML_FILES}
+    ${QML_FILES}
     NO_RESOURCE_TARGET_PATH)
-
-  target_link_libraries(${PROJECT_NAME} PUBLIC Qt${QT_VERSION_MAJOR}::Quick)
 endif()
 
 target_link_libraries(
@@ -377,7 +373,8 @@ target_link_libraries(
          Qt${QT_VERSION_MAJOR}::Network
          Qt${QT_VERSION_MAJOR}::Sql
          Qt${QT_VERSION_MAJOR}::Widgets
-         Qt${QT_VERSION_MAJOR}::WidgetsPrivate)
+         Qt${QT_VERSION_MAJOR}::WidgetsPrivate
+         Qt${QT_VERSION_MAJOR}::Quick)
 
 if(APPLE)
   set(COPYRIGHT_TEXT
@@ -441,11 +438,6 @@ elseif(UNIX)
   endforeach()
 
   install(
-    FILES ${PROJECT_SOURCE_DIR}/packaging/linux/common/icons/scalable/notes.svg
-    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps
-    RENAME ${APP_ID}.svg)
-
-  install(
     FILES ${PROJECT_SOURCE_DIR}/LICENSE
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/licenses/${PROJECT_NAME_LOWERCASE})
 
@@ -476,10 +468,6 @@ elseif(UNIX)
       DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/doc/${PROJECT_NAME_LOWERCASE})
   endif()
 
-  # Include CPack for creating deb/rpm packages
-  # On Ubuntu 18.04 this is unset by default
-  set(CPACK_PACKAGE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-
   set(CPACK_PACKAGE_NAME ${PROJECT_NAME_LOWERCASE})
   set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION}${GIT_REV})
   set(CPACK_PACKAGE_VENDOR ${APP_AUTHOR})
@@ -507,6 +495,10 @@ elseif(UNIX)
           "${CPACK_DEBIAN_PACKAGE_DEPENDS}, qml6-module-qtqml-workerscript, qml6-module-qtquick-controls, qml6-module-qtquick-particles, qml6-module-qtquick-templates"
       )
     endif()
+  elseif(QT_VERSION_MAJOR VERSION_EQUAL 5)
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS
+        "qml-module-qtquick2, qml-module-qtquick-controls2, qml-module-qtquick-window2"
+    )
   endif()
   set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
   set(CPACK_DEBIAN_PACKAGE_HOMEPAGE ${APP_WEBSITE})

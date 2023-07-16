@@ -6,6 +6,7 @@
 #include <QScrollBar>
 #include <qstyle.h>
 #include <sstream>
+#include "editorsettingsoptions.h"
 
 /**
  * Initializes the window components and configures the AboutWindow
@@ -77,7 +78,7 @@ AboutWindow::~AboutWindow()
     delete m_ui;
 }
 
-void AboutWindow::setTheme(Theme theme)
+void AboutWindow::setTheme(Theme::Value theme)
 {
     setCSSThemeAndUpdate(m_ui->aboutText, theme);
 }

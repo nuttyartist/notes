@@ -587,7 +587,7 @@ void NodeTreeModel::appendAllNotesAndTrashButton(NodeTreeItem *rootNode)
         auto hs = QHash<NodeItem::Roles, QVariant>{};
         hs[NodeItem::Roles::ItemType] = NodeItem::Type::AllNoteButton;
         hs[NodeItem::Roles::DisplayText] = tr("All Notes");
-        hs[NodeItem::Roles::Icon] = ":/images/all-notes-icon.png";
+        hs[NodeItem::Roles::Icon] = u8"\ue2c7"; // folder
         auto allNodeButton = new NodeTreeItem(hs, rootNode);
         rootNode->appendChild(allNodeButton);
     }
@@ -595,7 +595,7 @@ void NodeTreeModel::appendAllNotesAndTrashButton(NodeTreeItem *rootNode)
         auto hs = QHash<NodeItem::Roles, QVariant>{};
         hs[NodeItem::Roles::ItemType] = NodeItem::Type::TrashButton;
         hs[NodeItem::Roles::DisplayText] = tr("Trash");
-        hs[NodeItem::Roles::Icon] = ":/images/trash-icon.png";
+        hs[NodeItem::Roles::Icon] = u8"\uf1f8"; // fa-trash
         auto trashButton = new NodeTreeItem(hs, rootNode);
         rootNode->appendChild(trashButton);
     }

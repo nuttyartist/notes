@@ -3,7 +3,7 @@
 
 #include <QListView>
 #include <QScrollArea>
-#include "theme.h"
+#include "editorsettingsoptions.h"
 #include "dbmanager.h"
 
 class TagPool;
@@ -21,7 +21,7 @@ public:
     void animateAddedRow(const QModelIndexList &indexes);
     void setAnimationEnabled(bool isEnabled);
     void setCurrentRowActive(bool isActive);
-    void setTheme(Theme theme);
+    void setTheme(Theme::Value theme);
     void setTagPool(TagPool *newTagPool);
     void setIsInTrash(bool newIsInTrash);
     void setDbManager(DBManager *newDbManager);

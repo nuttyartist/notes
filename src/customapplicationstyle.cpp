@@ -1,6 +1,7 @@
 #include "customapplicationstyle.h"
 #include <QPainter>
 #include <QStyleOption>
+#include "editorsettingsoptions.h"
 
 void CustomApplicationStyle::drawPrimitive(PrimitiveElement element, const QStyleOption *option,
                                            QPainter *painter, const QWidget *widget) const
@@ -26,7 +27,7 @@ void CustomApplicationStyle::drawPrimitive(PrimitiveElement element, const QStyl
     }
 }
 
-void CustomApplicationStyle::setTheme(Theme theme)
+void CustomApplicationStyle::setTheme(Theme::Value theme)
 {
     m_theme = theme;
 }

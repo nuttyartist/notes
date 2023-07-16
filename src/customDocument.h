@@ -8,6 +8,7 @@
 class CustomDocument : public QTextEdit
 {
     Q_OBJECT
+
 public:
     CustomDocument(QWidget *parent = nullptr);
     void setDocumentPadding(int left, int top, int right, int bottom);
@@ -22,10 +23,12 @@ public:
     void moveBlockDown();
 signals:
     void resized();
+    void mouseMoved();
 
     // QWidget interface
 protected:
     void resizeEvent(QResizeEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
 
     QStringList _ignoredClickUrlSchemata;
 };

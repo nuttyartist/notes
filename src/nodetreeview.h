@@ -3,8 +3,8 @@
 
 #include <QTreeView>
 #include <QTimer>
-#include "theme.h"
 #include "nodedata.h"
+#include "editorsettingsoptions.h"
 
 class QMenu;
 class QAction;
@@ -13,8 +13,8 @@ struct NoteTreeConstant
 {
     static constexpr int folderItemHeight = 30;
     static constexpr int tagItemHeight = 30;
-    static constexpr int folderLabelHeight = 25;
-    static constexpr int tagLabelHeight = 25;
+    static constexpr int folderLabelHeight = 35;
+    static constexpr int tagLabelHeight = 35;
 };
 
 class NodeTreeView : public QTreeView
@@ -30,8 +30,8 @@ public:
     void onRenameTagFinished(const QString &newName);
     void setCurrentIndexC(const QModelIndex &index);
     void setCurrentIndexNC(const QModelIndex &index);
-    void setTheme(Theme theme);
-    Theme theme() const;
+    void setTheme(Theme::Value theme);
+    Theme::Value theme() const;
     bool isDragging() const;
     void reExpandC();
     void reExpandC(const QStringList &expanded);
@@ -87,7 +87,7 @@ private:
     QModelIndex m_currentEditingIndex;
     bool m_isContextMenuOpened;
     bool m_isEditing;
-    Theme m_theme;
+    Theme::Value m_theme;
     QVector<QString> m_expanded;
     QModelIndex m_needReleaseIndex;
     bool m_ignoreThisCurrentLoad;

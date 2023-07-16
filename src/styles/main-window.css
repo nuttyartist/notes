@@ -2,6 +2,7 @@ QMainWindow.light,
 QWidget#verticalSpacer_upSearchEdit.light,
 QWidget#verticalSpacer_upSearchEdit2.light,
 QWidget#verticalSpacer_upTreeView.light,
+QFrame#frameLeft.light,
 QFrame#frameRightTop.light,
 QFrame#frameRight.light,
 QListView#tagListView.light,
@@ -13,6 +14,7 @@ QMainWindow.dark,
 QWidget#verticalSpacer_upSearchEdit.dark,
 QWidget#verticalSpacer_upSearchEdit2.dark,
 QWidget#verticalSpacer_upTreeView.dark,
+QFrame#frameLeft.dark,
 QFrame#frameRightTop.dark,
 QFrame#frameRight.dark,
 QListView#tagListView.dark,
@@ -24,6 +26,7 @@ QMainWindow.sepia,
 QWidget#verticalSpacer_upSearchEdit.sepia,
 QWidget#verticalSpacer_upSearchEdit2.sepia,
 QWidget#verticalSpacer_upTreeView.sepia,
+QFrame#frameLeft.sepia,
 QFrame#frameRightTop.sepia,
 QFrame#frameRight.sepia,
 QListView#tagListView.sepia,
@@ -38,7 +41,8 @@ QFrame#frameRightTop {
 
 /* Main editor */
 QTextEdit#textEdit {
-  selection-background-color: rgb(63, 99, 139);
+  selection-background-color: rgb(35, 131, 226);
+  selection-color: rgb(255, 255, 255);
 }
 
 QTextEdit#textEdit.light {
@@ -71,19 +75,6 @@ QLabel#listviewLabel2 {
   color: rgb(132, 132, 132);
 }
 
-/* Aa Style Editor  Button */
-QPushButton#styleEditorButton {
-  color: rgb(68, 138, 201);
-}
-
-QPushButton#styleEditorButton:hover {
-  color: rgb(51, 110, 162);
-}
-
-QPushButton#styleEditorButton:pressed {
-  color: rgb(39, 85, 125);
-}
-
 /* Search bar */
 QLineEdit#searchEdit {
   padding-left: 21px;
@@ -96,16 +87,19 @@ QLineEdit#searchEdit {
 QLineEdit#searchEdit.light {
   background-color: rgb(247, 247, 247);
   color: rgb(26, 26, 26);
+  border: 1px solid rgb(205, 205, 205);
 }
 
 QLineEdit#searchEdit.dark {
   background-color: rgb(25, 25, 25);
   color: rgb(212, 212, 212);
+  border: 1px solid rgb(68, 68, 68);
 }
 
 QLineEdit#searchEdit.sepia {
   background-color: rgb(251, 240, 217);
   color: rgb(95, 74, 50);
+  border: 1px solid rgb(205, 205, 205);
 }
 
 QLineEdit#searchEdit:focus {
@@ -117,14 +111,16 @@ QLineEdit#searchEdit:focus {
 QLineEdit#searchEdit QToolButton,
 /* The + button to create a new note */
 QPushButton#newNoteButton,
-/* The trash button */
-QPushButton#trashButton,
 /* The 3 dots button */
 QPushButton#dotsButton,
+/* The global settings button */
+QPushButton#globalSettingsButton,
 /* The button to toggle the tree view */
 QPushButton#toggleTreeViewButton,
+QPushButton#switchToTextViewButton,
+QPushButton#switchToKanbanViewButton,
 /* The Aa button to open the style editor */
-QPushButton#styleEditorButton {
+QPushButton {
   border: none;
   padding: 0px;
   outline: none;
@@ -156,3 +152,28 @@ QMenu.menu {
 QMenu::item:selected {
   background: 1px solid rgb(48, 140, 198);
 }
+
+QPushButton#globalSettingsButton,
+QPushButton#dotsButton,
+QPushButton#toggleTreeViewButton,
+QPushButton#newNoteButton,
+QPushButton#switchToKanbanViewButton {
+    color: rgb(68, 138, 201);
+}
+
+QPushButton#globalSettingsButton:hover,
+QPushButton#dotsButton:hover,
+QPushButton#toggleTreeViewButton:hover,
+QPushButton#newNoteButton:hover,
+QPushButton#switchToKanbanViewButton:hover {
+    color: rgb(51, 110, 162);
+}
+
+QPushButton#globalSettingsButton:pressed,
+QPushButton#dotsButton:pressed,
+QPushButton#toggleTreeViewButton:pressed,
+QPushButton#newNoteButton:pressed,
+QPushButton#switchToKanbanViewButton:pressed {
+    color: rgb(39, 85, 125);
+}
+

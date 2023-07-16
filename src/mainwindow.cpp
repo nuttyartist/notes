@@ -12,7 +12,7 @@
 #include "noteeditorlogic.h"
 #include "tagpool.h"
 #include "splitterstyle.h"
-#include <theme.h>
+#include "editorsettingsoptions.h"
 
 #include <QScrollBar>
 #include <QShortcut>
@@ -39,14 +39,14 @@ MainWindow::MainWindow(QWidget *parent)
       ui(new Ui::MainWindow),
       m_settingsDatabase(nullptr),
       m_clearButton(nullptr),
+      m_searchButton(nullptr),
       m_greenMaximizeButton(nullptr),
       m_redCloseButton(nullptr),
       m_yellowMinimizeButton(nullptr),
       m_trafficLightLayout(nullptr),
       m_newNoteButton(nullptr),
-      m_trashButton(nullptr),
       m_dotsButton(nullptr),
-      m_styleEditorButton(nullptr),
+      m_globalSettingsButton(nullptr),
       m_textEdit(nullptr),
       m_noteEditorLogic(nullptr),
       m_searchEdit(nullptr),
@@ -67,10 +67,11 @@ MainWindow::MainWindow(QWidget *parent)
       m_kanbanQuickView(nullptr),
       m_kanbanWidget(this),
 #endif
+      m_editorSettingsQuickView(nullptr),
+      m_editorSettingsWidget(new QWidget(this)),
       m_tagPool(nullptr),
       m_dbManager(nullptr),
       m_dbThread(nullptr),
-      m_styleEditorWindow(this),
       m_aboutWindow(this),
       m_trashCounter(0),
       m_layoutMargin(10),
@@ -113,17 +114,20 @@ MainWindow::MainWindow(QWidget *parent)
       m_currentTheme(Theme::Light),
       m_currentEditorTextColor(26, 26, 26),
       m_areNonEditorWidgetsVisible(true),
-      m_isFrameRightTopWidgetsVisible(true)
+#if !defined(Q_OS_MAC)
+      m_textEditScrollBarTimer(new QTimer(this)),
+      m_textEditScrollBarTimerDuration(1000),
+#endif
+      m_isFrameRightTopWidgetsVisible(true),
+      m_isEditorSettingsFromQuickViewVisible(false)
 {
     ui->setupUi(this);
     setupMainWindow();
     setupFonts();
-    setupKeyboardShortcuts();
-    setupNewNoteButtonAndTrashButton();
     setupSplitter();
-    setupRightFrame();
-    setupTitleBarButtons();
     setupSearchEdit();
+    setupEditorSettings();
+    setupKeyboardShortcuts();
     setupDatabases();
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
     setupKanbanView();
@@ -131,6 +135,7 @@ MainWindow::MainWindow(QWidget *parent)
     setupModelView();
     setupTextEdit();
     restoreStates();
+    setupButtons();
     setupSignalsSlots();
 #if defined(UPDATE_CHECKER)
     autoCheckForUpdates();
@@ -156,7 +161,7 @@ void MainWindow::InitData()
                 new QProgressDialog(tr("Migrating database, please wait."), QString(), 0, 0, this);
         pd->setCancelButton(nullptr);
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
-        pd->setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::FramelessWindowHint);
+        pd->setWindowFlags(Qt::Window);
 #else
         pd->setWindowFlags(Qt::Window | Qt::CustomizeWindowHint);
 #endif
@@ -288,7 +293,31 @@ void MainWindow::resizeEvent(QResizeEvent *event)
         updateFrame();
     }
 
+    resizeAndPositionEditorSettingsWindow();
+
+    QJsonObject dataToSendToView{ { "parentWindowHeight", this->height() } };
+    emit mainWindowResized(QVariant(dataToSendToView));
+
     QMainWindow::resizeEvent(event);
+}
+
+/*!
+ * \brief MainWindow::resizeAndPositionEditorSettingsWindow
+ */
+void MainWindow::resizeAndPositionEditorSettingsWindow()
+{
+#if defined(Q_OS_WINDOWS) || (defined(Q_OS_UNIX) && !defined(Q_OS_MACOS))
+    m_editorSettingsWidget->resize(240, 0.80 * this->height());
+    QPoint buttonGlobalPos = m_dotsButton->mapToGlobal(QPoint(0, 0));
+    m_editorSettingsWidget->move(buttonGlobalPos.x() - m_editorSettingsWidget->width()
+                                         + m_dotsButton->width(),
+                                 buttonGlobalPos.y() + m_dotsButton->height());
+#else
+    m_editorSettingsWidget->resize(300, 0.80 * this->height() + 40);
+    QPoint buttonGlobalPos = m_dotsButton->mapToGlobal(QPoint(0, 0));
+    m_editorSettingsWidget->move(buttonGlobalPos.x() - m_editorSettingsWidget->width() + 70,
+                                 buttonGlobalPos.y() + m_dotsButton->height() - 10);
+#endif
 }
 
 /*!
@@ -313,7 +342,8 @@ void MainWindow::setupMainWindow()
 #if !defined(Q_OS_MAC)
     auto flags = Qt::Window | Qt::CustomizeWindowHint;
 #  if defined(Q_OS_UNIX)
-    flags |= Qt::FramelessWindowHint;
+    //    flags |= Qt::FramelessWindowHint;
+    flags = Qt::Window;
 #  endif
     setWindowFlags(flags);
 #endif
@@ -328,6 +358,10 @@ void MainWindow::setupMainWindow()
     m_styleSheet = QString::fromLatin1(mainWindowStyleFile.readAll());
     setStyleSheet(m_styleSheet);
     /**** Apply the stylesheet for all children we change classes for ****/
+
+    // left frame
+    ui->frameLeft->setStyleSheet(m_styleSheet);
+
     // middle frame
     ui->searchEdit->setStyleSheet(m_styleSheet);
     ui->verticalSpacer_upSearchEdit->setStyleSheet(m_styleSheet);
@@ -341,22 +375,24 @@ void MainWindow::setupMainWindow()
 
     // buttons
     ui->toggleTreeViewButton->setStyleSheet(m_styleSheet);
-    ui->styleEditorButton->setStyleSheet(m_styleSheet);
     ui->newNoteButton->setStyleSheet(m_styleSheet);
-    ui->trashButton->setStyleSheet(m_styleSheet);
     ui->dotsButton->setStyleSheet(m_styleSheet);
+    ui->globalSettingsButton->setStyleSheet(m_styleSheet);
+    ui->switchToTextViewButton->setStyleSheet(m_styleSheet);
+    ui->switchToKanbanViewButton->setStyleSheet(m_styleSheet);
 
     // right frame (editor)
     ui->textEdit->setStyleSheet(m_styleSheet);
     ui->frameRight->setStyleSheet(m_styleSheet);
     ui->frameRightTop->setStyleSheet(m_styleSheet);
 
-    // custom scrollbars on linux only
-#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    // custom scrollbars on Linux and Windows
+#if !defined(Q_OS_MACOS)
     QFile scollBarStyleFile(QStringLiteral(":/styles/components/custom-scrollbar.css"));
     scollBarStyleFile.open(QFile::ReadOnly);
     QString scrollbarStyleSheet = QString::fromLatin1(scollBarStyleFile.readAll());
     ui->textEdit->verticalScrollBar()->setStyleSheet(scrollbarStyleSheet);
+    ui->textEdit->verticalScrollBar()->hide();
 #endif
 
     m_greenMaximizeButton = new QPushButton(this);
@@ -377,7 +413,7 @@ void MainWindow::setupMainWindow()
     m_yellowMinimizeButton->setVisible(false);
 #endif
 
-#ifdef _WIN32
+#if defined(Q_OS_WINDOWS)
     m_layoutMargin = 0;
     m_trafficLightLayout.setSpacing(0);
     m_trafficLightLayout.setContentsMargins(QMargins(0, 0, 0, 0));
@@ -385,15 +421,17 @@ void MainWindow::setupMainWindow()
 #endif
 
     m_newNoteButton = ui->newNoteButton;
-    m_trashButton = ui->trashButton;
     m_dotsButton = ui->dotsButton;
-    m_styleEditorButton = ui->styleEditorButton;
+    m_globalSettingsButton = ui->globalSettingsButton;
     m_searchEdit = ui->searchEdit;
     m_textEdit = ui->textEdit;
     m_editorDateLabel = ui->editorDateLabel;
     m_splitter = ui->splitter;
     m_foldersWidget = ui->frameLeft;
     m_noteListWidget = ui->frameMiddle;
+    m_toggleTreeViewButton = ui->toggleTreeViewButton;
+    m_switchToTextViewButton = ui->switchToTextViewButton;
+    m_switchToKanbanViewButton = ui->switchToKanbanViewButton;
     // don't resize first two panes when resizing
     m_splitter->setStretchFactor(0, 0);
     m_splitter->setStretchFactor(1, 0);
@@ -402,9 +440,6 @@ void MainWindow::setupMainWindow()
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
     QMargins margins(m_layoutMargin, m_layoutMargin, m_layoutMargin, m_layoutMargin);
     setMargins(margins);
-#elif _WIN32
-    ui->verticalSpacer->changeSize(0, 7, QSizePolicy::Fixed, QSizePolicy::Fixed);
-    ui->verticalSpacer_upEditorDateLabel->changeSize(0, 27, QSizePolicy::Fixed, QSizePolicy::Fixed);
 #endif
     ui->frame->installEventFilter(this);
     ui->centralWidget->setMouseTracking(true);
@@ -415,27 +450,12 @@ void MainWindow::setupMainWindow()
     setPalette(pal);
 
     m_newNoteButton->setToolTip(tr("Create New Note"));
-    m_trashButton->setToolTip(tr("Delete Selected Note"));
-    m_dotsButton->setToolTip(tr("Open Menu"));
-    m_styleEditorButton->setToolTip(tr("Style The Editor"));
+    m_dotsButton->setToolTip(tr("Open Editor Settings"));
+    m_globalSettingsButton->setToolTip(tr("Open App Settings"));
+    m_toggleTreeViewButton->setToolTip("Toggle Folders Pane");
+    m_switchToTextViewButton->setToolTip("Switch To Text View");
+    m_switchToKanbanViewButton->setToolTip("Switch To Kanban View");
 
-    m_styleEditorButton->setText(QStringLiteral("Aa"));
-#if __APPLE__
-    m_styleEditorButton->setFont(QFont(QStringLiteral("Roboto"), 20, QFont::Bold));
-#else
-    m_styleEditorButton->setFont(QFont(QStringLiteral("Roboto"), 16, QFont::Bold));
-
-#endif
-    m_styleEditorButton->installEventFilter(this);
-
-    ui->toggleTreeViewButton->setMaximumSize({ 33, 25 });
-    ui->toggleTreeViewButton->setMinimumSize({ 33, 25 });
-    ui->toggleTreeViewButton->setCursor(QCursor(Qt::PointingHandCursor));
-    ui->toggleTreeViewButton->setFocusPolicy(Qt::TabFocus);
-    ui->toggleTreeViewButton->setIconSize(QSize(16, 16));
-    ui->toggleTreeViewButton->setHoveredIcon(QIcon(QString::fromUtf8(":/images/drawer_icon.png")));
-    ui->toggleTreeViewButton->setNormalIcon(QIcon(QString::fromUtf8(":/images/drawer_icon.png")));
-    ui->toggleTreeViewButton->setPressedIcon(QIcon(QString::fromUtf8(":/images/drawer_icon.png")));
     ui->listviewLabel2->setMinimumSize({ 40, 25 });
     ui->listviewLabel2->setMaximumSize({ 40, 25 });
 
@@ -467,7 +487,7 @@ void MainWindow::setupFonts()
     m_editorDateLabel->setFont(QFont(m_displayFont, 12, QFont::Bold));
 #else
     m_searchEdit->setFont(QFont(m_displayFont, 10));
-    m_editorDateLabel->setFont(QFont(m_displayFont, 10, QFont::Bold));
+    m_editorDateLabel->setFont(QFont(m_displayFont, 9, QFont::Bold));
 #endif
 }
 
@@ -510,15 +530,14 @@ void MainWindow::setupKeyboardShortcuts()
     // new QShortcut(QKeySequence(Qt::Key_Return), this, SLOT(setFocusOnText()));
     new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_F), this, SLOT(fullscreenWindow()));
     new QShortcut(Qt::Key_F11, this, SLOT(fullscreenWindow()));
-    new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_L), this, SLOT(maximizeWindow()));
+    connect(new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_L), this),
+            &QShortcut::activated, this, [=]() { m_listView->setFocus(); });
     new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_M), this, SLOT(minimizeWindow()));
     new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q), this, SLOT(QuitApplication()));
 #if defined(Q_OS_MACOS) || defined(Q_OS_WINDOWS)
     new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_K), this, SLOT(toggleStayOnTop()));
 #endif
     new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_J), this, SLOT(toggleNoteList()));
-    new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_S), this,
-                  SLOT(onStyleEditorButtonClicked()));
     new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_J), this, SLOT(toggleFolderTree()));
     new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_A), this, SLOT(selectAllNotesInList()));
     new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_QuoteLeft), this, SLOT(makeCode()));
@@ -530,6 +549,40 @@ void MainWindow::setupKeyboardShortcuts()
     new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_Equal), this,
                   SLOT(increaseHeading()));
     new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_Plus), this, SLOT(increaseHeading()));
+    connect(new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_S), this),
+            &QShortcut::activated, this, [=]() {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+                if (m_kanbanWidget->isHidden()) {
+                    if (m_editorSettingsWidget->isHidden()) {
+                        showEditorSettings();
+                    }
+                } else {
+                    emit toggleEditorSettingsKeyboardShorcutFired();
+                };
+#else
+            if (m_editorSettingsWidget->isHidden()) {
+                showEditorSettings();
+            } else {
+                m_editorSettingsWidget->close();
+            }
+#endif
+            });
+    connect(new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_S), m_editorSettingsWidget),
+            &QShortcut::activated, this, [=]() {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+                if (m_kanbanWidget->isHidden()) {
+                    if (!m_editorSettingsWidget->isHidden()) {
+                        m_editorSettingsWidget->close();
+                    }
+                } else {
+                    emit toggleEditorSettingsKeyboardShorcutFired();
+                };
+#else
+                if (m_editorSettingsWidget->isVisible()) {
+                    m_editorSettingsWidget->close();
+                };
+#endif
+            });
     connect(new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_0), this), &QShortcut::activated, this,
             [=]() { setHeading(0); });
     connect(new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_1), this), &QShortcut::activated, this,
@@ -574,28 +627,14 @@ void MainWindow::setupKeyboardShortcuts()
             &QShortcut::activated, this, [=]() {
                 if (m_kanbanWidget->isHidden()) {
                     emit m_noteEditorLogic->showKanbanView();
+                    updateSelectedOptionsEditorSettings();
                 } else {
                     emit m_noteEditorLogic->hideKanbanView();
                     m_textEdit->setFocus();
+                    updateSelectedOptionsEditorSettings();
                 }
             });
 #endif
-}
-
-/*!
- * \brief MainWindow::setupNewNoteButtonAndTrashButton
- * We need to set up some different values when using apple os x
- * This is because if we want to get the native button look in os x,
- * due to some bug in Qt, I think, the values of width and height of buttons
- * needs to be more than 50 and less than 34 respectively.
- * So some modifications needs to be done.
- */
-void MainWindow::setupNewNoteButtonAndTrashButton()
-{
-    m_newNoteButton->installEventFilter(this);
-    m_trashButton->installEventFilter(this);
-    m_dotsButton->installEventFilter(this);
-    m_styleEditorButton->installEventFilter(this);
 }
 
 /*!
@@ -610,22 +649,12 @@ void MainWindow::setupSplitter()
 }
 
 /*!
- * \brief MainWindow::setupRightFrame
- * Set up a frame above textEdit and behind the other widgets for a unifed background
- * in thet editor section
- */
-void MainWindow::setupRightFrame()
-{
-    ui->frameRightTop->installEventFilter(this);
-}
-
-/*!
- * \brief MainWindow::setupTitleBarButtons
+ * \brief MainWindow::setupButtons
  * Setting up the red (close), yellow (minimize), and green (maximize) buttons
  * Make only the buttons icon visible
  * And install this class event filter to them, to act when hovering on one of them
  */
-void MainWindow::setupTitleBarButtons()
+void MainWindow::setupButtons()
 {
     QString ss = QStringLiteral("QPushButton { "
                                 "  border: none; "
@@ -649,6 +678,53 @@ void MainWindow::setupTitleBarButtons()
     m_redCloseButton->installEventFilter(this);
     m_yellowMinimizeButton->installEventFilter(this);
     m_greenMaximizeButton->installEventFilter(this);
+
+    QFont fontAwesomeIcon("Font Awesome 6 Free Solid");
+    QFont materialSymbols("Material Symbols Outlined");
+#if defined(Q_OS_MACOS)
+    int pointSizeOffset = 0;
+#else
+    int pointSizeOffset = -4;
+#endif
+
+    fontAwesomeIcon.setPointSize(16 + pointSizeOffset);
+    m_globalSettingsButton->setFont(fontAwesomeIcon);
+    m_globalSettingsButton->setText(u8"\uf013"); // fa-gear
+
+#if defined(Q_OS_MACOS)
+    materialSymbols.setPointSize(30 + pointSizeOffset);
+#else
+    materialSymbols.setPointSize(30 + pointSizeOffset - 3);
+#endif
+    m_dotsButton->setFont(materialSymbols);
+    m_dotsButton->setText(u8"\ue5d3"); // ellipsis_h
+
+#if defined(Q_OS_MACOS)
+    materialSymbols.setPointSize(24 + pointSizeOffset);
+#else
+    materialSymbols.setPointSize(21 + pointSizeOffset);
+#endif
+    m_switchToKanbanViewButton->setFont(materialSymbols);
+    m_switchToKanbanViewButton->setText(u8"\ueb7f"); // view_kanban
+    m_switchToTextViewButton->setFont(materialSymbols);
+    m_switchToTextViewButton->setText(u8"\uef42"); // article
+
+    materialSymbols.setPointSize(20 + pointSizeOffset);
+    m_toggleTreeViewButton->setFont(materialSymbols);
+    if (m_foldersWidget->isHidden()) {
+        m_toggleTreeViewButton->setText(u8"\ue31c"); // keyboard_tab_rtl
+    } else {
+        m_toggleTreeViewButton->setText(u8"\uec73"); // keyboard_tab_rtl
+    }
+
+    fontAwesomeIcon.setPointSize(17 + pointSizeOffset);
+    m_newNoteButton->setFont(fontAwesomeIcon);
+    m_newNoteButton->setText(u8"\uf067"); // fa_plus
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
+    m_switchToTextViewButton->hide();
+    m_switchToKanbanViewButton->hide();
+#endif
 }
 
 /*!
@@ -661,21 +737,6 @@ void MainWindow::setupSignalsSlots()
     connect(&m_updater, &UpdaterWindow::dontShowUpdateWindowChanged, this,
             [=](bool state) { m_dontShowUpdateWindow = state; });
 #endif
-    // Style Editor Window
-    connect(&m_styleEditorWindow, &StyleEditorWindow::changeFontType, this,
-            [=](FontTypeface fontType) { changeEditorFontTypeFromStyleButtons(fontType); });
-    connect(&m_styleEditorWindow, &StyleEditorWindow::changeFontSize, this,
-            [=](FontSizeAction fontSizeAction) {
-                changeEditorFontSizeFromStyleButtons(fontSizeAction);
-            });
-    connect(&m_styleEditorWindow, &StyleEditorWindow::changeEditorTextWidth, this,
-            [=](EditorTextWidth editorTextWidth) {
-                changeEditorTextWidthFromStyleButtons(editorTextWidth);
-            });
-    connect(&m_styleEditorWindow, &StyleEditorWindow::resetEditorToDefaultSettings, this,
-            [=]() { resetEditorSettings(); });
-    connect(&m_styleEditorWindow, &StyleEditorWindow::changeTheme, this,
-            [=](Theme theme) { setTheme(theme); });
     // actions
     // connect(rightToLeftActionion, &QAction::triggered, this, );
     // connect(checkForUpdatesAction, &QAction::triggered, this, );
@@ -693,24 +754,15 @@ void MainWindow::setupSignalsSlots()
     connect(m_yellowMinimizeButton, &QPushButton::clicked, this,
             &MainWindow::onYellowMinimizeButtonClicked);
     // new note button
-    connect(m_newNoteButton, &QPushButton::pressed, this, &MainWindow::onNewNoteButtonPressed);
     connect(m_newNoteButton, &QPushButton::clicked, this, &MainWindow::onNewNoteButtonClicked);
-    // delete note button
-    connect(m_trashButton, &QPushButton::pressed, this, &MainWindow::onTrashButtonPressed);
-    connect(m_trashButton, &QPushButton::clicked, this, &MainWindow::onTrashButtonClicked);
-    connect(m_listModel, &NoteListModel::rowsRemoved, this,
-            [this]() { m_trashButton->setEnabled(true); });
     // 3 dots button
-    connect(m_dotsButton, &QPushButton::pressed, this, &MainWindow::onDotsButtonPressed);
     connect(m_dotsButton, &QPushButton::clicked, this, &MainWindow::onDotsButtonClicked);
-    // Style Editor Button
-    connect(m_styleEditorButton, &QPushButton::clicked, this,
-            &MainWindow::onStyleEditorButtonClicked);
-    // textEdit scrollbar triggered
-    connect(m_textEdit->verticalScrollBar(), &QAbstractSlider::actionTriggered, this, [=]() {
-        if (m_isFrameRightTopWidgetsVisible)
-            setVisibilityOfFrameRightNonEditor(false);
-    });
+    // switch to kanban view button
+    connect(m_switchToKanbanViewButton, &QPushButton::clicked, this,
+            &MainWindow::onSwitchToKanbanViewButtonClicked);
+    // global settings button
+    connect(m_globalSettingsButton, &QPushButton::clicked, this,
+            &MainWindow::onGlobalSettingsButtonClicked);
     // line edit text changed
     connect(m_searchEdit, &QLineEdit::textChanged, m_listViewLogic,
             &ListViewLogic::onSearchEditTextChanged);
@@ -734,6 +786,21 @@ void MainWindow::setupSignalsSlots()
             [this]() { m_listView->update(m_listView->currentIndex()); });
 #endif
 
+    // TextEdit's scroll bar
+#if !defined(Q_OS_MAC)
+    connect(m_textEdit->verticalScrollBar(), &QAbstractSlider::actionTriggered, this, [=]() {
+        m_textEdit->verticalScrollBar()->show();
+        if (m_textEditScrollBarTimer->isActive()) {
+            m_textEditScrollBarTimer->stop();
+            m_textEditScrollBarTimer->start(m_textEditScrollBarTimerDuration);
+        } else {
+            m_textEditScrollBarTimer->start(m_textEditScrollBarTimerDuration);
+        }
+    });
+    connect(m_textEditScrollBarTimer, &QTimer::timeout, this,
+            [=]() { m_textEdit->verticalScrollBar()->hide(); });
+#endif
+
     // MainWindow <-> DBManager
     connect(this, &MainWindow::requestNodesTree, m_dbManager, &DBManager::onNodeTagTreeRequested,
             Qt::BlockingQueuedConnection);
@@ -752,6 +819,8 @@ void MainWindow::setupSignalsSlots()
             &NoteEditorLogic::showNotesInEditor);
     connect(m_listViewLogic, &ListViewLogic::closeNoteEditor, m_noteEditorLogic,
             &NoteEditorLogic::closeEditor);
+    connect(m_noteEditorLogic, &NoteEditorLogic::setVisibilityOfFrameRightWidgets, this,
+            [this](bool vl) { setVisibilityOfFrameRightWidgets(vl); });
     connect(m_noteEditorLogic, &NoteEditorLogic::setVisibilityOfFrameRightNonEditor, this,
             [this](bool vl) { setVisibilityOfFrameRightNonEditor(vl); });
     connect(m_noteEditorLogic, &NoteEditorLogic::moveNoteToListViewTop, m_listViewLogic,
@@ -764,6 +833,21 @@ void MainWindow::setupSignalsSlots()
             &NoteEditorLogic::onNoteTagListChanged);
     connect(m_noteEditorLogic, &NoteEditorLogic::noteEditClosed, m_listViewLogic,
             &ListViewLogic::onNoteEditClosed);
+    connect(m_noteEditorLogic, &NoteEditorLogic::showKanbanView, this, [this]() {
+        if (!m_editorSettingsWidget->isHidden()) {
+            m_editorSettingsWidget->close();
+            //            emit toggleEditorSettingsKeyboardShorcutFired();
+        }
+
+        ui->frameRightTop->hide();
+    });
+    connect(m_noteEditorLogic, &NoteEditorLogic::hideKanbanView, this, [this]() {
+        //        if (m_isEditorSettingsFromQuickViewVisible) {
+        //            showEditorSettings();
+        //        }
+
+        ui->frameRightTop->show();
+    });
     connect(m_listViewLogic, &ListViewLogic::requestClearSearchUI, this, &MainWindow::clearSearch);
     connect(m_treeViewLogic, &TreeViewLogic::addNoteToTag, m_listViewLogic,
             &ListViewLogic::onAddTagRequestD);
@@ -773,7 +857,7 @@ void MainWindow::setupSignalsSlots()
                 ui->listviewLabel2->setText(l2);
                 m_splitter->setHandleWidth(0);
             });
-    connect(ui->toggleTreeViewButton, &QPushButton::pressed, this, &MainWindow::toggleFolderTree);
+    connect(m_toggleTreeViewButton, &QPushButton::clicked, this, &MainWindow::toggleFolderTree);
     connect(m_dbManager, &DBManager::showErrorMessage, this, &MainWindow::showErrorMessage,
             Qt::QueuedConnection);
     connect(m_listViewLogic, &ListViewLogic::requestNewNote, this,
@@ -793,11 +877,6 @@ void MainWindow::setupSignalsSlots()
             &MainWindow::setNoteListLoading);
     connect(m_treeView, &NodeTreeView::loadNotesInFolderRequested, this,
             &MainWindow::setNoteListLoading);
-#ifdef __APPLE__
-    // Replace setUseNativeWindowFrame with just the part that handles pushing things up
-    connect(this, &MainWindow::toggleFullScreen, this,
-            [=](bool isFullScreen) { adjustUpperWidgets(isFullScreen); });
-#endif
     connect(m_treeView, &NodeTreeView::saveExpand, this, &MainWindow::saveExpandedFolder);
     connect(m_treeView, &NodeTreeView::saveSelected, this, &MainWindow::saveLastSelectedFolderTags);
     connect(m_listView, &NoteListView::saveSelectedNote, this, &MainWindow::saveLastSelectedNote);
@@ -811,6 +890,31 @@ void MainWindow::setupSignalsSlots()
             &ListViewLogic::onNotesListInTagsRequested);
     connect(this, &MainWindow::requestChangeDatabasePath, m_dbManager,
             &DBManager::onChangeDatabasePathRequested, Qt::QueuedConnection);
+    connect(m_textEdit, &CustomDocument::mouseMoved, this, [this]() {
+        if (!m_areNonEditorWidgetsVisible) {
+            setVisibilityOfFrameRightWidgets(true);
+        }
+#if !defined(Q_OS_MACOS)
+        if (m_textEdit->verticalScrollBar()->isVisible()) {
+            m_textEditScrollBarTimer->stop();
+            m_textEditScrollBarTimer->start(m_textEditScrollBarTimerDuration);
+        }
+#endif
+    });
+
+#if defined(Q_OS_MACOS)
+    connect(this, &MainWindowBase::toggleFullScreen, this, [this](bool isFullScreen) {
+        if (isFullScreen) {
+            ui->verticalSpacer_upSearchEdit->setMinimumHeight(0);
+            ui->verticalSpacer_upSearchEdit->setMaximumHeight(0);
+        } else {
+            if (m_foldersWidget->isHidden()) {
+                ui->verticalSpacer_upSearchEdit->setMinimumHeight(25);
+                ui->verticalSpacer_upSearchEdit->setMaximumHeight(25);
+            }
+        }
+    });
+#endif
 }
 
 /*!
@@ -837,39 +941,112 @@ void MainWindow::setupSearchEdit()
 
     m_searchEdit->setAttribute(Qt::WA_MacShowFocusRect, 0);
 
+    QFont fontAwesomeIcon("Font Awesome 6 Free Solid");
+#if defined(Q_OS_MACOS)
+    int pointSizeOffset = 0;
+#else
+    int pointSizeOffset = -4;
+#endif
+
     // clear button
     m_clearButton = new QToolButton(m_searchEdit);
-    QPixmap pixmap(QStringLiteral(":images/closeButton.png"));
-    m_clearButton->setIcon(QIcon(pixmap));
-    QSize clearSize(15, 15);
-    m_clearButton->setIconSize(clearSize);
+    fontAwesomeIcon.setPointSize(15 + pointSizeOffset);
+    m_clearButton->setStyleSheet("QToolButton { color: rgb(114, 114, 114) }");
+    m_clearButton->setFont(fontAwesomeIcon);
+    m_clearButton->setText(u8"\uf057"); // fa-circle-xmark
     m_clearButton->setCursor(Qt::ArrowCursor);
     m_clearButton->hide();
 
     // search button
-    QToolButton *searchButton = new QToolButton(m_searchEdit);
-    QPixmap newPixmap(QStringLiteral(":images/magnifyingGlass.png"));
-    searchButton->setIcon(QIcon(newPixmap));
-    QSize searchSize(18, 18);
-    searchButton->setIconSize(searchSize);
-    searchButton->setCursor(Qt::ArrowCursor);
+    m_searchButton = new QToolButton(m_searchEdit);
+    fontAwesomeIcon.setPointSize(9 + pointSizeOffset);
+    m_searchButton->setStyleSheet("QToolButton { color: rgb(205, 205, 205) }");
+    m_searchButton->setFont(fontAwesomeIcon);
+    m_searchButton->setText(u8"\uf002"); // fa-magnifying-glass
+    m_searchButton->setCursor(Qt::ArrowCursor);
 
     // layout
     QBoxLayout *layout = new QBoxLayout(QBoxLayout::RightToLeft, m_searchEdit);
     layout->setContentsMargins(2, 0, 3, 0);
     layout->addWidget(m_clearButton);
     layout->addStretch();
-    layout->addWidget(searchButton);
+    layout->addWidget(m_searchButton);
     m_searchEdit->setLayout(layout);
 
     m_searchEdit->installEventFilter(this);
+}
+
+void MainWindow::setupEditorSettings()
+{
+    FontTypeface::registerEnum("nuttyartist.notes", 1, 0);
+    FontSizeAction::registerEnum("nuttyartist.notes", 1, 0);
+    EditorTextWidth::registerEnum("nuttyartist.notes", 1, 0);
+    Theme::registerEnum("nuttyartist.notes", 1, 0);
+    View::registerEnum("nuttyartist.notes", 1, 0);
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+    QUrl source("qrc:/qt/qml/EditorSettings.qml");
+#elif QT_VERSION > QT_VERSION_CHECK(5, 12, 8)
+    QUrl source("qrc:/qml/EditorSettings.qml");
+#else
+    QUrl source("qrc:/qml/EditorSettingsQt512.qml");
+#endif
+
+    m_editorSettingsQuickView.rootContext()->setContextProperty("mainWindow", this);
+    m_editorSettingsQuickView.rootContext()->setContextProperty("noteEditorLogic",
+                                                                m_noteEditorLogic);
+    m_editorSettingsQuickView.setSource(source);
+    m_editorSettingsQuickView.setResizeMode(QQuickView::SizeViewToRootObject);
+    m_editorSettingsQuickView.setFlags(Qt::FramelessWindowHint);
+    m_editorSettingsQuickView.setColor(Qt::transparent);
+    m_editorSettingsWidget = QWidget::createWindowContainer(&m_editorSettingsQuickView, nullptr);
+#if defined(Q_OS_MACOS)
+#  if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+    m_editorSettingsWidget->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint
+                                           | Qt::NoDropShadowWindowHint);
+#  else
+    m_editorSettingsWidget->setWindowFlags(Qt::Window | Qt::CustomizeWindowHint);
+    m_editorSettingsWidget->setAttribute(Qt::WA_AlwaysStackOnTop);
+#  endif
+#elif _WIN32
+    m_editorSettingsWidget->setWindowFlags(Qt::Window | Qt::CustomizeWindowHint);
+    m_editorSettingsWidget->setAttribute(Qt::WA_AlwaysStackOnTop);
+#else
+    m_editorSettingsWidget->setWindowFlags(Qt::Tool);
+    m_editorSettingsWidget->setAttribute(Qt::WA_AlwaysStackOnTop);
+#endif
+    resizeAndPositionEditorSettingsWindow();
+    m_editorSettingsWidget->setStyleSheet("background:transparent;");
+    m_editorSettingsWidget->setAttribute(Qt::WA_TranslucentBackground);
+    m_editorSettingsWidget->hide();
+    m_editorSettingsWidget->installEventFilter(this);
+
+    QJsonObject dataToSendToView{ { "displayFont",
+                                    QFont(QStringLiteral("SF Pro Text")).exactMatch()
+                                            ? QStringLiteral("SF Pro Text")
+                                            : QStringLiteral("Roboto") } };
+    emit displayFontSet(QVariant(dataToSendToView));
+
+#if defined(Q_OS_WINDOWS)
+    emit platformSet(QVariant(QString("Windows")));
+#elif defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    emit platformSet(QVariant(QString("Unix")));
+#elif defined(Q_OS_MACOS)
+    emit platformSet(QVariant(QString("Apple")));
+#endif
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+    emit qtVersionSet(QVariant(6));
+#else
+    emit qtVersionSet(QVariant(5));
+#endif
 }
 
 /*!
  * \brief MainWindow::setCurrentFontBasedOnTypeface
  * Set the current font based on a given typeface
  */
-void MainWindow::setCurrentFontBasedOnTypeface(FontTypeface selectedFontTypeFace)
+void MainWindow::setCurrentFontBasedOnTypeface(FontTypeface::Value selectedFontTypeFace)
 {
     m_currentFontTypeface = selectedFontTypeFace;
     switch (selectedFontTypeFace) {
@@ -915,10 +1092,15 @@ void MainWindow::setCurrentFontBasedOnTypeface(FontTypeface selectedFontTypeFace
 
     alignTextEditText();
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-    m_noteEditorLogic->kanbanFontChanged(
-            QVariant(m_listOfSansSerifFonts.at(m_chosenSansSerifFontIndex)));
-#endif
+    QJsonObject dataToSendToView;
+    dataToSendToView["listOfSansSerifFonts"] = QJsonArray::fromStringList(m_listOfSansSerifFonts);
+    dataToSendToView["listOfSerifFonts"] = QJsonArray::fromStringList(m_listOfSerifFonts);
+    dataToSendToView["listOfMonoFonts"] = QJsonArray::fromStringList(m_listOfMonoFonts);
+    dataToSendToView["chosenSansSerifFontIndex"] = m_chosenSansSerifFontIndex;
+    dataToSendToView["chosenSerifFontIndex"] = m_chosenSerifFontIndex;
+    dataToSendToView["chosenMonoFontIndex"] = m_chosenMonoFontIndex;
+    dataToSendToView["currentFontTypeface"] = to_string(m_currentFontTypeface).c_str();
+    emit fontsChanged(QVariant(dataToSendToView));
 }
 
 /*!
@@ -944,21 +1126,17 @@ void MainWindow::resetEditorSettings()
     m_textEdit->setWordWrapMode(QTextOption::WordWrap);
     m_currentTheme = Theme::Light;
 
-    m_styleEditorWindow.changeSelectedFont(FontTypeface::Mono,
-                                           m_listOfMonoFonts.at(m_chosenMonoFontIndex));
-    m_styleEditorWindow.changeSelectedFont(FontTypeface::Serif,
-                                           m_listOfSerifFonts.at(m_chosenSerifFontIndex));
-    m_styleEditorWindow.changeSelectedFont(FontTypeface::SansSerif,
-                                           m_listOfSansSerifFonts.at(m_chosenSansSerifFontIndex));
-
     setCurrentFontBasedOnTypeface(m_currentFontTypeface);
     setTheme(m_currentTheme);
-    m_styleEditorWindow.restoreSelectedOptions(false, m_currentFontTypeface, m_currentTheme);
 }
 
 void MainWindow::setupTextEditStyleSheet(int paddingLeft, int paddingRight)
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+    m_textEdit->setDocumentPadding(paddingLeft, 10, paddingRight, 2);
+#else
     m_textEdit->setDocumentPadding(paddingLeft, 0, paddingRight, 2);
+#endif
     setCSSThemeAndUpdate(m_textEdit, m_currentTheme);
 }
 
@@ -1054,7 +1232,7 @@ void MainWindow::setupTextEdit()
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 void MainWindow::setupKanbanView()
 {
-    // Using QQuickWidget -> some say it is slower but better support?
+    // Using QQuickWidget -> some say it is slower but has better support?
     // Source:
     // https://doc.qt.io/qt-6/qtquick-quickwidgets-qquickwidgetversuswindow-opengl-example.html
     //    m_kanbanWidget.setParent(this);
@@ -1078,10 +1256,12 @@ void MainWindow::setupKanbanView()
     m_kanbanWidget->hide();
     ui->verticalLayout_textEdit->insertWidget(ui->verticalLayout_textEdit->indexOf(m_textEdit),
                                               m_kanbanWidget);
-#  ifdef __APPLE__
+#  if defined(Q_OS_WINDOWS)
+    emit platformSet(QVariant(QString("Windows")));
+#  elif defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    emit platformSet(QVariant(QString("Unix")));
+#  elif defined(Q_OS_MACOS)
     emit platformSet(QVariant(QString("Apple")));
-#  else
-    emit platformSet(QVariant(QString("Other")));
 #  endif
 }
 #endif
@@ -1233,7 +1413,7 @@ void MainWindow::setupModelView()
                                         m_tagPool, m_dbManager, this);
     m_treeView = static_cast<NodeTreeView *>(ui->treeView);
     m_treeView->setModel(m_treeModel);
-    m_treeViewLogic = new TreeViewLogic(m_treeView, m_treeModel, m_dbManager, this);
+    m_treeViewLogic = new TreeViewLogic(m_treeView, m_treeModel, m_dbManager, m_listView, this);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
     m_noteEditorLogic = new NoteEditorLogic(
             m_textEdit, m_editorDateLabel, m_searchEdit, m_kanbanWidget,
@@ -1244,6 +1424,8 @@ void MainWindow::setupModelView()
                                             static_cast<TagListView *>(ui->tagListView), m_tagPool,
                                             m_dbManager, this);
 #endif
+    m_editorSettingsQuickView.rootContext()->setContextProperty("noteEditorLogic",
+                                                                m_noteEditorLogic);
 }
 
 /*!
@@ -1253,10 +1435,10 @@ void MainWindow::setupModelView()
  */
 void MainWindow::restoreStates()
 {
-#if defined(Q_OS_WIN)
-    bool nativeByDefault = true;
-#else
+#if defined(Q_OS_MACOS)
     bool nativeByDefault = false;
+#else
+    bool nativeByDefault = true;
 #endif
     setUseNativeWindowFrame(
             m_settingsDatabase->value(QStringLiteral("useNativeWindowFrame"), nativeByDefault)
@@ -1269,11 +1451,6 @@ void MainWindow::restoreStates()
 
     if (m_settingsDatabase->value(QStringLiteral("windowGeometry"), "NULL") != "NULL")
         restoreGeometry(m_settingsDatabase->value(QStringLiteral("windowGeometry")).toByteArray());
-
-    if (m_settingsDatabase->value(QStringLiteral("editorSettingsWindowGeometry"), "NULL") != "NULL")
-        m_styleEditorWindow.restoreGeometry(
-                m_settingsDatabase->value(QStringLiteral("editorSettingsWindowGeometry"))
-                        .toByteArray());
 
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
     // Set margin to zero if the window is maximized
@@ -1306,6 +1483,18 @@ void MainWindow::restoreStates()
             m_settingsDatabase->value(QStringLiteral("isTreeCollapsed")).toBool());
     m_noteListWidget->setHidden(
             m_settingsDatabase->value(QStringLiteral("isNoteListCollapsed")).toBool());
+
+#if defined(Q_OS_MACOS)
+    if (m_foldersWidget->isHidden()) {
+        ui->verticalSpacer_upSearchEdit->setMinimumHeight(25);
+        ui->verticalSpacer_upSearchEdit->setMaximumHeight(25);
+    }
+#else
+    if (!m_useNativeWindowFrame && m_foldersWidget->isHidden()) {
+        ui->verticalSpacer_upSearchEdit->setMinimumHeight(25);
+        ui->verticalSpacer_upSearchEdit->setMaximumHeight(25);
+    }
+#endif
 
     m_splitter->setCollapsible(0, false);
     m_splitter->setCollapsible(1, false);
@@ -1343,6 +1532,7 @@ void MainWindow::restoreStates()
             m_textEdit->setLineWrapMode(QTextEdit::FixedColumnWidth);
         }
     } else {
+        // Default option, Focus Mode (FixedColumnWidth) or Full Width (WidgetWidth)
         m_textEdit->setLineWrapMode(QTextEdit::FixedColumnWidth);
     }
 
@@ -1390,17 +1580,8 @@ void MainWindow::restoreStates()
         }
     }
 
-    m_styleEditorWindow.changeSelectedFont(FontTypeface::Mono,
-                                           m_listOfMonoFonts.at(m_chosenMonoFontIndex));
-    m_styleEditorWindow.changeSelectedFont(FontTypeface::Serif,
-                                           m_listOfSerifFonts.at(m_chosenSerifFontIndex));
-    m_styleEditorWindow.changeSelectedFont(FontTypeface::SansSerif,
-                                           m_listOfSansSerifFonts.at(m_chosenSansSerifFontIndex));
-
     setCurrentFontBasedOnTypeface(m_currentFontTypeface);
     setTheme(m_currentTheme);
-    m_styleEditorWindow.restoreSelectedOptions(isTextFullWidth, m_currentFontTypeface,
-                                               m_currentTheme);
 
     auto expandedFolder =
             m_settingsDatabase->value(QStringLiteral("currentExpandedFolder"), QStringList{})
@@ -1426,6 +1607,9 @@ void MainWindow::restoreStates()
         notesId.insert(id.toInt());
     }
     m_listViewLogic->setLastSavedState(notesId);
+
+    updateSelectedOptionsEditorSettings();
+    updateFrame();
 }
 
 /*!
@@ -1438,11 +1622,64 @@ void MainWindow::setButtonsAndFieldsEnabled(bool doEnable)
     m_redCloseButton->setEnabled(doEnable);
     m_yellowMinimizeButton->setEnabled(doEnable);
     m_newNoteButton->setEnabled(doEnable);
-    m_trashButton->setEnabled(doEnable);
     m_searchEdit->setEnabled(doEnable);
     m_textEdit->setEnabled(doEnable);
     m_dotsButton->setEnabled(doEnable);
-    m_styleEditorButton->setEnabled(doEnable);
+    m_globalSettingsButton->setEnabled(doEnable);
+}
+
+/*!
+ * \brief MainWindow::setKanbanVisibility
+ * \param isVisible
+ * Either shows or hide the kanban view based on isVisible
+ */
+void MainWindow::setKanbanVisibility(bool isVisible)
+{
+    if (isVisible) {
+        emit m_noteEditorLogic->showKanbanView();
+    } else {
+        emit m_noteEditorLogic->hideKanbanView();
+#if defined(Q_OS_WINDOWS)
+        if (m_editorSettingsWidget->isVisible()) {
+            m_editorSettingsWidget->raise();
+            m_editorSettingsWidget->activateWindow();
+        } else {
+            m_textEdit->setFocus();
+        }
+#else
+        m_textEdit->setFocus();
+#endif
+    }
+
+    updateSelectedOptionsEditorSettings();
+}
+
+/*!
+ * \brief MainWindow::setEditorSettingsFromQuickViewVisibility
+ * \param isVisible
+ */
+void MainWindow::setEditorSettingsFromQuickViewVisibility(bool isVisible)
+{
+    m_isEditorSettingsFromQuickViewVisible = isVisible;
+}
+
+/*!
+ * \brief MainWindow::setEditorSettingsScrollBarPosition
+ * \param isVisible
+ */
+void MainWindow::setEditorSettingsScrollBarPosition(double position)
+{
+    emit editorSettingsScrollBarPositionChanged(QVariant(position));
+}
+
+/*!
+ * \brief MainWindow::toggleMarkdown
+ * Enable or disable markdown
+ */
+void MainWindow::setMarkdownEnabled(bool isMarkdownEnabled)
+{
+    m_noteEditorLogic->setMarkdownEnabled(isMarkdownEnabled);
+    updateSelectedOptionsEditorSettings();
 }
 
 /*!
@@ -1509,15 +1746,6 @@ void MainWindow::resetFormat(const QString &formatChars)
 }
 
 /*!
- * \brief MainWindow::onNewNoteButtonPressed
- * When the new-note button is pressed, set it's icon accordingly
- */
-void MainWindow::onNewNoteButtonPressed()
-{
-    m_newNoteButton->setIcon(QIcon(QStringLiteral(":/images/newNote_Pressed.png")));
-}
-
-/*!
  * \brief MainWindow::onNewNoteButtonClicked
  * Create a new note when clicking the 'new note' button
  */
@@ -1529,7 +1757,6 @@ void MainWindow::onNewNoteButtonClicked()
     if (m_listViewLogic->isAnimationRunning()) {
         return;
     }
-    m_newNoteButton->setIcon(QIcon(QStringLiteral(":/images/newNote_Regular.png")));
 
     // save the data of the previous selected
     m_noteEditorLogic->saveNoteToDB();
@@ -1542,49 +1769,37 @@ void MainWindow::onNewNoteButtonClicked()
 }
 
 /*!
- * \brief MainWindow::onTrashButtonPressed
- * When the trash button is pressed, set it's icon accordingly
- */
-void MainWindow::onTrashButtonPressed()
-{
-    m_trashButton->setIcon(QIcon(QStringLiteral(":/images/trashCan_Pressed.png")));
-}
-
-/*!
- * \brief MainWindow::onTrashButtonClicked
- * Delete selected note when clicking the 'delete note' button
- */
-void MainWindow::onTrashButtonClicked()
-{
-    m_trashButton->setIcon(QIcon(QStringLiteral(":/images/trashCan_Regular.png")));
-
-    m_trashButton->blockSignals(true);
-    m_noteEditorLogic->deleteCurrentNote();
-    m_trashButton->blockSignals(false);
-}
-
-/*!
- * \brief MainWindow::onDotsButtonPressed
- * When the 3 dots button is pressed, set it's icon accordingly
- */
-void MainWindow::onDotsButtonPressed()
-{
-    m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Pressed.png")));
-}
-
-/*!
  * \brief MainWindow::onDotsButtonClicked
  * Open up the menu when clicking the 3 dots button
  */
 void MainWindow::onDotsButtonClicked()
 {
-    m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Regular.png")));
+    showEditorSettings();
+}
 
+/*!
+ * \brief MainWindow::onSwitchToKanbanViewButtonClicked
+ */
+void MainWindow::onSwitchToKanbanViewButtonClicked()
+{
+    setKanbanVisibility(true);
+}
+
+/*!
+ * \brief MainWindow::onGlobalSettingsButtonClicked
+ * Open up the menu when clicking the global settings button
+ */
+void MainWindow::onGlobalSettingsButtonClicked()
+{
     QMenu mainMenu;
+
+#if !defined(Q_OS_MACOS)
     QMenu *viewMenu = mainMenu.addMenu(tr("&View"));
+    viewMenu->setToolTipsVisible(true);
+#endif
+
     QMenu *importExportNotesMenu = mainMenu.addMenu(tr("&Import/Export Notes"));
     importExportNotesMenu->setToolTipsVisible(true);
-    viewMenu->setToolTipsVisible(true);
     mainMenu.setToolTipsVisible(true);
 
     QShortcut *closeMenu = new QShortcut(Qt::Key_F10, &mainMenu);
@@ -1598,59 +1813,12 @@ void MainWindow::onDotsButtonClicked()
 
 #ifdef __APPLE__
     mainMenu.setFont(QFont(m_displayFont, 13));
-    viewMenu->setFont(QFont(m_displayFont, 13));
     importExportNotesMenu->setFont(QFont(m_displayFont, 13));
 #else
     mainMenu.setFont(QFont(m_displayFont, 10, QFont::Normal));
     viewMenu->setFont(QFont(m_displayFont, 10, QFont::Normal));
     importExportNotesMenu->setFont(QFont(m_displayFont, 10, QFont::Normal));
 #endif
-
-    // note list visibility action
-    bool isNoteListCollapsed = (m_noteListWidget->isHidden());
-    QString actionLabel = isNoteListCollapsed ? tr("Show &notes list") : tr("Hide &notes list");
-
-    QAction *noteListVisbilityAction = viewMenu->addAction(actionLabel);
-    noteListVisbilityAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_J));
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
-    noteListVisbilityAction->setShortcutVisibleInContextMenu(true);
-#endif
-    if (isNoteListCollapsed) {
-        connect(noteListVisbilityAction, &QAction::triggered, this, &MainWindow::expandNoteList);
-    } else {
-        connect(noteListVisbilityAction, &QAction::triggered, this, &MainWindow::collapseNoteList);
-    }
-
-    // folder tree view visibility action
-    bool isFolderTreeCollapsed = (m_foldersWidget->isHidden());
-    QString factionLabel =
-            isFolderTreeCollapsed ? tr("Show &folders tree") : tr("Hide &folders tree");
-
-    QAction *folderTreeVisibilityAction = viewMenu->addAction(factionLabel);
-    folderTreeVisibilityAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_J));
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
-    folderTreeVisibilityAction->setShortcutVisibleInContextMenu(true);
-#endif
-    if (isFolderTreeCollapsed) {
-        connect(folderTreeVisibilityAction, &QAction::triggered, this,
-                &MainWindow::expandFolderTree);
-    } else {
-        connect(folderTreeVisibilityAction, &QAction::triggered, this,
-                &MainWindow::collapseFolderTree);
-    }
-
-    // Enable or Disable markdown
-    QString markDownLabel =
-            m_noteEditorLogic->markdownEnabled() ? tr("Disable &Markdown") : tr("Enable &Markdown");
-
-    QAction *noteMarkdownVisibilityAction = viewMenu->addAction(markDownLabel);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
-    noteMarkdownVisibilityAction->setShortcutVisibleInContextMenu(true);
-#endif
-
-    connect(noteMarkdownVisibilityAction, &QAction::triggered, m_noteEditorLogic, [this] {
-        m_noteEditorLogic->setMarkdownEnabled(!m_noteEditorLogic->markdownEnabled());
-    });
 
 #if defined(UPDATE_CHECKER)
     // Check for update action
@@ -1721,16 +1889,7 @@ void MainWindow::onDotsButtonClicked()
     restoreNotesFileAction->setToolTip(tr("Replace all notes with notes from a file"));
     connect(restoreNotesFileAction, &QAction::triggered, this, &MainWindow::restoreNotesFile);
 
-#if defined(Q_OS_MACOS) || defined(Q_OS_WINDOWS)
-    // Stay on top action
-    QAction *stayOnTopAction = viewMenu->addAction(tr("Always stay on top"));
-    stayOnTopAction->setToolTip(tr("Always keep the notes application on top of all windows"));
-    stayOnTopAction->setCheckable(true);
-    stayOnTopAction->setChecked(m_alwaysStayOnTop);
-    connect(stayOnTopAction, &QAction::triggered, this, &MainWindow::toggleStayOnTop);
-#endif
-
-#ifndef __APPLE__
+#if !defined(Q_OS_MACOS)
     // Use native frame action
     QAction *useNativeFrameAction = viewMenu->addAction(tr("&Use native window frame"));
     useNativeFrameAction->setToolTip(tr("Use the window frame provided by the window manager"));
@@ -1740,58 +1899,90 @@ void MainWindow::onDotsButtonClicked()
             [this]() { setUseNativeWindowFrame(!m_useNativeWindowFrame); });
 #endif
 
-    mainMenu.exec(m_dotsButton->mapToGlobal(QPoint(0, m_dotsButton->height())));
+    mainMenu.exec(m_globalSettingsButton->mapToGlobal(QPoint(0, m_globalSettingsButton->height())));
 }
 
 /*!
- * \brief MainWindow::onStyleEditorButtonClicked
- * Open up the editor's styling menu when clicking the Style Editor Button
+ * \brief MainWindow::showEditorSettings
+ * Shows the Editor Settings popup
  */
-void MainWindow::onStyleEditorButtonClicked()
+void MainWindow::showEditorSettings()
 {
-    if (m_settingsDatabase->value(QStringLiteral("editorSettingsWindowGeometry"), "NULL") == "NULL")
-        m_styleEditorWindow.move(m_newNoteButton->mapToGlobal(
-                QPoint(-m_styleEditorWindow.width() - m_newNoteButton->width(),
-                       m_newNoteButton->height())));
+    resizeAndPositionEditorSettingsWindow();
+    QJsonObject dataToSendToView;
+    dataToSendToView["parentWindowHeight"] = this->height();
+    emit editorSettingsShowed(QVariant(dataToSendToView));
+    m_editorSettingsWidget->show();
+#if defined(__WIN32__) || (defined(QT_VERSION) && QT_VERSION < QT_VERSION_CHECK(6, 2, 0))
+    m_editorSettingsWidget->raise();
+#elif !defined(Q_OS_MACOS)
+    m_editorSettingsWidget->activateWindow();
+#endif
+}
 
-    if (m_styleEditorWindow.isVisible()) {
-        m_styleEditorWindow.hide();
+/*!
+ * \brief MainWindow::toggleEditorSettings
+ * Toggle the Editor Settings popup
+ */
+void MainWindow::toggleEditorSettings()
+{
+    if (m_editorSettingsWidget->isHidden()) {
+        showEditorSettings();
     } else {
-        m_styleEditorWindow.show();
-        m_styleEditorWindow.setFocus();
+        m_editorSettingsWidget->close();
     }
+}
+
+/*!
+ * \brief MainWindow::updateSelectedOptionsEditorSettings
+ */
+void MainWindow::updateSelectedOptionsEditorSettings()
+{
+    QJsonObject dataToSendToView;
+    dataToSendToView["currentFontTypeface"] = to_string(m_currentFontTypeface).c_str();
+    dataToSendToView["currentTheme"] = to_string(m_currentTheme).c_str();
+    dataToSendToView["isTextFullWidth"] = m_textEdit->lineWrapMode() == QTextEdit::WidgetWidth;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+    dataToSendToView["currentView"] = m_kanbanWidget->isHidden() ? "TextView" : "KanbanView";
+#endif
+    dataToSendToView["isNoteListCollapsed"] = m_noteListWidget->isHidden();
+    dataToSendToView["isFoldersTreeCollapsed"] = m_foldersWidget->isHidden();
+    dataToSendToView["isMarkdownDisabled"] = !m_noteEditorLogic->markdownEnabled();
+    dataToSendToView["isStayOnTop"] = m_alwaysStayOnTop;
+    emit settingsChanged(QVariant(dataToSendToView));
 }
 
 /*!
  * \brief MainWindow::changeEditorFontTypeFromStyleButtons
  * Change the font based on the type passed from the Style Editor Window
  */
-void MainWindow::changeEditorFontTypeFromStyleButtons(FontTypeface fontTypeface)
+void MainWindow::changeEditorFontTypeFromStyleButtons(FontTypeface::Value fontTypeface,
+                                                      int chosenFontIndex)
 {
-    if (m_currentFontTypeface == fontTypeface) {
-        switch (fontTypeface) {
-        case FontTypeface::Mono:
-            m_chosenMonoFontIndex = m_chosenMonoFontIndex < m_listOfMonoFonts.length() - 1
-                    ? m_chosenMonoFontIndex + 1
-                    : 0;
-            break;
-        case FontTypeface::Serif:
-            m_chosenSerifFontIndex = m_chosenSerifFontIndex < m_listOfSerifFonts.length() - 1
-                    ? m_chosenSerifFontIndex + 1
-                    : 0;
-            break;
-        case FontTypeface::SansSerif:
-            m_chosenSansSerifFontIndex =
-                    m_chosenSansSerifFontIndex < m_listOfSansSerifFonts.length() - 1
-                    ? m_chosenSansSerifFontIndex + 1
-                    : 0;
-            break;
-        }
+    if (chosenFontIndex < 0)
+        return;
+
+    switch (fontTypeface) {
+    case FontTypeface::Mono:
+        if (chosenFontIndex > m_listOfMonoFonts.size() - 1)
+            return;
+        m_chosenMonoFontIndex = chosenFontIndex;
+        break;
+    case FontTypeface::Serif:
+        if (chosenFontIndex > m_listOfSerifFonts.size() - 1)
+            return;
+        m_chosenSerifFontIndex = chosenFontIndex;
+        break;
+    case FontTypeface::SansSerif:
+        if (chosenFontIndex > m_listOfSansSerifFonts.size() - 1)
+            return;
+        m_chosenSansSerifFontIndex = chosenFontIndex;
+        break;
     }
 
     setCurrentFontBasedOnTypeface(fontTypeface);
 
-    m_styleEditorWindow.changeSelectedFont(fontTypeface, m_currentFontFamily);
+    updateSelectedOptionsEditorSettings();
 }
 
 /*!
@@ -1799,14 +1990,14 @@ void MainWindow::changeEditorFontTypeFromStyleButtons(FontTypeface fontTypeface)
  * Change the font size based on the button pressed in the Style Editor Window
  * Increase / Decrease
  */
-void MainWindow::changeEditorFontSizeFromStyleButtons(FontSizeAction fontSizeAction)
+void MainWindow::changeEditorFontSizeFromStyleButtons(FontSizeAction::Value fontSizeAction)
 {
     switch (fontSizeAction) {
-    case FontSizeAction::Increase:
+    case FontSizeAction::FontSizeIncrease:
         m_editorMediumFontSize += 1;
         setCurrentFontBasedOnTypeface(m_currentFontTypeface);
         break;
-    case FontSizeAction::Decrease:
+    case FontSizeAction::FontSizeDecrease:
         m_editorMediumFontSize -= 1;
         setCurrentFontBasedOnTypeface(m_currentFontTypeface);
         break;
@@ -1819,16 +2010,16 @@ void MainWindow::changeEditorFontSizeFromStyleButtons(FontSizeAction fontSizeAct
  * Change the text width of the text editor
  * FullWidth / Increase / Decrease
  */
-void MainWindow::changeEditorTextWidthFromStyleButtons(EditorTextWidth editorTextWidth)
+void MainWindow::changeEditorTextWidthFromStyleButtons(EditorTextWidth::Value editorTextWidth)
 {
     switch (editorTextWidth) {
-    case EditorTextWidth::FullWidth:
+    case EditorTextWidth::TextWidthFullWidth:
         if (m_textEdit->lineWrapMode() != QTextEdit::WidgetWidth)
             m_textEdit->setLineWrapMode(QTextEdit::WidgetWidth);
         else
             m_textEdit->setLineWrapMode(QTextEdit::FixedColumnWidth);
         break;
-    case EditorTextWidth::Increase:
+    case EditorTextWidth::TextWidthIncrease:
         m_textEdit->setLineWrapMode(QTextEdit::FixedColumnWidth);
         switch (m_currentFontTypeface) {
         case FontTypeface::Mono:
@@ -1842,7 +2033,7 @@ void MainWindow::changeEditorTextWidthFromStyleButtons(EditorTextWidth editorTex
             break;
         }
         break;
-    case EditorTextWidth::Decrease:
+    case EditorTextWidth::TextWidthDecrease:
         m_textEdit->setLineWrapMode(QTextEdit::FixedColumnWidth);
         switch (m_currentFontTypeface) {
         case FontTypeface::Mono:
@@ -1859,25 +2050,26 @@ void MainWindow::changeEditorTextWidthFromStyleButtons(EditorTextWidth editorTex
     }
 
     setCurrentFontBasedOnTypeface(m_currentFontTypeface);
+
+    updateSelectedOptionsEditorSettings();
 }
 
 /*!
  * \brief MainWindow::setTheme
  * Changes the app theme
  */
-void MainWindow::setTheme(Theme theme)
+void MainWindow::setTheme(Theme::Value theme)
 {
     m_currentTheme = theme;
 
     setCSSThemeAndUpdate(this, theme);
     setCSSThemeAndUpdate(ui->verticalSpacer_upSearchEdit, theme);
     setCSSThemeAndUpdate(ui->verticalSpacer_upSearchEdit2, theme);
-    setCSSThemeAndUpdate(ui->verticalSpacer_upTreeView, theme);
-    setCSSThemeAndUpdate(ui->styleEditorButton, theme);
     setCSSThemeAndUpdate(ui->listviewLabel1, theme);
     setCSSThemeAndUpdate(ui->searchEdit, theme);
     setCSSThemeAndUpdate(ui->verticalSplitterLine_left, theme);
     setCSSThemeAndUpdate(ui->verticalSplitterLine_middle, theme);
+    setCSSThemeAndUpdate(ui->frameLeft, m_currentTheme);
     setCSSThemeAndUpdate(ui->frameRight, m_currentTheme);
     setCSSThemeAndUpdate(ui->frameRightTop, m_currentTheme);
 
@@ -1887,13 +2079,19 @@ void MainWindow::setTheme(Theme theme)
                                { "backgroundColor", "#f7f7f7" } };
         emit themeChanged(QVariant(themeData));
         m_currentEditorTextColor = QColor(26, 26, 26);
+        m_searchButton->setStyleSheet("QToolButton { color: rgb(205, 205, 205) }");
+        m_clearButton->setStyleSheet("QToolButton { color: rgb(114, 114, 114) }");
+        m_switchToTextViewButton->setStyleSheet("QPushButton { color: rgb(215, 214, 213); }");
         break;
     }
     case Theme::Dark: {
         QJsonObject themeData{ { "theme", QStringLiteral("Dark") },
-                               { "backgroundColor", "#1e1e1e" } };
+                               { "backgroundColor", "#191919" } };
         emit themeChanged(QVariant(themeData));
         m_currentEditorTextColor = QColor(212, 212, 212);
+        m_searchButton->setStyleSheet("QToolButton { color: rgb(68, 68, 68) }");
+        m_clearButton->setStyleSheet("QToolButton { color: rgb(147, 144, 147) }");
+        m_switchToTextViewButton->setStyleSheet("QPushButton { color: rgb(37, 48, 66); }");
         break;
     }
     case Theme::Sepia: {
@@ -1901,6 +2099,9 @@ void MainWindow::setTheme(Theme theme)
                                { "backgroundColor", "#fbf0d9" } };
         emit themeChanged(QVariant(themeData));
         m_currentEditorTextColor = QColor(95, 74, 50);
+        m_searchButton->setStyleSheet("QToolButton { color: rgb(205, 205, 205) }");
+        m_clearButton->setStyleSheet("QToolButton { color: rgb(114, 114, 114) }");
+        m_switchToTextViewButton->setStyleSheet("QPushButton { color: rgb(215, 214, 213); }");
         break;
     }
     }
@@ -1908,12 +2109,13 @@ void MainWindow::setTheme(Theme theme)
                             m_noteEditorLogic->currentMinimumEditorPadding());
     m_noteEditorLogic->setTheme(theme, m_currentEditorTextColor, m_editorMediumFontSize);
     m_listViewLogic->setTheme(theme);
-    m_styleEditorWindow.setTheme(theme);
     m_aboutWindow.setTheme(theme);
     m_treeViewLogic->setTheme(theme);
     ui->tagListView->setTheme(theme);
 
     alignTextEditText();
+
+    updateSelectedOptionsEditorSettings();
 }
 
 void MainWindow::deleteSelectedNote()
@@ -2163,9 +2365,6 @@ void MainWindow::QuitApplication()
 {
     if (windowState() != Qt::WindowFullScreen) {
         m_settingsDatabase->setValue(QStringLiteral("windowGeometry"), saveGeometry());
-        if (m_styleEditorWindow.windowState() != Qt::WindowFullScreen)
-            m_settingsDatabase->setValue(QStringLiteral("editorSettingsWindowGeometry"),
-                                         m_styleEditorWindow.saveGeometry());
     }
 
     m_noteEditorLogic->saveNoteToDB();
@@ -2316,18 +2515,43 @@ void MainWindow::toggleFolderTree()
     } else {
         collapseFolderTree();
     }
+    updateSelectedOptionsEditorSettings();
 }
 
 void MainWindow::collapseFolderTree()
 {
+    m_toggleTreeViewButton->setText(u8"\ue31c"); // keyboard_tab
     m_foldersWidget->setHidden(true);
     updateFrame();
+    updateSelectedOptionsEditorSettings();
+#if defined(Q_OS_MACOS)
+    if (windowState() != Qt::WindowFullScreen) {
+        ui->verticalSpacer_upSearchEdit->setMinimumHeight(25);
+        ui->verticalSpacer_upSearchEdit->setMaximumHeight(25);
+    }
+#else
+    if (!m_useNativeWindowFrame && windowState() != Qt::WindowFullScreen) {
+        ui->verticalSpacer_upSearchEdit->setMinimumHeight(25);
+        ui->verticalSpacer_upSearchEdit->setMaximumHeight(25);
+    }
+#endif
 }
 
 void MainWindow::expandFolderTree()
 {
+    m_toggleTreeViewButton->setText(u8"\uec73"); // keyboard_tab_rtl
     m_foldersWidget->setHidden(false);
     updateFrame();
+    updateSelectedOptionsEditorSettings();
+#if defined(Q_OS_MACOS)
+    ui->verticalSpacer_upSearchEdit->setMinimumHeight(0);
+    ui->verticalSpacer_upSearchEdit->setMaximumHeight(0);
+#else
+    if (!m_useNativeWindowFrame) {
+        ui->verticalSpacer_upSearchEdit->setMinimumHeight(0);
+        ui->verticalSpacer_upSearchEdit->setMaximumHeight(0);
+    }
+#endif
 }
 
 void MainWindow::toggleNoteList()
@@ -2337,18 +2561,21 @@ void MainWindow::toggleNoteList()
     } else {
         collapseNoteList();
     }
+    updateSelectedOptionsEditorSettings();
 }
 
 void MainWindow::collapseNoteList()
 {
     m_noteListWidget->setHidden(true);
     updateFrame();
+    updateSelectedOptionsEditorSettings();
 }
 
 void MainWindow::expandNoteList()
 {
     m_noteListWidget->setHidden(false);
     updateFrame();
+    updateSelectedOptionsEditorSettings();
 }
 
 /*!
@@ -2467,6 +2694,7 @@ void MainWindow::onRedCloseButtonClicked()
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     if (!event->spontaneous() || !isVisible()) {
+        QuitApplication();
         return;
     }
     if (m_hideToTray && m_trayIcon->isVisible() && QSystemTrayIcon::isSystemTrayAvailable()) {
@@ -3116,25 +3344,37 @@ void MainWindow::changeEvent(QEvent *event)
 }
 
 /*!
- * \brief MainWindow::setVisibilityOfFrameRightNonEditor
+ * \brief MainWindow::setVisibilityOfFrameRightWidgets
  * Either show or hide all widgets which are not m_textEdit
  */
-void MainWindow::setVisibilityOfFrameRightNonEditor(bool isVisible)
+void MainWindow::setVisibilityOfFrameRightWidgets(bool isVisible)
 {
     m_isFrameRightTopWidgetsVisible = isVisible;
     m_areNonEditorWidgetsVisible = isVisible;
 
     m_editorDateLabel->setVisible(isVisible);
-    m_trashButton->setVisible(isVisible);
     m_dotsButton->setVisible(isVisible);
-    m_styleEditorButton->setVisible(isVisible);
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+    m_switchToTextViewButton->setVisible(isVisible);
+    m_switchToKanbanViewButton->setVisible(isVisible);
+#endif
 
     // If the notes list is collapsed, hide the window buttons
     if (m_splitter) {
         if (m_foldersWidget->isHidden() && m_noteListWidget->isHidden()) {
-            setWindowButtonsVisible(isVisible);
+            setWindowButtonsVisible(false);
         }
     }
+}
+
+/*!
+ * \brief MainWindow::setVisibilityOfFrameRightNonEditor
+ * Either show or hide all widgets which are not m_textEdit
+ */
+void MainWindow::setVisibilityOfFrameRightNonEditor(bool isVisible)
+{
+    ui->frameRightTop->setVisible(isVisible);
 }
 
 void MainWindow::setWindowButtonsVisible(bool isVisible)
@@ -3198,30 +3438,17 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                 }
             }
 #endif
-
-            if (object == m_newNoteButton) {
-                setCursor(Qt::PointingHandCursor);
-                m_newNoteButton->setIcon(QIcon(QStringLiteral(":/images/newNote_Hovered.png")));
-            }
-
-            if (object == m_trashButton) {
-                setCursor(Qt::PointingHandCursor);
-                m_trashButton->setIcon(QIcon(QStringLiteral(":/images/trashCan_Hovered.png")));
-            }
-
-            if (object == m_dotsButton) {
-                setCursor(Qt::PointingHandCursor);
-                m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Hovered.png")));
-            }
-
-            if (object == ui->frameRightTop && !m_areNonEditorWidgetsVisible) {
-                setVisibilityOfFrameRightNonEditor(true);
-            }
         }
 
         if (object == ui->frame) {
             ui->centralWidget->setCursor(Qt::ArrowCursor);
         }
+
+#if !defined(Q_OS_MACOS)
+        if (object == m_textEdit->verticalScrollBar()) {
+            m_textEditScrollBarTimer->stop();
+        }
+#endif
 
         break;
     }
@@ -3250,25 +3477,25 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                 m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/green.png")));
 #endif
             }
-
-            if (object == m_newNoteButton) {
-                unsetCursor();
-                m_newNoteButton->setIcon(QIcon(QStringLiteral(":/images/newNote_Regular.png")));
-            }
-
-            if (object == m_trashButton) {
-                unsetCursor();
-                m_trashButton->setIcon(QIcon(QStringLiteral(":/images/trashCan_Regular.png")));
-            }
-
-            if (object == m_dotsButton) {
-                unsetCursor();
-                m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Regular.png")));
-            }
+        }
+        break;
+    }
+    case QEvent::ActivationChange: {
+        if (m_editorSettingsWidget->isHidden()) {
+            QApplication::setActiveWindow(
+                    this); // TODO: The docs say this function is deprecated but it's the only one
+                           // that works in returning the user input from m_editorSettingsWidget
+                           // Qt::Popup
+            m_textEdit->setFocus();
         }
         break;
     }
     case QEvent::WindowDeactivate: {
+#if !defined(Q_OS_MACOS)
+        if (object == m_editorSettingsWidget) {
+            m_editorSettingsWidget->close();
+        }
+#endif
 
         m_canMoveWindow = false;
         m_canStretchWindow = false;
@@ -3279,9 +3506,6 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/unfocusedButton")));
         m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/unfocusedButton")));
 #endif
-        m_newNoteButton->setIcon(QIcon(QStringLiteral(":/images/newNote_Regular.png")));
-        m_trashButton->setIcon(QIcon(QStringLiteral(":/images/trashCan_Regular.png")));
-        m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Regular.png")));
         break;
     }
     case QEvent::WindowActivate: {
@@ -3302,9 +3526,6 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/yellow.png")));
         m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/green.png")));
 #endif
-        m_newNoteButton->setIcon(QIcon(QStringLiteral(":/images/newNote_Regular.png")));
-        m_trashButton->setIcon(QIcon(QStringLiteral(":/images/trashCan_Regular.png")));
-        m_dotsButton->setIcon(QIcon(QStringLiteral(":/images/3dots_Regular.png")));
         break;
     }
 #ifndef __APPLE__
@@ -3403,6 +3624,20 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         }
         break;
     }
+    case QEvent::MouseMove: {
+        if (object == m_textEdit) {
+            if (!m_areNonEditorWidgetsVisible) {
+                setVisibilityOfFrameRightWidgets(true);
+            }
+#if !defined(Q_OS_MACOS)
+            if (m_textEdit->verticalScrollBar()->isVisible()) {
+                m_textEditScrollBarTimer->stop();
+                m_textEditScrollBarTimer->start(m_textEditScrollBarTimerDuration);
+            }
+#endif
+        }
+        break;
+    }
     default:
         break;
     }
@@ -3453,19 +3688,19 @@ void MainWindow::stayOnTop(bool checked)
 {
     m_alwaysStayOnTop = checked;
 
-#ifndef __APPLE__
-    Qt::WindowFlags flags = windowFlags();
-
-    if (checked)
-        flags |= Qt::WindowStaysOnTopHint;
-    else
-        flags &= ~Qt::WindowStaysOnTopHint;
-
-    setWindowFlags(flags);
-    setMainWindowVisibility(true);
-#else
+#if defined(Q_OS_MACOS)
     setWindowAlwaysOnTopMac(checked);
+    updateSelectedOptionsEditorSettings();
 #endif
+}
+
+/*!
+ * \brief MainWindow::moveCurrentNoteToTrash
+ */
+void MainWindow::moveCurrentNoteToTrash()
+{
+    m_noteEditorLogic->deleteCurrentNote();
+    //    m_editorSettingsWidget->close();
 }
 
 /*!
@@ -3523,39 +3758,11 @@ void MainWindow::setHeading(int level)
 }
 
 /*!
- * \brief MainWindow::adjustUpperWidgets
- * Either push the widgets up or restore them to their original position
- * Needed for when using native window or going full screen
- * \param shouldPushUp
- */
-void MainWindow::adjustUpperWidgets(bool shouldPushUp)
-{
-
-    // Adjust space above search field
-    const QSizePolicy policy = ui->verticalSpacer_upSearchEdit->sizePolicy();
-    ui->verticalSpacer_upSearchEdit->setMinimumSize(
-            0, shouldPushUp ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25);
-    ui->verticalSpacer_upTreeView->setMinimumSize(0, shouldPushUp ? 9 : 25);
-
-    ui->verticalSpacer_upEditorDateLabel->changeSize(
-            0, shouldPushUp ? ui->verticalSpacer_upScrollArea->sizeHint().height() : 25,
-            policy.horizontalPolicy(), policy.verticalPolicy());
-
-    // Force a full re-layout of the top right frame.
-    // This fixes some widgets not properly updating after switching between native and non-native
-    // window decoration modes.
-    setCSSThemeAndUpdate(ui->frameRightTop, m_currentTheme);
-}
-
-/*!
  * \brief MainWindow::setUseNativeWindowFrame
  * \param useNativeWindowFrame
  */
 void MainWindow::setUseNativeWindowFrame(bool useNativeWindowFrame)
 {
-    if (m_useNativeWindowFrame == useNativeWindowFrame)
-        return;
-
     m_useNativeWindowFrame = useNativeWindowFrame;
     m_settingsDatabase->setValue(QStringLiteral("useNativeWindowFrame"), useNativeWindowFrame);
 
@@ -3585,8 +3792,6 @@ void MainWindow::setUseNativeWindowFrame(bool useNativeWindowFrame)
         ui->centralWidget->layout()->setContentsMargins(margins);
     }
 #endif
-
-    adjustUpperWidgets(useNativeWindowFrame);
 
     setMainWindowVisibility(true);
 }
@@ -3642,7 +3847,7 @@ bool MainWindow::isTitleBar(int x, int y) const
 
     // The width of the title bar is essentially the width of the main window.
     int titleBarWidth = width();
-    int titleBarHeight = ui->verticalSpacer_upTreeView->height();
+    int titleBarHeight = ui->globalSettingsButton->height();
 
     int adjustedX = x;
     int adjustedY = y;
