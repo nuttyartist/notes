@@ -282,7 +282,7 @@ endif()
 
 target_compile_definitions(
   ${PROJECT_NAME}
-  PUBLIC APP_VERSION="${PROJECT_VERSION}${GIT_REV}"
+  PUBLIC APP_VERSION="${PROJECT_VERSION}${GIT_REV}" APP_ID="${APP_ID}"
          QT_DISABLE_DEPRECATED_BEFORE=0x050900 QSU_INCLUDE_MOC=1)
 
 # Enable useful compiler warnings (except on third-party code).

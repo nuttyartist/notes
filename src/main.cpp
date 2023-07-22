@@ -16,6 +16,10 @@ int main(int argc, char *argv[])
     app.setApplicationName("Notes");
     app.setApplicationVersion(APP_VERSION);
 
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    app.setDesktopFileName(QString(APP_ID) + ".desktop");
+#endif
+
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0) && QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     app.setAttribute(Qt::AA_DisableWindowContextHelpButton);
 #endif
