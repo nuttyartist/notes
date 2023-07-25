@@ -78,7 +78,7 @@ jobs:
             build-type: release
 
           - os: macos-11
-            qt-version: 6.5.0
+            qt-version: 6.5.2
             build-type: release
     steps:
       - name: Checkout code
