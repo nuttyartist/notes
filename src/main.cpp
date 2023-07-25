@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     app.setApplicationVersion(APP_VERSION);
 
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
-    app.setDesktopFileName(QString(APP_ID) + ".desktop");
+    app.setDesktopFileName(APP_ID);
 #endif
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0) && QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
