@@ -127,6 +127,7 @@ public slots:
     void toggleEditorSettings();
     void setEditorSettingsFromQuickViewVisibility(bool isVisible);
     void setEditorSettingsScrollBarPosition(double position);
+    void setActivationSuccessful();
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -134,6 +135,7 @@ protected:
     void closeEvent(QCloseEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
+    void moveEvent(QMoveEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
     void mouseDoubleClickEvent(QMouseEvent *event) override;
     void leaveEvent(QEvent *) override;
@@ -240,6 +242,8 @@ private:
 #endif
     bool m_isFrameRightTopWidgetsVisible;
     bool m_isEditorSettingsFromQuickViewVisible;
+    bool m_isProVersionActivated;
+    QSettings *m_localLicenseData;
 
     bool alreadyAppliedFormat(const QString &formatChars);
     void applyFormat(const QString &formatChars);
@@ -282,6 +286,7 @@ private:
     void fillRectWithGradient(QPainter &painter, QRect rect, QGradient &gradient);
     double gaussianDist(double x, const double center, double sigma) const;
     void resizeAndPositionEditorSettingsWindow();
+    void checkProVersion();
 
     void setMargins(QMargins margins);
 
@@ -351,11 +356,13 @@ signals:
     void qtVersionSet(QVariant qtVersion);
     void editorSettingsShowed(QVariant data);
     void mainWindowResized(QVariant data);
+    void mainWindowMoved(QVariant data);
     void displayFontSet(QVariant data);
     void settingsChanged(QVariant data);
     void fontsChanged(QVariant data);
     void toggleEditorSettingsKeyboardShorcutFired();
     void editorSettingsScrollBarPositionChanged(QVariant data);
+    void proVersionCheck(QVariant data);
 };
 
 #endif // MAINWINDOW_H

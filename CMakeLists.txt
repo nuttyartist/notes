@@ -19,6 +19,7 @@ option(GIT_REVISION
        "Append the current git revision to the app's version string" OFF)
 option(UPDATE_CHECKER
        "Enable or disable both the update checker and auto-updater" ON)
+option(PRO_VERSION "Enable or disable Notes Pro features" ON)
 
 project(
   Notes
@@ -37,6 +38,10 @@ if(POLICY CMP0083)
   cmake_policy(SET CMP0083 NEW)
   include(CheckPIESupported)
   check_pie_supported()
+endif()
+
+if(PRO_VERSION)
+  add_definitions(-DPRO_VERSION)
 endif()
 
 # List of Qt components required to build the app.
@@ -93,6 +98,7 @@ message(STATUS "App name: ${PROJECT_NAME}")
 message(STATUS "App version: ${PROJECT_VERSION}")
 message(STATUS "Qt version: ${QT_VERSION}")
 message(STATUS "Update checker: ${UPDATE_CHECKER}")
+message(STATUS "Pro Version: ${PRO_VERSION}")
 if(CMAKE_BUILD_TYPE STREQUAL "")
   message(STATUS "Build type: (not set)")
 else()
@@ -300,22 +306,25 @@ endif()
 if(QT_VERSION VERSION_GREATER_EQUAL 6.2)
   set(QML_FILES
       src/qml/CheckBoxMaterial.qml
-      src/qml/CustomTextArea.qml
       src/qml/CustomHorizontalScrollBar.qml
+      src/qml/CustomTextArea.qml
+      src/qml/CustomTextField.qml
       src/qml/CustomVerticalScrollBar.qml
       src/qml/EditorSettings.qml
-      src/qml/FontIconsCodes.qml
-      src/qml/FontIconLoader.qml
       src/qml/FontChooserButton.qml
+      src/qml/FontIconLoader.qml
+      src/qml/FontIconsCodes.qml
       src/qml/IconButton.qml
-      src/qml/kanbanMain.qml
       src/qml/OptionItemButton.qml
+      src/qml/ProPaymentWindow.qml
       src/qml/SwitchButton.qml
       src/qml/TextButton.qml
       src/qml/ThemeChooserButton.qml
       src/qml/TodoColumnDelegate.qml
       src/qml/TodoTaskDelegate.qml
-      src/qml/ViewChooserButton.qml)
+      src/qml/Utilities.js
+      src/qml/ViewChooserButton.qml
+      src/qml/kanbanMain.qml)
 
   foreach(file IN LISTS QML_FILES)
     get_filename_component(fileName ${file} NAME)

@@ -10,6 +10,7 @@ You should set those while invoking CMake to build the project. See the [example
 | `USE_QT_VERSION`                           | (unset)       | `5` / `6`           | Use a specific version of Qt to build the app               |
 | `GIT_REVISION`                             | `OFF`         | `ON` / `OFF`        | Append the current git revision to the app's version string |
 | `UPDATE_CHECKER`                           | `ON`          | `ON` / `OFF`        | Enable or disable both the update checker and auto-updater  |
+| `PRO_VERSION`                              | `ON`          | `ON` / `OFF`        | Enable or disable Notes Pro features                        |
 
 ### Examples
 

@@ -74,7 +74,8 @@ jobs:
           cmake . --warn-uninitialized --warn-unused-vars `
               -B build -G Ninja `
               -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} `
-              -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }}
+              -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }} `
+              -DPRO_VERSION=OFF
           cmake --build build
 
       - name: (FIXME) Run qmllint

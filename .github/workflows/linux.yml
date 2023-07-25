@@ -78,7 +78,8 @@ jobs:
               -B build \
               -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
               -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }} \
-              -DCMAKE_INSTALL_PREFIX=/usr
+              -DCMAKE_INSTALL_PREFIX=/usr \
+              -DPRO_VERSION=OFF
           cmake --build build --parallel $(nproc)
 
       - name: Create deb package
@@ -179,7 +180,8 @@ jobs:
               -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }} \
               -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE \
               -DUPDATE_CHECKER=OFF \
-              -DUSE_QT_VERSION=${{ matrix.qt-version-major }}
+              -DUSE_QT_VERSION=${{ matrix.qt-version-major }} \
+              -DPRO_VERSION=OFF
           cmake --build build --parallel $(nproc)
 
       - name: Create rpm package
@@ -317,7 +319,8 @@ jobs:
               -B build \
               -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
               -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }} \
-              -DCMAKE_INSTALL_PREFIX=/usr
+              -DCMAKE_INSTALL_PREFIX=/usr \
+              -DPRO_VERSION=OFF
           cmake --build build --parallel $(nproc)
 
       - name: (FIXME) Run qmllint

@@ -861,7 +861,7 @@ Item {
                     highlightBackgroundColor: settingsContainer.highlightBackgroundColor
                     pressedBackgroundColor: settingsContainer.pressedBackgroundColor
                     backgroundWidth: settingsPane.contentWidth - settingsContainer.paddingRightLeft*2
-                    mainFontColor: settingsContainer.mainFontColor
+                    mainFontColorDefault: settingsContainer.mainFontColor
                     platform: settingsContainer.platform
                     displayFontFamily: settingsContainer.displayFontFamily
                     x: settingsContainer.paddingRightLeft
@@ -894,7 +894,7 @@ Item {
                     highlightBackgroundColor: settingsContainer.highlightBackgroundColor
                     pressedBackgroundColor: settingsContainer.pressedBackgroundColor
                     backgroundWidth: settingsPane.contentWidth - settingsContainer.paddingRightLeft*2
-                    mainFontColor: settingsContainer.mainFontColor
+                    mainFontColorDefault: settingsContainer.mainFontColor
                     platform: settingsContainer.platform
                     displayFontFamily: settingsContainer.displayFontFamily
                     x: settingsContainer.paddingRightLeft

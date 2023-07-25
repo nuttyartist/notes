@@ -230,7 +230,7 @@ MouseArea {
                 }
             }
 
-            TextField {
+            CustomTextField {
                 id: columnTitleEditable
                 visible: false
                 property int topMargin: !dragArea.rootContainer.showColumnsBorders ? 0 : 10
@@ -238,15 +238,15 @@ MouseArea {
                 height: columnTitleEditable.implicitHeight
                 anchors.horizontalCenter: parent.horizontalCenter
                 horizontalAlignment: Text.AlignHCenter
-                y: topMargin - 8
+                y: topMargin - 5
                 text: dragArea.title
                 color: dragArea.themeData.theme === "Dark" ? "white" : "black"
                 background: Rectangle {
-                    height: columnTitleEditable.height - 14 // Needed because of Material theme
-                    y: 3
+                    height: columnTitleEditable.height
                     radius: 5
                     color: dragArea.themeData.theme === "Dark" ? "#313131" : "#efefef"
                 }
+                rightPadding: 12 // Neccesary so the text align perfectly with columnTitle
                 font.pointSize: dragArea.rootContainer.platform === "Apple" ? 17 : 17 + dragArea.rootContainer.pointSizeOffset
                 font.bold: true
                 font.family: dragArea.rootContainer.headerFamilyFont
@@ -509,7 +509,8 @@ MouseArea {
                 displayFontFamily: dragArea.rootContainer.bodyFontFamily
                 textAlignment: TextButton.TextAlign.Middle
                 themeData: dragArea.themeData
-                iconColor: dragArea.themeData.theme === "Dark" ? "#5b94f5" : "black"
+                iconColorDefault: dragArea.themeData.theme === "Dark" ? "#5b94f5" : "black"
+                backgroundHeight: 30
 
                 onClicked: {
                     if (!dragArea.rootContainer.isReadOnlyMode) {

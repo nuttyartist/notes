@@ -58,7 +58,8 @@ jobs:
           cmake . --warn-uninitialized --warn-unused-vars \
               -G Ninja -B build \
               -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
-              -DCMAKE_PREFIX_PATH="$(brew --prefix qt@${{ matrix.qt-version-major }})"
+              -DCMAKE_PREFIX_PATH="$(brew --prefix qt@${{ matrix.qt-version-major }})" \
+              -DPRO_VERSION=OFF
           cmake --build build
 
   # Build the dmg disk image using the official Qt 5 release downloaded by aqtinstall.
@@ -139,7 +140,8 @@ jobs:
               -B build -G Ninja \
               -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
               -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }} \
-              -DCMAKE_OSX_ARCHITECTURES="${{ env.TARGET_ARCH }}"
+              -DCMAKE_OSX_ARCHITECTURES="${{ env.TARGET_ARCH }}" \
+              -DPRO_VERSION=OFF
           cmake --build build
 
       - name: (FIXME) Run qmllint

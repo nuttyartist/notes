@@ -108,7 +108,8 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
         emit resetKanbanSettings();
-        emit kanbanForceReadOnly(QVariant(false)); // TODO: if not PRO version, should be true
+        emit checkMultipleNotesSelected(
+                QVariant(false)); // TODO: if not PRO version, should be true
 #endif
 
         m_textEdit->blockSignals(true);
@@ -155,7 +156,7 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
         emit textShown();
     } else if (notes.size() > 1) {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-        emit kanbanForceReadOnly(QVariant(true));
+        emit checkMultipleNotesSelected(QVariant(true));
 #endif
         m_currentNotes = notes;
         m_tagListView->setVisible(false);
@@ -225,15 +226,6 @@ void NoteEditorLogic::onTextEditTextChanged()
             m_isContentModified = true;
             m_autoSaveTimer.start();
             emit setVisibilityOfFrameRightWidgets(false);
-
-            //             In the future, make this work only when editing text
-            //             and not when changing it programmatically
-            //             #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-            //                         if (m_kanbanWidget != nullptr && !m_kanbanWidget->isHidden())
-            //                         {
-            //                             checkForTasksInEditor();
-            //                         }
-            //             #endif
         }
         m_textEdit->blockSignals(false);
     } else {

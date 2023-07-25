@@ -28,6 +28,7 @@ Item {
     property bool isForcedReadOnly: false
     property string headerFamilyFont: "PT Serif"
     property string bodyFontFamily: "Avenir Next"
+    property string displayFontFamily: "Roboto"
     property bool showColumnsBorders: false
     property int newTaskInColumnID: -1
     property var taskModelByColumnIDDict: ({})
@@ -35,6 +36,13 @@ Item {
     property bool showEditorSettings: false
     property int pointSizeOffset: -4
     property bool alignKanbanToMiddleOfRoot: false
+    property bool isMultipleNotesSelected: false
+    property bool isProVersion: false
+
+    property real parentWindowHeight
+    property real parentWindowWidth
+    property real parentWindowX
+    property real parentWindowY
 
     Material.theme: themeData.theme === "Dark" ? Material.Dark : Material.Light
     Material.accent: "#2383e2";
@@ -171,7 +179,7 @@ Item {
             root.updateColumnModel();
             root.showSettingsPopup = false;
 
-            if (root.isForcedReadOnly) {
+            if (root.isMultipleNotesSelected && root.isForcedReadOnly) {
                 root.informationPopupText = qsTr("Since you selected multiple notes you're in Read-only mode.");
                 root.showInformationPopup = true;
             }
@@ -186,14 +194,30 @@ Item {
             root.areTasksReversed = false;
         }
 
-        function onKanbanForceReadOnly (shouldForcedReadOnly) {
-            root.isReadOnlyMode = shouldForcedReadOnly;
-            root.isForcedReadOnly = shouldForcedReadOnly;
+        function onCheckMultipleNotesSelected (isMultipleNotesSelected) {
+            root.isMultipleNotesSelected = isMultipleNotesSelected;
+            if (isMultipleNotesSelected) {
+                root.isReadOnlyMode = true;
+                root.isForcedReadOnly = true;
+            } else if (root.isProVersion) {
+                root.isReadOnlyMode = false;
+                root.isForcedReadOnly = false;
+            }
         }
     }
 
     Connections {
         target: mainWindow
+
+        function onMainWindowResized (data) {
+           root.parentWindowHeight = data.parentWindowHeight;
+           root.parentWindowWidth = data.parentWindowWidth;
+        }
+
+        function onMainWindowMoved (data) {
+            root.parentWindowX = data.parentWindowX;
+            root.parentWindowY = data.parentWindowY;
+        }
 
         function onThemeChanged (data) {
             root.themeData = data;
@@ -207,9 +231,29 @@ Item {
             root.bodyFontFamily = data.listOfSansSerifFonts[data.chosenSansSerifFontIndex];
         }
 
+        function onDisplayFontSet (data) {
+            root.displayFontFamily = data.displayFont;
+        }
+
         function onToggleEditorSettingsKeyboardShorcutFired () {
             root.showEditorSettings = !root.showEditorSettings;
             mainWindow.setEditorSettingsFromQuickViewVisibility(root.showEditorSettings);
+        }
+
+        function onProVersionCheck (data) {
+            root.setProVersion(data);
+
+        }
+    }
+
+    function setProVersion (isPro) {
+        root.isProVersion = isPro;
+        if (!root.isProVersion) {
+            root.isReadOnlyMode = true;
+            root.isForcedReadOnly = true;
+        } else {
+            root.isReadOnlyMode = false;
+            root.isForcedReadOnly = false;
         }
     }
 
@@ -328,9 +372,18 @@ Item {
 
     function reRenderTask(columnID, taskIndex, taskObject) {
         root.taskModelByColumnIDDict[columnID].remove(taskIndex);
-        //        taskObject.taskText = "# Something\nYo";
-        //        console.log(taskObject.taskText);
         root.taskModelByColumnIDDict[columnID].insert(taskIndex, taskObject);
+    }
+
+    ProPaymentWindow {
+        id: proPaymentWindow
+        visible: false
+        platform: root.platform
+        color: root.themeData.theme === "Dark" ? "#1e1e1e" : "white"
+        displayFontFamily: root.displayFontFamily
+        themeData: root.themeData
+        x: root.parentWindowX + root.parentWindowWidth/2 - proPaymentWindow.width/2
+        y: root.parentWindowY + root.parentWindowHeight/2 - proPaymentWindow.height/2
     }
 
     Rectangle {
@@ -464,6 +517,29 @@ Item {
 
             Item {
                 Layout.fillWidth: true
+            }
+
+            TextButton {
+                visible: !root.isProVersion
+                text: qsTr("Upgrade to Pro")
+                platform: root.platform
+                displayFontFamily: root.bodyFontFamily
+                textAlignment: TextButton.TextAlign.Middle
+                themeData: root.themeData
+                textFontPointSize: 13
+                defaultBackgroundColor: root.themeData.theme === "Dark" ? "#27272e" : "#ebecf8"
+                highlightBackgroundColor: root.themeData.theme === "Dark" ? "#313131" : "#e4e5f0"
+                mainFontColorDefault: root.themeData.theme === "Dark" ? "#2383e2" : "#007bff"
+                textFontWeight: Font.Bold
+                backgroundOpacity: root.themeData.theme === "Dark" ? 0.5 : 1.0
+                backgroundHeightOffset: 17
+
+                onClicked: {
+                    proPaymentWindow.width = 650;
+                    proPaymentWindow.height = 400;
+                    proPaymentWindow.visible = true
+                    proPaymentWindow.raise();
+                }
             }
 
             IconButton {
