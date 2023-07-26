@@ -54,7 +54,7 @@ QTextEdit#textEdit.dark {
 }
 
 QTextEdit#textEdit.sepia {
-  color: rgb(95, 74, 50);
+  color: rgb(50, 30, 3);
 }
 
 /* Label showing the name of the selected folder */
@@ -98,7 +98,7 @@ QLineEdit#searchEdit.dark {
 
 QLineEdit#searchEdit.sepia {
   background-color: rgb(251, 240, 217);
-  color: rgb(95, 74, 50);
+  color: rgb(50, 30, 3);
   border: 1px solid rgb(205, 205, 205);
 }
 

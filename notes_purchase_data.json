@@ -1,0 +1,7 @@
+{
+  "purchase_pro_url": "https://notesapp.lemonsqueezy.com/checkout/buy/76150e98-2c13-4367-b784-01bb4105c3fd?discount=0",
+  "purchaseApiBase": "https://api.lemonsqueezy.com",
+  "activateLicenseEndpoint": "/v1/licenses/activate",
+  "validateLicenseEndpoint": "/v1/licenses/validate",
+  "deactivateLicenseEndpoint": "/v1/licenses/deactivate"
+}

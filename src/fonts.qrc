@@ -36,5 +36,7 @@
         <file>fonts/ptserif/PTSerif-Regular.ttf</file>
         <file>fonts/fontawesome/fa-solid-900.ttf</file>
         <file>fonts/material/material-symbols-outlined.ttf</file>
+        <file>fonts/fontawesome/fa-brands-400.ttf</file>
+        <file>fonts/fontawesome/fa-regular-400.ttf</file>
     </qresource>
 </RCC>

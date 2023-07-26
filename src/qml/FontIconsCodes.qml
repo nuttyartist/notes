@@ -20,6 +20,9 @@ QtObject {
     readonly property string fa_circle                  : "\uf111"
     readonly property string fa_circle_xmark            : "\uf057"
     readonly property string fa_xmark                   : "\uf00d"
+    readonly property string fa_linux                   : "\uf17c"
+    readonly property string fa_bell                    : "\uf0f3"
+    readonly property string fa_circle_check            : "\uf058"
 
     readonly property string mt_view_kanban             : "\ueb7f"
     readonly property string mt_article                 : "\uef42"

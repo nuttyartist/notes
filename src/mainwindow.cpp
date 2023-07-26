@@ -119,7 +119,9 @@ MainWindow::MainWindow(QWidget *parent)
       m_textEditScrollBarTimerDuration(1000),
 #endif
       m_isFrameRightTopWidgetsVisible(true),
-      m_isEditorSettingsFromQuickViewVisible(false)
+      m_isEditorSettingsFromQuickViewVisible(false),
+      m_isProVersionActivated(false),
+      m_localLicenseData(nullptr)
 {
     ui->setupUi(this);
     setupMainWindow();
@@ -140,6 +142,7 @@ MainWindow::MainWindow(QWidget *parent)
 #if defined(UPDATE_CHECKER)
     autoCheckForUpdates();
 #endif
+    checkProVersion();
 
     QTimer::singleShot(200, this, SLOT(InitData()));
 }
@@ -295,7 +298,8 @@ void MainWindow::resizeEvent(QResizeEvent *event)
 
     resizeAndPositionEditorSettingsWindow();
 
-    QJsonObject dataToSendToView{ { "parentWindowHeight", this->height() } };
+    QJsonObject dataToSendToView{ { "parentWindowHeight", height() },
+                                  { "parentWindowWidth", width() } };
     emit mainWindowResized(QVariant(dataToSendToView));
 
     QMainWindow::resizeEvent(event);
@@ -1263,6 +1267,12 @@ void MainWindow::setupKanbanView()
 #  elif defined(Q_OS_MACOS)
     emit platformSet(QVariant(QString("Apple")));
 #  endif
+
+    QJsonObject dataToSendToView{ { "displayFont",
+                                    QFont(QStringLiteral("SF Pro Text")).exactMatch()
+                                            ? QStringLiteral("SF Pro Text")
+                                            : QStringLiteral("Roboto") } };
+    emit displayFontSet(QVariant(dataToSendToView));
 }
 #endif
 
@@ -1282,8 +1292,8 @@ void MainWindow::initializeSettingsDatabase()
 #endif
 
     if (m_settingsDatabase->value(QStringLiteral("windowGeometry"), "NULL") == "NULL") {
-        int initWidth = 870;
-        int initHeight = 630;
+        int initWidth = 1106;
+        int initHeight = 694;
         QPoint center = qApp->primaryScreen()->geometry().center();
         QRect rect(center.x() - initWidth / 2, center.y() - initHeight / 2, initWidth, initHeight);
         setGeometry(rect);
@@ -1298,6 +1308,34 @@ void MainWindow::initializeSettingsDatabase()
 }
 
 /*!
+ * \brief MainWindow::setActivationSuccessful
+ */
+void MainWindow::setActivationSuccessful()
+{
+    m_isProVersionActivated = true;
+    emit proVersionCheck(QVariant(m_isProVersionActivated));
+    m_localLicenseData->setValue(QStringLiteral("isLicenseActivated"), true);
+    m_aboutWindow.setProVersion(m_isProVersionActivated);
+}
+
+/*!
+ * \brief MainWindow::checkProVersion
+ */
+void MainWindow::checkProVersion()
+{
+#if defined(PRO_VERSION)
+    m_isProVersionActivated = true;
+#else
+    if (m_localLicenseData->value(QStringLiteral("isLicenseActivated"), "NULL") != "NULL") {
+        m_isProVersionActivated =
+                m_localLicenseData->value(QStringLiteral("isLicenseActivated")).toBool();
+    }
+#endif
+    emit proVersionCheck(QVariant(m_isProVersionActivated));
+    m_aboutWindow.setProVersion(m_isProVersionActivated);
+}
+
+/*!
  * \brief MainWindow::setupDatabases
  * Setting up the database:
  */
@@ -1306,6 +1344,19 @@ void MainWindow::setupDatabases()
     m_settingsDatabase =
             new QSettings(QSettings::IniFormat, QSettings::UserScope, QStringLiteral("Awesomeness"),
                           QStringLiteral("Settings"), this);
+
+#if !defined(PRO_VERSION)
+#  if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    m_localLicenseData =
+            new QSettings(QSettings::NativeFormat, QSettings::UserScope,
+                          QStringLiteral("Awesomeness"), QStringLiteral(".notesLicenseData"), this);
+#  else
+    m_localLicenseData =
+            new QSettings(QSettings::NativeFormat, QSettings::UserScope,
+                          QStringLiteral("Awesomeness"), QStringLiteral("notesLicenseData"), this);
+#  endif
+#endif
+
     m_settingsDatabase->setFallbacksEnabled(false);
     bool needMigrateFromV1_5_0 = false;
     if (m_settingsDatabase->value(QStringLiteral("version"), "NULL") == "NULL") {
@@ -2098,7 +2149,7 @@ void MainWindow::setTheme(Theme::Value theme)
         QJsonObject themeData{ { "theme", QStringLiteral("Sepia") },
                                { "backgroundColor", "#fbf0d9" } };
         emit themeChanged(QVariant(themeData));
-        m_currentEditorTextColor = QColor(95, 74, 50);
+        m_currentEditorTextColor = QColor(50, 30, 3);
         m_searchButton->setStyleSheet("QToolButton { color: rgb(205, 205, 205) }");
         m_clearButton->setStyleSheet("QToolButton { color: rgb(114, 114, 114) }");
         m_switchToTextViewButton->setStyleSheet("QPushButton { color: rgb(215, 214, 213); }");
@@ -2705,6 +2756,18 @@ void MainWindow::closeEvent(QCloseEvent *event)
         // save states and quit application
         QuitApplication();
     }
+}
+
+/*!
+ * \brief MainWindow::moveEvent
+ * \param event
+ */
+void MainWindow::moveEvent(QMoveEvent *event)
+{
+    QJsonObject dataToSendToView{ { "parentWindowX", x() }, { "parentWindowY", y() } };
+    emit mainWindowMoved(QVariant(dataToSendToView));
+
+    event->accept();
 }
 
 #ifndef _WIN32

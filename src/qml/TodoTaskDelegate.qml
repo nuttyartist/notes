@@ -620,10 +620,12 @@ MouseArea {
                     }
 
                     onDoubleClicked: {
-                        taskTextNonEditable.visible = false;
-                        taskTextEdit.visible = true;
-                        taskTextEdit.cursorPosition = taskTextEdit.length;
-                        taskTextEdit.forceActiveFocus();
+                        if (!taskDragArea.rootContainer.isReadOnlyMode) {
+                            taskTextNonEditable.visible = false;
+                            taskTextEdit.visible = true;
+                            taskTextEdit.cursorPosition = taskTextEdit.length;
+                            taskTextEdit.forceActiveFocus();
+                        }
                     }
 
                     onEntered: {

@@ -16,6 +16,7 @@ public:
     explicit AboutWindow(QWidget *parent = 0);
     ~AboutWindow();
     void setTheme(Theme::Value theme);
+    void setProVersion(bool isProVersion);
 
 public slots:
 
@@ -26,6 +27,8 @@ private slots:
 protected:
 private:
     Ui::AboutWindow *m_ui;
+    bool m_isProVersion;
+    void setAboutText();
 };
 
 #endif // ABOUTWINDOW_H

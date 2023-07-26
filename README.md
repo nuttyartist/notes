@@ -8,7 +8,6 @@
 Notes is an open source and cross-platform note-taking app that is both beautiful and powerful.
 
 Website: <a href="https://get-notes.com" target="_blank">get-notes.com</a>
-Our vision for the future on our [Wiki](https://github.com/nuttyartist/notes/wiki/Vision).
 
 ## Screenshots
 
@@ -18,7 +17,7 @@ Our vision for the future on our [Wiki](https://github.com/nuttyartist/notes/wik
 ## Features Overview
 
 - Native app (written in C++ with Qt).
-- Fast with a low memory footprint.
+- Fast.
 - Fully open source and cross-platform (Linux, macOS, Windows).
 - Completely private - tracks nothing.
 - Beautiful and sleek looking, yet still powerful.
@@ -34,9 +33,9 @@ Our vision for the future on our [Wiki](https://github.com/nuttyartist/notes/wik
 
 All keyboard shortcuts are [documented here](docs/keyboard_shortcuts.md).
 
-## Support the project
+## Pro Version
 
-If you use Notes daily, consider donating money so I can pay programmers to develop new features and fix bugs. I partner with [Github Sponsors](https://github.com/sponsors/nuttyartist) and [Patreon](https://www.patreon.com/rubymamis) to receive contributions. You can also put a bounty on specific issues using Bountysource. I currently make a living from ads on the website, but I'd like to stop with that.
+To support our open source development you can purchase a [Pro Version license](https://notesapp.lemonsqueezy.com/checkout/buy/0e791d1e-9feb-4a67-b05a-f2f07f5c82ad?discount=0) that will allow you to edit inside the Kanban view and recieve free Pro version updates for a year. You can also donate money either through [Github Sponsors](https://github.com/sponsors/nuttyartist), or [Patreon](https://www.patreon.com/rubymamis), or put a bounty on specific issues using Bountysource. If you wish, you can access all Pro features at no cost by building the app from source. See "Building from source" below.
 
 ## Building from source
 
@@ -55,6 +54,7 @@ The notes database and settings file are stored in:
 ## Contributors
 
 ### Developers:
+
 Alex Spataru  
 Ali Diouri  
 David Planella  
@@ -62,26 +62,40 @@ Diep Ngoc
 Guilherme Silva  
 Thorbjørn Lindeijer  
 Tuur Vanhoutte  
-Waqar Ahmed  
+Waqar Ahmed
 
 ### Designers:
+
 Kevin Doyle
 
-And to the many of our beloved users who keep sending us feedback, you are an essential force in helping us improve, thank you!  
+And to the many of our beloved users who keep sending us feedback, you are an essential force in helping us improve, thank you!
+
+## Roadmap
+
+A sneak peek at what we’re stirring up next.
+
+- Mobile app using the same code base (adaptable app).
+- Replace database with support for arbitrary folder.
+- Our own built-in syncing.
+- Export/import .txt files.
+- Advanced blocks editor.
+- Much, much more.
 
 ## Notes makes use of the following third-party libraries:
 
-* [QMarkdownTextEdit](https://github.com/pbek/qmarkdowntextedit)
-* [QSimpleUpdater](https://github.com/alex-spataru/QSimpleUpdater)
-* [QAutostart](https://github.com/b00f/qautostart)
-* [Qxt](https://bitbucket.org/libqxt/libqxt/src/master/)
+- [QMarkdownTextEdit](https://github.com/pbek/qmarkdowntextedit)
+- [QSimpleUpdater](https://github.com/alex-spataru/QSimpleUpdater)
+- [QAutostart](https://github.com/b00f/qautostart)
+- [Qxt](https://bitbucket.org/libqxt/libqxt/src/master/)
 
 ## Notes makes use of the following open source fonts:
 
-* Roboto
-* Source Sans Pro
-* Trykker
-* Mate
-* iA Writer Mono
-* iA Writer Duo
-* iA Writer Quattro
+- Roboto
+- Source Sans Pro
+- Trykker
+- Mate
+- iA Writer Mono
+- iA Writer Duo
+- iA Writer Quattro
+- Font Awesome
+- Material Symbols

@@ -96,7 +96,7 @@ signals:
     void tasksFoundInEditor(QVariant data);
     void clearKanbanModel();
     void resetKanbanSettings();
-    void kanbanForceReadOnly(QVariant shouldForcedReadOnly);
+    void checkMultipleNotesSelected(QVariant isMultipleNotesSelected);
 #endif
 
 private:
