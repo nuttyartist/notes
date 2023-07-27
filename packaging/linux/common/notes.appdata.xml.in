@@ -17,8 +17,8 @@
         <p>Features overview:</p>
         <ul>
             <li>Native app (written in C++ with Qt)</li>
-            <li>Fast with a low memory footprint</li>
-            <li>Beautiful and sleek looking, yet still powerful</li>
+            <li>Turn your Markdown tasks into a beautiful Kanban board</li>
+            <li>Fast and beautiful</li>
             <li>Fully open source and cross-platform (Linux, macOS, Windows)</li>
             <li>Completely private: Tracks nothing</li>
             <li>Folders and tags: Organize your ideas hierarchically using nested folders and universally using tags</li>
@@ -29,30 +29,55 @@
         </ul>
     </description>
     <screenshots>
-        <!-- TODO: Upload these screenshots to a better place. -->
         <screenshot type="default">
-            <image>https://user-images.githubusercontent.com/626206/222927528-64941f78-4093-4d3d-8000-fd0dca61980a.png</image>
-            <caption>Light theme</caption>
+            <image>https://www.rubymamistvalove.com/screenshots/linux/this_is_a_line_linux.png</image>
+            <caption>Overview</caption>
         </screenshot>
         <screenshot>
-            <image>https://user-images.githubusercontent.com/626206/222927531-a52cd062-acd1-49b2-9b58-543ff5772c6e.png</image>
-            <caption>Editor settings</caption>
+            <image>https://www.rubymamistvalove.com/screenshots/linux/kanban.png</image>
+            <caption>Kanban Board</caption>
         </screenshot>
         <screenshot>
-            <image>https://user-images.githubusercontent.com/626206/222927543-6c91792f-3fa3-430b-94b7-c2ff92f6ed4d.png</image>
-            <caption>Dark theme</caption>
+            <image>https://www.rubymamistvalove.com/screenshots/linux/tasks.png</image>
+            <caption>Markdown Tasks</caption>
         </screenshot>
         <screenshot>
-            <image>https://user-images.githubusercontent.com/626206/222927546-1d333c84-2d82-4e2d-8c96-a15f42d56af2.png</image>
+            <image>https://www.rubymamistvalove.com/screenshots/linux/theme.png</image>
+            <caption>Dark Theme</caption>
+        </screenshot>
+        <screenshot>
+            <image>https://www.rubymamistvalove.com/screenshots/linux/sepia.png</image>
             <caption>Sepia theme</caption>
         </screenshot>
         <screenshot>
-            <image>https://user-images.githubusercontent.com/626206/222930768-87a1f5ef-1707-45c3-9322-fb0e64869cc2.png</image>
-            <caption>Compact mode</caption>
+            <image>https://www.rubymamistvalove.com/screenshots/linux/tags.png</image>
+            <caption>Tags</caption>
         </screenshot>
     </screenshots>
     <content_rating type="oars-1.1" />
     <releases>
+        <release date="2023-07-27" version="2.1.0">
+            <description>
+                <p>A new release is here with major new features and many bug fixes and improvements.</p>
+                <p>New features:</p>
+                <ul>
+                    <li>You can now turn your Markdown tasks into a beautiful Kanban board</li>
+                    <li>Completely redesigned Editor Settings popup to quickly change the editor's settings</li>
+                    <li>New gear icon for global app settings</li>
+                    <li>Much improved Dark theme colors</li>
+                </ul>
+                <p>Improvements and bug fixes:</p>
+                <ul>
+                    <li>Text contrast in Sepia theme is improved</li>
+                    <li>Added alt+up/down keyboard shortcut to move the current line</li>
+                    <li>Toggling fullscreen is now possible with F11 and Esc</li>
+                    <li>Fixed markdown fonts not being resized properly</li>
+                    <li>Native window decoration is now default on Windows and Linux</li>
+                    <li>Fixed X11 linking on BSD systems</li>
+                    <li>Many more fixes and improvements under the hood</li>
+                </ul>
+            </description>
+        </release>
         <release date="2023-03-08" version="2.1.0">
             <description>
                 <p>A new release is here with some new features and many bug fixes and improvements.</p>
