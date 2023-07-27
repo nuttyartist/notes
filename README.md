@@ -11,22 +11,23 @@ Website: <a href="https://get-notes.com" target="_blank">get-notes.com</a>
 
 ## Screenshots
 
-![notes_screenshot_1](https://user-images.githubusercontent.com/16375940/188721143-df0a3584-011f-4ef0-a185-82066f9eb671.gif)
-![notes_screenshot_2](https://user-images.githubusercontent.com/16375940/188721215-943dff96-fd61-48ad-a2c0-fa059db72152.gif)
+https://github.com/nuttyartist/notes/assets/16375940/714ffe3e-95ef-4233-b3da-58fcea33fbfa  
+
+https://github.com/nuttyartist/notes/assets/16375940/370439b1-e42b-45c4-a807-0c3657051f97  
 
 ## Features Overview
 
 - Native app (written in C++ with Qt).
-- Fast.
+- Turn your Markdown tasks into a beautiful Kanban board.
+- Fast and beautiful.
 - Fully open source and cross-platform (Linux, macOS, Windows).
 - Completely private - tracks nothing.
-- Beautiful and sleek looking, yet still powerful.
 - Folders and tags. Organize your ideas hierarchically using nested folders and universally using tags.
 - Markdown Support. Format text without lifting your hands from the keyboard.
 - Different themes. Switch between Light, Dark, and Sepia.
 - Feed View. Select multiple notes to see them all one after another in the editor.
 - Always runs in the background. Use the hotkey <kbd>Win</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd> to summon Notes. <kbd>Ctrl</kbd>+<kbd>N</kbd> for macOS.
-- Keyboard shortcuts. Meant to have the option to be used solely with a keyboard (but more work needs to be done there).
+- Keyboard shortcuts. Meant to have the option to be used solely with a keyboard (but more work needs to be done on that).
 - What feature will you contribute?
 
 ## Keyboard shortcuts
