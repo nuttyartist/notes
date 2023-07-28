@@ -19,13 +19,17 @@ jobs:
           - os: ubuntu-20.04
             qt-version-major: 5
             build-type: release
-
+            
+          - os: ubuntu-20.04
+            container: ubuntu:22.10
+            qt-version-major: 6
+            build-type: release
+            
           - os: ubuntu-22.04
             qt-version-major: 6
             build-type: release
-
-          - os: ubuntu-20.04
-            container: ubuntu:22.10
+            
+          - os: ubuntu-23.04
             qt-version-major: 6
             build-type: release
     steps:
