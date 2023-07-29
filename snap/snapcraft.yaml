@@ -1,89 +1,152 @@
+# Observations:
+#
+# - This package is expected to work normally, like any other packaging format (e.g. Flatpak, AppImage).
+# - Native Wayland support, albeit doable, is currently not done on purpose, for a few reasons:
+#
+# 1. It's currently awkward to package/configure properly:
+#  - Due to 'strict' confinement, we have create a wrapper script and configure the Wayland socket to be visible in $XDG_RUNTIME_DIR: 
+#    - https://forum.snapcraft.io/t/wayland-dconf-and-xdg-runtime-dir/186
+#    - https://github.com/MirServer/graphics-core22/issues/6#issuecomment-1558815412
+#
+# 2. It currently has some UI inconsistencies (these were tested on Ubuntu 22.04 with GNOME 42):
+#  - The mouse cursor theme is chosen incorrectly
+#  - The mouse cursor itself is way larger than normal
+#  - Modal windows don't have their initial position on the screen set correctly
+#  - Windows don't have shadows
+#
+# I'm sure these issues can be worked around somehow, but since the 'X11 build' works reasonably well on Wayland through XWayland,
+# they can be dealt with some other time.
+# But if you're interested in Wayland support right now, here's what you have to do to get an initial, working build:
+#
+# - Add the 'qt6-wayland-dev' package to 'build-packages'
+# - Add the 'qt6-wayland' package to 'stage-packages'
+# - Either add a Wayland launcher script (mentioned in reason number 1), OR run the app like this (for quick testing):
+#   $ snap run --shell notes
+#   $ export XDG_RUNTIME_DIR=(dirname "$XDG_RUNTIME_DIR")
+#   $ export QT_QPA_PLATFORM=wayland
+#   $ notes
+#
+# Useful links:
+# - https://snapcraft.io/docs/snapcraft-yaml-reference
+# - https://github.com/MirServer/iot-example-graphical-snap/tree/Qt6-example
 name: notes
 adopt-info: notes
-summary: Note taking application, write down your thoughts.
-description: |
-  Notes is a tool for the things you need to write down off your
-  brain. It is your place of expressing yourself. Notes is an open
-  source and cross-platform project, and you're welcome to be part
-  of it and contribute. We hope you will love it as much as we do.
+icon: packaging/linux/common/icons/512x512/notes.png
 
-base: core18
-
-grade: stable
+base: core22
+compression: lzo
 confinement: strict
 
+# The s390x architecture is not included on purpose, because it currently fails at the graphics-core22 step.
 architectures:
   - build-on: amd64
+  - build-on: arm64
+  - build-on: armhf
+  - build-on: ppc64el
 
 apps:
   notes:
-    command: desktop-launch ${SNAP}/usr/bin/notes
-    plugs: [home, opengl, unity7, network, desktop-legacy, desktop, gsettings, x11, wayland]
+    common-id: io.github.nuttyartist.notes
+    command-chain:
+      - bin/graphics-core22-wrapper # https://mir-server.io/docs/the-graphics-core22-snap-interface
+    command: usr/bin/notes
+    plugs: # https://snapcraft.io/docs/supported-interfaces
+      - desktop
+      - desktop-legacy
+      - gsettings
+      - home
+      - network
+      - opengl
+      - unity7
+      - x11
+      - wayland
     environment:
-      QT_QPA_PLATFORMTHEME: gtk3
+      QML2_IMPORT_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/qt6/qml
+      QT_PLUGIN_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/qt6/plugins
+      QT_QPA_PLATFORM_PLUGIN_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/qt6/plugins/platforms
+      XCURSOR_PATH: $SNAP/share/icons # Fixes missing mouse cursor theme in X11 sessions - assuming the current theme exists in the gtk-common-themes snap.
+      XDG_CACHE_HOME: $SNAP_USER_COMMON/.cache
+      XDG_CONFIG_HOME: $SNAP_USER_DATA/.config
+      XDG_CONFIG_DIRS: $SNAP/etc/xdg
+      XKB_CONFIG_ROOT: $SNAP/usr/share/X11/xkb
 
-plugs: # plugs for theming, font settings, cursor and to use gtk3 file chooser
+layout:
+  /usr/share/libdrm:
+    bind: $SNAP/graphics/libdrm
+  /usr/share/drirc.d:
+    symlink: $SNAP/graphics/drirc.d
+  /usr/share/X11/XErrorDB:
+    symlink: $SNAP/graphics/X11/XErrorDB
+  /usr/share/X11/locale:
+    symlink: $SNAP/graphics/X11/locale
+  /usr/share/X11/xkb:
+    bind: $SNAP/usr/share/X11/xkb
+
+plugs:
+  graphics-core22:
+    interface: content
+    target: $SNAP/graphics
+    default-provider: mesa-core22
+  # https://forum.snapcraft.io/t/how-to-use-the-system-gtk-theme-via-the-gtk-common-themes-snap/6235
   gtk-3-themes:
     interface: content
-    target: $SNAP/data-dir/themes
-    default-provider: gtk-common-themes:gtk-3-themes
+    target: $SNAP/share/themes
+    default-provider: gtk-common-themes
   icon-themes:
     interface: content
-    target: $SNAP/data-dir/icons
-    default-provider: gtk-common-themes:icon-themes
+    target: $SNAP/share/icons
+    default-provider: gtk-common-themes
   sound-themes:
     interface: content
-    target: $SNAP/data-dir/sounds
-    default-provider: gtk-common-themes:sounds-themes
+    target: $SNAP/share/sounds
+    default-provider: gtk-common-themes
 
 parts:
   notes:
-    plugin: qmake
-    qt-version: qt5
-    options:
-      - PREFIX=/usr
-      - CONFIG+=release
-    override-pull: |
-      snapcraftctl pull
-      snapcraftctl set-version $(git describe --always --tags HEAD | cut -d- -f1 | sed 's/^v//')
     source: .
-    project-files: [src/Notes.pro]
+    source-type: git
+    plugin: cmake
+    cmake-generator: Ninja
+    cmake-parameters:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DCMAKE_INSTALL_PREFIX=/usr
+      - -DGIT_REVISION=ON
+      - -DPRO_VERSION=OFF # Note: You may want to remove this option if you're building the snap yourself.
+      - -DUPDATE_CHECKER=OFF
+      - -DUSE_QT_VERSION=6
+    parse-info:
+      - usr/share/metainfo/io.github.nuttyartist.notes.metainfo.xml
     build-packages:
-      - qtbase5-dev
-      - qtbase5-dev-tools
-      - qtbase5-private-dev
-      - qt5-qmake
+      - libgl-dev
+      - libqt6opengl6-dev
+      - qt6-base-private-dev
+      - qt6-declarative-dev
     stage-packages:
-      - fonts-liberation
-      - libqt5gui5
-      - libqt5widgets5
-      - libqt5core5a
-      - libqt5sql5
-      - libqt5sql5-sqlite
-      - qt5-gtk-platformtheme
-    override-build: |
-       snapcraftctl build
-    after: [desktop-qt5]
+      - libqt6network6
+      - libqt6sql6-sqlite
+      - libqt6widgets6
+      - libxcursor1 # For some reason this isn't present in core22, but Qt dlopen()'s it to set up the mouse cursor theme, so we have to include it.
+      - qml6-module-qtqml-workerscript
+      - qml6-module-qtquick-controls
+      - qml6-module-qtquick-layouts
+      - qml6-module-qtquick-particles
+      - qml6-module-qtquick-templates
+      - qml6-module-qtquick-window
+      - qt6-qpa-plugins
+    override-prime: |
+      craftctl default
+      if [ -d "${SNAPCRAFT_PART_SRC}/.git" ]
+      then
+        craftctl set version="$(grep -oPm1 '\bAPP_VERSION +\K[^)]+' "${SNAPCRAFT_PART_SRC}/CMakeLists.txt")+g$(git -C "${SNAPCRAFT_PART_SRC}" rev-parse --short HEAD)"
+      fi
 
-  desktop-qt5:
-    source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
-    source-subdir: qt
-    plugin: make
-    make-parameters: ["FLAVOR=qt5"]
-    build-packages:
-      - qtbase5-dev
-      - dpkg-dev
-    stage-packages:
-      - libxkbcommon0
-      - ttf-ubuntu-font-family
-      - dmz-cursor-theme
-      - light-themes
-      - adwaita-icon-theme
-      - gnome-themes-standard
-      - shared-mime-info
-      - libqt5gui5
-      - libgdk-pixbuf2.0-0
-      - libgtk2.0-0
-      - libqt5svg5
-      - try: [appmenu-qt5] # not available on core18
-      - locales-all
+  graphics-core22:
+    after:
+      - notes
+    source: https://github.com/MirServer/graphics-core22.git
+    plugin: dump
+    override-prime: |
+      craftctl default
+      ${CRAFT_PART_SRC}/bin/graphics-core22-cleanup mesa-core22 nvidia-core22
+    prime:
+      - bin/graphics-core22-wrapper

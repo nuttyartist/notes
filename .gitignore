@@ -29,6 +29,7 @@ packaging/linux/snap/parts/desktop
 prime/
 squashfs-root/
 build/
+install/
 src/moc
 src/obj
 src/qrc
