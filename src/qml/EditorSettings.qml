@@ -32,6 +32,7 @@ Item {
     property int pointSizeOffset: -4
     property int qtVersion: 6
     property string currentlySelectedView: "TextView" // "KanbanView"
+    property bool isProVersion: false
 
 //    signal changeFontType(fontType : EditorSettingsOptions) // TODO: It's better to use signal & slots for calling C++ functions
 //    to change the editor settings rather than calling public slots directly. But I couldn't make it work between QML and C++
@@ -128,6 +129,10 @@ Item {
             settingsContainer.chosenSerifFontIndex = data.chosenSerifFontIndex;
             settingsContainer.chosenMonoFontIndex = data.chosenMonoFontIndex;
             settingsContainer.currentFontTypeface = data.currentFontTypeface;
+        }
+
+        function onProVersionCheck (data) {
+            settingsContainer.isProVersion = data;
         }
     }
 
@@ -702,6 +707,7 @@ Item {
                             }
 
                             Rectangle {
+                                visible: !settingsContainer.isProVersion
     //                            anchors.horizontalCenter: kanbanView.horizontalCenter
                                 x: kanbanView.x + kanbanView.width/2 - width/2 - 7
                                 width: 35
