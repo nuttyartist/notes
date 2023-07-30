@@ -688,6 +688,12 @@ MouseArea {
                     taskTextEdit.visible = false;
                     taskTextNonEditable.visible = true;
                 }
+
+                onEditingFinished: {
+                    taskTextEdit.text = taskTextNonEditable.text;
+                    taskTextEdit.visible = false;
+                    taskTextNonEditable.visible = true;
+                }
             }
 
             IconButton {
