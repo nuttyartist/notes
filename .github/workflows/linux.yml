@@ -121,7 +121,8 @@ jobs:
       matrix:
         include:
           - os: ubuntu-20.04
-            container: fedora:36
+            # Fedora's release cycle: https://docs.fedoraproject.org/en-US/releases/lifecycle/
+            container: fedora:37
             qt-version-major: 6
             build-type: release
 
