@@ -4,6 +4,22 @@
 
  -- @APP_AUTHOR@ <@APP_AUTHOR_EMAIL@>  @DATE_NOW_UTC@
 
+@PROJECT_NAME_LOWERCASE@ (2.2.0) stable; urgency=low
+
+  * You can now turn your Markdown tasks into a beautiful Kanban board
+  * Completely redesigned Editor Settings popup to quickly change the editor's settings
+  * New gear icon for global app settings
+  * Much improved Dark theme colors
+  * Text contrast in Sepia theme is improved
+  * Added alt+up/down keyboard shortcut to move the current line
+  * Toggling fullscreen is now possible with F11 & Esc
+  * Fixed markdown fonts not being resized properly
+  * Native window decoration is now default on Windows and Linux
+  * Fixed X11 linking on BSD systems
+  * Many more fixes and improvements under the hood
+
+ -- @APP_AUTHOR@ <@APP_AUTHOR_EMAIL@>  Thu, 27 Jul 2023 12:09:49 +0000
+
 @PROJECT_NAME_LOWERCASE@ (2.1.0) stable; urgency=low
 
   * You can now open external links by holding Ctrl while clicking them
