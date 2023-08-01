@@ -501,7 +501,7 @@ elseif(UNIX)
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "qt6-qpa-plugins")
     if(QT_VERSION_MINOR VERSION_GREATER_EQUAL 2)
       set(CPACK_DEBIAN_PACKAGE_DEPENDS
-          "${CPACK_DEBIAN_PACKAGE_DEPENDS}, qml6-module-qtqml-workerscript, qml6-module-qtquick-controls, qml6-module-qtquick-particles, qml6-module-qtquick-templates"
+          "${CPACK_DEBIAN_PACKAGE_DEPENDS}, qml6-module-qtqml-workerscript, qml6-module-qtquick-controls, qml6-module-qtquick-layouts, qml6-module-qtquick-particles, qml6-module-qtquick-templates, qml6-module-qtquick-window"
       )
     endif()
   elseif(QT_VERSION_MAJOR VERSION_EQUAL 5)
