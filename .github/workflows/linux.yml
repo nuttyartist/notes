@@ -16,6 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Ubuntu's release cycle: https://wiki.ubuntu.com/Releases
           - os: ubuntu-20.04
             qt-version-major: 5
             build-type: release
@@ -25,7 +26,7 @@ jobs:
             build-type: release
 
           - os: ubuntu-20.04
-            container: ubuntu:22.10
+            container: ubuntu:23.04
             qt-version-major: 6
             build-type: release
     steps:
