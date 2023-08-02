@@ -4,7 +4,7 @@ Item {
     id: root
     width: root.backgroundSizeFitText ? buttonText.implicitWidth : root.backgroundWidth
     height: root.backgroundSizeFitText ? buttonText.implicitHeight : root.backgroundHeight
-    required property string text
+    property string text
     signal clicked
     property var themeData: {{theme: "Light"}}
     property real backgroundOpacity: 1.0
