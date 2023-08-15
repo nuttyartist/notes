@@ -10,6 +10,7 @@
 #include "nodetreeview.h"
 #include "notelistview.h"
 #include "labeledittype.h"
+#include "fontloader.h"
 
 FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
                                                    const QStyleOptionViewItem &option,
@@ -62,7 +63,8 @@ FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
 #else
     int iconPointSizeOffset = -4;
 #endif
-    m_expandIcon->setFont(QFont("Font Awesome 6 Free Solid", 10 + iconPointSizeOffset));
+    m_expandIcon->setFont(FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "",
+                                                             10 + iconPointSizeOffset));
 
     m_expandIcon->setScaledContents(true);
     layout->addWidget(m_expandIcon);
@@ -136,7 +138,8 @@ FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
 #else
     int pointSizeOffset = -4;
 #endif
-    m_contextButton->setFont(QFont("Font Awesome 6 Free Solid", 14 + pointSizeOffset));
+    m_contextButton->setFont(FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "",
+                                                                14 + pointSizeOffset));
     m_contextButton->setText(u8"\uf141"); // fa-ellipsis-h
 
     connect(m_contextButton, &QPushButton::clicked, m_view, [this](bool) {

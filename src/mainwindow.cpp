@@ -13,6 +13,7 @@
 #include "tagpool.h"
 #include "splitterstyle.h"
 #include "editorsettingsoptions.h"
+#include "fontloader.h"
 
 #include <QScrollBar>
 #include <QShortcut>
@@ -683,8 +684,9 @@ void MainWindow::setupButtons()
     m_yellowMinimizeButton->installEventFilter(this);
     m_greenMaximizeButton->installEventFilter(this);
 
-    QFont fontAwesomeIcon("Font Awesome 6 Free Solid");
-    QFont materialSymbols("Material Symbols Outlined");
+    QFont fontAwesomeIcon = FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "", 16);
+    QFont materialSymbols = FontLoader::getInstance().loadFont("Material Symbols Outlined", "", 30);
+
 #if defined(Q_OS_MACOS)
     int pointSizeOffset = 0;
 #else

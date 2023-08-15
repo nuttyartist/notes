@@ -148,6 +148,8 @@ set(SOURCES
     ${PROJECT_SOURCE_DIR}/src/elidedlabel.h
     ${PROJECT_SOURCE_DIR}/src/foldertreedelegateeditor.cpp
     ${PROJECT_SOURCE_DIR}/src/foldertreedelegateeditor.h
+    ${PROJECT_SOURCE_DIR}/src/fontloader.cpp
+    ${PROJECT_SOURCE_DIR}/src/fontloader.h
     ${PROJECT_SOURCE_DIR}/src/labeledittype.cpp
     ${PROJECT_SOURCE_DIR}/src/labeledittype.h
     ${PROJECT_SOURCE_DIR}/src/listviewlogic.cpp

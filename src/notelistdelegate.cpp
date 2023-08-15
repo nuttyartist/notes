@@ -3,7 +3,6 @@
 #include <QEvent>
 #include <QDebug>
 #include <QApplication>
-#include <QFontDatabase>
 #include <QtMath>
 #include <QPainterPath>
 #include "notelistmodel.h"
@@ -11,6 +10,7 @@
 #include "tagpool.h"
 #include "nodepath.h"
 #include "notelistdelegateeditor.h"
+#include "fontloader.h"
 
 NoteListDelegate::NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject *parent)
     : QStyledItemDelegate(parent),
@@ -632,7 +632,8 @@ void NoteListDelegate::paintLabels(QPainter *painter, const QStyleOptionViewItem
 #else
                 int iconPointSizeOffset = -4;
 #endif
-                painter->setFont(QFont("Font Awesome 6 Free Solid", 14 + iconPointSizeOffset));
+                painter->setFont(FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "",
+                                                                    14 + iconPointSizeOffset));
                 painter->setPen(QColor(68, 138, 201));
                 if (m_view->isPinnedNotesCollapsed()) {
                     painter->drawText(QRect(headerRect.right() - 25, headerRect.y() + 5, 16, 16),
@@ -691,7 +692,8 @@ void NoteListDelegate::paintLabels(QPainter *painter, const QStyleOptionViewItem
 #else
                 int iconPointSizeOffset = -4;
 #endif
-                painter->setFont(QFont("Font Awesome 6 Free Solid", 14 + iconPointSizeOffset));
+                painter->setFont(FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "",
+                                                                    14 + iconPointSizeOffset));
                 painter->setPen(QColor(68, 138, 201));
                 if (m_view->isPinnedNotesCollapsed()) {
                     painter->drawText(QRect(headerRect.right() - 25, headerRect.y() + 5, 16, 16),
@@ -841,7 +843,8 @@ void NoteListDelegate::paintTagList(int top, QPainter *painter, const QStyleOpti
 #else
         int iconPointSizeOffset = -4;
 #endif
-        painter->setFont(QFont("Font Awesome 6 Free Solid", 14 + iconPointSizeOffset));
+        painter->setFont(FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "",
+                                                            14 + iconPointSizeOffset));
         painter->drawText(iconRect, u8"\uf111"); // fa-circle
         painter->setBrush(m_titleColor);
         painter->setPen(m_titleColor);

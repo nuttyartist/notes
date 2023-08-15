@@ -10,6 +10,7 @@
 #include "nodetreeview.h"
 #include "labeledittype.h"
 #include "notelistview.h"
+#include "fontloader.h"
 
 TagTreeDelegateEditor::TagTreeDelegateEditor(QTreeView *view, const QStyleOptionViewItem &option,
                                              const QModelIndex &index, QListView *listView,
@@ -100,7 +101,8 @@ TagTreeDelegateEditor::TagTreeDelegateEditor(QTreeView *view, const QStyleOption
 #else
     int pointSizeOffset = -4;
 #endif
-    m_contextButton->setFont(QFont("Font Awesome 6 Free Solid", 14 + pointSizeOffset));
+    m_contextButton->setFont(FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "",
+                                                                14 + pointSizeOffset));
     m_contextButton->setText(u8"\uf141"); // fa-ellipsis-h
 
     connect(m_contextButton, &QPushButton::clicked, m_view, [this](bool) {
@@ -163,7 +165,8 @@ void TagTreeDelegateEditor::paintEvent(QPaintEvent *event)
 #else
     int iconPointSizeOffset = -4;
 #endif
-    painter.setFont(QFont("Font Awesome 6 Free Solid", 16 + iconPointSizeOffset));
+    painter.setFont(FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "",
+                                                       16 + iconPointSizeOffset));
     painter.drawText(iconRect, u8"\uf111"); // fa-circle
     QWidget::paintEvent(event);
 }
