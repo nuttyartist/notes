@@ -407,3 +407,46 @@ jobs:
           if-no-files-found: error
           name: ${{ steps.vars.outputs.artifact_name }}-${{ runner.os }}-${{ matrix.build-type }}
           path: build/${{ steps.vars.outputs.file_name }}
+
+  snap:
+    name: snap
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install snapcraft
+        run: |
+          sudo snap install snapcraft --classic
+
+      - name: Set up LXD
+        run: |
+          sudo usermod -a -G lxd "${USER}"
+          sudo lxd init --auto
+          sudo iptables -P FORWARD ACCEPT
+
+      - name: Build
+        run: |
+          sg lxd -c 'snap run snapcraft -v'
+
+      - name: Grab snap package name
+        id: snap
+        shell: bash
+        run: |
+          set -x
+          if ! path=$(find . -maxdepth 1 -name '*.snap' -print -quit)
+          then
+              echo 'Fatal: Unable to find snap package'
+              exit 1
+          fi
+          echo "name=$(basename "${path%.*}")" >> "${GITHUB_OUTPUT}"
+          echo "path=${path}" >> "${GITHUB_OUTPUT}"
+
+      - name: Upload snap package
+        uses: actions/upload-artifact@v3
+        with:
+          if-no-files-found: error
+          name: ${{ steps.snap.outputs.name }}.snap
+          path: ${{ steps.snap.outputs.path }}
