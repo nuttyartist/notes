@@ -316,7 +316,7 @@ if(QT_VERSION VERSION_GREATER_EQUAL 6.2)
       src/qml/FontIconsCodes.qml
       src/qml/IconButton.qml
       src/qml/OptionItemButton.qml
-      src/qml/ProPaymentWindow.qml
+      src/qml/SubscriptionWindow.qml
       src/qml/SwitchButton.qml
       src/qml/TextButton.qml
       src/qml/ThemeChooserButton.qml

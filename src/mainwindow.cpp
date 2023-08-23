@@ -121,7 +121,22 @@ MainWindow::MainWindow(QWidget *parent)
       m_isFrameRightTopWidgetsVisible(true),
       m_isEditorSettingsFromQuickViewVisible(false),
       m_isProVersionActivated(false),
-      m_localLicenseData(nullptr)
+      m_localLicenseData(nullptr),
+      m_subscriptionWindowQuickView(nullptr),
+      m_subscriptionWindowWidget(new QWidget(this)),
+      m_purchaseDataAlt1(QStringLiteral("https://raw.githubusercontent.com/nuttyartist/notes/"
+                                        "master/notes_purchase_data.json")),
+      m_purchaseDataAlt2(
+              QStringLiteral("https://www.rubymamistvalove.com/notes/notes_purchase_data.json")),
+      m_dataBuffer(new QByteArray()),
+      m_netManager(new QNetworkAccessManager(this)),
+      m_reqAlt1(QNetworkRequest(QUrl(m_purchaseDataAlt1))),
+      m_reqAlt2(QNetworkRequest(QUrl(m_purchaseDataAlt2))),
+      m_netPurchaseDataReplyFirstAttempt(nullptr),
+      m_netPurchaseDataReplySecondAttempt(nullptr),
+      m_userLicenseKey(QStringLiteral("")),
+      m_mainMenu(nullptr),
+      m_buyOrManageSubscriptionAction(new QAction(this))
 {
     ui->setupUi(this);
     setupMainWindow();
@@ -132,8 +147,10 @@ MainWindow::MainWindow(QWidget *parent)
     setupKeyboardShortcuts();
     setupDatabases();
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+    setupSubscrirptionWindow();
     setupKanbanView();
 #endif
+    setupGlobalSettingsMenu();
     setupModelView();
     setupTextEdit();
     restoreStates();
@@ -142,7 +159,10 @@ MainWindow::MainWindow(QWidget *parent)
 #if defined(UPDATE_CHECKER)
     autoCheckForUpdates();
 #endif
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
     checkProVersion();
+#endif
 
     QTimer::singleShot(200, this, SLOT(InitData()));
 }
@@ -980,6 +1000,33 @@ void MainWindow::setupSearchEdit()
     m_searchEdit->installEventFilter(this);
 }
 
+void MainWindow::setupSubscrirptionWindow()
+{
+    SubscriptionStatus::registerEnum("nuttyartist.notes", 1, 0);
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+    const QUrl url("qrc:/qt/qml/SubscriptionWindow.qml");
+#else
+    const QUrl url("qrc:/qml/SubscriptionWindow.qml");
+#endif
+    m_subscriptionWindowEngine.rootContext()->setContextProperty("mainWindow", this);
+    m_subscriptionWindowEngine.load(url);
+    QObject *rootObject = m_subscriptionWindowEngine.rootObjects().first();
+    m_subscriptionWindow = qobject_cast<QWindow *>(rootObject);
+    m_subscriptionWindow->hide();
+
+    connect(this, &MainWindow::proVersionCheck, this, [this]() {
+        m_buyOrManageSubscriptionAction->setVisible(true);
+        if (m_isProVersionActivated) {
+            m_buyOrManageSubscriptionAction->setText("&Manage Subscription...");
+        } else {
+            m_buyOrManageSubscriptionAction->setText("&Buy Subscription...");
+        }
+    });
+
+    verifyLicenseSignalsSlots();
+}
+
 void MainWindow::setupEditorSettings()
 {
     FontTypeface::registerEnum("nuttyartist.notes", 1, 0);
@@ -1310,12 +1357,224 @@ void MainWindow::initializeSettingsDatabase()
 /*!
  * \brief MainWindow::setActivationSuccessful
  */
-void MainWindow::setActivationSuccessful()
+void MainWindow::setActivationSuccessful(QString licenseKey, bool removeGracePeriodStartedDate)
 {
     m_isProVersionActivated = true;
     emit proVersionCheck(QVariant(m_isProVersionActivated));
-    m_localLicenseData->setValue(QStringLiteral("isLicenseActivated"), true);
+    m_localLicenseData->setValue(QStringLiteral("licenseKey"), licenseKey);
+    if (removeGracePeriodStartedDate && m_localLicenseData->contains("gracePeriodStartedDate"))
+        m_localLicenseData->remove("gracePeriodStartedDate");
     m_aboutWindow.setProVersion(m_isProVersionActivated);
+}
+
+/*!
+ * \brief MainWindow::getPaymentDetails
+ */
+void MainWindow::getPaymentDetailsSignalsSlots()
+{
+    m_netPurchaseDataReplyFirstAttempt = m_netManager->get(m_reqAlt1);
+
+    connect(m_netPurchaseDataReplyFirstAttempt, &QNetworkReply::readyRead, this,
+            [this]() { m_dataBuffer->append(m_netPurchaseDataReplyFirstAttempt->readAll()); });
+    connect(m_netPurchaseDataReplyFirstAttempt, &QNetworkReply::finished, this, [this]() {
+        // Handle error
+        if (m_netPurchaseDataReplyFirstAttempt->error() != QNetworkReply::NoError) {
+            qDebug() << "Error : " << m_netPurchaseDataReplyFirstAttempt->errorString();
+            qDebug() << "Failed first attempt at getting payment data. Trying second...";
+            emit tryPurchaseDataSecondAlternative();
+            m_netPurchaseDataReplyFirstAttempt->deleteLater();
+            return;
+        }
+
+        // Handle success
+        m_paymentDetails = QJsonDocument::fromJson(*m_dataBuffer).object();
+        emit fetchingPaymentDetailsRemotelyFinished();
+        m_netPurchaseDataReplyFirstAttempt->deleteLater();
+    });
+}
+
+/*!
+ * \brief MainWindow::getSubscriptionStatus
+ */
+void MainWindow::getSubscriptionStatus()
+{
+    QString validateLicenseEndpoint = m_paymentDetails["purchaseApiBase"].toString()
+            + m_paymentDetails["validateLicenseEndpoint"].toString();
+    QNetworkRequest request{ QUrl(validateLicenseEndpoint) };
+    QJsonObject licenseDataObject;
+    licenseDataObject["license_key"] = m_userLicenseKey;
+    QJsonDocument licenseDataDoc(licenseDataObject);
+    QByteArray postData = licenseDataDoc.toJson();
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    QNetworkReply *reply = m_netManager->post(request, postData);
+
+    connect(reply, &QNetworkReply::finished, this, [=]() {
+        bool skipSettingNotProOnError = false;
+        bool showSubscriptionWindowWhenNotPro = true;
+
+        if (reply->error() != QNetworkReply::NoError) {
+            QByteArray responseData = reply->readAll();
+            QJsonObject response = QJsonDocument::fromJson(responseData).object();
+
+            if (response.isEmpty()) {
+                // No Internet
+                if (!m_localLicenseData->contains(QStringLiteral("gracePeriodStartedDate"))) {
+                    // gracePeriodStartedDate not found, so entering new one now
+                    m_localLicenseData->setValue(QStringLiteral("gracePeriodStartedDate"),
+                                                 QDateTime::currentDateTime());
+                    skipSettingNotProOnError = true;
+                    setActivationSuccessful(m_userLicenseKey, false);
+                    m_subscriptionStatus = SubscriptionStatus::EnteredGracePeriod;
+                } else {
+                    QDateTime gracePeriodStartedDate =
+                            m_localLicenseData
+                                    ->value(QStringLiteral("gracePeriodStartedDate"),
+                                            QDateTime::currentDateTime())
+                                    .toDateTime();
+                    QDateTime dateAfterSevenDays =
+                            gracePeriodStartedDate.addDays(7); // 7 days grace period offline usage
+                    if (QDateTime::currentDateTime() > dateAfterSevenDays) {
+                        // Show grace period is over window, you need internt connection
+                        m_subscriptionStatus = SubscriptionStatus::GracePeriodOver;
+                    } else {
+                        qDebug() << "Inside grace period";
+                        // Inside grace period - make Pro
+                        m_subscriptionStatus = SubscriptionStatus::Active;
+                        skipSettingNotProOnError = true;
+                        setActivationSuccessful(m_userLicenseKey, false);
+                    }
+                }
+            } else if (response.contains("valid") && response["valid"] == false
+                       && response.contains("license_key")
+                       && response[QStringLiteral("license_key")]
+                                       .toObject()[QStringLiteral("status")]
+                                       .toString()
+                               == "expired") {
+                // Show license expired window
+                m_subscriptionStatus = SubscriptionStatus::Expired;
+                showSubscriptionWindowWhenNotPro = false;
+            } else if (response.contains("valid") && response["valid"] == false) {
+                // Show license not valid window
+                m_subscriptionStatus = SubscriptionStatus::Invalid;
+            } else {
+                // Handle error
+                m_subscriptionStatus = SubscriptionStatus::UnknownError;
+            }
+
+            if (!skipSettingNotProOnError) {
+                m_isProVersionActivated = false;
+                emit proVersionCheck(QVariant(m_isProVersionActivated));
+                m_aboutWindow.setProVersion(false);
+            }
+        } else {
+            QByteArray responseData = reply->readAll();
+            QJsonObject response = QJsonDocument::fromJson(responseData).object();
+
+            if (response.contains("license_key") && response.contains("valid")
+                && response["valid"] == true) {
+                if (response[QStringLiteral("license_key")]
+                            .toObject()[QStringLiteral("status")]
+                            .toString()
+                    == "inactive") {
+                    int activationUsage = response[QStringLiteral("license_key")]
+                                                  .toObject()[QStringLiteral("activation_usage")]
+                                                  .toInt();
+                    int activationLimit = response[QStringLiteral("license_key")]
+                                                  .toObject()[QStringLiteral("activation_limit")]
+                                                  .toInt();
+                    if (activationUsage >= activationLimit) {
+                        // Over activation limit
+                        m_subscriptionStatus = SubscriptionStatus::ActivationLimitReached;
+                        m_isProVersionActivated = false;
+                        emit proVersionCheck(QVariant(m_isProVersionActivated));
+                        m_aboutWindow.setProVersion(false);
+                        showSubscriptionWindowWhenNotPro = false;
+                    } else {
+                        // License valid but not activated yet. Activate
+                        // TODO: verify against some device ID
+                        QString activateLicenseEndpoint =
+                                m_paymentDetails["purchaseApiBase"].toString()
+                                + m_paymentDetails["activateLicenseEndpoint"].toString();
+                        QNetworkRequest requestActivate{ QUrl(activateLicenseEndpoint) };
+                        QJsonObject licenseDataObject2;
+                        licenseDataObject2["license_key"] = m_userLicenseKey;
+                        licenseDataObject2["instance_name"] = "Notes_Pro";
+                        QJsonDocument licenseDataDoc2(licenseDataObject2);
+                        QByteArray postData2 = licenseDataDoc2.toJson();
+                        requestActivate.setHeader(QNetworkRequest::ContentTypeHeader,
+                                                  "application/json");
+                        m_netManager->post(requestActivate, postData2);
+
+                        m_subscriptionStatus = SubscriptionStatus::Active;
+                        setActivationSuccessful(m_userLicenseKey);
+                    }
+                } else if (response[QStringLiteral("license_key")]
+                                   .toObject()[QStringLiteral("status")]
+                                   .toString()
+                           == "active") {
+                    // Lincense is active
+                    // TODO: verify against device ID as well
+                    m_subscriptionStatus = SubscriptionStatus::Active;
+                    setActivationSuccessful(m_userLicenseKey);
+                }
+            } else {
+                // Handle error
+                m_subscriptionStatus = SubscriptionStatus::UnknownError;
+                m_isProVersionActivated = false;
+                emit proVersionCheck(QVariant(m_isProVersionActivated));
+                m_aboutWindow.setProVersion(false);
+            }
+        }
+
+        qDebug() << "m_subscriptionStatus: " << m_subscriptionStatus;
+        emit subscriptionStatusChanged(QVariant(m_subscriptionStatus));
+
+        if (!m_isProVersionActivated && showSubscriptionWindowWhenNotPro)
+            m_subscriptionWindow->show();
+    });
+}
+
+/*!
+ * \brief MainWindow::verifyLicenseSignalsSlots
+ */
+void MainWindow::verifyLicenseSignalsSlots()
+{
+    connect(this, &MainWindow::tryPurchaseDataSecondAlternative, this, [this]() {
+        m_dataBuffer->clear();
+        m_netPurchaseDataReplySecondAttempt = m_netManager->get(m_reqAlt2);
+
+        connect(m_netPurchaseDataReplySecondAttempt, &QNetworkReply::readyRead, this,
+                [this]() { m_dataBuffer->append(m_netPurchaseDataReplySecondAttempt->readAll()); });
+        connect(m_netPurchaseDataReplySecondAttempt, &QNetworkReply::finished, this, [this]() {
+            // Handle success
+            if (m_netPurchaseDataReplySecondAttempt->error() == QNetworkReply::NoError) {
+                m_paymentDetails = QJsonDocument::fromJson(*m_dataBuffer).object();
+            } else {
+                // Handle error - ignore and use defaulte hard-coded/embedded payment data
+                qDebug() << "Failed second attempt at getting payment data. Using default embedded "
+                            "payment data...";
+            }
+            emit fetchingPaymentDetailsRemotelyFinished();
+            m_netPurchaseDataReplySecondAttempt->deleteLater();
+        });
+    });
+
+    connect(this, &MainWindow::fetchingPaymentDetailsRemotelyFinished, this, [this]() {
+        if (m_paymentDetails.isEmpty()) {
+            qDebug() << "Using default embedded payment data";
+            QJsonObject paymentDetailsDefault;
+            paymentDetailsDefault["purchase_pro_url"] = "https://www.get-notes.com/pricing";
+            paymentDetailsDefault["purchaseApiBase"] = "https://api.lemonsqueezy.com";
+            paymentDetailsDefault["activateLicenseEndpoint"] = "/v1/licenses/activate";
+            paymentDetailsDefault["validateLicenseEndpoint"] = "/v1/licenses/validate";
+            paymentDetailsDefault["deactivateLicenseEndpoint"] = "/v1/licenses/deactivate";
+            m_paymentDetails = paymentDetailsDefault;
+        }
+        emit gettingPaymentDetailsFinished();
+    });
+
+    connect(this, &MainWindow::gettingPaymentDetailsFinished, this,
+            [this]() { getSubscriptionStatus(); });
 }
 
 /*!
@@ -1325,14 +1584,47 @@ void MainWindow::checkProVersion()
 {
 #if defined(PRO_VERSION)
     m_isProVersionActivated = true;
-#else
-    if (m_localLicenseData->value(QStringLiteral("isLicenseActivated"), "NULL") != "NULL") {
-        m_isProVersionActivated =
-                m_localLicenseData->value(QStringLiteral("isLicenseActivated")).toBool();
-    }
-#endif
     emit proVersionCheck(QVariant(m_isProVersionActivated));
     m_aboutWindow.setProVersion(m_isProVersionActivated);
+#else
+    m_userLicenseKey = m_localLicenseData->value(QStringLiteral("licenseKey"), "NULL").toString();
+    if (m_userLicenseKey != "NULL") {
+        m_dataBuffer->clear();
+
+        m_netPurchaseDataReplyFirstAttempt = m_netManager->get(m_reqAlt1);
+
+        connect(m_netPurchaseDataReplyFirstAttempt, &QNetworkReply::readyRead, this,
+                [this]() { m_dataBuffer->append(m_netPurchaseDataReplyFirstAttempt->readAll()); });
+
+        connect(m_netPurchaseDataReplyFirstAttempt, &QNetworkReply::finished, this, [this]() {
+            if (m_netPurchaseDataReplyFirstAttempt->error() != QNetworkReply::NoError) {
+                qDebug() << "Error : " << m_netPurchaseDataReplyFirstAttempt->errorString();
+                qDebug() << "Failed first attempt at getting data. Trying second...";
+                emit tryPurchaseDataSecondAlternative();
+                m_netPurchaseDataReplyFirstAttempt->deleteLater();
+                return;
+            }
+
+            m_paymentDetails = QJsonDocument::fromJson(*m_dataBuffer).object();
+            emit fetchingPaymentDetailsRemotelyFinished();
+            m_netPurchaseDataReplyFirstAttempt->deleteLater();
+        });
+    } else {
+        m_isProVersionActivated = false;
+        emit proVersionCheck(QVariant(m_isProVersionActivated));
+        m_aboutWindow.setProVersion(m_isProVersionActivated);
+    }
+#endif
+}
+
+QVariant MainWindow::getUserLicenseKey()
+{
+    return QVariant(m_userLicenseKey);
+}
+
+void MainWindow::openSubscriptionWindow()
+{
+    m_subscriptionWindow->show();
 }
 
 /*!
@@ -1837,55 +2129,52 @@ void MainWindow::onSwitchToKanbanViewButtonClicked()
 }
 
 /*!
- * \brief MainWindow::onGlobalSettingsButtonClicked
- * Open up the menu when clicking the global settings button
+ * \brief MainWindow::setupGlobalSettingsMenu
  */
-void MainWindow::onGlobalSettingsButtonClicked()
+void MainWindow::setupGlobalSettingsMenu()
 {
-    QMenu mainMenu;
-
 #if !defined(Q_OS_MACOS)
-    QMenu *viewMenu = mainMenu.addMenu(tr("&View"));
+    QMenu *viewMenu = m_mainMenu.addMenu(tr("&View"));
     viewMenu->setToolTipsVisible(true);
 #endif
 
-    QMenu *importExportNotesMenu = mainMenu.addMenu(tr("&Import/Export Notes"));
+    QMenu *importExportNotesMenu = m_mainMenu.addMenu(tr("&Import/Export Notes"));
     importExportNotesMenu->setToolTipsVisible(true);
-    mainMenu.setToolTipsVisible(true);
+    m_mainMenu.setToolTipsVisible(true);
 
-    QShortcut *closeMenu = new QShortcut(Qt::Key_F10, &mainMenu);
+    QShortcut *closeMenu = new QShortcut(Qt::Key_F10, &m_mainMenu);
     closeMenu->setContext(Qt::ApplicationShortcut);
-    connect(closeMenu, &QShortcut::activated, &mainMenu, &QMenu::close);
+    connect(closeMenu, &QShortcut::activated, &m_mainMenu, &QMenu::close);
 
 #if defined(Q_OS_WINDOWS) || defined(Q_OS_WIN)
     setStyleSheet(m_styleSheet);
-    setCSSClassesAndUpdate(&mainMenu, "menu");
+    setCSSClassesAndUpdate(&m_mainMenu, "menu");
 #endif
 
 #ifdef __APPLE__
-    mainMenu.setFont(QFont(m_displayFont, 13));
+    m_mainMenu.setFont(QFont(m_displayFont, 13));
     importExportNotesMenu->setFont(QFont(m_displayFont, 13));
 #else
-    mainMenu.setFont(QFont(m_displayFont, 10, QFont::Normal));
+    m_mainMenu.setFont(QFont(m_displayFont, 10, QFont::Normal));
     viewMenu->setFont(QFont(m_displayFont, 10, QFont::Normal));
     importExportNotesMenu->setFont(QFont(m_displayFont, 10, QFont::Normal));
 #endif
 
 #if defined(UPDATE_CHECKER)
     // Check for update action
-    QAction *checkForUpdatesAction = mainMenu.addAction(tr("Check For &Updates"));
+    QAction *checkForUpdatesAction = m_mainMenu.addAction(tr("Check For &Updates"));
     connect(checkForUpdatesAction, &QAction::triggered, this, &MainWindow::checkForUpdates);
 #endif
 
     // Autostart
-    QAction *autostartAction = mainMenu.addAction(tr("&Start automatically"));
+    QAction *autostartAction = m_mainMenu.addAction(tr("&Start automatically"));
     connect(autostartAction, &QAction::triggered, this,
             [=]() { m_autostart.setAutostart(autostartAction->isChecked()); });
     autostartAction->setCheckable(true);
     autostartAction->setChecked(m_autostart.isAutostart());
 
     // hide to tray
-    QAction *hideToTrayAction = mainMenu.addAction(tr("&Hide to tray"));
+    QAction *hideToTrayAction = m_mainMenu.addAction(tr("&Hide to tray"));
     connect(hideToTrayAction, &QAction::triggered, this, [=]() {
         m_settingsDatabase->setValue(QStringLiteral("hideToTray"), hideToTrayAction->isChecked());
     });
@@ -1900,7 +2189,7 @@ void MainWindow::onGlobalSettingsButtonClicked()
         }
     });
 
-    QAction *changeDBPathAction = mainMenu.addAction(tr("&Change database path"));
+    QAction *changeDBPathAction = m_mainMenu.addAction(tr("&Change database path"));
     connect(changeDBPathAction, &QAction::triggered, this, [=]() {
         auto btn = QMessageBox::question(this, "Are you sure you want to change the database path?",
                                          "Are you sure you want to change the database path?");
@@ -1916,13 +2205,24 @@ void MainWindow::onGlobalSettingsButtonClicked()
     });
 
     // About Notes
-    QAction *aboutAction = mainMenu.addAction(tr("&About Notes"));
+    QAction *aboutAction = m_mainMenu.addAction(tr("&About Notes"));
     connect(aboutAction, &QAction::triggered, this, [&]() { m_aboutWindow.show(); });
 
-    mainMenu.addSeparator();
+    m_mainMenu.addSeparator();
+
+#if !defined(PRO_VERSION)
+    // Buy/Manage subscription
+    m_buyOrManageSubscriptionAction = m_mainMenu.addAction(
+            tr(m_isProVersionActivated ? "&Manage Subscription..." : "&Buy Subscription..."));
+    m_buyOrManageSubscriptionAction->setVisible(false);
+    connect(m_buyOrManageSubscriptionAction, &QAction::triggered, this,
+            &MainWindow::openSubscriptionWindow);
+
+    m_mainMenu.addSeparator();
+#endif
 
     // Close the app
-    QAction *quitAppAction = mainMenu.addAction(tr("&Quit"));
+    QAction *quitAppAction = m_mainMenu.addAction(tr("&Quit"));
     connect(quitAppAction, &QAction::triggered, this, &MainWindow::QuitApplication);
 
     // Export notes action
@@ -1949,8 +2249,16 @@ void MainWindow::onGlobalSettingsButtonClicked()
     connect(useNativeFrameAction, &QAction::triggered, this,
             [this]() { setUseNativeWindowFrame(!m_useNativeWindowFrame); });
 #endif
+}
 
-    mainMenu.exec(m_globalSettingsButton->mapToGlobal(QPoint(0, m_globalSettingsButton->height())));
+/*!
+ * \brief MainWindow::onGlobalSettingsButtonClicked
+ * Open up the menu when clicking the global settings button
+ */
+void MainWindow::onGlobalSettingsButtonClicked()
+{
+    m_mainMenu.exec(
+            m_globalSettingsButton->mapToGlobal(QPoint(0, m_globalSettingsButton->height())));
 }
 
 /*!
