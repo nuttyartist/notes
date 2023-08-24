@@ -44,7 +44,7 @@ MouseArea {
     pressAndHoldInterval: 200
 
     function checkTasksForConfetti () {
-        if (numberOfCompletedTasks === tasksView.model.items.count) {
+        if (rootContainer.enableConfetti && numberOfCompletedTasks === tasksView.model.items.count) {
             rootContainer.showConfetti1 = true;
             rootContainer.emitConfetti = true;
         }

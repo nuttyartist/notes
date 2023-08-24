@@ -38,6 +38,7 @@ Item {
     property bool alignKanbanToMiddleOfRoot: false
     property bool isMultipleNotesSelected: false
     property bool isProVersion: false
+    property bool enableConfetti: false
 
     property real parentWindowHeight
     property real parentWindowWidth
@@ -703,6 +704,25 @@ Item {
 
                                     onUnswitched: {
                                         root.alignKanbanToMiddleOfRoot = !root.alignKanbanToMiddleOfRoot;
+                                    }
+                                }
+                            }
+
+                            Row {
+                                OptionItemButton {
+                                    contentWidth: settingsPopup.rowWidth
+                                    displayText: qsTr("Enable Confetti")
+                                    displayFontFamily: root.bodyFontFamily
+                                    platform: root.platform
+                                    themeData: root.themeData
+                                    checked: root.enableConfetti
+
+                                    onSwitched: {
+                                        root.enableConfetti = !root.enableConfetti;
+                                    }
+
+                                    onUnswitched: {
+                                        root.enableConfetti = !root.enableConfetti;
                                     }
                                 }
                             }
