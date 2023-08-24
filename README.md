@@ -9,9 +9,9 @@ Website: <a href="https://get-notes.com" target="_blank">get-notes.com</a>
 
 ## Screenshots
 
-https://github.com/nuttyartist/notes/assets/16375940/714ffe3e-95ef-4233-b3da-58fcea33fbfa  
+https://github.com/nuttyartist/notes/assets/16375940/714ffe3e-95ef-4233-b3da-58fcea33fbfa
 
-https://github.com/nuttyartist/notes/assets/16375940/370439b1-e42b-45c4-a807-0c3657051f97  
+https://github.com/nuttyartist/notes/assets/16375940/370439b1-e42b-45c4-a807-0c3657051f97
 
 ## Features Overview
 
@@ -98,3 +98,5 @@ A sneak peek at what we’re stirring up next.
 - iA Writer Quattro
 - Font Awesome
 - Material Symbols
+
+[Terms & Privacy policy](https://www.get-notes.com/notes-app-terms-privacy-policy)
