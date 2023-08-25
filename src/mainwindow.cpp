@@ -3621,17 +3621,25 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
 #endif
     case QEvent::FocusIn: {
         if (object == m_textEdit) {
+            auto inf = m_listViewLogic->listViewInfo();
             if (!m_isOperationRunning) {
                 if (m_listModel->rowCount() == 0) {
                     if (!m_searchEdit->text().isEmpty()) {
                         m_listViewLogic->clearSearch(true);
                     } else {
-                        createNewNote();
+                        if (inf.parentFolderId != SpecialNodeID::TrashFolder) {
+                            createNewNote();
+                        }
                     }
                 }
             }
             m_listView->setCurrentRowActive(true);
-            m_textEdit->setFocus();
+            if (inf.parentFolderId == SpecialNodeID::TrashFolder) {
+                m_textEdit->setReadOnly(true);
+            } else {
+                m_textEdit->setFocus();
+                m_textEdit->setReadOnly(false);
+            }
         }
         break;
     }
