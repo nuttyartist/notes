@@ -25,10 +25,16 @@ int main(int argc, char *argv[])
 #endif
 
     if (QFontDatabase::addApplicationFont(":/fonts/fontawesome/fa-solid-900.ttf") < 0)
-        qWarning() << "FontAwesome cannot be loaded !";
+        qWarning() << "FontAwesome Solid cannot be loaded !";
+
+    if (QFontDatabase::addApplicationFont(":/fonts/fontawesome/fa-regular-400.ttf") < 0)
+        qWarning() << "FontAwesome Regular cannot be loaded !";
+
+    if (QFontDatabase::addApplicationFont(":/fonts/fontawesome/fa-brands-400.ttf") < 0)
+        qWarning() << "FontAwesome Brands cannot be loaded !";
 
     if (QFontDatabase::addApplicationFont(":/fonts/material/material-symbols-outlined.ttf") < 0)
-        qWarning() << "Material Icons cannot be loaded !";
+        qWarning() << "Material Symbols cannot be loaded !";
 
     // Load fonts from resources
     // Roboto
