@@ -630,12 +630,9 @@ void MainWindow::setupKeyboardShortcuts()
     connect(new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_K), this),
             &QShortcut::activated, this, [=]() {
                 if (m_kanbanWidget->isHidden()) {
-                    emit m_noteEditorLogic->showKanbanView();
-                    updateSelectedOptionsEditorSettings();
+                    setKanbanVisibility(true);
                 } else {
-                    emit m_noteEditorLogic->hideKanbanView();
-                    m_textEdit->setFocus();
-                    updateSelectedOptionsEditorSettings();
+                    setKanbanVisibility(false);
                 }
             });
 #endif
@@ -1686,7 +1683,8 @@ void MainWindow::setButtonsAndFieldsEnabled(bool doEnable)
  */
 void MainWindow::setKanbanVisibility(bool isVisible)
 {
-    if (isVisible) {
+    auto inf = m_listViewLogic->listViewInfo();
+    if (isVisible && inf.parentFolderId != SpecialNodeID::TrashFolder) {
         emit m_noteEditorLogic->showKanbanView();
     } else {
         emit m_noteEditorLogic->hideKanbanView();
