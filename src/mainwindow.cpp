@@ -630,12 +630,9 @@ void MainWindow::setupKeyboardShortcuts()
     connect(new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_K), this),
             &QShortcut::activated, this, [=]() {
                 if (m_kanbanWidget->isHidden()) {
-                    emit m_noteEditorLogic->showKanbanView();
-                    updateSelectedOptionsEditorSettings();
+                    setKanbanVisibility(true);
                 } else {
-                    emit m_noteEditorLogic->hideKanbanView();
-                    m_textEdit->setFocus();
-                    updateSelectedOptionsEditorSettings();
+                    setKanbanVisibility(false);
                 }
             });
 #endif
@@ -1686,7 +1683,8 @@ void MainWindow::setButtonsAndFieldsEnabled(bool doEnable)
  */
 void MainWindow::setKanbanVisibility(bool isVisible)
 {
-    if (isVisible) {
+    auto inf = m_listViewLogic->listViewInfo();
+    if (isVisible && inf.parentFolderId != SpecialNodeID::TrashFolder) {
         emit m_noteEditorLogic->showKanbanView();
     } else {
         emit m_noteEditorLogic->hideKanbanView();
@@ -3621,17 +3619,25 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
 #endif
     case QEvent::FocusIn: {
         if (object == m_textEdit) {
+            auto inf = m_listViewLogic->listViewInfo();
             if (!m_isOperationRunning) {
                 if (m_listModel->rowCount() == 0) {
                     if (!m_searchEdit->text().isEmpty()) {
                         m_listViewLogic->clearSearch(true);
                     } else {
-                        createNewNote();
+                        if (inf.parentFolderId != SpecialNodeID::TrashFolder) {
+                            createNewNote();
+                        }
                     }
                 }
             }
             m_listView->setCurrentRowActive(true);
-            m_textEdit->setFocus();
+            if (inf.parentFolderId == SpecialNodeID::TrashFolder) {
+                m_textEdit->setReadOnly(true);
+            } else {
+                m_textEdit->setFocus();
+                m_textEdit->setReadOnly(false);
+            }
         }
         break;
     }
