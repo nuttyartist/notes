@@ -852,7 +852,9 @@ void NoteListView::onCustomContextMenu(QPoint point)
             }
             contextMenu->addSeparator();
         }
-        contextMenu->addAction(newNoteAction);
+        if (!m_isInTrash) {
+            contextMenu->addAction(newNoteAction);
+        }
         contextMenu->exec(viewport()->mapToGlobal(point));
     }
 }
