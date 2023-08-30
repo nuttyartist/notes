@@ -4,6 +4,20 @@
 
  -- @APP_AUTHOR@ <@APP_AUTHOR_EMAIL@>  @DATE_NOW_UTC@
 
+@PROJECT_NAME_LOWERCASE@ (2.2.1) stable; urgency=low
+
+  * To sustain and further our commitment to exceptional app development, we have transitioned to a subscription-based pricing model for the Pro version
+  * Resolved a conflict within the Kanban interface: previously, editing a task would not conclude if a separate task was concurrently edited
+  * Addressed an issue where editing was mistakenly permitted within the editor while the Trash folder was active
+  * Fixed bug where icons didn't show up on some Linux distributions
+  * Corrected an inconsistency where icons were not displayed on certain Linux distributions
+  * Resolved display issues of specific windows on Ubuntu 23.04
+  * Addressed an issue with the Editor Settings window failing to appear on Qt 5.12.2
+  * For Pro users, the 'Pro' label within the Editor Settings has been made redundant and is now removed for a cleaner interface
+  * Note: Anyone can still access all Pro features at no cost by building the app from source
+
+ -- @APP_AUTHOR@ <@APP_AUTHOR_EMAIL@>  Wed, 30 Aug 2023 01:00:00 +0100
+
 @PROJECT_NAME_LOWERCASE@ (2.2.0) stable; urgency=low
 
   * You can now turn your Markdown tasks into a beautiful Kanban board
