@@ -56,6 +56,22 @@
     </screenshots>
     <content_rating type="oars-1.1" />
     <releases>
+        <release date="2023-08-30" version="2.2.1">
+            <description>
+                <p>A new release is here with many bug fixes and improvements. To sustain and further our commitment to exceptional app development, we have transitioned to a subscription-based pricing model for the Pro version.</p>
+                <p>Improvements and bug fixes:</p>
+                <ul>
+                    <li>Resolved a conflict within the Kanban interface: previously, editing a task would not conclude if a separate task was concurrently edited.</li>
+                    <li>Addressed an issue where editing was mistakenly permitted within the editor while the Trash folder was active</li>
+                    <li>Fixed bug where icons didn't show up on some Linux distributions</li>
+                    <li>Corrected an inconsistency where icons were not displayed on certain Linux distributions</li>
+                    <li>Resolved display issues of specific windows on Ubuntu 23.04</li>
+                    <li>Addressed an issue with the Editor Settings window failing to appear on Qt 5.12.2</li>
+                    <li>For Pro users, the 'Pro' label within the Editor Settings has been made redundant and is now removed for a cleaner interface</li>
+                </ul>
+                <p>Note: Anyone can still access all Pro features at no cost by building the app from source.</p>
+            </description>
+        </release>
         <release date="2023-07-27" version="2.2.0">
             <description>
                 <p>A new release is here with major new features and many bug fixes and improvements.</p>

@@ -78,6 +78,7 @@ A sneak peek at what we’re stirring up next.
 - Our own built-in syncing.
 - Export/import .txt files.
 - Advanced blocks editor.
+- Browser version using Qt for WebAssembly.
 - Much, much more.
 
 ## Notes makes use of the following third-party libraries:
