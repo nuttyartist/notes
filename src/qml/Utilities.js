@@ -10,7 +10,6 @@ function request(verb, BASE, endpoint, obj, cb) {
 //    console.log('request: ' + verb + ' ' + BASE + (endpoint ? '/' + endpoint : ''));
     var xhr = new XMLHttpRequest()
     xhr.onreadystatechange = function() {
-//        console.log('xhr: on ready state change: ' + xhr.readyState)
         if(xhr.readyState === XMLHttpRequest.DONE) {
             if (xhr.status === 200) {
                 if(cb) {
@@ -23,11 +22,9 @@ function request(verb, BASE, endpoint, obj, cb) {
                 var errorResponse;
                 try {
                     errorResponse = JSON.parse(xhr.responseText.toString());
-//                    console.log(xhr.responseText.toString());
                 } catch (err) {
                     errorResponse = {error: "error"};
                 }
-//                console.log(xhr.responseText.toString());
                 cb(errorResponse);
             }
         }

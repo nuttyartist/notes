@@ -30,6 +30,11 @@
 #include <QVariant>
 #include <QJsonObject>
 #include <QObject>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QByteArray>
+#include <QQmlApplicationEngine>
 
 #include "nodedata.h"
 #include "notelistmodel.h"
@@ -46,6 +51,9 @@
 #include "framelesswindow.h"
 #include "nodetreeview.h"
 #include "editorsettingsoptions.h"
+
+L_DECLARE_ENUM(SubscriptionStatus, NoSubscription, Active, ActivationLimitReached, Expired, Invalid,
+               EnteredGracePeriod, GracePeriodOver, NoInternetConnection, UnknownError)
 
 namespace Ui {
 class MainWindow;
@@ -127,7 +135,9 @@ public slots:
     void toggleEditorSettings();
     void setEditorSettingsFromQuickViewVisibility(bool isVisible);
     void setEditorSettingsScrollBarPosition(double position);
-    void setActivationSuccessful();
+    void setActivationSuccessful(QString licenseKey, bool removeGracePeriodStartedDate = true);
+    void checkProVersion();
+    QVariant getUserLicenseKey();
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -244,6 +254,23 @@ private:
     bool m_isEditorSettingsFromQuickViewVisible;
     bool m_isProVersionActivated;
     QSettings *m_localLicenseData;
+    QJsonObject m_paymentDetails;
+    SubscriptionStatus::Value m_subscriptionStatus;
+    QQuickView m_subscriptionWindowQuickView;
+    QWidget *m_subscriptionWindowWidget;
+    QQmlApplicationEngine m_subscriptionWindowEngine;
+    QWindow *m_subscriptionWindow;
+    QString m_purchaseDataAlt1;
+    QString m_purchaseDataAlt2;
+    QByteArray *m_dataBuffer;
+    QNetworkAccessManager *m_netManager;
+    QNetworkRequest m_reqAlt1;
+    QNetworkRequest m_reqAlt2;
+    QNetworkReply *m_netPurchaseDataReplyFirstAttempt;
+    QNetworkReply *m_netPurchaseDataReplySecondAttempt;
+    QString m_userLicenseKey;
+    QMenu m_mainMenu;
+    QAction *m_buyOrManageSubscriptionAction;
 
     bool alreadyAppliedFormat(const QString &formatChars);
     void applyFormat(const QString &formatChars);
@@ -258,6 +285,7 @@ private:
     void autoCheckForUpdates();
 #endif
     void setupSearchEdit();
+    void setupSubscrirptionWindow();
     void setupEditorSettings();
     void setupTextEditStyleSheet(int paddingLeft, int paddingRight);
     void alignTextEditText();
@@ -267,6 +295,7 @@ private:
 #endif
     void setupDatabases();
     void setupModelView();
+    void setupGlobalSettingsMenu();
     void initializeSettingsDatabase();
     void setLayoutForScrollArea();
     void setButtonsAndFieldsEnabled(bool doEnable);
@@ -286,7 +315,9 @@ private:
     void fillRectWithGradient(QPainter &painter, QRect rect, QGradient &gradient);
     double gaussianDist(double x, const double center, double sigma) const;
     void resizeAndPositionEditorSettingsWindow();
-    void checkProVersion();
+    void getPaymentDetailsSignalsSlots();
+    void verifyLicenseSignalsSlots();
+    void getSubscriptionStatus();
 
     void setMargins(QMargins margins);
 
@@ -340,6 +371,7 @@ private slots:
     void selectAllNotesInList();
     void updateFrame();
     bool isTitleBar(int x, int y) const;
+    void openSubscriptionWindow();
 
 signals:
     void requestNodesTree();
@@ -363,6 +395,10 @@ signals:
     void toggleEditorSettingsKeyboardShorcutFired();
     void editorSettingsScrollBarPositionChanged(QVariant data);
     void proVersionCheck(QVariant data);
+    void tryPurchaseDataSecondAlternative();
+    void fetchingPaymentDetailsRemotelyFinished();
+    void gettingPaymentDetailsFinished();
+    void subscriptionStatusChanged(QVariant subscriptionStatus);
 };
 
 #endif // MAINWINDOW_H

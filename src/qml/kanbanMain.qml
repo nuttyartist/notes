@@ -3,6 +3,7 @@ import QtQuick.Controls 2.12
 import QtQuick.Controls.Material 2.12
 import QtQuick.Particles 2.12
 import QtQuick.Layouts 2.12
+import nuttyartist.notes 1.0
 
 Item {
     id: root
@@ -376,7 +377,7 @@ Item {
         root.taskModelByColumnIDDict[columnID].insert(taskIndex, taskObject);
     }
 
-    ProPaymentWindow {
+    SubscriptionWindow {
         id: proPaymentWindow
         visible: false
         platform: root.platform
@@ -385,6 +386,8 @@ Item {
         themeData: root.themeData
         x: root.parentWindowX + root.parentWindowWidth/2 - proPaymentWindow.width/2
         y: root.parentWindowY + root.parentWindowHeight/2 - proPaymentWindow.height/2
+        forceSubscriptionStatus: true
+        subscriptionStatus: SubscriptionStatus.NoSubscription
     }
 
     Rectangle {
