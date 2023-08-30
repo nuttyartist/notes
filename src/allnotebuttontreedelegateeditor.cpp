@@ -6,6 +6,7 @@
 #include "nodetreeview.h"
 #include "notelistview.h"
 #include "editorsettingsoptions.h"
+#include "fontloader.h"
 
 AllNoteButtonTreeDelegateEditor::AllNoteButtonTreeDelegateEditor(QTreeView *view,
                                                                  const QStyleOptionViewItem &option,
@@ -75,7 +76,8 @@ void AllNoteButtonTreeDelegateEditor::paintEvent(QPaintEvent *event)
 #else
     int iconPointSizeOffset = -4;
 #endif
-    painter.setFont(QFont("Material Symbols Outlined", 16 + iconPointSizeOffset));
+    painter.setFont(FontLoader::getInstance().loadFont("Material Symbols Outlined", "",
+                                                       16 + iconPointSizeOffset));
     painter.drawText(iconRect, iconPath); // folder
 
     if (m_view->selectionModel()->isSelected(m_index)) {

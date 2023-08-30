@@ -5,6 +5,7 @@
 #include "nodetreemodel.h"
 #include "notelistview.h"
 #include "editorsettingsoptions.h"
+#include "fontloader.h"
 
 DefaultNoteFolderDelegateEditor::DefaultNoteFolderDelegateEditor(QTreeView *view,
                                                                  const QStyleOptionViewItem &option,
@@ -74,7 +75,8 @@ void DefaultNoteFolderDelegateEditor::paintEvent(QPaintEvent *event)
 #else
     int iconPointSizeOffset = -4;
 #endif
-    painter.setFont(QFont("Material Symbols Outlined", 16 + iconPointSizeOffset));
+    painter.setFont(FontLoader::getInstance().loadFont("Material Symbols Outlined", "",
+                                                       16 + iconPointSizeOffset));
     painter.drawText(folderIconRect, u8"\ue2c7"); // folder
 
     QRect nameRect(rect());
