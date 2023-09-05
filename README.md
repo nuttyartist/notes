@@ -44,11 +44,11 @@ We have specific instructions for [Windows](docs/build_on_windows.md), [macOS](d
 
 The notes database and settings file are stored in:
 
-| OS      | Path                                                                                                                                             |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Windows | `%APPDATA%\Awesomeness`                                                                                                                          |
-| Linux   | `~/.config/Awesomeness`<br>`~/snap/notes/x1/.config/Awesomeness` (Snap)<br>`~/.var/app/io.github.nuttyartist.notes/config/Awesomeness` (Flatpak) |
-| macOS   | `~/.config/Awesomeness`                                                                                                                          |
+| OS      | Path                                                                                                                                                  |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Windows | `%APPDATA%\Awesomeness`                                                                                                                               |
+| Linux   | `~/.config/Awesomeness`<br>`~/snap/notes/current/.config/Awesomeness` (Snap)<br>`~/.var/app/io.github.nuttyartist.notes/config/Awesomeness` (Flatpak) |
+| macOS   | `~/.config/Awesomeness`                                                                                                                               |
 
 ## Contributors
 
