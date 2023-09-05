@@ -429,17 +429,7 @@ elseif(UNIX)
   install(FILES ${CMAKE_BINARY_DIR}/${APP_ID}.metainfo.xml
           DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/metainfo)
 
-  foreach(
-    ICON_SIZE
-    16
-    22
-    24
-    32
-    48
-    64
-    128
-    256
-    512)
+  foreach(ICON_SIZE 128 256 512)
     install(
       FILES
         ${PROJECT_SOURCE_DIR}/packaging/linux/common/icons/${ICON_SIZE}x${ICON_SIZE}/notes.png
