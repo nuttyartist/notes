@@ -61,7 +61,16 @@ jobs:
           version: ${{ matrix.qt-version }}
           cache: true
           arch: ${{ matrix.arch == 'x86' && 'win32_msvc2019' || 'win64_msvc2019_64' }}
-          tools: tools_openssl_${{ matrix.arch }}
+
+      # Details about this OpenSSL build: https://kb.firedaemon.com/support/solutions/articles/4000121705
+      # TODO: Remove/tweak this step if/when we get rid of the x86 build or upgrade to Qt 6.5+.
+      - name: Download OpenSSL 1.x binaries from FireDaemon
+        if: ${{ startsWith(matrix.qt-version, '5.') || startsWith(matrix.qt-version, '6.4.') }}
+        run: |
+          $out_file = "openssl-1.1.1w.zip"
+          Invoke-WebRequest -Uri https://download.firedaemon.com/FireDaemon-OpenSSL/openssl-1.1.1w.zip -OutFile $env:Temp\$out_file
+          Expand-Archive -Path $env:Temp\$out_file -DestinationPath $env:Temp
+          Rename-Item $env:Temp\openssl-1.1 $env:Temp\OpenSSL
 
       - name: Setup MSVC problem matcher
         uses: ammaraskar/msvc-problem-matcher@0.2.0
@@ -115,15 +124,13 @@ jobs:
           }
 
           # Include OpenSSL libraries.
-          Copy-Item $env:IQTA_TOOLS\OpenSSL\Win_${{ matrix.arch }}\bin\libcrypto-1_1$openssl_lib_suffix.dll
-          Copy-Item $env:IQTA_TOOLS\OpenSSL\Win_${{ matrix.arch }}\bin\libssl-1_1$openssl_lib_suffix.dll
-          # NOTE: Due to OpenSSL libraries being built with MSVC 2010, we must also include 'msvcr100.dll'.
-          Copy-Item $env:WINDIR\${{ matrix.arch == 'x64' && 'System32' || 'SysWOW64' }}\msvcr100.dll
+          Copy-Item $env:Temp\OpenSSL\${{ matrix.arch }}\bin\libcrypto-1_1$openssl_lib_suffix.dll
+          Copy-Item $env:Temp\OpenSSL\${{ matrix.arch }}\bin\libssl-1_1$openssl_lib_suffix.dll
 
           # Also include OpenSSL debug symbols (when building Notes in debug mode).
           if ('${{ matrix.build-type }}' -ieq 'debug') {
-              Copy-Item $env:IQTA_TOOLS\OpenSSL\Win_${{ matrix.arch }}\bin\libcrypto-1_1$openssl_lib_suffix.pdb
-              Copy-Item $env:IQTA_TOOLS\OpenSSL\Win_${{ matrix.arch }}\bin\libssl-1_1$openssl_lib_suffix.pdb
+              Copy-Item $env:Temp\OpenSSL\${{ matrix.arch }}\bin\libcrypto-1_1$openssl_lib_suffix.pdb
+              Copy-Item $env:Temp\OpenSSL\${{ matrix.arch }}\bin\libssl-1_1$openssl_lib_suffix.pdb
           }
 
           # Include MSVC 2019 runtime libraries.
