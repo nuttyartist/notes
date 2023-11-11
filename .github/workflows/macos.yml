@@ -15,11 +15,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-11
+          - os: macos-12
             qt-version-major: 5
             build-type: debug
 
-          - os: macos-11
+          - os: macos-12
             qt-version-major: 6
             build-type: debug
     steps:
