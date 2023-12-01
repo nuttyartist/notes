@@ -12,7 +12,7 @@ MouseArea {
     property bool isContainingMouse: optionItemMouseArea.containsMouse
     property bool checked: false
     property var themeData: {{thme: "Light"}}
-    property bool enabled: true
+    property bool isEnabled: true
     property int pointSizeOffset: -4
 
     hoverEnabled: true
@@ -23,27 +23,27 @@ MouseArea {
     signal unswitched
 
     onEntered: {
-         if (optionItemMouseArea.enabled) {
+         if (optionItemMouseArea.isEnabled) {
              innerRectangle.color = optionItemMouseArea.highlightBackgroundColor;
              optionItemMouseArea.cursorShape = Qt.PointingHandCursor;
          }
     }
 
     onExited: {
-        if (optionItemMouseArea.enabled) {
+        if (optionItemMouseArea.isEnabled) {
             innerRectangle.color = "transparent";
             optionItemMouseArea.cursorShape = Qt.ArrowCursor;
         }
     }
 
     onPressed: {
-        if (optionItemMouseArea.enabled) {
+        if (optionItemMouseArea.isEnabled) {
             innerRectangle.color = optionItemMouseArea.pressedBackgroundColor;
         }
     }
 
     onReleased: {
-        if (optionItemMouseArea.enabled) {
+        if (optionItemMouseArea.isEnabled) {
             if (optionItemMouseArea.containsMouse) {
                 innerRectangle.color = optionItemMouseArea.highlightBackgroundColor;
             } else {
@@ -53,7 +53,7 @@ MouseArea {
     }
 
     onClicked: {
-        if (optionItemMouseArea.enabled) {
+        if (optionItemMouseArea.isEnabled) {
             optionItemMouseArea.checked = !optionSwitch.checked;
             if (optionItemMouseArea.checked) {
                 optionItemMouseArea.switched();
@@ -92,7 +92,7 @@ MouseArea {
                 color: optionItemMouseArea.mainFontColor
                 font.pointSize: optionItemMouseArea.platform === "Apple" ? 14 : 14 + optionItemMouseArea.pointSizeOffset
                 font.family: optionItemMouseArea.displayFontFamily
-                opacity: optionItemMouseArea.enabled ? 1.0 : 0.2
+                opacity: optionItemMouseArea.isEnabled ? 1.0 : 0.2
             }
 
             Item {
@@ -105,10 +105,10 @@ MouseArea {
                 checkable: true
                 themeData: optionItemMouseArea.themeData
                 checked: optionItemMouseArea.checked
-                enabled: optionItemMouseArea.enabled
+                enabled: optionItemMouseArea.isEnabled
 
                 onClicked: {
-                    if (optionItemMouseArea.enabled) {
+                    if (optionItemMouseArea.isEnabled) {
                         if (checked) {
                             optionItemMouseArea.switched();
                         } else {
