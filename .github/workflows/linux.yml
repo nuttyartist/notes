@@ -9,35 +9,30 @@ env:
 
 jobs:
   deb:
-    name: deb (${{ matrix.build-type }}, Qt ${{ matrix.qt-version-major }}, ${{ matrix.container != '' && matrix.container || matrix.os }})
-    runs-on: ${{ matrix.os }}
-    container: ${{ matrix.container }}
+    name: deb (${{ matrix.build-type }}, Qt ${{ matrix.qt-version-major }}, ${{ matrix.image }})
+    runs-on: ubuntu-latest
+    container:
+      image: zjeffer/notes:${{ matrix.image }}
     strategy:
       fail-fast: false
       matrix:
         include:
           # Ubuntu's release cycle: https://wiki.ubuntu.com/Releases
-          - os: ubuntu-20.04
+          - image: ubuntu-20_04
             qt-version-major: 5
             build-type: release
 
-          - os: ubuntu-22.04
+          - image: ubuntu-22_04
             qt-version-major: 6
             build-type: release
 
-          - os: ubuntu-20.04
-            container: ubuntu:23.04
+          - image: ubuntu-23_10
             qt-version-major: 6
             build-type: release
     steps:
-      - name: Install other dependencies in docker container
-        # - sudo: Used by most GitHub actions to install things.
-        if: matrix.container != ''
-        run: |
-          apt update
-          apt install -y git sudo
-          # Prevent git's dubious ownership message
-          git config --global --add safe.directory "${PWD}"
+      - name: Setup git configuration
+        # workaround for "detected dubious ownership in repository" git error: https://github.com/actions/checkout/issues/1169
+        run: git config --global --add safe.directory "${PWD}"
 
       - name: Checkout code
         uses: actions/checkout@v3
@@ -62,11 +57,6 @@ jobs:
               exit 1
           fi
           echo "distro_name=${distro_id}-${distro_codename}" >> "${GITHUB_OUTPUT}"
-
-      - name: Install build dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y gcc cmake lintian ${{ matrix.qt-version-major == '6' && 'qt6-base-private-dev qt6-declarative-dev libgl-dev' || 'qtbase5-private-dev qtdeclarative5-dev' }}
 
       - name: Setup GCC problem matcher
         uses: ammaraskar/gcc-problem-matcher@0.2.0

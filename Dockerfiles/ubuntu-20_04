@@ -1,0 +1,10 @@
+FROM ubuntu:20.04
+
+# fix for tzdata asking for input
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt update && \
+    apt install -y git sudo \
+    gcc cmake lintian \
+    qtbase5-private-dev qtdeclarative5-dev
+RUN apt clean
