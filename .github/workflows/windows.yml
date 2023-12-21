@@ -169,9 +169,10 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Download build artifacts from previous job
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: artifacts
+          pattern: '*Windows*'
 
       - name: Ensure a 64-bit Qt 6 build is present
         run: |
