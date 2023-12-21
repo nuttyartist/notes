@@ -1,0 +1,10 @@
+FROM ubuntu:22.04
+
+# fix for tzdata asking for input
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt update && \
+    apt install -y git sudo \
+    gcc cmake lintian \
+    qt6-base-private-dev qt6-declarative-dev libgl-dev
+RUN apt clean
