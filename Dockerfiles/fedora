@@ -1,0 +1,5 @@
+FROM fedora:38
+
+RUN dnf update -y && \
+  dnf install -y cmake gcc git rpm-build rpmlint \
+  libxkbcommon-devel qt6-qtbase-private-devel qt6-qtdeclarative-devel
