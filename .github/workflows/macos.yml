@@ -221,7 +221,7 @@ jobs:
           xcrun stapler staple 'build/${{ steps.vars.outputs.file_name }}'
 
       - name: Upload dmg artifact (${{ matrix.build-type }})
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
           name: ${{ steps.vars.outputs.artifact_name }}-${{ runner.os }}-${{ matrix.build-type }}

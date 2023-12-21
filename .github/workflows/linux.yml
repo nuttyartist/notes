@@ -96,7 +96,7 @@ jobs:
           lintian '${{ steps.deb.outputs.path }}'
 
       - name: Upload deb package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
           name: ${{ steps.deb.outputs.name }}-qt${{ matrix.qt-version-major }}-${{ steps.vars.outputs.distro_name }}-${{ matrix.build-type }}
@@ -199,7 +199,7 @@ jobs:
           rpmlint '${{ steps.rpm.outputs.path }}'
 
       - name: Upload rpm package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
           name: ${{ steps.rpm.outputs.name }}-qt${{ matrix.qt-version-major }}-${{ steps.vars.outputs.distro_name }}-${{ matrix.build-type }}
@@ -392,7 +392,7 @@ jobs:
           mv -v Notes*.AppImage '${{ steps.vars.outputs.file_name }}'
 
       - name: Upload AppImage artifact (${{ matrix.build-type }})
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
           name: ${{ steps.vars.outputs.artifact_name }}-${{ runner.os }}-${{ matrix.build-type }}
@@ -435,7 +435,7 @@ jobs:
           echo "path=${path}" >> "${GITHUB_OUTPUT}"
 
       - name: Upload snap package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
           name: ${{ steps.snap.outputs.name }}.snap

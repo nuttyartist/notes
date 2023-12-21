@@ -154,7 +154,7 @@ jobs:
           }
 
       - name: Upload artifacts (${{ matrix.build-type }}, ${{ matrix.arch }})
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
           name: ${{ steps.vars.outputs.artifact_name }}-${{ runner.os }}-${{ matrix.build-type }}
@@ -240,7 +240,7 @@ jobs:
           Write-Host "SUCCESS: List of files in the installer matches the ones copied by windeployqt."
 
       - name: Upload unified installer artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
           name: NotesSetup_${{ needs.build-aqtinstall.outputs.version }}-${{ runner.os }}-release
