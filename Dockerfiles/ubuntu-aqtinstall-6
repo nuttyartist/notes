@@ -1,0 +1,40 @@
+FROM ubuntu:22.04
+
+ENV QT_VERSION=6.4.3
+ENV QT_ARCHITECTURE=gcc_64
+
+# this image can also be used for appimage builds
+# Configure the timezone, otherwise 'install-qt-action' gets stuck at 'configuring tzdata'.
+RUN ln -sf /usr/share/zoneinfo/UTC /etc/localtime \
+    && echo UTC > /etc/timezone
+
+# install packages
+# - appstream: Used to validate the AppStream metadata file.
+# - cmake: Used to help build the application.
+# - curl: Used to download the linuxdeploy AppImage tool.
+# - desktop-file-utils: Used to validate the desktop file.
+# - git: To clone this repository.
+# - libfontconfig1: Used as dependency of the resulting AppImage.
+# - libxcb-cursor0: Used as dependency of the resulting AppImage.
+# - libxkbcommon-x11-0: Used as dependency of the resulting AppImage.
+# - python3/python3-pip: Used by aqtinstall.
+# - sudo: Used by most GitHub actions to install things.
+# - libpq5: Useless, but needed to keep linuxdeploy happy
+# - libodbc1: Useless, but needed to keep linuxdeploy happy
+# - file: Necessary for building the AppImage
+RUN apt update && \ 
+    apt install -y appstream cmake curl desktop-file-utils git libfontconfig1 libxcb-cursor0 libxkbcommon-x11-0 python3 python3-pip sudo \
+    libpq5 libodbc1 file \
+    # qt dependencies
+    build-essential libgl1-mesa-dev libgstreamer-gl1.0-0 libpulse-dev libxcb-glx0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 \
+    libxcb-render-util0 libxcb-render0 libxcb-shape0 libxcb-shm0 libxcb-sync1 libxcb-util1 libxcb-xfixes0 libxcb-xinerama0 libxcb1 libxkbcommon-dev libxkbcommon-x11-0 libxcb-xkb-dev \
+    libqt6network6 libqt6sql6 libqt6widgets6 qml6-module-qtqml-workerscript qml6-module-qtquick-controls qml6-module-qtquick-layouts qml6-module-qtquick-particles qml6-module-qtquick-templates qml6-module-qtquick-window qt6-qpa-plugins
+
+RUN python3 -m pip install --upgrade pip setuptools aqtinstall
+
+# qt6 dependencies
+RUN apt install -y libxkbcommon-dev libmysqlclient21
+
+# use aqtinstall to install qt
+RUN python3 -m aqt install-qt --outputdir /Qt linux desktop $QT_VERSION $QT_ARCHITECTURE
+ENV PATH="/Qt/$QT_VERSION/$QT_ARCHITECTURE/bin:$PATH"

@@ -1,0 +1,5 @@
+FROM opensuse/leap:15
+
+RUN zypper update -y && \
+  zypper install -y cmake gcc git rpm-build rpmlint \
+  qt6-base-private-devel qt6-declarative-devel 
