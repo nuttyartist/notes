@@ -103,34 +103,25 @@ jobs:
           path: ${{ steps.deb.outputs.path }}
 
   rpm:
-    name: rpm (${{ matrix.build-type }}, Qt ${{ matrix.qt-version-major }}, ${{ matrix.container != '' && matrix.container || matrix.os }})
-    runs-on: ${{ matrix.os }}
-    container: ${{ matrix.container }}
+    name: rpm (${{ matrix.build-type }}, Qt ${{ matrix.qt-version-major }}, ${{ matrix.image }})
+    runs-on: ubuntu-latest
+    container: zjeffer/notes:${{ matrix.image }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-20.04
-            # Fedora's release cycle: https://docs.fedoraproject.org/en-US/releases/lifecycle/
-            container: fedora:38
+          - # Fedora's release cycle: https://docs.fedoraproject.org/en-US/releases/lifecycle/
+            image: fedora
             qt-version-major: 6
             build-type: release
 
-          - os: ubuntu-20.04
-            container: opensuse/leap:15
+          - image: opensuse
             qt-version-major: 6
             build-type: release
     steps:
-      - name: Install build dependencies
-        env:
-          PKG_MANAGER: ${{ startsWith(matrix.container, 'fedora') && 'dnf' || 'zypper' }}
-          # Fedora doesn't include libxkbcommon-devel as a dependency of Qt 6, so have to install it manually.
-          PKG_LIST: ${{ startsWith(matrix.container, 'fedora') && 'libxkbcommon-devel qt6-qtbase-private-devel qt6-qtdeclarative-devel' || 'qt6-base-private-devel qt6-declarative-devel' }}
-        run: |
-          ${{ env.PKG_MANAGER }} update -y
-          ${{ env.PKG_MANAGER }} install -y cmake gcc git ${{ env.PKG_LIST }} rpm-build rpmlint
-          # Prevent git's dubious ownership message
-          git config --global --add safe.directory "${PWD}"
+      - name: Setup git configuration
+        # workaround for "detected dubious ownership in repository" git error: https://github.com/actions/checkout/issues/1169
+        run: git config --global --add safe.directory "${PWD}"
 
       - name: Checkout code
         uses: actions/checkout@v3
@@ -164,7 +155,7 @@ jobs:
           VERBOSE: 1
           # openSUSE defaults to GCC 7, which doesn't support the filesystem library from C++17,
           # and causes trouble compiling for Qt 6. So we have to manully specify GCC 10 instead.
-          CXX: ${{ startsWith(matrix.container, 'opensuse') && 'g++-10' || 'g++' }}
+          CXX: ${{ startsWith(matrix.image, 'opensuse') && 'g++-10' || 'g++' }}
         run: |
           cmake --warn-uninitialized --warn-unused-vars \
               -B build \
