@@ -48,7 +48,7 @@ jobs:
       - name: Setup CLang problem matcher
         # Technically, this action only supports GCC, but it seems to work well for Clang too.
         if: matrix.build-type == 'debug'
-        uses: ammaraskar/gcc-problem-matcher@0.2.0
+        uses: ammaraskar/gcc-problem-matcher@0.3.0
 
       - name: Build (${{ matrix.build-type }})
         env:

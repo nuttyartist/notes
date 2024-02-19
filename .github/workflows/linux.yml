@@ -59,7 +59,7 @@ jobs:
           echo "distro_name=${distro_id}-${distro_codename}" >> "${GITHUB_OUTPUT}"
 
       - name: Setup GCC problem matcher
-        uses: ammaraskar/gcc-problem-matcher@0.2.0
+        uses: ammaraskar/gcc-problem-matcher@0.3.0
 
       - name: Build (${{ matrix.build-type }})
         env:
@@ -148,7 +148,7 @@ jobs:
           echo "distro_name=${distro_id}-${version_id}" >> "${GITHUB_OUTPUT}"
 
       - name: Setup GCC problem matcher
-        uses: ammaraskar/gcc-problem-matcher@0.2.0
+        uses: ammaraskar/gcc-problem-matcher@0.3.0
 
       - name: Build (${{ matrix.build-type }})
         env:
