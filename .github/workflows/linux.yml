@@ -262,11 +262,6 @@ jobs:
         env:
           VERBOSE: 1
         run: |
-          echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
-          echo "PKG_CONFIG_PATH=${PKG_CONFIG_PATH}"
-          echo "Qt6_DIR=${Qt6_DIR}"
-          echo "QT_PLUGIN_PATH=${QT_PLUGIN_PATH}"
-          echo "QML_IMPORT_PATH=${QML_IMPORT_PATH}"
           cmake --warn-uninitialized --warn-unused-vars \
               -B build \
               -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
