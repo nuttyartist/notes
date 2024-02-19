@@ -32,7 +32,7 @@ jobs:
       version: ${{ steps.vars.outputs.version }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
@@ -166,7 +166,7 @@ jobs:
     runs-on: windows-2019
     steps:
       - name: Checkout code to grab the ISS script
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Download build artifacts from previous job
         uses: actions/download-artifact@v4
