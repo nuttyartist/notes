@@ -73,7 +73,7 @@ jobs:
           Rename-Item $env:Temp\openssl-1.1 $env:Temp\OpenSSL
 
       - name: Setup MSVC problem matcher
-        uses: ammaraskar/msvc-problem-matcher@0.2.0
+        uses: ammaraskar/msvc-problem-matcher@0.3.0
 
       - name: Build (${{ matrix.build-type }}, ${{ matrix.arch }})
         env:
