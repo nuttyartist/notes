@@ -202,45 +202,24 @@ jobs:
   # NOTE: This job uses a fixed Qt version (set in the 'qt-version' key below)!
   # So, remember to keep it updated whenever a new Qt version is available on aqtinstall.
   appimage-aqtinstall:
-    name: AppImage (${{ matrix.build-type }}, Qt ${{ matrix.qt-version }}, ${{ matrix.container != '' && matrix.container || matrix.os }})
+    name: AppImage (${{ matrix.build-type }}, Qt ${{ matrix.qt-version }}, ${{ matrix.image }})
     runs-on: ${{ matrix.os }}
-    container: ${{ matrix.container }}
+    container:
+      image: zjeffer/notes:${{ matrix.image }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-20.04
-            container: ubuntu:20.04
+          - os: ubuntu-22.04
             build-type: release
             qt-version: 5.15.2
-
-          - os: ubuntu-20.04
-            container: ubuntu:20.04
+            image: ubuntu-aqtinstall-5
+          
+          - os: ubuntu-22.04
             build-type: release
             qt-version: 6.4.3
+            image: ubuntu-aqtinstall-6
     steps:
-      - name: Install other dependencies in docker container
-        # - appstream: Used to validate the AppStream metadata file.
-        # - cmake: Used to help build the application.
-        # - curl: Used to download the linuxdeploy AppImage tool.
-        # - desktop-file-utils: Used to validate the desktop file.
-        # - git: To clone this repository.
-        # - libfontconfig1: Used as dependency of the resulting AppImage.
-        # - libxcb-cursor0: Used as dependency of the resulting AppImage.
-        # - libxkbcommon-x11-0: Used as dependency of the resulting AppImage.
-        # - python3/python3-pip: Used by aqtinstall.
-        # - sudo: Used by most GitHub actions to install things.
-        if: matrix.container != ''
-        run: |
-          # Configure the timezone, otherwise 'install-qt-action' gets stuck at 'configuring tzdata'.
-          ln -sf /usr/share/zoneinfo/UTC /etc/localtime
-          echo UTC > /etc/timezone
-          # install packages
-          apt update
-          apt install -y appstream cmake curl desktop-file-utils git libfontconfig1 libxcb-cursor0 libxkbcommon-x11-0 python3 python3-pip sudo
-          # Upgrade to the latest setuptools, as Ubuntu's python3-setuptools package has compatibility issues with aqtinstall.
-          python3 -m pip install --upgrade setuptools
-
       - name: Checkout code
         uses: actions/checkout@v3
         with:
@@ -271,21 +250,6 @@ jobs:
           echo "version=${version}" >> "${GITHUB_OUTPUT}"
           echo "artifact_name=${artifact_name}" >> "${GITHUB_OUTPUT}"
           echo "file_name=${file_name}" >> "${GITHUB_OUTPUT}"
-
-      - name: Install Qt ${{ matrix.qt-version }} (aqtinstall)
-        uses: jurplel/install-qt-action@v3
-        with:
-          version: ${{ matrix.qt-version }}
-          # Prevents the installation of a custom Python build, potentially linked against an unsupported version of glibc.
-          setup-python: false
-          cache: true
-
-      - name: Install Qt 6 system dependencies
-        # 'libmysqlclient21' is actually only needed by linuxdeploy for Qt 6 builds. I'm including it here just for convenience.
-        if: startsWith(matrix.qt-version, '6.')
-        run: |
-          sudo apt update
-          sudo apt install -y libxkbcommon-dev libmysqlclient21
 
       # TODO: Figure out why this error only occurs on the Linux container when building with -DGIT_REVISION=ON
       # The error: fatal: detected dubious ownership in repository
@@ -327,12 +291,6 @@ jobs:
           curl -fLO --retry 10 https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
           chmod +x linuxdeploy-plugin-qt-x86_64.AppImage
 
-      - name: Install useless dependencies to make linuxdeploy happy
-        # We won't use any of these sql drivers, but install them anyway so linuxdeploy doesn't fail.
-        run: |
-          sudo apt update
-          sudo apt install -y libpq5 libodbc1
-
       - name: Deploy (${{ matrix.build-type }})
         env:
           APPIMAGE_EXTRACT_AND_RUN: 1
@@ -363,7 +321,7 @@ jobs:
           fi
 
       - name: Validate AppStream metadata
-        if: matrix.container != 'ubuntu:20.04'
+        if: matrix.image != 'ubuntu:20.04'
         run: |
           cd build/Notes
           appstreamcli validate --verbose 'usr/share/metainfo/${{ env.APP_ID }}.metainfo.xml'
