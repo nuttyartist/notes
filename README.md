@@ -7,6 +7,9 @@ Notes is an open source and cross-platform note-taking app that is both beautifu
 
 Website: <a href="https://get-notes.com" target="_blank">get-notes.com</a>
 
+## Install
+> scoop install https://raw.githubusercontent.com/nuttyartist/notes/9781a347e38e2a5008f11281ea300850eb3967cd/notes.json
+
 ## Screenshots
 
 https://github.com/nuttyartist/notes/assets/16375940/714ffe3e-95ef-4233-b3da-58fcea33fbfa
