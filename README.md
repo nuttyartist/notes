@@ -12,7 +12,7 @@ Website: <a href="https://get-notes.com" target="_blank">get-notes.com</a>
 > scoop install https://raw.githubusercontent.com/nuttyartist/notes/9781a347e38e2a5008f11281ea300850eb3967cd/notes.json
 
 ### To remove notes from the command line
-> scoop uinstall notes # "and or scoop cache rm *" remove all apps with issues, including notes
+> scoop uninstall notes # "and or scoop cache rm *" remove all apps with issues, including notes
 
 ## Screenshots
 
