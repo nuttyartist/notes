@@ -7,8 +7,12 @@ Notes is an open source and cross-platform note-taking app that is both beautifu
 
 Website: <a href="https://get-notes.com" target="_blank">get-notes.com</a>
 
-## Install
+## CLI
+### install
 > scoop install https://raw.githubusercontent.com/nuttyartist/notes/9781a347e38e2a5008f11281ea300850eb3967cd/notes.json
+
+### To remove notes from the command line
+> scoop uinstall notes # "and or scoop cache rm *" remove all apps with issues, including notes
 
 ## Screenshots
 
