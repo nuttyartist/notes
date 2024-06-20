@@ -33,6 +33,7 @@ jobs:
           brew install ninja qt@${{ matrix.qt-version-major }} 
 
       - name: Configure Qt ${{ matrix.qt-version-major }} (homebrew)
+        if: matrix.qt-version-major == 5
         run: |
           brew link qt@${{ matrix.qt-version-major }}
           cat << EOF
