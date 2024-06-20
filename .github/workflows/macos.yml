@@ -29,11 +29,7 @@ jobs:
           submodules: recursive
 
       - name: Install Qt ${{ matrix.qt-version-major }} (homebrew)
-        env:
-          # TODO: remove once https://github.com/actions/setup-python/issues/577 gets fixed.
-          HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
         run: |
-          brew update
           brew install ninja qt@${{ matrix.qt-version-major }} 
 
       - name: Configure Qt ${{ matrix.qt-version-major }} (homebrew)
@@ -125,7 +121,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          brew update
           brew install create-dmg ninja
 
       - name: Build (${{ matrix.build-type }})
