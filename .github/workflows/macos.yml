@@ -71,11 +71,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-11
+          - os: macos-12
             qt-version: 5.15.2
             build-type: release
 
-          - os: macos-11
+          - os: macos-12
             qt-version: 6.5.2
             build-type: release
     steps:
