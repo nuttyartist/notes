@@ -789,25 +789,30 @@ QString NoteEditorLogic::getFirstLine(const QString &str)
 
 QString NoteEditorLogic::getSecondLine(const QString &str)
 {
-#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-    auto sl = str.split("\n", QString::SkipEmptyParts);
-#else
-    auto sl = str.split("\n", Qt::SkipEmptyParts);
-#endif
-    if (sl.size() < 2) {
-        return getFirstLine(str);
-    }
-    int i = 1;
-    QString text;
-    do {
-        if (i >= sl.size()) {
-            return getFirstLine(str);
+    int previousLineBreakIndex = 0;
+    int lineCount = 0;
+    for (int i = 0; i < str.length(); i++) {
+        if (str[i] == '\n' || i == str.length() - 1) {
+            lineCount++;
+            if (lineCount > 1 && (i - previousLineBreakIndex > 1 || (i == str.length() - 1 && str[i] != '\n'))) {
+                QString line = str.mid(previousLineBreakIndex + 1, i - previousLineBreakIndex);
+                line = line.trimmed();
+                if (!line.isEmpty() && !line.startsWith("---") && !line.startsWith("```")) {
+                    QTextDocument doc;
+                    doc.setMarkdown(line);
+                    QString text = doc.toPlainText();
+                    if (text.length() > 1 && text.first(1) == "^") {
+                        text = text.mid(1);
+                    }
+                    QTextStream ts(&text);
+                    return ts.readLine(FIRST_LINE_MAX);
+                }
+            }
+            previousLineBreakIndex = i;
         }
-        text = sl[i].trimmed();
-        ++i;
-    } while (text.isEmpty());
-    QTextStream ts(&text);
-    return ts.readLine(FIRST_LINE_MAX);
+    }
+
+    return tr("No additional text");
 }
 
 void NoteEditorLogic::setTheme(Theme::Value theme, QColor textColor, qreal fontSize)
