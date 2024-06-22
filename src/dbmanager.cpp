@@ -2420,15 +2420,16 @@ void DBManager::exportNotes(const QString &baseExportPath, const QString &extens
 
     int counter = 1;
     while (directory.exists(exportPathNew)) {
-        exportPathNew = baseExportPath + QDir::separator() + rootFolderName + " " + QString::number(counter++);
+        exportPathNew = baseExportPath + QDir::separator() + rootFolderName + " "
+                + QString::number(counter++);
     }
     qDebug() << "Exporting notes to:" << exportPathNew;
     directory.mkpath(exportPathNew);
 
-           // Retrieve all folders first to create the directory structure
+    // Retrieve all folders first to create the directory structure
     QVector<NodeData> folders = getAllFolders();
 
-           // Create directories for each folder
+    // Create directories for each folder
     QMap<int, QString> folderPaths;
     for (const NodeData &folder : folders) {
         QString path = exportPathNew;
@@ -2448,7 +2449,8 @@ void DBManager::exportNotes(const QString &baseExportPath, const QString &extens
 
             counter = 1;
             while (directory.exists(path)) {
-                path = exportPathNew + QDir::separator() + relativePath + " " + QString::number(counter++);
+                path = exportPathNew + QDir::separator() + relativePath + " "
+                        + QString::number(counter++);
             }
 
             QDir().mkpath(path);
@@ -2457,9 +2459,10 @@ void DBManager::exportNotes(const QString &baseExportPath, const QString &extens
         folderPaths.insert(folder.id(), path);
     }
 
-           // Retrieve all notes
+    // Retrieve all notes
     QSqlQuery query(m_db);
-    query.prepare(R"(SELECT "id", "title", "content", "parent_id" FROM node_table WHERE node_type = :note_type)");
+    query.prepare(
+            R"(SELECT "id", "title", "content", "parent_id" FROM node_table WHERE node_type = :note_type)");
     query.bindValue(":note_type", static_cast<int>(NodeData::Type::Note));
 
     if (!query.exec()) {
@@ -2467,7 +2470,7 @@ void DBManager::exportNotes(const QString &baseExportPath, const QString &extens
         return;
     }
 
-           // Export each note as a .txt file in its corresponding directory
+    // Export each note as a .txt file in its corresponding directory
     QTextDocument doc;
     while (query.next()) {
         // int noteId = query.value(0).toInt();
@@ -2482,7 +2485,8 @@ void DBManager::exportNotes(const QString &baseExportPath, const QString &extens
         safeTitle = safeTitle.simplified();
         doc.setMarkdown(safeTitle);
         safeTitle = doc.toPlainText();
-        safeTitle.replace(QRegularExpression(R"([\/\\:*?"<>|])"), "_"); // Make the title filesystem-safe
+        safeTitle.replace(QRegularExpression(R"([\/\\:*?"<>|])"),
+                          "_"); // Make the title filesystem-safe
         QString filePath = notePath + QDir::separator() + safeTitle + extension;
 
         if (safeTitle.isEmpty()) {
@@ -2491,10 +2495,11 @@ void DBManager::exportNotes(const QString &baseExportPath, const QString &extens
 
         counter = 1;
         while (directory.exists(filePath)) {
-            filePath = notePath + QDir::separator() + safeTitle + " " + QString::number(counter++) + extension;
+            filePath = notePath + QDir::separator() + safeTitle + " " + QString::number(counter++)
+                    + extension;
         }
 
-               // qDebug() << "Exporting note:" << filePath;
+        // qDebug() << "Exporting note:" << filePath;
 
         QFile file(filePath);
         if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {

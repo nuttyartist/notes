@@ -40,7 +40,7 @@ public:
     Q_INVOKABLE void moveFolderToTrash(const NodeData &node);
     Q_INVOKABLE FolderListType getFolderList();
     void exportNotes(const QString &exportPath, const QString &extension);
-    void addNotesToNewImportedFolder(const QList<QPair<QString, QDateTime> > &fileDatas);
+    void addNotesToNewImportedFolder(const QList<QPair<QString, QDateTime>> &fileDatas);
 
 private:
     void open(const QString &path, bool doCreate = false);

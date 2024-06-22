@@ -794,7 +794,8 @@ QString NoteEditorLogic::getSecondLine(const QString &str)
     for (int i = 0; i < str.length(); i++) {
         if (str[i] == '\n' || i == str.length() - 1) {
             lineCount++;
-            if (lineCount > 1 && (i - previousLineBreakIndex > 1 || (i == str.length() - 1 && str[i] != '\n'))) {
+            if (lineCount > 1
+                && (i - previousLineBreakIndex > 1 || (i == str.length() - 1 && str[i] != '\n'))) {
                 QString line = str.mid(previousLineBreakIndex + 1, i - previousLineBreakIndex);
                 line = line.trimmed();
                 if (!line.isEmpty() && !line.startsWith("---") && !line.startsWith("```")) {
