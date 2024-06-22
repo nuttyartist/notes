@@ -271,6 +271,7 @@ private:
     QString m_userLicenseKey;
     QMenu m_mainMenu;
     QAction *m_buyOrManageSubscriptionAction;
+    QTimer m_checkUpdatesTimer;
 
     bool alreadyAppliedFormat(const QString &formatChars);
     void applyFormat(const QString &formatChars);

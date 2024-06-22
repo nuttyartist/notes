@@ -137,7 +137,8 @@ MainWindow::MainWindow(QWidget *parent)
       m_netPurchaseDataReplySecondAttempt(nullptr),
       m_userLicenseKey(QStringLiteral("")),
       m_mainMenu(nullptr),
-      m_buyOrManageSubscriptionAction(new QAction(this))
+      m_buyOrManageSubscriptionAction(new QAction(this)),
+      m_checkUpdatesTimer(new QTimer(this))
 {
     ui->setupUi(this);
     setupMainWindow();
@@ -163,6 +164,8 @@ MainWindow::MainWindow(QWidget *parent)
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
     checkProVersion();
+    connect(&m_checkUpdatesTimer, &QTimer::timeout, this, &MainWindow::autoCheckForUpdates);
+    m_checkUpdatesTimer.start(60 * 60 * 1000); // 1 hour
 #endif
 
     QTimer::singleShot(200, this, SLOT(InitData()));
