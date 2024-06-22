@@ -356,6 +356,8 @@ private slots:
     void toggleFolderTree();
     void importNotesFile();
     void exportNotesFile();
+    void importPlainTextFiles();
+    void exportToPlainTextFiles(const QString &extension);
     void restoreNotesFile();
     void increaseHeading();
     void decreaseHeading();

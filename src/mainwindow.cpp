@@ -2225,6 +2225,25 @@ void MainWindow::setupGlobalSettingsMenu()
     QAction *quitAppAction = m_mainMenu.addAction(tr("&Quit"));
     connect(quitAppAction, &QAction::triggered, this, &MainWindow::QuitApplication);
 
+           // Import notes from plain text actions
+    QAction *importNotesPlainTextAction = importExportNotesMenu->addAction(tr("&Import .txt/.md"));
+    importNotesPlainTextAction->setToolTip(tr("Import notes from .txt or .md files"));
+    connect(importNotesPlainTextAction, &QAction::triggered, this, &MainWindow::importPlainTextFiles);
+
+    QAction *exportNotesToPlainTextAction = importExportNotesMenu->addAction(tr("&Export to .txt"));
+    exportNotesToPlainTextAction->setToolTip(tr("Export notes to .txt files\nNote: If you wish to backup your notes,\nuse the .nbk file format instead of .txt/.md"));
+    connect(exportNotesToPlainTextAction, &QAction::triggered, this, [this](){
+        exportToPlainTextFiles(".txt");
+    });
+
+    QAction *exportNotesToMarkdownAction = importExportNotesMenu->addAction(tr("&Export to .md"));
+    exportNotesToMarkdownAction->setToolTip(tr("Export notes to .md files\nNote: If you wish to backup your notes,\nuse the .nbk file format instead of .txt/.md"));
+    connect(exportNotesToMarkdownAction, &QAction::triggered, this, [this](){
+        exportToPlainTextFiles(".md");
+    });
+
+    importExportNotesMenu->addSeparator();
+
     // Export notes action
     QAction *exportNotesFileAction = importExportNotesMenu->addAction(tr("&Export"));
     exportNotesFileAction->setToolTip(tr("Save notes to a file"));
@@ -2865,6 +2884,73 @@ void MainWindow::exportNotesFile()
         file.close();
         emit requestExportNotes(fileName);
     }
+}
+
+void MainWindow::importPlainTextFiles()
+{
+    QList<QPair<QString, QDateTime>> fileDatas;
+    QFileDialog dialog(this);
+
+           // Set filters and options
+    dialog.setNameFilter("Text Files (*.txt *.md)");
+    dialog.setFileMode(QFileDialog::ExistingFiles);
+
+           // Open the dialog and check if user has selected files
+    if (dialog.exec()) {
+        // Get list of selected files
+        QStringList files = dialog.selectedFiles();
+
+               // Loop over the files and read their content
+        for (const QString &fileName : files) {
+            QFile file(fileName);
+
+                   // Open the file and check for errors
+            if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                QMessageBox::warning(this, "File error", "Can't open file " + fileName);
+                continue;
+            }
+
+                   // Read the file content
+            QTextStream in(&file);
+            QString fileContent = in.readAll();
+
+            QFileInfo fileInfo(file);
+            QDateTime lastModified = fileInfo.lastModified();
+
+            fileDatas.append(qMakePair(fileContent, lastModified));
+
+                   // Close the file
+            file.close();
+        }
+    }
+
+    QMessageBox msgBox;
+    if (!fileDatas.isEmpty()) {
+        m_dbManager->addNotesToNewImportedFolder(fileDatas);
+        msgBox.setText("Notes imported successfully!");
+        msgBox.exec();
+    } else {
+        msgBox.setText("No files selected. Please select one or more files to import.");
+        msgBox.exec();
+    }
+}
+
+void MainWindow::exportToPlainTextFiles(const QString &extension)
+{
+    QString dir = QFileDialog::getExistingDirectory(nullptr, tr("Select Export Directory"),
+                                                    "/home",
+                                                    QFileDialog::ShowDirsOnly
+                                                            | QFileDialog::DontResolveSymlinks);
+
+    if (dir.isEmpty()) {
+        return;
+    }
+
+    m_dbManager->exportNotes(dir, extension);
+
+    QMessageBox msgBox;
+    msgBox.setText("Notes exported successfully!");
+    msgBox.exec();
 }
 
 void MainWindow::toggleFolderTree()
