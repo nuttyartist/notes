@@ -769,34 +769,19 @@ void NoteEditorLogic::deleteCurrentNote()
     }
 }
 
-/*!
- * \brief NoteEditorLogic::getFirstLine
- * Get a string 'str' and return only the first line of it
- * If the string contain no text, return "New Note"
- * TODO: We might make it more efficient by not loading the entire string into the memory
- * \param str
- * \return
- */
-QString NoteEditorLogic::getFirstLine(const QString &str)
+QString NoteEditorLogic::getNthLine(const QString &str, int targetLineNumber)
 {
-    QString text = str.trimmed();
-    if (text.isEmpty()) {
-        return "New Note";
+    if (targetLineNumber < 1) {
+        return tr("Invalid line number");
     }
-    QTextStream ts(&text);
-    return ts.readLine(FIRST_LINE_MAX);
-}
 
-QString NoteEditorLogic::getSecondLine(const QString &str)
-{
-    int previousLineBreakIndex = 0;
+    int previousLineBreakIndex = -1;
     int lineCount = 0;
-    for (int i = 0; i < str.length(); i++) {
-        if (str[i] == '\n' || i == str.length() - 1) {
+    for (int i = 0; i <= str.length(); i++) {
+        if (i == str.length() || str[i] == '\n') {
             lineCount++;
-            if (lineCount > 1
-                && (i - previousLineBreakIndex > 1 || (i == str.length() - 1 && str[i] != '\n'))) {
-                QString line = str.mid(previousLineBreakIndex + 1, i - previousLineBreakIndex);
+            if (lineCount >= targetLineNumber && (i - previousLineBreakIndex > 1 || (i > 0 && i == str.length() && str[i-1] != '\n'))) {
+                QString line = str.mid(previousLineBreakIndex + 1, i - previousLineBreakIndex - 1);
                 line = line.trimmed();
                 if (!line.isEmpty() && !line.startsWith("---") && !line.startsWith("```")) {
                     QTextDocument doc;
@@ -804,6 +789,9 @@ QString NoteEditorLogic::getSecondLine(const QString &str)
                     QString text = doc.toPlainText();
                     if (text.length() > 1 && text.first(1) == "^") {
                         text = text.mid(1);
+                    }
+                    if (text.isEmpty()) {
+                        return tr("No additional text");
                     }
                     QTextStream ts(&text);
                     return ts.readLine(FIRST_LINE_MAX);
@@ -814,6 +802,24 @@ QString NoteEditorLogic::getSecondLine(const QString &str)
     }
 
     return tr("No additional text");
+}
+
+/*!
+ * \brief NoteEditorLogic::getFirstLine
+ * Get a string 'str' and return only the first line of it
+ * If the string contain no text, return "New Note"
+ * TODO: We might make it more efficient by not loading the entire string into the memory
+ * \param str
+ * \return
+ */
+QString NoteEditorLogic::getFirstLine(const QString &str)
+{
+    return getNthLine(str, 1);
+}
+
+QString NoteEditorLogic::getSecondLine(const QString &str)
+{
+    return getNthLine(str, 2);
 }
 
 void NoteEditorLogic::setTheme(Theme::Value theme, QColor textColor, qreal fontSize)
