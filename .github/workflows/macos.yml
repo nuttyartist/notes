@@ -134,6 +134,7 @@ jobs:
           export CMAKE_BUILD_PARALLEL_LEVEL=$(sysctl -n hw.logicalcpu)
           cmake . --warn-uninitialized --warn-unused-vars \
               -B build -G Ninja \
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ startsWith(matrix.qt-version, '6.') && '11.0' || '10.15' }} \
               -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
               -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }} \
               -DCMAKE_OSX_ARCHITECTURES="${{ env.TARGET_ARCH }}" \
