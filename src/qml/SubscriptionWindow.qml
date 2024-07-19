@@ -237,7 +237,7 @@ ApplicationWindow {
         }
     }
 
-    function formatDate(date : date) {
+    function formatDate(date) {
         if (date) {
             var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
             var month = monthNames[date.getMonth()];
