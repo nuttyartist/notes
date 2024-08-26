@@ -1,7 +1,7 @@
 {
-  "purchase_pro_url": "https://www.get-notes.com/pricing",
-  "purchaseApiBase": "https://api.lemonsqueezy.com",
-  "activateLicenseEndpoint": "/v1/licenses/activate",
-  "validateLicenseEndpoint": "/v1/licenses/validate",
-  "deactivateLicenseEndpoint": "/v1/licenses/deactivate"
+  "purchase_pro_url": "https://www.notes-foss.com/pricing",
+  "purchaseApiBase": "https://www.daino.io",
+  "activateLicenseEndpoint": "/api/notes_foss/activateLicense",
+  "validateLicenseEndpoint": "/api/notes_foss/validateLicense",
+  "deactivateLicenseEndpoint": "/api/notes_foss/deactivate"
 }
