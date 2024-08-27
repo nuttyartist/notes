@@ -479,7 +479,7 @@ void MainWindow::setupMainWindow()
     m_globalSettingsButton->setToolTip(tr("Open App Settings"));
     m_toggleTreeViewButton->setToolTip("Toggle Folders Pane");
     m_switchToTextViewButton->setToolTip("Switch To Text View");
-    m_switchToKanbanViewButton->setToolTip("Switch To Kanban View");
+    m_switchToKanbanViewButton->setToolTip("Switch To Task Board View");
 
     ui->listviewLabel2->setMinimumSize({ 40, 25 });
     ui->listviewLabel2->setMaximumSize({ 40, 25 });
@@ -1017,7 +1017,7 @@ void MainWindow::setupSubscrirptionWindow()
     connect(this, &MainWindow::proVersionCheck, this, [this]() {
         m_buyOrManageSubscriptionAction->setVisible(true);
         if (m_isProVersionActivated) {
-            m_buyOrManageSubscriptionAction->setText("&Manage Subscription...");
+            m_buyOrManageSubscriptionAction->setText("&Notes Pro (Paid)");
         } else {
             m_buyOrManageSubscriptionAction->setText("&Buy Subscription...");
         }
@@ -1587,6 +1587,7 @@ void MainWindow::checkProVersion()
     m_aboutWindow.setProVersion(m_isProVersionActivated);
 #else
     m_userLicenseKey = m_localLicenseData->value(QStringLiteral("licenseKey"), "NULL").toString();
+    m_userLicenseKey = "NULL";
     if (m_userLicenseKey != "NULL") {
         m_dataBuffer->clear();
 
@@ -2213,7 +2214,7 @@ void MainWindow::setupGlobalSettingsMenu()
 #if !defined(PRO_VERSION)
     // Buy/Manage subscription
     m_buyOrManageSubscriptionAction = m_mainMenu.addAction(
-            tr(m_isProVersionActivated ? "&Manage Subscription..." : "&Buy Subscription..."));
+            tr(m_isProVersionActivated ? "&Notes Pro (Paid)" : "&Buy Subscription..."));
     m_buyOrManageSubscriptionAction->setVisible(false);
     connect(m_buyOrManageSubscriptionAction, &QAction::triggered, this,
             &MainWindow::openSubscriptionWindow);

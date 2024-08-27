@@ -750,29 +750,6 @@ ApplicationWindow {
                         wrapMode: Text.WordWrap
                     }
                 }
-
-                Row {
-                    spacing: 10
-
-                    Text {
-                        id: pointIcon3
-                        text: fontIconLoader.icons.fa_bell
-                        font.family: fontIconLoader.fontAwesomeSolid.name
-                        color: root.accentColor
-                        font.pointSize: 31 + root.pointSizeOffset
-                    }
-
-                    Text {
-                        anchors.verticalCenter: pointIcon3.verticalCenter
-                        text: qsTr("Continuous Pro updates - enjoy exclusive features regularly added")
-                        width: root.width/2 - pointIcon1.width - 40
-                        color: root.themeData.theme === "Dark" ? "#dddddd" : "#272727"
-                        font.family: root.displayFontFamily
-                        font.pointSize: 15 + root.pointSizeOffset
-                        font.weight: Font.Bold
-                        wrapMode: Text.WordWrap
-                    }
-                }
             }
         }
     }
