@@ -36,7 +36,7 @@ static QProcess XDGOPEN_PROCESS;
  * Indicates from where we should download the update definitions file
  */
 static const QString
-        UPDATES_URL("https://raw.githubusercontent.com/nuttyartist/notes/master/UPDATES.json");
+        UPDATES_URL("https://raw.githubusercontent.com/nuttyartist/notes/master/UPDATES_FOSS.json");
 
 /**
  * Initializes the window components and configures the QSimpleUpdater

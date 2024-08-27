@@ -482,7 +482,7 @@ void MainWindow::setupMainWindow()
     m_globalSettingsButton->setToolTip(tr("Open App Settings"));
     m_toggleTreeViewButton->setToolTip("Toggle Folders Pane");
     m_switchToTextViewButton->setToolTip("Switch To Text View");
-    m_switchToKanbanViewButton->setToolTip("Switch To Kanban View");
+    m_switchToKanbanViewButton->setToolTip("Switch To Task Board View");
 
     ui->listviewLabel2->setMinimumSize({ 40, 25 });
     ui->listviewLabel2->setMaximumSize({ 40, 25 });
@@ -1020,9 +1020,9 @@ void MainWindow::setupSubscrirptionWindow()
     connect(this, &MainWindow::proVersionCheck, this, [this]() {
         m_buyOrManageSubscriptionAction->setVisible(true);
         if (m_isProVersionActivated) {
-            m_buyOrManageSubscriptionAction->setText("&Manage Subscription...");
+            m_buyOrManageSubscriptionAction->setText("&Notes Pro (Paid)");
         } else {
-            m_buyOrManageSubscriptionAction->setText("&Buy Subscription...");
+            m_buyOrManageSubscriptionAction->setText("&Buy Notes Pro...");
         }
     });
 
@@ -1565,7 +1565,7 @@ void MainWindow::verifyLicenseSignalsSlots()
         if (m_paymentDetails.isEmpty()) {
             qDebug() << "Using default embedded payment data";
             QJsonObject paymentDetailsDefault;
-            paymentDetailsDefault["purchase_pro_url"] = "https://www.get-notes.com/pricing";
+            paymentDetailsDefault["purchase_pro_url"] = "https://www.notes-foss.com/pricing";
             paymentDetailsDefault["purchaseApiBase"] = "https://api.lemonsqueezy.com";
             paymentDetailsDefault["activateLicenseEndpoint"] = "/v1/licenses/activate";
             paymentDetailsDefault["validateLicenseEndpoint"] = "/v1/licenses/validate";
@@ -2216,7 +2216,7 @@ void MainWindow::setupGlobalSettingsMenu()
 #if !defined(PRO_VERSION)
     // Buy/Manage subscription
     m_buyOrManageSubscriptionAction = m_mainMenu.addAction(
-            tr(m_isProVersionActivated ? "&Manage Subscription..." : "&Buy Subscription..."));
+            tr(m_isProVersionActivated ? "&Notes Pro (Paid)" : "&Buy Notes Pro..."));
     m_buyOrManageSubscriptionAction->setVisible(false);
     connect(m_buyOrManageSubscriptionAction, &QAction::triggered, this,
             &MainWindow::openSubscriptionWindow);

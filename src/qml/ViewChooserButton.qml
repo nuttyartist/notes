@@ -281,7 +281,7 @@ MouseArea {
                     if (viewMouseArea.currentViewType === ViewChooserButton.ViewType.Text) {
                         "Text"
                     } else if (viewMouseArea.currentViewType === ViewChooserButton.ViewType.Kanban) {
-                        "Kanban"
+                        "Task Board"
                     }
                 }
                 color: viewMouseArea.mainFontColor
