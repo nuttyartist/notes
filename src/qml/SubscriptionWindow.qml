@@ -45,19 +45,10 @@ ApplicationWindow {
 
     property string successActivationPopupMainCopy: qsTr("Successfully Activated Notes Pro")
     property string successActivationPopupSecondaryCopy: qsTr("Thank you for purchasing Notes Pro and supporting open source development. Your access to Pro features will continue as long as your subscription remains active. Enjoy!")
-    property bool isSubscriptionInformationReady: false
-    property bool isTryingToCancelSubscription: false
     property var subscriptionObject
-    property bool isSubscriptionCanceled: root.subscriptionObject ? root.subscriptionObject["attributes"]["cancelled"] : false
     property date nextPaymentDate: root.subscriptionObject ? root.parseISO8601Date(root.subscriptionObject["attributes"]["renews_at"]) : new Date();
     property string nextPaymentDateString: root.subscriptionObject && nextPaymentDate != null ? root.formatDate(root.nextPaymentDate) : ""
     property date endsAtDate: root.subscriptionObject && root.subscriptionObject["attributes"]["ends_at"] !== null ? root.parseISO8601Date(root.subscriptionObject["attributes"]["ends_at"]) : new Date();
-
-    onVisibilityChanged: {
-        if (root.visible && root.subscriptionStatus === SubscriptionStatus.Active) {
-            root.getSubscriptionInformation();
-        }
-    }
 
     FontIconLoader {
         id: fontIconLoader
@@ -99,10 +90,6 @@ ApplicationWindow {
         function onSubscriptionStatusChanged (data) {
             if (!root.forceSubscriptionStatus) {
                 root.subscriptionStatus = data;
-
-                if (root.visible && root.subscriptionStatus === SubscriptionStatus.Active) {
-                    root.getSubscriptionInformation();
-                }
             }
         }
     }
@@ -189,45 +176,6 @@ ApplicationWindow {
                 root.activateLicenseHelper(purchaseApiBase, activateLicenseEndpoint, req);
             }
         });
-    }
-
-    function getSubscriptionInformation () {
-        root.isSubscriptionInformationReady = false;
-        var userLicenseKey = mainWindow.getUserLicenseKey();
-        var req = {licenseKey: userLicenseKey};
-
-        root.postData(root.getSubscriptionsApiBaseUrl, root.getSubscriptionsApiEndpoint, req, function (response) {
-            if (response.error !== null) {
-                root.subscriptionStatus = SubscriptionStatus.NoInternetConnection;
-            } else {
-                root.subscriptionObject = response;
-                root.isSubscriptionInformationReady = true;
-            }
-        });
-    }
-
-    function cancelSubscription () {
-        root.isTryingToCancelSubscription = true;
-        var subscriptionId = root.subscriptionObject["id"];
-
-        if (subscriptionId) {
-            var req = {subscriptionId: subscriptionId};
-            root.postData(root.getSubscriptionsApiBaseUrl, root.cencelSubscriptionsApiEndpoint, req, function (response) {
-                console.log("response: ", JSON.stringify(response));
-                if (response.error !== null) {
-                     root.subscriptionStatus = SubscriptionStatus.NoInternetConnection;
-                    root.isTryingToCancelSubscription = false;
-                     confirmCancellationPopup.close();
-                } else {
-                    root.subscriptionObject = response;
-                    root.isTryingToCancelSubscription = false;
-                    confirmCancellationPopup.close();
-                }
-            });
-        } else {
-            root.subscriptionStatus = SubscriptionStatus.NoInternetConnection;
-            root.isTryingToCancelSubscription = false;
-        }
     }
 
     function parseISO8601Date(dateStr) {
@@ -548,151 +496,6 @@ ApplicationWindow {
         }
     }
 
-    Popup {
-        id: confirmCancellationPopup
-        anchors.centerIn: parent
-        visible: false
-        width: root.width*9/10
-        height: root.height*9/10
-        Material.background: root.themeData.theme === "Dark" ? "#252525" : "white"
-        Material.elevation: 100
-        padding: 0
-
-        MouseArea {
-            anchors.fill: parent
-
-            onPressed: {
-                confirmCancellationPopup.forceActiveFocus();
-            }
-        }
-
-        Column {
-            anchors.fill: parent
-            spacing: 0
-            topPadding: 20
-
-            Text {
-                text: qsTr("Confirm Unsubscription?")
-                anchors.horizontalCenter: parent.horizontalCenter
-                color: root.themeData.theme === "Dark" ? "#dfdedf" : "#272727"
-                font.family: root.displayFontFamily
-                font.pointSize: 26 + root.pointSizeOffset
-                font.weight: Font.Black
-                horizontalAlignment: Text.AlignHCenter
-            }
-
-            Item {
-                width: 1
-                height: 20
-            }
-
-            Text {
-                width: 400
-                text: qsTr("When you unsubscribe, all future payments will be discontinued. However, you can still enjoy Notes Pro features until " + root.nextPaymentDateString +  ". If you wish to use Notes Pro again in the future, please note that you'll need to obtain a new license.")
-                anchors.horizontalCenter: parent.horizontalCenter
-                color: root.themeData.theme === "Dark" ? "#dfdedf" : "#272727"
-                font.family: root.displayFontFamily
-                font.pointSize: 14 + root.pointSizeOffset
-                font.weight: Font.Normal
-                wrapMode: Text.WordWrap
-            }
-
-            Item {
-                width: 1
-                height: 40
-            }
-
-            Text {
-                text: qsTr("Are you sure you want to proceed?")
-                anchors.horizontalCenter: parent.horizontalCenter
-                color: root.themeData.theme === "Dark" ? "#dfdedf" : "#272727"
-                font.family: root.displayFontFamily
-                font.pointSize: 16 + root.pointSizeOffset
-                font.weight: Font.Bold
-            }
-
-            Item {
-                width: 1
-                height: 7
-            }
-
-            Row {
-                visible: !root.isTryingToCancelSubscription
-                anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 10
-
-                TextButton {
-                    text: qsTr("No")
-                    platform: root.platform
-                    displayFontFamily: root.displayFontFamily
-                    textAlignment: TextButton.TextAlign.Middle
-                    themeData: root.themeData
-                    textFontPointSize: 14
-                    textFontWeight: Font.Normal
-                    backgroundWidthOffset: 22
-                    backgroundHeightOffset: 14
-                    defaultBackgroundColor: "transparent"
-                    highlightBackgroundColor: root.themeData.theme === "Dark" ? "#313131" : "#efefef"
-                    pressedBackgroundColor: root.canActivate ? root.themeData.theme === "Dark" ? "#2c2c2c" : "#dfdfde" : "transparent"
-                    usePointingHand: true
-                    mainFontColorDefault: root.themeData.theme === "Dark" ? "#0a84ff" : "#007bff"
-                    pointSizeOffset: root.platform === "Apple" ? 0 : -3
-
-                    onClicked:  {
-                        confirmCancellationPopup.close();
-                    }
-                }
-
-                TextButton {
-                    text: qsTr("Yes")
-                    platform: root.platform
-                    displayFontFamily: root.displayFontFamily
-                    textAlignment: TextButton.TextAlign.Middle
-                    themeData: root.themeData
-                    textFontPointSize: 14
-                    textFontWeight: Font.Normal
-                    backgroundWidthOffset: 22
-                    backgroundHeightOffset: 14
-                    pointSizeOffset: root.platform === "Apple" ? 0 : -3
-
-                    onClicked: {
-                        root.cancelSubscription();
-                    }
-                }
-            }
-
-            BusyIndicator {
-                id: busyIndicatorLoadingCancelSubscription
-                anchors.horizontalCenter: parent.horizontalCenter
-                visible: root.isTryingToCancelSubscription
-                running: root.isTryingToCancelSubscription
-                Material.theme: root.themeData.theme === "Dark" ? Material.Dark : Material.Light
-                Material.accent: "#5b94f5"
-                Layout.alignment: Qt.AlignHCenter
-                implicitHeight: 50
-                implicitWidth: 50
-            }
-
-            Item {
-                visible: root.isTryingToCancelSubscription
-                width: 1
-                height: 10
-            }
-
-            Text {
-                visible: root.isTryingToCancelSubscription
-                anchors.horizontalCenter: busyIndicatorLoadingCancelSubscription.horizontalCenter
-                text: qsTr("Canceling subscription...")
-                color: root.themeData.theme === "Dark" ? "#dddddd" : "#272727"
-                font.family: root.displayFontFamily
-                font.pointSize: 13 + root.pointSizeOffset
-                font.weight: Font.Bold
-                wrapMode: Text.WordWrap
-                horizontalAlignment: Text.AlignHCenter
-            }
-        }
-    }
-
     Component {
         id: upgradeToProCopy
 
@@ -873,72 +676,6 @@ ApplicationWindow {
     }
 
     Component {
-        id: subscriptionExpiredCopy
-
-        Rectangle {
-            width: root.width/2
-            height: root.columnHeight
-            color: "transparent"
-
-            Column {
-                width: parent.width
-                anchors.centerIn: parent
-
-                Item {
-                    width: 1
-                    height: 20
-                }
-
-                Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: fontIconLoader.icons.fa_face_sad_tear
-                    font.family: fontIconLoader.fontAwesomeRegular.name
-                    color: root.sadIconColor
-                    font.pointSize: 40 + root.pointSizeOffset
-                }
-
-                Item {
-                    width: 1
-                    height: 10
-                }
-
-                Text {
-                    width: 300
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: qsTr("Subscription Expired")
-                    color: root.themeData.theme === "Dark" ? "#dfdedf" : "#272727"
-                    font.family: root.displayFontFamily
-                    font.pointSize: 26 + root.pointSizeOffset
-                    font.weight: Font.Black
-                    horizontalAlignment: Text.AlignHCenter
-                }
-
-                Item {
-                    width: 1
-                    height: 20
-                }
-
-                Text {
-                    width: 300
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: qsTr("The subscription tied to your current license key has expired. Please buy a new subscription to use Notes Pro.")
-                    color: root.themeData.theme === "Dark" ? "#dddddd" : "#272727"
-                    font.family: root.displayFontFamily
-                    font.pointSize: 15 + root.pointSizeOffset
-                    font.weight: Font.Bold
-                    wrapMode: Text.WordWrap
-                    horizontalAlignment: Text.AlignHCenter
-                }
-
-                Item {
-                    width: 1
-                    height: 20
-                }
-            }
-        }
-    }
-
-    Component {
         id: termsAndPrivacy
 
         Rectangle {
@@ -1023,7 +760,7 @@ ApplicationWindow {
                 width: 185
                 color: root.themeData.theme === "Dark" ? "#dddddd" : "#272727"
                 font.family: root.displayFontFamily
-                font.pointSize: 10 + root.pointSizeOffset
+                font.pointSize: 12 + root.pointSizeOffset
                 font.weight: Font.Bold
                 wrapMode: Text.WordWrap
                 onLinkActivated: Qt.openUrlExternally(link)
@@ -1375,283 +1112,44 @@ ApplicationWindow {
             color: "transparent"
 
             Column {
-                anchors.centerIn: parent
-
-                BusyIndicator {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    id: busyIndicatorLoadingManageSubscription
-                    visible: !root.isSubscriptionInformationReady
-                    running: !root.isSubscriptionInformationReady
-                    Material.theme: root.themeData.theme === "Dark" ? Material.Dark : Material.Light
-                    Material.accent: "#5b94f5"
-                    Layout.alignment: Qt.AlignHCenter
-                    implicitHeight: 80
-                    implicitWidth: 80
-                }
-
-                Item {
-                    visible: !root.isSubscriptionInformationReady
-                    width: 1
-                    height: 10
-                }
+                anchors.fill: parent
+                spacing: 0
+                topPadding: 20
 
                 Text {
-                    visible: !root.isSubscriptionInformationReady
-                    anchors.horizontalCenter: busyIndicatorLoadingManageSubscription.horizontalCenter
-                    text: qsTr("Loading data...")
-                    color: root.themeData.theme === "Dark" ? "#dddddd" : "#272727"
-                    font.family: root.displayFontFamily
-                    font.pointSize: 13 + root.pointSizeOffset
-                    font.weight: Font.Bold
-                    wrapMode: Text.WordWrap
-                    horizontalAlignment: Text.AlignHCenter
-                }
-
-                Text {
-                    visible: root.isSubscriptionInformationReady
-                    width: 300
+                    text: qsTr("Thank you for supporting Notes FOSS.")
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: root.isSubscriptionCanceled ? qsTr("Subscription Canceled") : qsTr("Manage Your Subscription")
                     color: root.themeData.theme === "Dark" ? "#dfdedf" : "#272727"
                     font.family: root.displayFontFamily
                     font.pointSize: 26 + root.pointSizeOffset
                     font.weight: Font.Black
-                    horizontalAlignment: Text.AlignHCenter
                 }
 
                 Item {
-                    visible: root.isSubscriptionInformationReady && root.isSubscriptionCanceled
                     width: 1
-                    height: 20
+                    height: 40
                 }
 
-                Row {
-                    id: conterForManagingActive
-                    visible: root.isSubscriptionInformationReady
+                Text {
+                    text: qsTr("You're using the Pro version of Notes.")
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    color: root.themeData.theme === "Dark" ? "#dfdedf" : "#272727"
+                    font.family: root.displayFontFamily
+                    font.pointSize: 13 + root.pointSizeOffset
+                    font.weight: Font.Bold
+                }
 
-                    Rectangle {
-                        width: root.width/2
-                        height: root.columnHeight
-                        color: "transparent"
+                Item {
+                    width: 1
+                    height: 30
+                }
 
-                        Column {
-                            anchors.centerIn: parent
-                            width: parent.width
-
-                            Row {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                Text {
-                                    text: qsTr("Email:")
-                                    color: root.themeData.theme === "Dark" ? "#dddddd" : "#272727"
-                                    font.family: root.displayFontFamily
-                                    font.pointSize: 13 + root.pointSizeOffset
-                                    font.weight: Font.Bold
-                                    wrapMode: Text.WordWrap
-                                    horizontalAlignment: Text.AlignHCenter
-                                }
-
-                                Item {
-                                    width: 5
-                                    height: 1
-                                }
-
-                                Text {
-                                    text: root.subscriptionObject ? root.subscriptionObject["attributes"]["user_email"] : "Loading..."
-                                    color: root.themeData.theme === "Dark" ? "#dddddd" : "#272727"
-                                    font.family: root.displayFontFamily
-                                    font.pointSize: 13 + root.pointSizeOffset
-                                    font.weight: Font.Normal
-                                    wrapMode: Text.WordWrap
-                                    horizontalAlignment: Text.AlignHCenter
-                                }
-                            }
-
-                            Item {
-                                width: 1
-                                height: 10
-                            }
-
-                            Row {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                spacing: 0
-                                Text {
-                                    text: qsTr("Subscription: ")
-                                    color: root.themeData.theme === "Dark" ? "#dddddd" : "#272727"
-                                    font.family: root.displayFontFamily
-                                    font.pointSize: 13 + root.pointSizeOffset
-                                    font.weight: Font.Bold
-                                    wrapMode: Text.WordWrap
-                                    horizontalAlignment: Text.AlignHCenter
-                                }
-
-                                Item {
-                                    width: 3
-                                    height: 1
-                                }
-
-                                Text {
-                                    anchors.verticalCenter: activeSubscriptionText.verticalCenter
-                                    text: root.isSubscriptionCanceled ? fontIconLoader.icons.fa_face_sad_tear : fontIconLoader.icons.fa_circle_check
-                                    font.family: fontIconLoader.fontAwesomeRegular.name
-                                    color: root.isSubscriptionCanceled ? root.sadIconColor : "#2dd272"
-                                    font.pointSize: 18 + root.pointSizeOffset
-                                }
-
-                                Item {
-                                    width: 5
-                                    height: 1
-                                }
-
-                                Text {
-                                    id: activeSubscriptionText
-                                    text: root.isSubscriptionCanceled ? qsTr("Canceled") : qsTr("Active")
-                                    color: root.themeData.theme === "Dark" ? "#dddddd" : "#272727"
-                                    font.family: root.displayFontFamily
-                                    font.pointSize: 13 + root.pointSizeOffset
-                                    font.weight: Font.Normal
-                                    wrapMode: Text.WordWrap
-                                    horizontalAlignment: Text.AlignHCenter
-                                }
-                            }
-
-                            Item {
-                                width: 1
-                                height: 5
-                            }
-
-                            Row {
-                                anchors.horizontalCenter: parent.horizontalCenter
-
-                                Text {
-                                    text: root.isSubscriptionCanceled ? qsTr("Ends at:") : qsTr("Next payment due: ")
-                                    color: root.themeData.theme === "Dark" ? "#dddddd" : "#272727"
-                                    font.family: root.displayFontFamily
-                                    font.pointSize: 13 + root.pointSizeOffset
-                                    font.weight: Font.Bold
-                                    wrapMode: Text.WordWrap
-                                    horizontalAlignment: Text.AlignHCenter
-                                }
-
-                                Item {
-                                    width: 5
-                                    height: 1
-                                }
-
-                                Text {
-                                    text: root.isSubscriptionCanceled ? root.formatDate(root.endsAtDate) : root.formatDate(root.nextPaymentDate)
-                                    color: root.themeData.theme === "Dark" ? "#dddddd" : "#272727"
-                                    font.family: root.displayFontFamily
-                                    font.pointSize: 13 + root.pointSizeOffset
-                                    font.weight: Font.Normal
-                                    wrapMode: Text.WordWrap
-                                    horizontalAlignment: Text.AlignHCenter
-                                }
-                            }
-
-                            Item {
-                                width: 1
-                                height: 20
-                            }
-
-                            Text {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                visible: root.isSubscriptionCanceled
-                                width: 250
-                                text: "Your subscription has been <b>cancelled</b>; you will <b>not</b> be billed again. Due to this cancellation, your access to Notes Pro expires on <b>" + root.formatDate(root.endsAtDate) + "</b>."
-                                color: root.themeData.theme === "Dark" ? "#dddddd" : "#272727"
-                                font.family: root.displayFontFamily
-                                font.pointSize: 13 + root.pointSizeOffset
-                                wrapMode: Text.WordWrap
-                                horizontalAlignment: Text.AlignHCenter
-                            }
-                        }
-                    }
-
-                    Loader {
-                        sourceComponent: upgradeToProCta
-                        active: root.isSubscriptionCanceled
-                    }
-
-                    Rectangle {
-                        width: root.width/2
-                        height: root.columnHeight
-                        color: "transparent"
-                        visible: root.isSubscriptionInformationReady && !root.isSubscriptionCanceled
-
-                        Column {
-                            anchors.centerIn: parent
-                            width: parent.width
-
-                            TextButton {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: qsTr("Update Payment Method")
-                                height: 35
-                                platform: root.platform
-                                displayFontFamily: root.displayFontFamily
-                                textAlignment: TextButton.TextAlign.Middle
-                                themeData: root.themeData
-                                textFontPointSize: 14
-                                defaultBackgroundColor: "#0e70d2"
-                                highlightBackgroundColor: root.themeData.theme === "Dark" ? "#1a324b" : defaultBackgroundColor
-                                pressedBackgroundColor: highlightBackgroundColor
-                                mainFontColorDefault: "white"
-                                mainFontColorPressed: root.themeData.theme === "Dark" ? "#c6ccd2" : "#edebeb"
-                                textFontWeight: Font.Bold
-                                backgroundOpacity: continueButton.entered && root.themeData.theme !== "Dark " ? 0.5 : 1.0
-                                Layout.alignment: Qt.AlignHCenter
-                                pointSizeOffset: root.platform === "Apple" ? 0 : -3
-
-                                onClicked: {
-                                    var urlToOpen = root.subscriptionObject ? root.subscriptionObject["attributes"]["urls"]["update_payment_method"] : "";
-                                    if (urlToOpen !== "")
-                                        Qt.openUrlExternally(urlToOpen);
-                                }
-                            }
-
-                            TextButton {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: qsTr("Cancel Subscription")
-                                height: 35
-                                platform: root.platform
-                                displayFontFamily: root.displayFontFamily
-                                textAlignment: TextButton.TextAlign.Middle
-                                themeData: root.themeData
-                                textFontPointSize: 14
-                                defaultBackgroundColor: "transparent"
-                                highlightBackgroundColor: "transparent"
-                                pressedBackgroundColor: "transparent"
-                                usePointingHand: false
-                                mainFontColorDefault: root.themeData.theme === "Dark" ? "#2383e2" : "#007bff"
-                                mainFontColorPressed: root.themeData.theme === "Dark" ? "#0f68c2" : "#459fff"
-                                textFontWeight: Font.Normal
-                                Layout.alignment: Qt.AlignHCenter
-                                backgroundSizeFitText: true
-                                pointSizeOffset: root.platform === "Apple" ? 0 : -3
-
-                                onClicked: {
-                                    confirmCancellationPopup.visible = true;
-                                }
-                            }
-
-                            Item {
-                                width: 1
-                                height: 5
-                            }
-
-                            Text {
-                                width: 300
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: qsTr("You'll be redirected to Lemon Squeezy to update your payment method.")
-                                color: root.themeData.theme === "Dark" ? "#dddddd" : "#272727"
-                                font.family: root.displayFontFamily
-                                font.pointSize: 12 + root.pointSizeOffset
-                                font.weight: Font.Normal
-                                wrapMode: Text.WordWrap
-                                horizontalAlignment: Text.AlignHCenter
-                            }
-
-                        }
-                    }
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: fontIconLoader.icons.fa_heart
+                    font.family: fontIconLoader.fontAwesomeSolid.name
+                    color: "#f1554d"
+                    font.pointSize: 150 + root.pointSizeOffset
                 }
             }
         }
