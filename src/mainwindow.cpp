@@ -1562,7 +1562,7 @@ void MainWindow::verifyLicenseSignalsSlots()
         if (m_paymentDetails.isEmpty()) {
             qDebug() << "Using default embedded payment data";
             QJsonObject paymentDetailsDefault;
-            paymentDetailsDefault["purchase_pro_url"] = "https://www.get-notes.com/pricing";
+            paymentDetailsDefault["purchase_pro_url"] = "https://www.notes-foss.com/pricing";
             paymentDetailsDefault["purchaseApiBase"] = "https://api.lemonsqueezy.com";
             paymentDetailsDefault["activateLicenseEndpoint"] = "/v1/licenses/activate";
             paymentDetailsDefault["validateLicenseEndpoint"] = "/v1/licenses/validate";

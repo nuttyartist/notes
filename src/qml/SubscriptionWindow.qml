@@ -20,7 +20,7 @@ ApplicationWindow {
 
     property string getPurchaseDataAlt1: "https://raw.githubusercontent.com/nuttyartist/notes/master/notes_purchase_data.json"
     property string getPurchaseDataAlt2: "https://www.rubymamistvalove.com/notes/notes_purchase_data.json"
-    property string checkoutURLDefault: "https://www.get-notes.com/pricing"
+    property string checkoutURLDefault: "https://www.notes-foss.com/pricing"
     property string checkoutUtmSource: "?utm_source=notes_app_pro_payment_window"
     property string purchaseApiBaseUrlDefault: "https://api.lemonsqueezy.com"
     property string activateLicenseEndpointDefault: "/v1/licenses/activate"
@@ -706,7 +706,7 @@ ApplicationWindow {
                     pointSizeOffset: root.platform === "Apple" ? 0 : -3
 
                     onClicked: {
-                        Qt.openUrlExternally("https://www.get-notes.com/notes-app-terms-privacy-policy");
+                        Qt.openUrlExternally("https://www.notes-foss.com/notes-app-terms-privacy-policy");
                     }
                 }
 
@@ -737,7 +737,7 @@ ApplicationWindow {
                     pointSizeOffset: root.platform === "Apple" ? 0 : -3
 
                     onClicked: {
-                        Qt.openUrlExternally("https://www.get-notes.com/notes-app-terms-privacy-policy");
+                        Qt.openUrlExternally("https://www.notes-foss.com/notes-app-terms-privacy-policy");
                     }
                 }
             }
@@ -842,7 +842,7 @@ ApplicationWindow {
                 CustomTextField {
                     anchors.horizontalCenter: parent.horizontalCenter
                     readOnly: true
-                    text: "contact@get-notes.com"
+                    text: "contact@notes-foss.com"
                     background: Rectangle {
                         border.width: licenseTextField.focus ? 2 : 0
                         border.color: "#2383e2"
@@ -921,7 +921,7 @@ ApplicationWindow {
                 CustomTextField {
                     anchors.horizontalCenter: parent.horizontalCenter
                     readOnly: true
-                    text: "contact@get-notes.com"
+                    text: "contact@notes-foss.com"
                     background: Rectangle {
                         border.width: licenseTextField.focus ? 2 : 0
                         border.color: "#2383e2"
