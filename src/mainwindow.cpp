@@ -1587,7 +1587,6 @@ void MainWindow::checkProVersion()
     m_aboutWindow.setProVersion(m_isProVersionActivated);
 #else
     m_userLicenseKey = m_localLicenseData->value(QStringLiteral("licenseKey"), "NULL").toString();
-    m_userLicenseKey = "NULL";
     if (m_userLicenseKey != "NULL") {
         m_dataBuffer->clear();
 
