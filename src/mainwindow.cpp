@@ -1019,7 +1019,7 @@ void MainWindow::setupSubscrirptionWindow()
         if (m_isProVersionActivated) {
             m_buyOrManageSubscriptionAction->setText("&Notes Pro (Paid)");
         } else {
-            m_buyOrManageSubscriptionAction->setText("&Buy Subscription...");
+            m_buyOrManageSubscriptionAction->setText("&Buy Notes Pro...");
         }
     });
 
@@ -2213,7 +2213,7 @@ void MainWindow::setupGlobalSettingsMenu()
 #if !defined(PRO_VERSION)
     // Buy/Manage subscription
     m_buyOrManageSubscriptionAction = m_mainMenu.addAction(
-            tr(m_isProVersionActivated ? "&Notes Pro (Paid)" : "&Buy Subscription..."));
+            tr(m_isProVersionActivated ? "&Notes Pro (Paid)" : "&Buy Notes Pro..."));
     m_buyOrManageSubscriptionAction->setVisible(false);
     connect(m_buyOrManageSubscriptionAction, &QAction::triggered, this,
             &MainWindow::openSubscriptionWindow);
