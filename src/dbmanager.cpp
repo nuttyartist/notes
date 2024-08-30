@@ -2436,7 +2436,11 @@ void DBManager::exportNotes(const QString &baseExportPath, const QString &extens
         if (folder.id() != SpecialNodeID::RootFolder) { // Skip root folder
             QStringList folderNames;
             QString currentPath = folder.absolutePath();
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
             QStringList pathParts = currentPath.split(QDir::separator(), Qt::SkipEmptyParts);
+#else
+            QStringList pathParts = currentPath.split(QDir::separator(), QString::SkipEmptyParts);
+#endif
             for (const auto &part : pathParts) {
                 int id = part.toInt();
                 if (id == SpecialNodeID::RootFolder)
@@ -2471,7 +2475,9 @@ void DBManager::exportNotes(const QString &baseExportPath, const QString &extens
     }
 
     // Export each note as a .txt file in its corresponding directory
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
     QTextDocument doc;
+#endif
     while (query.next()) {
         // int noteId = query.value(0).toInt();
         QString title = query.value(1).toString();
@@ -2483,8 +2489,12 @@ void DBManager::exportNotes(const QString &baseExportPath, const QString &extens
         if (safeTitle.contains("<br />"))
             safeTitle = safeTitle.section("<br />", 0, 0, QString::SectionSkipEmpty);
         safeTitle = safeTitle.simplified();
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+#else
+        // Convert Markdown to plain text, only available in Qt 5.14+
         doc.setMarkdown(safeTitle);
         safeTitle = doc.toPlainText();
+#endif
         safeTitle.replace(QRegularExpression(R"([\/\\:*?"<>|])"),
                           "_"); // Make the title filesystem-safe
         QString filePath = notePath + QDir::separator() + safeTitle + extension;
