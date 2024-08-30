@@ -2436,7 +2436,7 @@ void DBManager::exportNotes(const QString &baseExportPath, const QString &extens
         if (folder.id() != SpecialNodeID::RootFolder) { // Skip root folder
             QStringList folderNames;
             QString currentPath = folder.absolutePath();
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
             QStringList pathParts = currentPath.split(QDir::separator(), Qt::SkipEmptyParts);
 #else
             QStringList pathParts = currentPath.split(QDir::separator(), QString::SkipEmptyParts);
