@@ -786,6 +786,7 @@ QString NoteEditorLogic::getNthLine(const QString &str, int targetLineNumber)
                 QString line = str.mid(previousLineBreakIndex + 1, i - previousLineBreakIndex - 1);
                 line = line.trimmed();
                 if (!line.isEmpty() && !line.startsWith("---") && !line.startsWith("```")) {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
                     QTextDocument doc;
                     doc.setMarkdown(line);
                     QString text = doc.toPlainText();
@@ -797,6 +798,13 @@ QString NoteEditorLogic::getNthLine(const QString &str, int targetLineNumber)
                     }
                     QTextStream ts(&text);
                     return ts.readLine(FIRST_LINE_MAX);
+#else
+                    if (line.isEmpty()) {
+                        return tr("No additional text");
+                    }
+                    QTextStream ts(&line);
+                    return ts.readLine(FIRST_LINE_MAX);
+#endif
                 }
             }
             previousLineBreakIndex = i;

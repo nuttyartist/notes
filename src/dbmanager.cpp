@@ -2489,8 +2489,7 @@ void DBManager::exportNotes(const QString &baseExportPath, const QString &extens
         if (safeTitle.contains("<br />"))
             safeTitle = safeTitle.section("<br />", 0, 0, QString::SectionSkipEmpty);
         safeTitle = safeTitle.simplified();
-#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-#else
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
         // Convert Markdown to plain text, only available in Qt 5.14+
         doc.setMarkdown(safeTitle);
         safeTitle = doc.toPlainText();
