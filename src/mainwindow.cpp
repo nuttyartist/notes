@@ -160,12 +160,12 @@ MainWindow::MainWindow(QWidget *parent)
     setupSignalsSlots();
 #if defined(UPDATE_CHECKER)
     autoCheckForUpdates();
+    connect(&m_checkUpdatesTimer, &QTimer::timeout, this, &MainWindow::autoCheckForUpdates);
+    m_checkUpdatesTimer.start(60 * 60 * 1000); // 1 hour
 #endif
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
     checkProVersion();
-    connect(&m_checkUpdatesTimer, &QTimer::timeout, this, &MainWindow::autoCheckForUpdates);
-    m_checkUpdatesTimer.start(60 * 60 * 1000); // 1 hour
 #endif
 
     QTimer::singleShot(200, this, SLOT(InitData()));
