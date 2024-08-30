@@ -137,7 +137,8 @@ MainWindow::MainWindow(QWidget *parent)
       m_netPurchaseDataReplySecondAttempt(nullptr),
       m_userLicenseKey(QStringLiteral("")),
       m_mainMenu(nullptr),
-      m_buyOrManageSubscriptionAction(new QAction(this))
+      m_buyOrManageSubscriptionAction(new QAction(this)),
+      m_checkUpdatesTimer(new QTimer(this))
 {
     ui->setupUi(this);
     setupMainWindow();
@@ -159,6 +160,8 @@ MainWindow::MainWindow(QWidget *parent)
     setupSignalsSlots();
 #if defined(UPDATE_CHECKER)
     autoCheckForUpdates();
+    connect(&m_checkUpdatesTimer, &QTimer::timeout, this, &MainWindow::autoCheckForUpdates);
+    m_checkUpdatesTimer.start(60 * 60 * 1000); // 1 hour
 #endif
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
@@ -479,7 +482,7 @@ void MainWindow::setupMainWindow()
     m_globalSettingsButton->setToolTip(tr("Open App Settings"));
     m_toggleTreeViewButton->setToolTip("Toggle Folders Pane");
     m_switchToTextViewButton->setToolTip("Switch To Text View");
-    m_switchToKanbanViewButton->setToolTip("Switch To Kanban View");
+    m_switchToKanbanViewButton->setToolTip("Switch To Task Board View");
 
     ui->listviewLabel2->setMinimumSize({ 40, 25 });
     ui->listviewLabel2->setMaximumSize({ 40, 25 });
@@ -1017,9 +1020,9 @@ void MainWindow::setupSubscrirptionWindow()
     connect(this, &MainWindow::proVersionCheck, this, [this]() {
         m_buyOrManageSubscriptionAction->setVisible(true);
         if (m_isProVersionActivated) {
-            m_buyOrManageSubscriptionAction->setText("&Manage Subscription...");
+            m_buyOrManageSubscriptionAction->setText("&Notes Pro (Paid)");
         } else {
-            m_buyOrManageSubscriptionAction->setText("&Buy Subscription...");
+            m_buyOrManageSubscriptionAction->setText("&Buy Notes Pro...");
         }
     });
 
@@ -1562,7 +1565,7 @@ void MainWindow::verifyLicenseSignalsSlots()
         if (m_paymentDetails.isEmpty()) {
             qDebug() << "Using default embedded payment data";
             QJsonObject paymentDetailsDefault;
-            paymentDetailsDefault["purchase_pro_url"] = "https://www.get-notes.com/pricing";
+            paymentDetailsDefault["purchase_pro_url"] = "https://www.notes-foss.com/pricing";
             paymentDetailsDefault["purchaseApiBase"] = "https://api.lemonsqueezy.com";
             paymentDetailsDefault["activateLicenseEndpoint"] = "/v1/licenses/activate";
             paymentDetailsDefault["validateLicenseEndpoint"] = "/v1/licenses/validate";
@@ -2213,7 +2216,7 @@ void MainWindow::setupGlobalSettingsMenu()
 #if !defined(PRO_VERSION)
     // Buy/Manage subscription
     m_buyOrManageSubscriptionAction = m_mainMenu.addAction(
-            tr(m_isProVersionActivated ? "&Manage Subscription..." : "&Buy Subscription..."));
+            tr(m_isProVersionActivated ? "&Notes Pro (Paid)" : "&Buy Notes Pro..."));
     m_buyOrManageSubscriptionAction->setVisible(false);
     connect(m_buyOrManageSubscriptionAction, &QAction::triggered, this,
             &MainWindow::openSubscriptionWindow);
@@ -2224,6 +2227,28 @@ void MainWindow::setupGlobalSettingsMenu()
     // Close the app
     QAction *quitAppAction = m_mainMenu.addAction(tr("&Quit"));
     connect(quitAppAction, &QAction::triggered, this, &MainWindow::QuitApplication);
+
+    // Import notes from plain text actions
+    QAction *importNotesPlainTextAction = importExportNotesMenu->addAction(tr("&Import .txt/.md"));
+    importNotesPlainTextAction->setToolTip(tr("Import notes from .txt or .md files"));
+    connect(importNotesPlainTextAction, &QAction::triggered, this,
+            &MainWindow::importPlainTextFiles);
+
+    QAction *exportNotesToPlainTextAction = importExportNotesMenu->addAction(tr("&Export to .txt"));
+    exportNotesToPlainTextAction->setToolTip(
+            tr("Export notes to .txt files\nNote: If you wish to backup your notes,\nuse the .nbk "
+               "file format instead of .txt/.md"));
+    connect(exportNotesToPlainTextAction, &QAction::triggered, this,
+            [this]() { exportToPlainTextFiles(".txt"); });
+
+    QAction *exportNotesToMarkdownAction = importExportNotesMenu->addAction(tr("&Export to .md"));
+    exportNotesToMarkdownAction->setToolTip(
+            tr("Export notes to .md files\nNote: If you wish to backup your notes,\nuse the .nbk "
+               "file format instead of .txt/.md"));
+    connect(exportNotesToMarkdownAction, &QAction::triggered, this,
+            [this]() { exportToPlainTextFiles(".md"); });
+
+    importExportNotesMenu->addSeparator();
 
     // Export notes action
     QAction *exportNotesFileAction = importExportNotesMenu->addAction(tr("&Export"));
@@ -2865,6 +2890,72 @@ void MainWindow::exportNotesFile()
         file.close();
         emit requestExportNotes(fileName);
     }
+}
+
+void MainWindow::importPlainTextFiles()
+{
+    QList<QPair<QString, QDateTime>> fileDatas;
+    QFileDialog dialog(this);
+
+    // Set filters and options
+    dialog.setNameFilter("Text Files (*.txt *.md)");
+    dialog.setFileMode(QFileDialog::ExistingFiles);
+
+    // Open the dialog and check if user has selected files
+    if (dialog.exec()) {
+        // Get list of selected files
+        QStringList files = dialog.selectedFiles();
+
+        // Loop over the files and read their content
+        for (const QString &fileName : files) {
+            QFile file(fileName);
+
+            // Open the file and check for errors
+            if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                QMessageBox::warning(this, "File error", "Can't open file " + fileName);
+                continue;
+            }
+
+            // Read the file content
+            QTextStream in(&file);
+            QString fileContent = in.readAll();
+
+            QFileInfo fileInfo(file);
+            QDateTime lastModified = fileInfo.lastModified();
+
+            fileDatas.append(qMakePair(fileContent, lastModified));
+
+            // Close the file
+            file.close();
+        }
+    }
+
+    QMessageBox msgBox;
+    if (!fileDatas.isEmpty()) {
+        m_dbManager->addNotesToNewImportedFolder(fileDatas);
+        msgBox.setText("Notes imported successfully!");
+        msgBox.exec();
+    } else {
+        msgBox.setText("No files selected. Please select one or more files to import.");
+        msgBox.exec();
+    }
+}
+
+void MainWindow::exportToPlainTextFiles(const QString &extension)
+{
+    QString dir = QFileDialog::getExistingDirectory(nullptr, tr("Select Export Directory"), "/home",
+                                                    QFileDialog::ShowDirsOnly
+                                                            | QFileDialog::DontResolveSymlinks);
+
+    if (dir.isEmpty()) {
+        return;
+    }
+
+    m_dbManager->exportNotes(dir, extension);
+
+    QMessageBox msgBox;
+    msgBox.setText("Notes exported successfully!");
+    msgBox.exec();
 }
 
 void MainWindow::toggleFolderTree()

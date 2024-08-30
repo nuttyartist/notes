@@ -2369,3 +2369,156 @@ void DBManager::onChangeDatabasePathRequested(const QString &newPath)
     QFile::rename(m_dbpath, newPath);
     open(newPath, false);
 }
+
+void DBManager::addNotesToNewImportedFolder(const QList<QPair<QString, QDateTime>> &fileDatas)
+{
+    NodeData newFolder;
+    newFolder.setNodeType(NodeData::Folder);
+    QDateTime currentDate = QDateTime::currentDateTime();
+    newFolder.setCreationDateTime(currentDate);
+    newFolder.setLastModificationDateTime(currentDate);
+    newFolder.setFullTitle("Imported Notes");
+    newFolder.setParentId(SpecialNodeID::RootFolder);
+
+    int newFolderId = addNode(newFolder);
+    if (newFolderId <= 0) {
+        qDebug() << "Failed to add 'Imported Notes' folder.";
+        return;
+    }
+
+    NodeData createdFolder = getNode(newFolderId);
+    QString parentAbsPath = createdFolder.absolutePath();
+
+    int nodeId = nextAvailableNodeId();
+    int notePos = 0;
+
+    for (const auto &noteData : fileDatas) {
+        NodeData note;
+        note.setFullTitle(noteData.first.section('\n', 0, 0, QString::SectionSkipEmpty));
+        note.setContent(noteData.first);
+        note.setId(nodeId++);
+        note.setRelativePosition(notePos++);
+        note.setAbsolutePath(parentAbsPath + PATH_SEPARATOR + QString::number(note.id()));
+        note.setNodeType(NodeData::Note);
+        note.setParentId(newFolderId);
+        note.setCreationDateTime(noteData.second);
+        note.setLastModificationDateTime(noteData.second);
+
+        addNode(note);
+    }
+
+    recalculateChildNotesCount();
+    onNodeTagTreeRequested();
+}
+
+void DBManager::exportNotes(const QString &baseExportPath, const QString &extension)
+{
+    // Ensure the export directory exists
+    QString rootFolderName = QStringLiteral("Notes");
+    QString exportPathNew = baseExportPath + QDir::separator() + rootFolderName;
+    QDir directory;
+
+    int counter = 1;
+    while (directory.exists(exportPathNew)) {
+        exportPathNew = baseExportPath + QDir::separator() + rootFolderName + " "
+                + QString::number(counter++);
+    }
+    qDebug() << "Exporting notes to:" << exportPathNew;
+    directory.mkpath(exportPathNew);
+
+    // Retrieve all folders first to create the directory structure
+    QVector<NodeData> folders = getAllFolders();
+
+    // Create directories for each folder
+    QMap<int, QString> folderPaths;
+    for (const NodeData &folder : folders) {
+        QString path = exportPathNew;
+        if (folder.id() != SpecialNodeID::RootFolder) { // Skip root folder
+            QStringList folderNames;
+            QString currentPath = folder.absolutePath();
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+            QStringList pathParts = currentPath.split(QDir::separator(), Qt::SkipEmptyParts);
+#else
+            QStringList pathParts = currentPath.split(QDir::separator(), QString::SkipEmptyParts);
+#endif
+            for (const auto &part : pathParts) {
+                int id = part.toInt();
+                if (id == SpecialNodeID::RootFolder)
+                    continue;
+                auto folderTemp = getNode(id);
+                folderNames << folderTemp.fullTitle();
+            }
+            QString relativePath = folderNames.join(QDir::separator());
+            path += QDir::separator() + relativePath;
+
+            counter = 1;
+            while (directory.exists(path)) {
+                path = exportPathNew + QDir::separator() + relativePath + " "
+                        + QString::number(counter++);
+            }
+
+            QDir().mkpath(path);
+        }
+        // qDebug() << "path: " << path;
+        folderPaths.insert(folder.id(), path);
+    }
+
+    // Retrieve all notes
+    QSqlQuery query(m_db);
+    query.prepare(
+            R"(SELECT "id", "title", "content", "parent_id" FROM node_table WHERE node_type = :note_type)");
+    query.bindValue(":note_type", static_cast<int>(NodeData::Type::Note));
+
+    if (!query.exec()) {
+        qDebug() << "Failed to retrieve notes for export:" << query.lastError();
+        return;
+    }
+
+    // Export each note as a .txt file in its corresponding directory
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+    QTextDocument doc;
+#endif
+    while (query.next()) {
+        // int noteId = query.value(0).toInt();
+        QString title = query.value(1).toString();
+        QString content = query.value(2).toString();
+        int parentId = query.value(3).toInt();
+
+        QString notePath = folderPaths[parentId];
+        QString safeTitle = title;
+        if (safeTitle.contains("<br />"))
+            safeTitle = safeTitle.section("<br />", 0, 0, QString::SectionSkipEmpty);
+        safeTitle = safeTitle.simplified();
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+        // Convert Markdown to plain text, only available in Qt 5.14+
+        doc.setMarkdown(safeTitle);
+        safeTitle = doc.toPlainText();
+#endif
+        safeTitle.replace(QRegularExpression(R"([\/\\:*?"<>|])"),
+                          "_"); // Make the title filesystem-safe
+        QString filePath = notePath + QDir::separator() + safeTitle + extension;
+
+        if (safeTitle.isEmpty()) {
+            safeTitle = QStringLiteral("Untitled Note");
+        }
+
+        counter = 1;
+        while (directory.exists(filePath)) {
+            filePath = notePath + QDir::separator() + safeTitle + " " + QString::number(counter++)
+                    + extension;
+        }
+
+        // qDebug() << "Exporting note:" << filePath;
+
+        QFile file(filePath);
+        if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            QTextStream out(&file);
+            out << content;
+            file.close();
+        } else {
+            qDebug() << "Failed to export note:" << filePath;
+        }
+    }
+
+    qDebug() << "Export completed to:" << baseExportPath;
+}

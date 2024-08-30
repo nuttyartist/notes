@@ -769,6 +769,51 @@ void NoteEditorLogic::deleteCurrentNote()
     }
 }
 
+QString NoteEditorLogic::getNthLine(const QString &str, int targetLineNumber)
+{
+    if (targetLineNumber < 1) {
+        return tr("Invalid line number");
+    }
+
+    int previousLineBreakIndex = -1;
+    int lineCount = 0;
+    for (int i = 0; i <= str.length(); i++) {
+        if (i == str.length() || str[i] == '\n') {
+            lineCount++;
+            if (lineCount >= targetLineNumber
+                && (i - previousLineBreakIndex > 1
+                    || (i > 0 && i == str.length() && str[i - 1] != '\n'))) {
+                QString line = str.mid(previousLineBreakIndex + 1, i - previousLineBreakIndex - 1);
+                line = line.trimmed();
+                if (!line.isEmpty() && !line.startsWith("---") && !line.startsWith("```")) {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+                    QTextDocument doc;
+                    doc.setMarkdown(line);
+                    QString text = doc.toPlainText();
+                    if (text.length() > 1 && text.at(0) == '^') {
+                        text = text.mid(1);
+                    }
+                    if (text.isEmpty()) {
+                        return tr("No additional text");
+                    }
+                    QTextStream ts(&text);
+                    return ts.readLine(FIRST_LINE_MAX);
+#else
+                    if (line.isEmpty()) {
+                        return tr("No additional text");
+                    }
+                    QTextStream ts(&line);
+                    return ts.readLine(FIRST_LINE_MAX);
+#endif
+                }
+            }
+            previousLineBreakIndex = i;
+        }
+    }
+
+    return tr("No additional text");
+}
+
 /*!
  * \brief NoteEditorLogic::getFirstLine
  * Get a string 'str' and return only the first line of it
@@ -779,35 +824,12 @@ void NoteEditorLogic::deleteCurrentNote()
  */
 QString NoteEditorLogic::getFirstLine(const QString &str)
 {
-    QString text = str.trimmed();
-    if (text.isEmpty()) {
-        return "New Note";
-    }
-    QTextStream ts(&text);
-    return ts.readLine(FIRST_LINE_MAX);
+    return getNthLine(str, 1);
 }
 
 QString NoteEditorLogic::getSecondLine(const QString &str)
 {
-#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-    auto sl = str.split("\n", QString::SkipEmptyParts);
-#else
-    auto sl = str.split("\n", Qt::SkipEmptyParts);
-#endif
-    if (sl.size() < 2) {
-        return getFirstLine(str);
-    }
-    int i = 1;
-    QString text;
-    do {
-        if (i >= sl.size()) {
-            return getFirstLine(str);
-        }
-        text = sl[i].trimmed();
-        ++i;
-    } while (text.isEmpty());
-    QTextStream ts(&text);
-    return ts.readLine(FIRST_LINE_MAX);
+    return getNthLine(str, 2);
 }
 
 void NoteEditorLogic::setTheme(Theme::Value theme, QColor textColor, qreal fontSize)

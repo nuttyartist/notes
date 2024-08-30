@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(APP_VERSION 2.2.1)
+set(APP_VERSION 2.3.0)
 set(APP_ID "io.github.nuttyartist.notes")
 set(APP_AUTHOR "Ruby Mamistvalove")
 set(APP_AUTHOR_EMAIL "ruby.mamistvalove@gmail.com")
-set(APP_WEBSITE "https://www.get-notes.com/")
+set(APP_WEBSITE "https://www.notes-foss.com/")
 set(APP_REPOSITORY "https://github.com/nuttyartist/notes")
 string(TIMESTAMP CURRENT_YEAR "%Y")
 

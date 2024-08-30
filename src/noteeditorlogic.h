@@ -50,6 +50,7 @@ public:
     int currentEditingNoteId() const;
     void deleteCurrentNote();
 
+    static QString getNthLine(const QString &str, int targetLineNumber);
     static QString getFirstLine(const QString &str);
     static QString getSecondLine(const QString &str);
     void setTheme(Theme::Value theme, QColor textColor, qreal fontSize);

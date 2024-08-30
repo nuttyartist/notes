@@ -271,6 +271,7 @@ private:
     QString m_userLicenseKey;
     QMenu m_mainMenu;
     QAction *m_buyOrManageSubscriptionAction;
+    QTimer m_checkUpdatesTimer;
 
     bool alreadyAppliedFormat(const QString &formatChars);
     void applyFormat(const QString &formatChars);
@@ -356,6 +357,8 @@ private slots:
     void toggleFolderTree();
     void importNotesFile();
     void exportNotesFile();
+    void importPlainTextFiles();
+    void exportToPlainTextFiles(const QString &extension);
     void restoreNotesFile();
     void increaseHeading();
     void decreaseHeading();
