@@ -790,7 +790,7 @@ QString NoteEditorLogic::getNthLine(const QString &str, int targetLineNumber)
                     QTextDocument doc;
                     doc.setMarkdown(line);
                     QString text = doc.toPlainText();
-                    if (text.length() > 1 && text.first(1) == "^") {
+                    if (text.length() > 1 && text.at(0) == '^') {
                         text = text.mid(1);
                     }
                     if (text.isEmpty()) {
