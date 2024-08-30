@@ -780,7 +780,9 @@ QString NoteEditorLogic::getNthLine(const QString &str, int targetLineNumber)
     for (int i = 0; i <= str.length(); i++) {
         if (i == str.length() || str[i] == '\n') {
             lineCount++;
-            if (lineCount >= targetLineNumber && (i - previousLineBreakIndex > 1 || (i > 0 && i == str.length() && str[i-1] != '\n'))) {
+            if (lineCount >= targetLineNumber
+                && (i - previousLineBreakIndex > 1
+                    || (i > 0 && i == str.length() && str[i - 1] != '\n'))) {
                 QString line = str.mid(previousLineBreakIndex + 1, i - previousLineBreakIndex - 1);
                 line = line.trimmed();
                 if (!line.isEmpty() && !line.startsWith("---") && !line.startsWith("```")) {
