@@ -138,6 +138,7 @@ MainWindow::MainWindow(QWidget *parent)
       m_userLicenseKey(QStringLiteral("")),
       m_mainMenu(nullptr),
       m_buyOrManageSubscriptionAction(new QAction(this)),
+      m_hideToTrayAction(nullptr),
       m_checkUpdatesTimer(new QTimer(this))
 {
     ui->setupUi(this);
@@ -1790,6 +1791,7 @@ void MainWindow::restoreStates()
                     .toBool());
 
     setHideToTray(m_settingsDatabase->value(QStringLiteral("hideToTray"), true).toBool());
+    m_hideToTrayAction->setChecked(m_hideToTray);
     if (m_hideToTray) {
         setupTrayIcon();
     }
@@ -2177,13 +2179,9 @@ void MainWindow::setupGlobalSettingsMenu()
     autostartAction->setChecked(m_autostart.isAutostart());
 
     // hide to tray
-    QAction *hideToTrayAction = m_mainMenu.addAction(tr("&Hide to tray"));
-    connect(hideToTrayAction, &QAction::triggered, this, [=]() {
-        m_settingsDatabase->setValue(QStringLiteral("hideToTray"), hideToTrayAction->isChecked());
-    });
-    hideToTrayAction->setCheckable(true);
-    hideToTrayAction->setChecked(m_hideToTray);
-    connect(hideToTrayAction, &QAction::triggered, this, [this]() {
+    m_hideToTrayAction = m_mainMenu.addAction(tr("&Hide to tray"));
+    m_hideToTrayAction->setCheckable(true);
+    connect(m_hideToTrayAction, &QAction::triggered, this, [this]() {
         setHideToTray(!m_hideToTray);
         if (m_hideToTray) {
             setupTrayIcon();
