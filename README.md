@@ -5,7 +5,7 @@
 
 Notes is an open source and cross-platform note-taking app that is both beautiful and powerful.
 
-Website: <a href="https://get-notes.com" target="_blank">get-notes.com</a>
+Website: <a href="https://notes-foss.com" target="_blank">notes-foss.com</a>
 
 ## Screenshots
 
@@ -100,4 +100,4 @@ A sneak peek at what we’re stirring up next.
 - Font Awesome
 - Material Symbols
 
-[Terms & Privacy policy](https://www.get-notes.com/notes-app-terms-privacy-policy)
+[Terms & Privacy policy](https://www.notes-foss.com/notes-app-terms-privacy-policy)
