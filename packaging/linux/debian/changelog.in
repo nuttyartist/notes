@@ -4,6 +4,16 @@
 
  -- @APP_AUTHOR@ <@APP_AUTHOR_EMAIL@>  @DATE_NOW_UTC@
 
+@PROJECT_NAME_LOWERCASE@ (2.3.0) stable; urgency=low
+
+  * Export or import your notes to and from .txt and .md files.
+  * The notes list now displays cleaner text by converting Markdown to plain text for improved readability
+  * Optimized the app’s startup time for quicker access
+  * Significantly improved the efficiency of loading notes in the list
+  * The app now checks for updates every hour (can be disabled)
+
+ -- @APP_AUTHOR@ <@APP_AUTHOR_EMAIL@>  Wed, 31 Aug 2024 01:00:00 +0100
+
 @PROJECT_NAME_LOWERCASE@ (2.2.1) stable; urgency=low
 
   * To sustain and further our commitment to exceptional app development, we have transitioned to a subscription-based pricing model for the Pro version
