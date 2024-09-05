@@ -8,10 +8,9 @@ On supported systems, these shortcuts can be activated even if Notes' window is 
 
 | Sequence                                                     | Description                     |
 | ------------------------------------------------------------ | ------------------------------- |
-| <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd> *(Windows)* | Toggle Notes' window visibility |
-| <kbd>Ctrl</kbd> + <kbd>N</kbd> *(macOS)*                     | Toggle Notes' window visibility |
-| <kbd>Meta</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd> *(Linux)*  | Toggle Notes' window visibility |
-
+| <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd> _(Windows)_ | Toggle Notes' window visibility |
+| <kbd>Ctrl</kbd> + <kbd>N</kbd> _(macOS)_                     | Toggle Notes' window visibility |
+| <kbd>Meta</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd> _(Linux)_  | Toggle Notes' window visibility |
 
 ## Local shortcuts
 
@@ -34,17 +33,17 @@ These shortcuts are meant to be used while the Notes window is currently focused
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd>     | Minimize Notes                                                |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd>     | Toggle Editor Settings' window visibility                     |
 | <kbd>Ctrl</kbd> + <kbd>Q</kbd>                        | Quit Notes                                                    |
-| <kbd>Ctrl</kbd> + <kbd>K</kbd> *(macOS, Windows)*     | Toggle 'stay on top'                                          |
+| <kbd>Ctrl</kbd> + <kbd>K</kbd> _(macOS, Windows)_     | Toggle 'stay on top'                                          |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd>     | Open Editor Settings                                          |
 | <kbd>Ctrl</kbd> + <kbd>J</kbd>                        | Toggle 'notes' panel visibility                               |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>J</kbd>     | Toggle 'folders' panel visibility                             |
 | <kbd>Ctrl</kbd> + <kbd>A</kbd>                        | Select all listed notes                                       |
 | <kbd>Ctrl</kbd> + <kbd>\`</kbd>                       | Wrap current word or selection into \` \` `(code)`            |
 | <kbd>Ctrl</kbd> + <kbd>B</kbd>                        | Wrap current word or selection into \*\* \*\* **(bold)**      |
-| <kbd>Ctrl</kbd> + <kbd>I</kbd>                        | Wrap current word or selection into \* \* *(italic)*          |
-| <kbd>Ctrl</kbd> + <kbd>S</kbd>                        | Wrap current word or selection into \~ \~ ~~(strikethrough)~~ |
-| <kbd>Alt</kbd>  + <kbd>Up</kbd>                       | Move current block up                                         |
-| <kbd>Alt</kbd>  + <kbd>Down</kbd>                     | Move current block down                                       |
+| <kbd>Ctrl</kbd> + <kbd>I</kbd>                        | Wrap current word or selection into \* \* _(italic)_          |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>X</kbd>     | Wrap current word or selection into \~ \~ ~~(strikethrough)~~ |
+| <kbd>Alt</kbd> + <kbd>Up</kbd>                        | Move current block up                                         |
+| <kbd>Alt</kbd> + <kbd>Down</kbd>                      | Move current block down                                       |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>-</kbd>     | Decrease heading size                                         |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>=</kbd>     | Increase heading size                                         |
 | <kbd>Ctrl</kbd> + (<kbd>1</kbd> through <kbd>6</kbd>) | Set a specific heading size                                   |
