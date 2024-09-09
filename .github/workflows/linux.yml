@@ -6,13 +6,15 @@ on:
 
 env:
   APP_ID: io.github.nuttyartist.notes
+  REGISTRY: ghcr.io
 
 jobs:
   deb:
     name: deb (${{ matrix.build-type }}, Qt ${{ matrix.qt-version-major }}, ${{ matrix.image }})
     runs-on: ubuntu-latest
-    container:
-      image: zjeffer/notes:${{ matrix.image }}
+    permissions:
+      contents: read
+      packages: write
     strategy:
       fail-fast: false
       matrix:
@@ -30,77 +32,67 @@ jobs:
             qt-version-major: 6
             build-type: release
     steps:
-      - name: Setup git configuration
-        # workaround for "detected dubious ownership in repository" git error: https://github.com/actions/checkout/issues/1169
-        run: git config --global --add safe.directory "${PWD}"
-
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Set up variables
-        shell: bash
-        id: vars
+      - name: Check if Dockerfile has been modified
+        id: docker_image
         run: |
-          set -x
-          distro_id=$(grep -oPm1 '^ID="?\K[^"]+' /etc/os-release)
-          if [ -z "${distro_id}" ]
+          set -ex
+          git remote add upstream https://github.com/nuttyartist/notes.git
+          git fetch --depth=1 upstream master
+          if git diff --compact-summary --exit-code upstream/master -- 'Dockerfiles/${{ matrix.image }}'
           then
-              echo 'Fatal: Failed to extract distro ID from /etc/os-release'
-              exit 1
+              needs_rebuild=false
+          else
+              needs_rebuild=true
           fi
-          distro_codename=$(grep -oPm1 '^VERSION_CODENAME="?\K[^"]+' /etc/os-release)
-          if [ -z "${distro_codename}" ]
-          then
-              echo 'Fatal: Failed to extract distro codename from /etc/os-release'
-              exit 1
-          fi
-          echo "distro_name=${distro_id}-${distro_codename}" >> "${GITHUB_OUTPUT}"
+          echo "needs_rebuild=${needs_rebuild}" >> "${GITHUB_OUTPUT}"
+
+      - name: Build and tag Docker image
+        if: steps.docker_image.outputs.needs_rebuild == 'true'
+        run: docker build -f 'Dockerfiles/${{ matrix.image }}' -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' .
 
       - name: Setup GCC problem matcher
         uses: ammaraskar/gcc-problem-matcher@0.3.0
 
-      - name: Build (${{ matrix.build-type }})
-        env:
-          VERBOSE: 1
-        run: |
-          cmake --warn-uninitialized --warn-unused-vars \
-              -B build \
-              -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
-              -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }} \
-              -DCMAKE_INSTALL_PREFIX=/usr \
-              -DPRO_VERSION=OFF
-          cmake --build build --parallel $(nproc)
-
-      - name: Create deb package
-        run: |
-          cd build
-          cpack -G DEB
-
-      - name: Grab deb package name
-        id: deb
-        shell: bash
-        run: |
-          set -x
-          if ! path=$(find build/ -maxdepth 1 -name '*.deb' -print -quit)
-          then
-              echo 'Fatal: Unable to find deb package'
-              exit 1;
-          fi
-          echo "name=$(basename "${path%.*}")" >> "${GITHUB_OUTPUT}"
-          echo "path=${path}" >> "${GITHUB_OUTPUT}"
-
-      - name: Run lintian
-        run: |
-          lintian '${{ steps.deb.outputs.path }}'
+      - name: Build, package and lint
+        id: build
+        run: docker run --rm -v "${GITHUB_OUTPUT}:/GITHUB_OUTPUT" -v "$(pwd):/src" -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' -t ${{ matrix.build-type }} ${{ github.ref_type == 'tag' && '-n' || ' ' }}
 
       - name: Upload deb package
         uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
-          name: ${{ steps.deb.outputs.name }}-qt${{ matrix.qt-version-major }}-${{ steps.vars.outputs.distro_name }}-${{ matrix.build-type }}
-          path: ${{ steps.deb.outputs.path }}
+          name: ${{ steps.build.outputs.deb_name }}-qt${{ matrix.qt-version-major }}-${{ steps.build.outputs.distro_name }}-${{ matrix.build-type }}
+          path: ${{ steps.build.outputs.deb_path }}
+
+      - name: Login to GitHub Container Registry
+        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'master' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'master' }}
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}
+
+      - name: Build and push Docker image
+        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'master' }}
+        uses: docker/build-push-action@v6
+        env:
+          DOCKER_BUILD_SUMMARY: false
+        with:
+          file: Dockerfiles/${{ matrix.image }}
+          push: true
+          tags: ${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}
 
   rpm:
     name: rpm (${{ matrix.build-type }}, Qt ${{ matrix.qt-version-major }}, ${{ matrix.image }})
