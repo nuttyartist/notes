@@ -1,0 +1,83 @@
+# vim: set syntax=dockerfile:
+FROM ubuntu:20.04
+
+LABEL org.opencontainers.image.description="Base image used to build Notes with Qt 5 and AppImage-package it"
+
+ENV QT_VERSION=5.15.2
+ENV QT_ARCHITECTURE=gcc_64
+
+# Prevent tzdata from asking for input.
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Install all required dependencies:
+#
+# - appstream: Used to validate the AppStream metadata file.
+# - cmake: Used to help build the application.
+# - desktop-file-utils: Used to validate the desktop file.
+# - file: Required by linuxdeploy.
+# - git: Used to clone this repository.
+# - g++: Used to compile the application.
+# - libdbus-1-3: libQt5DBus links against this library.
+# - libegl1: Used as dependency of the resulting AppImage.
+# - libfontconfig1: Used as dependency of the resulting AppImage.
+# - libglib2.0-0: The iuc binary included with Qt 5 links against this library.
+# - libgl-dev: OpenGL headers needed at build time by Qt 6.
+# - libxcb-icccm4: Used as dependency of the resulting AppImage.
+# - libxcb-image0: Used as dependency of the resulting AppImage.
+# - libxcb-keysyms1: Used as dependency of the resulting AppImage.
+# - libxcb-randr0: Used as dependency of the resulting AppImage.
+# - libxcb-render-util0: Used as dependency of the resulting AppImage.
+# - libxcb-shape0: Used as dependency of the resulting AppImage.
+# - libxcb-xinerama0: Used as dependency of the resulting AppImage.
+# - libxcb-xkb1: Used as dependency of the resulting AppImage.
+# - libxkbcommon-x11-0: Used as dependency of the resulting AppImage.
+# - make: Used to help build the application.
+# - python3/python3-pip: Used to install and run aqtinstall.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends appstream cmake desktop-file-utils file git g++ libdbus-1-3 \
+    libegl1 libfontconfig1 libglib2.0-0 libgl-dev libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 \
+    libxcb-render-util0 libxcb-shape0 libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0 make python3 python3-pip && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists
+
+# Install Qt using aqtinstall.
+RUN python3 -m pip install aqtinstall && \
+    rm -rf ~/.cache
+
+# Download the specified Qt version using aqtinstall.
+RUN python3 -m aqt install-qt --outputdir /Qt linux desktop "$QT_VERSION" "$QT_ARCHITECTURE" && \
+    rm -f aqtinstall.log
+
+# Qt 5 ships with a variety of SQL drivers, but we only need the SQLite one, so here we symlink all
+# the other drivers to it, in order to avoid having to install their dependencies for no reason.
+# This is a workaround for: https://github.com/linuxdeploy/linuxdeploy-plugin-qt/issues/153
+RUN for driver in libqsqlodbc libqsqlpsql; do \
+      ln -fsv libqsqlite.so "/Qt/$QT_VERSION/$QT_ARCHITECTURE/plugins/sqldrivers/$driver.so"; \
+    done
+
+# Download linuxdeploy and its Qt plugin:
+ADD --chmod=755 https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage /usr/bin/linuxdeploy
+ADD --chmod=755 https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage /usr/bin/linuxdeploy-plugin-qt
+
+# Note's app ID on Linux.
+ENV APP_ID="io.github.nuttyartist.notes"
+# Other environment variables expected by CMake and linuxdeploy.
+ENV APPIMAGE_EXTRACT_AND_RUN=1
+ENV DISABLE_COPYRIGHT_FILES_DEPLOYMENT=1
+ENV LD_LIBRARY_PATH="/Qt/$QT_VERSION/$QT_ARCHITECTURE/lib"
+ENV PATH="/Qt/$QT_VERSION/$QT_ARCHITECTURE/bin:$PATH"
+ENV PKG_CONFIG_PATH="/Qt/$QT_VERSION/$QT_ARCHITECTURE/lib/pkgconfig"
+ENV QML2_IMPORT_PATH="/Qt/$QT_VERSION/$QT_ARCHITECTURE/qml"
+ENV QML_SOURCES_PATHS="/src/src/qml"
+ENV Qt5_DIR="/Qt/$QT_VERSION/$QT_ARCHITECTURE"
+ENV QT_PLUGIN_PATH="/Qt/$QT_VERSION/$QT_ARCHITECTURE/plugins"
+
+# Prevent a fatal error from git: "detected dubious ownership in repository at '/src'".
+RUN git config --global --add safe.directory /src
+
+# Don't forget to mount the current git tree to /src, i.e.:
+# docker run -v $(pwd):/src -it --rm ...
+WORKDIR /src
+
+ADD --chmod=755 ./Dockerfiles/appimage_entrypoint.sh /usr/bin/entrypoint.sh
+ENTRYPOINT ["entrypoint.sh"]

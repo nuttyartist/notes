@@ -5,7 +5,6 @@ on:
   workflow_dispatch:
 
 env:
-  APP_ID: io.github.nuttyartist.notes
   REGISTRY: ghcr.io
 
 jobs:
@@ -195,156 +194,93 @@ jobs:
           name: ${{ steps.rpm.outputs.name }}-qt${{ matrix.qt-version-major }}-${{ steps.vars.outputs.distro_name }}-${{ matrix.build-type }}
           path: ${{ steps.rpm.outputs.path }}
 
-  # Build the AppImage using official Qt releases, downloaded by aqtinstall.
-  # This is also done for macOS and Windows, just to make sure we use the exact same Qt version across all three OSes.
-  #
-  # NOTE: This job uses a fixed Qt version (set in the 'qt-version' key below)!
-  # So, remember to keep it updated whenever a new Qt version is available on aqtinstall.
-  appimage-aqtinstall:
-    name: AppImage (${{ matrix.build-type }}, Qt ${{ matrix.qt-version }}, ${{ matrix.image }})
-    runs-on: ${{ matrix.os }}
-    container:
-      image: zjeffer/notes:${{ matrix.image }}
+  appimage:
+    name: AppImage (${{ matrix.build-type }}, Qt ${{ matrix.qt-version-major }}, ${{ matrix.image }})
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-22.04
+          - image: appimage-qt5
+            qt-version-major: 5
             build-type: release
-            qt-version: 5.15.2
-            image: ubuntu-aqtinstall-5
-          
-          - os: ubuntu-22.04
+
+          - image: appimage-qt6
+            qt-version-major: 6
             build-type: release
-            qt-version: 6.4.3
-            image: ubuntu-aqtinstall-6
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Setup variables
-        shell: bash
-        id: vars
+      - name: Check if Dockerfile has been modified
+        id: docker_image
         run: |
-          set -x
-          version=$(grep -oPm1 '\bAPP_VERSION +\K[^)]+' CMakeLists.txt)
-          if [ -z "${version}" ]
+          set -ex
+          git remote add upstream https://github.com/nuttyartist/notes.git
+          git fetch --unshallow upstream master
+          # NOTE: The following should give us the previous commit hash of the base branch, but that will
+          #       only work reliably for 'push' and pull_request events. For workflow_dispatch events, we
+          #       have to fallback to the default branch ('master'), until a better solution is found...
+          previous_ref=${{ github.event.pull_request.base.sha || github.event.before || 'upstream/master' }}
+          if ! git diff --compact-summary --exit-code "${previous_ref}" -- 'Dockerfiles/${{ matrix.image }}'
           then
-              echo 'Failed to extract app version from CMakeLists.txt.'
-              exit 1
-          fi
-          if [ '${{ github.ref_type }}' != 'tag' ]
+              needs_rebuild=true
+          elif ! docker pull '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}'
           then
-              version="${version}+g${GITHUB_SHA::7}"
-          fi
-          artifact_name="Notes_${version}-Qt${{ matrix.qt-version }}-x86_64"
-          if [ '${{ matrix.build-type }}' == 'debug' ]
-          then
-              file_name="${artifact_name}-debug.AppImage"
+              needs_rebuild=true
           else
-              file_name="${artifact_name}.AppImage"
+              needs_rebuild=false
           fi
-          echo "version=${version}" >> "${GITHUB_OUTPUT}"
-          echo "artifact_name=${artifact_name}" >> "${GITHUB_OUTPUT}"
-          echo "file_name=${file_name}" >> "${GITHUB_OUTPUT}"
+          echo "needs_rebuild=${needs_rebuild}" >> "${GITHUB_OUTPUT}"
 
-      # TODO: Figure out why this error only occurs on the Linux container when building with -DGIT_REVISION=ON
-      # The error: fatal: detected dubious ownership in repository
-      - name: Prevent git's dubious ownership message
-        if: github.ref_type != 'tag'
-        run: |
-          git config --global --add safe.directory "${PWD}"
+      - name: Build and tag Docker image
+        if: steps.docker_image.outputs.needs_rebuild == 'true'
+        run: docker build -f 'Dockerfiles/${{ matrix.image }}' -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' .
 
-      - name: Build (${{ matrix.build-type }})
-        env:
-          VERBOSE: 1
-        run: |
-          cmake --warn-uninitialized --warn-unused-vars \
-              -B build \
-              -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
-              -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }} \
-              -DCMAKE_INSTALL_PREFIX=/usr \
-              -DPRO_VERSION=OFF
-          cmake --build build --parallel $(nproc)
+      - name: Setup GCC problem matcher
+        uses: ammaraskar/gcc-problem-matcher@0.3.0
+
+      - name: Build, package and lint
+        id: build
+        run: docker run --rm -v "${GITHUB_OUTPUT}:/GITHUB_OUTPUT" -v "$(pwd):/src" -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' -t ${{ matrix.build-type }} ${{ github.ref_type == 'tag' && '-n' || ' ' }}
 
       - name: (FIXME) Run qmllint
-        if: startsWith(matrix.qt-version, '6.')
-        run: |
-          cmake --build build --target all_qmllint || true
+        if: endsWith(matrix.image, 'qt6')
+        run: docker run --rm -v "$(pwd):/src" --entrypoint '' -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' cmake --build build --target all_qmllint || true
 
-      - name: Install (${{ matrix.build-type }})
-        run: |
-          make -C build DESTDIR=Notes install
-
-      - name: Setup linuxdeploy
-        run: |
-          cd build
-          curl -fLO --retry 10 https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-          chmod +x linuxdeploy-x86_64.AppImage
-
-      - name: Setup Qt plugin for linuxdeploy
-        run: |
-          cd build
-          curl -fLO --retry 10 https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
-          chmod +x linuxdeploy-plugin-qt-x86_64.AppImage
-
-      - name: Deploy (${{ matrix.build-type }})
-        env:
-          APPIMAGE_EXTRACT_AND_RUN: 1
-        run: |
-          export QML_SOURCES_PATHS="${PWD}/src/qml"
-          cd build
-          ./linuxdeploy-x86_64.AppImage --appdir Notes --plugin qt
-
-      - name: Remove unnecessary Qt plugins and libraries
-        shell: bash
-        run: |
-          set -x
-          set -e
-          cd build/Notes
-          if [[ '${{ matrix.qt-version }}' == 5.* ]]
-          then
-              # The bearer plugin has caused problems for us in the past. Plus, it was removed altogether in Qt 6.
-              rm -rv usr/plugins/bearer
-          fi
-          # We only use the SQLite Qt driver, so it's fine to delete others.
-          rm -v usr/plugins/sqldrivers/libqsqlodbc.so
-          rm -v usr/plugins/sqldrivers/libqsqlpsql.so
-          if [[ '${{ matrix.qt-version }}' == 6.* ]]
-          then
-              # The Qt 6 build also has a MySQL Qt driver we don't use.
-              rm -v usr/plugins/sqldrivers/libqsqlmysql.so
-              rm -v usr/lib/libmysqlclient.so.*
-          fi
-
-      - name: Validate AppStream metadata
-        if: matrix.image != 'ubuntu:20.04'
-        run: |
-          cd build/Notes
-          appstreamcli validate --verbose 'usr/share/metainfo/${{ env.APP_ID }}.metainfo.xml'
-
-      - name: Validate desktop file
-        run: |
-          cd build/Notes
-          desktop-file-validate 'usr/share/applications/${{ env.APP_ID }}.desktop'
-
-      - name: Build AppImage (${{ matrix.build-type }})
-        env:
-          APPIMAGE_EXTRACT_AND_RUN: 1
-        run: |
-          cd build
-          export VERSION='${{ steps.vars.outputs.version }}'
-          ./linuxdeploy-x86_64.AppImage --appdir Notes --output appimage
-          mv -v Notes*.AppImage '${{ steps.vars.outputs.file_name }}'
-
-      - name: Upload AppImage artifact (${{ matrix.build-type }})
+      - name: Upload AppImage artifact
         uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
-          name: ${{ steps.vars.outputs.artifact_name }}-${{ runner.os }}-${{ matrix.build-type }}
-          path: build/${{ steps.vars.outputs.file_name }}
+          name: ${{ steps.build.outputs.artifact_name }}-${{ runner.os }}-${{ matrix.build-type }}
+          path: ${{ steps.build.outputs.appimage_path }}
+
+      - name: Login to GitHub Container Registry
+        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'master' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'master' }}
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}
+
+      - name: Build and push Docker image
+        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'master' }}
+        uses: docker/build-push-action@v6
+        env:
+          DOCKER_BUILD_SUMMARY: false
+        with:
+          file: Dockerfiles/${{ matrix.image }}
+          push: true
+          tags: ${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}
 
   snap:
     name: snap
