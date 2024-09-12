@@ -12,8 +12,8 @@ set -euo pipefail
 # -u: Enable the update checker feature (overrides $UPDATE_CHECKER below).
 # -n: Do not add the current git revision to the app's version (overrides $GIT_REVISION below).
 # -c <options>: Options passed to CMake's configure stage (overrides $CMAKE_CONFIG_OPTIONS below).
-# -b <options> Options passed to CMake's build stage (overrides $CMAKE_BUILD_OPTIONS below).
-# -o <options> Options passed to CPack (overrides $CPACK_OPTIONS below).
+# -b <options>: Options passed to CMake's build stage (overrides $CMAKE_BUILD_OPTIONS below).
+# -o <options>: Options passed to CPack (overrides $CPACK_OPTIONS below).
 
 # Hint: Pre-existing environment variables with the same name as the variables below will take precedence.
 BUILD_DIR="${BUILD_DIR:-build}"
@@ -22,7 +22,7 @@ PRO_VERSION="${PRO_VERSION:-OFF}"
 UPDATE_CHECKER="${UPDATE_CHECKER:-OFF}"
 GIT_REVISION="${GIT_REVISION:-ON}"
 CMAKE_CONFIG_OPTIONS="${CMAKE_CONFIG_OPTIONS:---warn-uninitialized -B ${BUILD_DIR} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DGIT_REVISION=${GIT_REVISION} -DCMAKE_INSTALL_PREFIX=/usr -DPRO_VERSION=${PRO_VERSION} -DUPDATE_CHECKER=${UPDATE_CHECKER}}"
-CMAKE_BUILD_OPTIONS="${CMAKE_BUILD_OPTIONS:---build build --parallel $(nproc)}"
+CMAKE_BUILD_OPTIONS="${CMAKE_BUILD_OPTIONS:---build ${BUILD_DIR} --parallel $(nproc)}"
 CPACK_OPTIONS="${CPACK_OPTIONS:--G DEB}"
 
 SCRIPT_NAME="$(basename "${0}")"
@@ -31,7 +31,7 @@ function msg() {
   echo -e "\033[1m[${SCRIPT_NAME}] ${1}\033[0m"
 }
 
-while getopts 'd:t:pnc:b:o:' OPTION; do
+while getopts 'd:t:punc:b:o:' OPTION; do
   case "${OPTION}" in
   d)
     msg "Note: Overriding build directory: '${BUILD_DIR}' -> '${OPTARG}'"
