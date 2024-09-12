@@ -50,7 +50,7 @@ jobs:
           if ! git diff --compact-summary --exit-code "${previous_ref}" -- 'Dockerfiles/${{ matrix.image }}'
           then
               needs_rebuild=true
-          elif ! docker pull '${{ env.REGISTRY }}/guihkx/notes:${{ matrix.image }}'
+          elif ! docker pull '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}'
           then
               needs_rebuild=true
           else
