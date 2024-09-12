@@ -42,7 +42,7 @@ jobs:
         run: |
           set -ex
           git remote add upstream https://github.com/nuttyartist/notes.git
-          git fetch upstream master
+          git fetch upstream +refs/heads/master:refs/remotes/upstream/master
           # NOTE: The following should give us the previous commit hash of the base branch, but that will
           #       only work reliably for 'push' and pull_request events. For workflow_dispatch events, we
           #       have to fallback to the default branch ('master'), until a better solution is found...
