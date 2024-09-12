@@ -103,96 +103,88 @@ jobs:
   rpm:
     name: rpm (${{ matrix.build-type }}, Qt ${{ matrix.qt-version-major }}, ${{ matrix.image }})
     runs-on: ubuntu-latest
-    container: zjeffer/notes:${{ matrix.image }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - # Fedora's release cycle: https://docs.fedoraproject.org/en-US/releases/lifecycle/
-            image: fedora
+          # Fedora's release cycle: https://endoflife.date/fedora
+          - image: fedora-38
             qt-version-major: 6
             build-type: release
 
-          - image: opensuse
+          # openSUSE's release cycle: https://endoflife.date/opensuse
+          - image: opensuse-15_5
             qt-version-major: 6
             build-type: release
     steps:
-      - name: Setup git configuration
-        # workaround for "detected dubious ownership in repository" git error: https://github.com/actions/checkout/issues/1169
-        run: git config --global --add safe.directory "${PWD}"
-
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Set up variables
-        shell: bash
-        id: vars
+      - name: Check if Dockerfile has been modified
+        id: docker_image
         run: |
-          set -x
-          distro_id=$(grep -oPm1 '^ID="?\K[^"]+' /etc/os-release)
-          if [ -z "${distro_id}" ]
+          set -ex
+          git remote add upstream https://github.com/nuttyartist/notes.git
+          git fetch --unshallow upstream master
+          # NOTE: The following should give us the previous commit hash of the base branch, but that will
+          #       only work reliably for 'push' and pull_request events. For workflow_dispatch events, we
+          #       have to fallback to the default branch ('master'), until a better solution is found...
+          previous_ref=${{ github.event.pull_request.base.sha || github.event.before || 'upstream/master' }}
+          if ! git diff --compact-summary --exit-code "${previous_ref}" -- 'Dockerfiles/${{ matrix.image }}'
           then
-              echo 'Failed to extract distro ID from /etc/os-release.'
-              exit 1
-          fi
-          version_id=$(grep -oPm1 '^VERSION_ID="?\K[^"]+' /etc/os-release)
-          if [ -z "${version_id}" ]
+              needs_rebuild=true
+          elif ! docker pull '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}'
           then
-              echo 'Failed to extract version id from /etc/os-release.'
-              exit 1
+              needs_rebuild=true
+          else
+              needs_rebuild=false
           fi
-          echo "distro_name=${distro_id}-${version_id}" >> "${GITHUB_OUTPUT}"
+          echo "needs_rebuild=${needs_rebuild}" >> "${GITHUB_OUTPUT}"
+
+      - name: Build and tag Docker image
+        if: steps.docker_image.outputs.needs_rebuild == 'true'
+        run: docker build -f 'Dockerfiles/${{ matrix.image }}' -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' .
 
       - name: Setup GCC problem matcher
         uses: ammaraskar/gcc-problem-matcher@0.3.0
 
-      - name: Build (${{ matrix.build-type }})
-        env:
-          VERBOSE: 1
-          # openSUSE defaults to GCC 7, which doesn't support the filesystem library from C++17,
-          # and causes trouble compiling for Qt 6. So we have to manully specify GCC 10 instead.
-          CXX: ${{ startsWith(matrix.image, 'opensuse') && 'g++-10' || 'g++' }}
-        run: |
-          cmake --warn-uninitialized --warn-unused-vars \
-              -B build \
-              -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
-              -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }} \
-              -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE \
-              -DUPDATE_CHECKER=OFF \
-              -DUSE_QT_VERSION=${{ matrix.qt-version-major }} \
-              -DPRO_VERSION=OFF
-          cmake --build build --parallel $(nproc)
-
-      - name: Create rpm package
-        run: |
-          cd build
-          cpack -G RPM
-
-      - name: Grab rpm package name
-        id: rpm
-        shell: bash
-        run: |
-          set -x
-          if ! path=$(find build/ -maxdepth 1 -name '*.rpm' -print -quit)
-          then
-              echo 'Fatal: Unable to find rpm package!'
-              exit 1;
-          fi
-          echo "name=$(basename "${path%.*}")" >> "${GITHUB_OUTPUT}"
-          echo "path=${path}" >> "${GITHUB_OUTPUT}"
-
-      - name: Run rpmlint
-        run: |
-          rpmlint '${{ steps.rpm.outputs.path }}'
+      - name: Build, package and lint
+        id: build
+        run: docker run --rm -v "${GITHUB_OUTPUT}:/GITHUB_OUTPUT" -v "$(pwd):/src" -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' -t ${{ matrix.build-type }} ${{ github.ref_type == 'tag' && '-n' || ' ' }}
 
       - name: Upload rpm package
         uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
-          name: ${{ steps.rpm.outputs.name }}-qt${{ matrix.qt-version-major }}-${{ steps.vars.outputs.distro_name }}-${{ matrix.build-type }}
-          path: ${{ steps.rpm.outputs.path }}
+          name: ${{ steps.build.outputs.rpm_name }}-qt${{ matrix.qt-version-major }}-${{ steps.build.outputs.distro_name }}-${{ matrix.build-type }}
+          path: ${{ steps.build.outputs.rpm_path }}
+
+      - name: Login to GitHub Container Registry
+        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'master' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'master' }}
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}
+
+      - name: Build and push Docker image
+        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'master' }}
+        uses: docker/build-push-action@v6
+        env:
+          DOCKER_BUILD_SUMMARY: false
+        with:
+          file: Dockerfiles/${{ matrix.image }}
+          push: true
+          tags: ${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}
 
   appimage:
     name: AppImage (${{ matrix.build-type }}, Qt ${{ matrix.qt-version-major }}, ${{ matrix.image }})

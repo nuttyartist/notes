@@ -1,0 +1,23 @@
+# vim: set syntax=dockerfile:
+FROM opensuse/leap:15.5
+
+LABEL org.opencontainers.image.description="Base image used to build and RPM-package Notes on openSUSE 15.5"
+
+# Install dependencies.
+RUN zypper install -y --no-recommends cmake gcc10-c++ git \
+    qt6-base-private-devel qt6-declarative-devel rpmlint rpm-build && \
+    zypper clean -a
+
+# Because openSUSE allows multiple versions of GCC to be installed, we need to tell CMake which version to use.
+ENV CC=gcc-10
+ENV CXX=g++-10
+
+# Prevent a fatal error from git: "detected dubious ownership in repository at '/src'".
+RUN git config --global --add safe.directory /src
+
+# Don't forget to mount the current git tree to /src, i.e.:
+# docker run -v $(pwd):/src -it --rm ...
+WORKDIR /src
+
+ADD --chmod=755 ./Dockerfiles/rpm_entrypoint.sh /usr/bin/entrypoint.sh
+ENTRYPOINT ["entrypoint.sh"]

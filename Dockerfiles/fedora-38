@@ -1,0 +1,23 @@
+# vim: set syntax=dockerfile:
+FROM fedora:38
+
+LABEL org.opencontainers.image.description="Base image used to build and RPM-package Notes on Fedora 38"
+
+# Install dependencies.
+RUN dnf install -y --nodocs --noplugins --setopt=install_weak_deps=False \
+    cmake gcc-c++ git libxkbcommon-devel qt6-qtbase-private-devel qt6-qtdeclarative-devel rpmlint rpm-build && \
+  	dnf clean all && \
+  	rm -f /var/lib/dnf/history.*
+
+# Prevent warnings from uic while compiling the app.
+ENV LANG=C.UTF-8
+
+# Prevent a fatal error from git: "detected dubious ownership in repository at '/src'".
+RUN git config --global --add safe.directory /src
+
+# Don't forget to mount the current git tree to /src, i.e.:
+# docker run -v $(pwd):/src -it --rm ...
+WORKDIR /src
+
+ADD --chmod=755 ./Dockerfiles/rpm_entrypoint.sh /usr/bin/entrypoint.sh
+ENTRYPOINT ["entrypoint.sh"]
