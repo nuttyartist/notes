@@ -42,12 +42,19 @@ jobs:
         run: |
           set -ex
           git remote add upstream https://github.com/nuttyartist/notes.git
-          git fetch --depth=1 upstream master
-          if git diff --compact-summary --exit-code upstream/master -- 'Dockerfiles/${{ matrix.image }}'
+          git fetch upstream master
+          # NOTE: The following should give us the previous commit hash of the base branch, but that will
+          #       only work reliably for 'push' and pull_request events. For workflow_dispatch events, we
+          #       have to fallback to the default branch ('master'), until a better solution is found...
+          previous_ref=${{ github.event.pull_request.base.sha || github.event.before || 'upstream/master' }}
+          if ! git diff --compact-summary --exit-code "${previous_ref}" -- 'Dockerfiles/${{ matrix.image }}'
           then
-              needs_rebuild=false
-          else
               needs_rebuild=true
+          elif ! docker pull '${{ env.REGISTRY }}/guihkx/notes:${{ matrix.image }}'
+          then
+              needs_rebuild=true
+          else
+              needs_rebuild=false
           fi
           echo "needs_rebuild=${needs_rebuild}" >> "${GITHUB_OUTPUT}"
 
