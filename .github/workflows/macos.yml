@@ -15,11 +15,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-12
+          - os: macos-13
             qt-version-major: 5
             build-type: debug
 
-          - os: macos-12
+          - os: macos-13
             qt-version-major: 6
             build-type: debug
     steps:
@@ -71,11 +71,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-12
+          - os: macos-13
             qt-version: 5.15.2
             build-type: release
 
-          - os: macos-12
+          - os: macos-13
             qt-version: 6.5.2
             build-type: release
     steps:
