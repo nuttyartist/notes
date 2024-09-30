@@ -4,6 +4,13 @@
 
  -- @APP_AUTHOR@ <@APP_AUTHOR_EMAIL@>  @DATE_NOW_UTC@
 
+@PROJECT_NAME_LOWERCASE@ (2.3.1) stable; urgency=low
+
+  * Fixed a visual bug where the "Hide to tray" option would not reflect its real state.
+  * Changed the strikethrough keyboard shortcut from Ctrl+S to Ctrl+Shift+X.
+
+ -- @APP_AUTHOR@ <@APP_AUTHOR_EMAIL@>  Tue, 1 Oct 2024 11:00:00 +0000
+
 @PROJECT_NAME_LOWERCASE@ (2.3.0) stable; urgency=low
 
   * Export or import your notes to and from .txt and .md files.

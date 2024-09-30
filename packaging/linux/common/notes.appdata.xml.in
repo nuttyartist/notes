@@ -56,7 +56,18 @@
     </screenshots>
     <content_rating type="oars-1.1" />
     <releases>
-    <release date="2024-08-31" version="2.3.0">
+        <release date="2024-10-01" version="2.3.1">
+            <description>
+                <p>This is a minor, bugfix release.</p>
+                <p>Changes:</p>
+                <ul>
+                    <li>Fixed a visual bug where the "Hide to tray" option would not reflect its real state.</li>
+                    <li>Changed the strikethrough keyboard shortcut from Ctrl+S to Ctrl+Shift+X.</li>
+                </ul>
+                <p>Note: Anyone can still access all Pro features at no cost by building the app from source.</p>
+            </description>
+        </release>
+        <release date="2024-08-31" version="2.3.0">
             <description>
                 <p>A new release is here with some new features, bug fixes and improvements.</p>
                 <p>New features:</p>

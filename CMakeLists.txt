@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(APP_VERSION 2.3.0)
+set(APP_VERSION 2.3.1)
 set(APP_ID "io.github.nuttyartist.notes")
 set(APP_AUTHOR "Ruby Mamistvalove")
 set(APP_AUTHOR_EMAIL "ruby.mamistvalove@gmail.com")
