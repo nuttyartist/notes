@@ -86,8 +86,8 @@ rpmlint "${BUILD_DIR}"/*.rpm
 if [ -f /GITHUB_OUTPUT ]; then
   msg "Note: File '/GITHUB_OUTPUT' exists, assuming we're running on GitHub Actions."
   distro_id=$(grep -oPm1 '^ID="?\K[^"]+' /etc/os-release)
-  distro_codename=$(grep -oPm1 '^VERSION_CODENAME="?\K[^"]+' /etc/os-release || echo '')
-  echo "distro_name=${distro_id}${distro_codename:+-"$distro_codename"}" >>'/GITHUB_OUTPUT'
+  version_id=$(grep -oPm1 '^VERSION_ID="?\K[^"]+' /etc/os-release || echo '')
+  echo "distro_name=${distro_id}${version_id:+-"$version_id"}" >>'/GITHUB_OUTPUT'
 
   if ! rpm_path=$(find "${BUILD_DIR}" -maxdepth 1 -name '*.rpm' -print -quit); then
     msg 'Fatal: Unable to find rpm package'
