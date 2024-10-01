@@ -1,22 +1,22 @@
 {
   "updates": {
     "windows": {
-      "open-url": "https://github.com/nuttyartist/notes/releases/download/v2.3.0/NotesSetup_2.3.0.exe",
-      "latest-version": "2.3.0",
-      "download-url": "https://github.com/nuttyartist/notes/releases/download/v2.3.0/NotesSetup_2.3.0.exe",
-      "changelog": ""
+      "open-url": "https://github.com/nuttyartist/notes/releases/download/v2.3.1/NotesSetup_2.3.1.exe",
+      "latest-version": "2.3.1",
+      "download-url": "https://github.com/nuttyartist/notes/releases/download/v2.3.1/NotesSetup_2.3.1.exe",
+      "changelog": "<style>div{color:#000}kbd{color:#24292f;background-color:#f6f8fa}ul{margin-left:-2em}</style><div><p>This is a minor, bugfix release.</p><p>Changes:</p><ul><li>Fixed a visual bug where the \"Hide to tray\" option would not reflect its real state</li><li>Changed the strike-through keyboard shortcut from Ctrl+S to Ctrl+Shift+X</li></ul><p>Join our <span><a href='https://discord.gg/RP6ReXRn5j'>Discord</a></span> for discussions, and feel free to <span><a href='mailto:contact@notes-foss.com'>email us</a></span>. We love hearing from our users.</p></div><br>"
     },
     "osx": {
-      "open-url": "https://github.com/nuttyartist/notes/releases/download/v2.3.0/Notes.2.3.0.dmg",
-      "latest-version": "2.3.0",
-      "download-url": "https://github.com/nuttyartist/notes/releases/download/v2.3.0/Notes.2.3.0.dmg",
-      "changelog": ""
+      "open-url": "https://github.com/nuttyartist/notes/releases/download/v2.3.1/Notes.2.3.1.dmg",
+      "latest-version": "2.3.1",
+      "download-url": "https://github.com/nuttyartist/notes/releases/download/v2.3.1/Notes.2.3.1.dmg",
+      "changelog": "<style>div{color:#000}kbd{color:#24292f;background-color:#f6f8fa}ul{margin-left:-2em}</style><div><p>This is a minor, bugfix release.</p><p>Changes:</p><ul><li>Fixed a visual bug where the \"Hide to tray\" option would not reflect its real state</li><li>Changed the strike-through keyboard shortcut from Ctrl+S to Ctrl+Shift+X</li></ul><p>Join our <span><a href='https://discord.gg/RP6ReXRn5j'>Discord</a></span> for discussions, and feel free to <span><a href='mailto:contact@notes-foss.com'>email us</a></span>. We love hearing from our users.</p></div><br>"
     },
     "linux": {
-      "open-url": "https://github.com/nuttyartist/notes/releases/download/v2.3.0/Notes_2.3.0-Qt6.4.3-x86_64.AppImage",
-      "latest-version": "2.3.0",
-      "download-url": "https://github.com/nuttyartist/notes/releases/download/v2.3.0/Notes_2.3.0-Qt6.4.3-x86_64.AppImage",
-      "changelog": ""
+      "open-url": "https://github.com/nuttyartist/notes/releases/download/v2.3.1/Notes_2.3.1-Qt6.4.3-x86_64.AppImage",
+      "latest-version": "2.3.1",
+      "download-url": "https://github.com/nuttyartist/notes/releases/download/v2.3.1/Notes_2.3.1-Qt6.4.3-x86_64.AppImage",
+      "changelog": "<style>div{color:#000}kbd{color:#24292f;background-color:#f6f8fa}ul{margin-left:-2em}</style><div><p>This is a minor, bugfix release.</p><p>Changes:</p><ul><li>Fixed a visual bug where the \"Hide to tray\" option would not reflect its real state</li><li>Changed the strike-through keyboard shortcut from Ctrl+S to Ctrl+Shift+X</li></ul><p>Join our <span><a href='https://discord.gg/RP6ReXRn5j'>Discord</a></span> for discussions, and feel free to <span><a href='mailto:contact@notes-foss.com'>email us</a></span>. We love hearing from our users.</p></div><br>"
     }
   }
 }
