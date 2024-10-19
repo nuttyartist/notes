@@ -135,6 +135,10 @@ jobs:
 
           # Include MSVC 2019 runtime libraries.
           if ('${{ matrix.build-type }}' -ieq 'release') {
+              if ($env:VCToolsRedistDir -eq $null) {
+                  # XXX: Hack to work around this issue: https://github.com/actions/runner-images/issues/10819
+                  $env:VCToolsRedistDir = -join ($env:VCINSTALLDIR, "Redist\MSVC\", $env:VCToolsVersion, "\")
+              }
               Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\msvcp140.dll
               Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\msvcp140_1.dll
 
