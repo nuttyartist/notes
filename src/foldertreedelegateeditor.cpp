@@ -221,7 +221,7 @@ void FolderTreeDelegateEditor::paintEvent(QPaintEvent *event)
 
 void FolderTreeDelegateEditor::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    if (m_label->geometry().contains(event->pos())) {
+    if (m_label->geometry().contains(event->position().toPoint())) {
         m_label->openEditor();
     } else {
         QWidget::mouseDoubleClickEvent(event);

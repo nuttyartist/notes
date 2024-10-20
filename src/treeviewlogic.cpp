@@ -129,7 +129,7 @@ void TreeViewLogic::loadTreeModel(const NodeTagTreeData &treeData)
                 m_treeView->setCurrentIndexC(m_treeModel->getAllNotesButtonIndex());
             }
         } else {
-            for (const auto &id : qAsConst(m_lastSelectTags)) {
+            for (const auto &id : std::as_const(m_lastSelectTags)) {
                 m_treeView->setCurrentIndexNC(m_treeModel->tagIndexFromId(id));
             }
         }
