@@ -132,7 +132,7 @@ QModelIndexList NoteListView::selectedIndex() const
 void NoteListView::onRemoveRowRequested(const QModelIndexList &indexes)
 {
     if (!indexes.isEmpty()) {
-        for (const auto index : qAsConst(indexes)) {
+        for (const auto index : std::as_const(indexes)) {
             m_needRemovedNotes.push_back(index.data(NoteListModel::NoteID).toInt());
         }
         NoteListDelegate *delegate = dynamic_cast<NoteListDelegate *>(itemDelegate());
@@ -272,7 +272,7 @@ void NoteListView::mouseMoveEvent(QMouseEvent *event)
         return;
     }
     if (event->buttons() & Qt::LeftButton) {
-        if ((event->pos() - m_dragStartPosition).manhattanLength()
+        if ((event->position().toPoint() - m_dragStartPosition).manhattanLength()
             >= QApplication::startDragDistance()) {
             startDrag(Qt::MoveAction);
         }
@@ -284,7 +284,7 @@ void NoteListView::mousePressEvent(QMouseEvent *e)
 {
     Q_D(NoteListView);
     m_isMousePressed = true;
-    auto index = indexAt(e->pos());
+    auto index = indexAt(e->position().toPoint());
     if (!index.isValid()) {
         emit noteListViewClicked();
         return;
@@ -293,7 +293,7 @@ void NoteListView::mousePressEvent(QMouseEvent *e)
     if (model && model->isFirstPinnedNote(index)) {
         auto rect = visualRect(index);
         auto iconRect = QRect(rect.right() - 25, rect.y() + 2, 20, 20);
-        if (iconRect.contains(e->pos())) {
+        if (iconRect.contains(e->position().toPoint())) {
             setIsPinnedNotesCollapsed(!isPinnedNotesCollapsed());
             m_mousePressHandled = true;
             return;
@@ -301,7 +301,7 @@ void NoteListView::mousePressEvent(QMouseEvent *e)
     }
 
     if (e->button() == Qt::LeftButton) {
-        m_dragStartPosition = e->pos();
+        m_dragStartPosition = e->position().toPoint();
         auto oldIndexes = selectionModel()->selectedIndexes();
         if (!oldIndexes.contains(index)) {
             if (e->modifiers() == Qt::ControlModifier) {
@@ -324,13 +324,13 @@ void NoteListView::mousePressEvent(QMouseEvent *e)
         }
     }
     QPoint offset = d->offset();
-    d->pressedPosition = e->pos() + offset;
+    d->pressedPosition = e->position().toPoint() + offset;
 }
 
 void NoteListView::mouseReleaseEvent(QMouseEvent *e)
 {
     m_isMousePressed = false;
-    auto index = indexAt(e->pos());
+    auto index = indexAt(e->position().toPoint());
     if (!index.isValid()) {
         return;
     }
@@ -392,7 +392,7 @@ void NoteListView::dragEnterEvent(QDragEnterEvent *event)
 void NoteListView::dragMoveEvent(QDragMoveEvent *event)
 {
     if (event->mimeData()->hasFormat(NOTE_MIME)) {
-        auto index = indexAt(event->pos());
+        auto index = indexAt(event->position().toPoint());
         auto isPinned = index.data(NoteListModel::NoteIsPinned).toBool();
         if (!index.isValid()) {
             event->ignore();
@@ -512,7 +512,7 @@ void NoteListView::startDrag(Qt::DropActions supportedActions)
         rect = px.rect();
     }
     m_isDraggingPinnedNotes = false;
-    for (const auto &index : qAsConst(indexes)) {
+    for (const auto &index : std::as_const(indexes)) {
         if (index.data(NoteListModel::NoteIsPinned).toBool()) {
             m_isDraggingPinnedNotes = true;
             break;
@@ -542,7 +542,7 @@ void NoteListView::startDrag(Qt::DropActions supportedActions)
     d->dropIndicatorRect = QRect();
     d->dropIndicatorPosition = OnItem;
     closeAllEditor();
-    for (const auto &id : qAsConst(openedEditors)) {
+    for (const auto &id : std::as_const(openedEditors)) {
         auto index = dynamic_cast<NoteListModel *>(model())->getNoteIndex(id);
         openPersistentEditorC(index);
     }
@@ -646,7 +646,7 @@ void NoteListView::setupStyleSheet()
 
 void NoteListView::addNotesToTag(QSet<int> notesId, int tagId)
 {
-    for (const auto &id : qAsConst(notesId)) {
+    for (const auto &id : std::as_const(notesId)) {
         auto model = dynamic_cast<NoteListModel *>(this->model());
         if (model) {
             auto index = model->getNoteIndex(id);
@@ -659,7 +659,7 @@ void NoteListView::addNotesToTag(QSet<int> notesId, int tagId)
 
 void NoteListView::removeNotesFromTag(QSet<int> notesId, int tagId)
 {
-    for (const auto &id : qAsConst(notesId)) {
+    for (const auto &id : std::as_const(notesId)) {
         auto model = dynamic_cast<NoteListModel *>(this->model());
         if (model) {
             auto index = model->getNoteIndex(id);
@@ -699,13 +699,13 @@ void NoteListView::onCustomContextMenu(QPoint point)
             indexList = selectionModel()->selectedIndexes();
         }
         QSet<int> notes;
-        for (const auto &idx : qAsConst(indexList)) {
+        for (const auto &idx : std::as_const(indexList)) {
             notes.insert(idx.data(NoteListModel::NoteID).toInt());
         }
         contextMenu->clear();
         if (m_tagPool) {
             m_tagsMenu = contextMenu->addMenu("Tags ...");
-            for (auto action : qAsConst(m_noteTagActions)) {
+            for (auto action : std::as_const(m_noteTagActions)) {
                 delete action;
             }
             m_noteTagActions.clear();
@@ -730,7 +730,7 @@ void NoteListView::onCustomContextMenu(QPoint point)
             const auto tagIds = m_tagPool->tagIds();
             for (const auto &id : tagIds) {
                 bool all = true;
-                for (const auto &selectedIndex : qAsConst(indexList)) {
+                for (const auto &selectedIndex : std::as_const(indexList)) {
                     auto tags = selectedIndex.data(NoteListModel::NoteTagsList).value<QSet<int>>();
                     if (!tags.contains(id)) {
                         all = false;
@@ -741,7 +741,7 @@ void NoteListView::onCustomContextMenu(QPoint point)
                     tagInNote.insert(id);
                 }
             }
-            for (auto id : qAsConst(tagInNote)) {
+            for (auto id : std::as_const(tagInNote)) {
                 auto tag = m_tagPool->getTag(id);
                 auto tagAction = new QAction(QString("✓ Remove tag ") + tag.name(), this);
                 connect(tagAction, &QAction::triggered, this,
@@ -786,7 +786,7 @@ void NoteListView::onCustomContextMenu(QPoint point)
                 unpinNoteAction->setText(tr("Unpin Notes"));
                 enum class ShowAction { NotInit, ShowPin, ShowBoth, ShowUnpin };
                 ShowAction a = ShowAction::NotInit;
-                for (const auto &idx : qAsConst(indexList)) {
+                for (const auto &idx : std::as_const(indexList)) {
                     if (idx.data(NoteListModel::NoteIsPinned).toBool()) {
                         if (a == ShowAction::ShowPin) {
                             a = ShowAction::ShowBoth;
@@ -827,7 +827,7 @@ void NoteListView::onCustomContextMenu(QPoint point)
         }
         contextMenu->addSeparator();
         if (m_dbManager) {
-            for (auto action : qAsConst(m_folderActions)) {
+            for (auto action : std::as_const(m_folderActions)) {
                 delete action;
             }
             m_folderActions.clear();
@@ -842,7 +842,7 @@ void NoteListView::onCustomContextMenu(QPoint point)
                 auto action = new QAction(folders[id], this);
                 connect(action, &QAction::triggered, this, [this, id] {
                     auto indexes = selectedIndexes();
-                    for (const auto &selectedIndex : qAsConst(indexes)) {
+                    for (const auto &selectedIndex : std::as_const(indexes)) {
                         if (selectedIndex.isValid()) {
                             emit moveNoteRequested(
                                     selectedIndex.data(NoteListModel::NoteID).toInt(), id);
@@ -866,7 +866,7 @@ void NoteListView::onAnimationFinished(NoteListState state)
     if (state == NoteListState::Remove) {
         auto model = dynamic_cast<NoteListModel *>(this->model());
         if (model) {
-            for (const auto id : qAsConst(m_needRemovedNotes)) {
+            for (const auto id : std::as_const(m_needRemovedNotes)) {
                 auto index = model->getNoteIndex(id);
                 model->removeRow(index.row());
             }
