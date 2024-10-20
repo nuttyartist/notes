@@ -3782,7 +3782,7 @@ void MainWindow::mouseDoubleClickEvent(QMouseEvent *event)
 /*!
  * \brief MainWindow::leaveEvent
  */
-void MainWindow::leaveEvent(QEvent *)
+void MainWindow::leaveEvent(QEvent * /*event*/)
 {
     unsetCursor();
 }
