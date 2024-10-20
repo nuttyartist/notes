@@ -260,8 +260,8 @@ void CFramelessWindow::mousePressEvent(QMouseEvent *event)
     rc.setRect(0, 0, size().width(), height);
     if (rc.contains(this->mapFromGlobal(QCursor::pos())) == true) // 如果按下的位置
     {
-        m_WindowPos = this->position().toPoint();
-        m_MousePos = event->globalPosition();
+        m_WindowPos = this->pos();
+        m_MousePos = event->globalPos();
         m_bMousePressed = true;
     }
     return QMainWindow::mousePressEvent(event);
@@ -281,7 +281,7 @@ void CFramelessWindow::mouseMoveEvent(QMouseEvent *event)
     if (!m_bMousePressed)
         return QMainWindow::mouseMoveEvent(event);
     m_bWinMoving = true;
-    this->move(m_WindowPos + (event->globalPosition() - m_MousePos));
+    this->move(m_WindowPos + (event->globalPos() - m_MousePos));
     return QMainWindow::mouseMoveEvent(event);
 }
 
