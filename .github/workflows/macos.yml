@@ -187,7 +187,9 @@ jobs:
       - name: Build dmg (${{ matrix.build-type }})
         run: |
           cd build
-          create-dmg \
+          # FIXME: No, we're not crazy. We invoke create-dmg as root to work around this issue:
+          #       https://github.com/actions/runner-images/issues/7522
+          sudo create-dmg \
               --no-internet-enable \
               --format ULFO \
               --background ../packaging/macos/dmg-background.png \
