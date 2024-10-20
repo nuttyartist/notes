@@ -554,15 +554,16 @@ void UpdaterWindow::onDownloadFinished()
 void UpdaterWindow::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton) {
-        if (event->x() < width() - 5 && event->x() > 5 && event->pos().y() < height() - 5
-            && event->pos().y() > 5) {
+        if (event->position().x() < width() - 5 && event->position().x() > 5
+            && event->position().toPoint().y() < height() - 5
+            && event->position().toPoint().y() > 5) {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
             m_canMoveWindow = !window()->windowHandle()->startSystemMove();
 #else
             m_canMoveWindow = true;
 #endif
-            m_mousePressX = event->pos().x();
-            m_mousePressY = event->pos().y();
+            m_mousePressX = event->position().toPoint().x();
+            m_mousePressY = event->position().toPoint().y();
         }
     }
     event->accept();
@@ -576,8 +577,8 @@ void UpdaterWindow::mousePressEvent(QMouseEvent *event)
 void UpdaterWindow::mouseMoveEvent(QMouseEvent *event)
 {
     if (m_canMoveWindow) {
-        int dx = event->globalX() - m_mousePressX;
-        int dy = event->globalY() - m_mousePressY;
+        int dx = event->globalPosition().x() - m_mousePressX;
+        int dy = event->globalPosition().y() - m_mousePressY;
         move(dx, dy);
     }
 }

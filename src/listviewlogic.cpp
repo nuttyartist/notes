@@ -16,7 +16,7 @@ static bool isInvalidCurrentNotesId(const QSet<int> &currentNotesId)
         return true;
     }
     bool isInvalid = true;
-    for (const auto &id : qAsConst(currentNotesId)) {
+    for (const auto &id : std::as_const(currentNotesId)) {
         if (id != SpecialNodeID::InvalidNodeId) {
             isInvalid = false;
         }
@@ -179,7 +179,7 @@ void ListViewLogic::setNoteData(const NodeData &note)
         m_listModel->setItemData(noteIndex, dataValue);
         if (wasTemp) {
             auto tagIds = noteIndex.data(NoteListModel::NoteTagsList).value<QSet<int>>();
-            for (const auto tagId : qAsConst(tagIds)) {
+            for (const auto tagId : std::as_const(tagIds)) {
                 emit requestAddTagDb(note.id(), tagId);
             }
         }
@@ -276,7 +276,7 @@ void ListViewLogic::onSearchEditTextChanged(const QString &keyword)
         if (!m_listViewInfo.isInSearch) {
             auto indexes = m_listView->selectedIndex();
             m_listViewInfo.currentNotesId.clear();
-            for (const auto &index : qAsConst(indexes)) {
+            for (const auto &index : std::as_const(indexes)) {
                 if (index.isValid()) {
                     m_listViewInfo.currentNotesId.insert(index.data(NoteListModel::NoteID).toInt());
                 }
@@ -334,7 +334,7 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData> &noteList, const L
         }
         if (!currentNotesId.isEmpty()) {
             QModelIndexList indexes;
-            for (const auto &id : qAsConst(currentNotesId)) {
+            for (const auto &id : std::as_const(currentNotesId)) {
                 if (id != SpecialNodeID::InvalidNodeId) {
                     indexes.append(m_listModel->getNoteIndex(id));
                 }
@@ -349,7 +349,7 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData> &noteList, const L
         m_needLoadSavedState -= 1;
         if (!m_lastSelectedNotes.isEmpty()) {
             QModelIndexList indexes;
-            for (const auto &id : qAsConst(m_lastSelectedNotes)) {
+            for (const auto &id : std::as_const(m_lastSelectedNotes)) {
                 if (id != SpecialNodeID::InvalidNodeId) {
                     indexes.append(m_listModel->getNoteIndex(id));
                 }
@@ -419,7 +419,7 @@ void ListViewLogic::setLastSelectedNote()
 {
     auto indexes = m_listView->selectedIndex();
     QSet<int> ids;
-    for (const auto &index : qAsConst(indexes)) {
+    for (const auto &index : std::as_const(indexes)) {
         if (index.isValid()) {
             ids.insert(index.data(NoteListModel::NoteID).toInt());
         }
@@ -470,7 +470,7 @@ void ListViewLogic::selectNotes(const QModelIndexList &indexes)
     m_listView->clearSelection();
     m_listView->setSelectionMode(QAbstractItemView::MultiSelection);
     QModelIndex lastIdx;
-    for (const auto index : qAsConst(indexes)) {
+    for (const auto index : std::as_const(indexes)) {
         if (index.isValid()) {
             lastIdx = index;
             m_listView->selectionModel()->select(index, QItemSelectionModel::Select);
@@ -533,7 +533,7 @@ void ListViewLogic::deleteNoteRequestedI(const QModelIndexList &indexes)
         bool isInTrash = false;
         QVector<NodeData> needDelete;
         QModelIndexList needDeleteI;
-        for (const auto &index : qAsConst(indexes)) {
+        for (const auto &index : std::as_const(indexes)) {
             if (index.isValid()) {
                 auto id = index.data(NoteListModel::NoteID).toInt();
                 NodeData note;
@@ -561,7 +561,7 @@ void ListViewLogic::deleteNoteRequestedI(const QModelIndexList &indexes)
                 if (needClose) {
                     emit closeNoteEditor();
                 }
-                for (const auto &note : qAsConst(needDelete)) {
+                for (const auto &note : std::as_const(needDelete)) {
                     emit requestRemoveNoteDb(note);
                 }
             }
@@ -575,7 +575,7 @@ void ListViewLogic::deleteNoteRequestedI(const QModelIndexList &indexes)
             if (needClose) {
                 emit closeNoteEditor();
             }
-            for (const auto &note : qAsConst(needDelete)) {
+            for (const auto &note : std::as_const(needDelete)) {
                 emit requestRemoveNoteDb(note);
             }
         }
@@ -586,7 +586,7 @@ void ListViewLogic::restoreNotesRequestedI(const QModelIndexList &indexes)
 {
     QModelIndexList needRestoredI;
     QSet<int> needRestored;
-    for (const auto &index : qAsConst(indexes)) {
+    for (const auto &index : std::as_const(indexes)) {
         if (index.isValid()) {
             auto id = index.data(NoteListModel::NoteID).toInt();
             NodeData note;
@@ -612,7 +612,7 @@ void ListViewLogic::restoreNotesRequestedI(const QModelIndexList &indexes)
     QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection,
                               Q_RETURN_ARG(NodeData, defaultNotesFolder),
                               Q_ARG(int, SpecialNodeID::DefaultNotesFolder));
-    for (const auto &id : qAsConst(needRestored)) {
+    for (const auto &id : std::as_const(needRestored)) {
         emit requestMoveNoteDb(id, defaultNotesFolder);
     }
 }

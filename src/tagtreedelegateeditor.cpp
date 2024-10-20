@@ -174,9 +174,9 @@ void TagTreeDelegateEditor::paintEvent(QPaintEvent *event)
 void TagTreeDelegateEditor::mouseDoubleClickEvent(QMouseEvent *event)
 {
     auto iconRect = QRect(rect().x() + 10, rect().y() + (rect().height() - 14) / 2, 14, 14);
-    if (iconRect.contains(event->pos())) {
+    if (iconRect.contains(event->position().toPoint())) {
         dynamic_cast<NodeTreeView *>(m_view)->onChangeTagColorAction();
-    } else if (m_label->geometry().contains(event->pos())) {
+    } else if (m_label->geometry().contains(event->position().toPoint())) {
         m_label->openEditor();
     } else {
         QWidget::mouseDoubleClickEvent(event);

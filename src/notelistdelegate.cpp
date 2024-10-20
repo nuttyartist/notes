@@ -61,21 +61,21 @@ NoteListDelegate::NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject
     m_timeLine->setEasingCurve(QEasingCurve::InCurve);
     m_folderIcon = QImage(":/images/folder.png");
     connect(m_timeLine, &QTimeLine::frameChanged, this, [this]() {
-        for (const auto &index : qAsConst(m_animatedIndexes)) {
+        for (const auto &index : std::as_const(m_animatedIndexes)) {
             emit sizeHintChanged(index);
         }
     });
 
     connect(m_timeLine, &QTimeLine::finished, this, [this]() {
         emit animationFinished(m_state);
-        for (const auto &index : qAsConst(m_animatedIndexes)) {
+        for (const auto &index : std::as_const(m_animatedIndexes)) {
             m_view->openPersistentEditorC(index);
         }
         if (!animationQueue.empty()) {
             auto a = animationQueue.front();
             animationQueue.pop_front();
             QModelIndexList indexes;
-            for (const auto &id : qAsConst(a.first)) {
+            for (const auto &id : std::as_const(a.first)) {
                 auto model = dynamic_cast<NoteListModel *>(m_view->model());
                 if (model) {
                     auto index = model->getNoteIndex(id);
@@ -96,7 +96,7 @@ void NoteListDelegate::setState(NoteListState NewState, QModelIndexList indexes)
 {
     if (animationState() != QTimeLine::NotRunning) {
         QSet<int> ids;
-        for (const auto &index : qAsConst(indexes)) {
+        for (const auto &index : std::as_const(indexes)) {
             auto noteId = index.data(NoteListModel::NoteID).toInt();
             if (noteId != SpecialNodeID::InvalidNodeId) {
                 ids.insert(noteId);
@@ -813,7 +813,7 @@ void NoteListDelegate::paintTagList(int top, QPainter *painter, const QStyleOpti
     auto tagIds = index.data(NoteListModel::NoteTagsList).value<QSet<int>>();
     int left = option.rect.x() + 10;
 
-    for (const auto &id : qAsConst(tagIds)) {
+    for (const auto &id : std::as_const(tagIds)) {
         if (left >= option.rect.width()) {
             break;
         }
@@ -911,7 +911,7 @@ void NoteListDelegate::setStateI(NoteListState NewState, const QModelIndexList &
     m_animatedIndexes = indexes;
 
     auto startAnimation = [this](QTimeLine::Direction diretion, int duration) {
-        for (const auto &index : qAsConst(m_animatedIndexes)) {
+        for (const auto &index : std::as_const(m_animatedIndexes)) {
             m_view->closePersistentEditorC(index);
         }
         m_timeLine->setDirection(diretion);
