@@ -258,7 +258,7 @@ void CFramelessWindow::mousePressEvent(QMouseEvent *event)
         height = m_draggableHeight;
     QRect rc;
     rc.setRect(0, 0, size().width(), height);
-    if (rc.contains(this->mapFromGlobal(QCursor::position().toPoint())) == true) // 如果按下的位置
+    if (rc.contains(this->mapFromGlobal(QCursor::pos())) == true) // 如果按下的位置
     {
         m_WindowPos = this->position().toPoint();
         m_MousePos = event->globalPosition();
