@@ -186,6 +186,7 @@ jobs:
 
       - name: Build dmg (${{ matrix.build-type }})
         run: |
+          set -x
           cd build
           # FIXME: Undo this overengineered crap once the following issue gets figured out:
           #        https://github.com/actions/runner-images/issues/7522
@@ -211,7 +212,7 @@ jobs:
                   echo 'Error: create-dmg did not succeed even after 10 tries.'
                   exit 1
               fi
-              ((i++))
+              i=$((i+1))
           done
 
       - name: Notarize
