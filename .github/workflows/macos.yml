@@ -187,22 +187,32 @@ jobs:
       - name: Build dmg (${{ matrix.build-type }})
         run: |
           cd build
-          # FIXME: No, we're not crazy. We invoke create-dmg as root to work around this issue:
-          #       https://github.com/actions/runner-images/issues/7522
-          sudo create-dmg \
-              --no-internet-enable \
-              --format ULFO \
-              --background ../packaging/macos/dmg-background.png \
-              --hide-extension 'Notes Better.app' \
-              --icon 'Notes Better.app' 180 170 \
-              --icon-size 160 \
-              --text-size 12 \
-              --volname Notes \
-              --volicon ../src/images/notes_icon.icns \
-              --window-size 660 400 \
-              --app-drop-link 480 170 \
-              '${{ steps.vars.outputs.file_name }}' \
-              'Notes Better.app'
+          # FIXME: Undo this overengineered crap once the following issue gets figured out:
+          #        https://github.com/actions/runner-images/issues/7522
+          max_tries=10
+          i=0
+          until create-dmg \
+                  --no-internet-enable \
+                  --format ULFO \
+                  --background ../packaging/macos/dmg-background.png \
+                  --hide-extension 'Notes Better.app' \
+                  --icon 'Notes Better.app' 180 170 \
+                  --icon-size 160 \
+                  --text-size 12 \
+                  --volname Notes \
+                  --volicon ../src/images/notes_icon.icns \
+                  --window-size 660 400 \
+                  --app-drop-link 480 170 \
+                  '${{ steps.vars.outputs.file_name }}' \
+                  'Notes Better.app'
+          do
+              if [ $i -eq $max_tries ]
+              then
+                  echo 'Error: create-dmg did not succeed even after 10 tries.'
+                  exit 1
+              fi
+              ((i++))
+          done
 
       - name: Notarize
         if: github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request'
