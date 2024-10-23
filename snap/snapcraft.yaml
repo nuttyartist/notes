@@ -113,7 +113,6 @@ parts:
       - -DGIT_REVISION=ON
       - -DPRO_VERSION=OFF # Note: You may want to remove this option if you're building the snap yourself.
       - -DUPDATE_CHECKER=OFF
-      - -DUSE_QT_VERSION=6
     parse-info:
       - usr/share/metainfo/io.github.nuttyartist.notes.metainfo.xml
     build-packages:

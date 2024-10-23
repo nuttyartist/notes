@@ -20,10 +20,6 @@ int main(int argc, char *argv[])
     app.setDesktopFileName(APP_ID);
 #endif
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0) && QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    app.setAttribute(Qt::AA_DisableWindowContextHelpButton);
-#endif
-
     if (QFontDatabase::addApplicationFont(":/fonts/fontawesome/fa-solid-900.ttf") < 0)
         qWarning() << "FontAwesome Solid cannot be loaded !";
 

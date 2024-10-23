@@ -62,9 +62,6 @@ UpdaterWindow::UpdaterWindow(QWidget *parent)
 
     /* Initialize the UI */
     m_ui->setupUi(this);
-#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
-    setWindowFlag(Qt::WindowContextHelpButtonHint, false);
-#endif
     setWindowTitle(qApp->applicationName() + " " + tr("Updater"));
 
     /* Change fonts */
@@ -557,11 +554,7 @@ void UpdaterWindow::mousePressEvent(QMouseEvent *event)
         if (event->position().x() < width() - 5 && event->position().x() > 5
             && event->position().toPoint().y() < height() - 5
             && event->position().toPoint().y() > 5) {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
             m_canMoveWindow = !window()->windowHandle()->startSystemMove();
-#else
-            m_canMoveWindow = true;
-#endif
             m_mousePressX = event->position().toPoint().x();
             m_mousePressY = event->position().toPoint().y();
         }

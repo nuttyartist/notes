@@ -7,13 +7,7 @@
 class FontLoader
 {
 public:
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    QFontDatabase m_fontDatabase;
-    FontLoader();
-#else
     FontLoader() = default;
-#endif
-
     ~FontLoader() = default;
 
     static FontLoader &getInstance()

@@ -9,14 +9,12 @@ It's impossible to create a guide that will work for all Linux distros out there
 | Arch Linux[^3]               | `cmake` `gcc` `git` `qt6-base` `qt6-declarative`                                              | `hicolor-icon-theme` `qt6-base` `qt6-declarative`                                                                                                                                                                                                           |
 | Fedora 37 - 39               | `cmake` `gcc` `git` `libxkbcommon-devel` `qt6-qtbase-private-devel` `qt6-qtdeclarative-devel` | `qt6-qtbase-gui` `qt6-qtdeclarative`                                                                                                                                                                                                                        |
 | openSUSE Leap 15[^4]         | `cmake` `gcc` `git` `qt6-base-private-devel` `qt6-declarative-devel`                          | `libQt6Concurrent6` `libQt6Gui6` `qt6-sql-sqlite`                                                                                                                                                                                                           |
-| Ubuntu 20.04[^5]             | `cmake` `g++` `git` `qtbase5-private-dev` `qt5qtdeclarative5-dev`                             | `libqt5network5` `libqt5sql5` `libqt5widgets5` `qml-module-qtquick2` `qml-module-qtquick-controls2` `qml-module-qtquick-window2`                                                                                                                            |
 | Ubuntu 22.04 - 23.04         | `cmake` `g++` `git` `qt6-base-private-dev` `qt6-declarative-dev` `libgl-dev`                  | `libqt6network6` `libqt6sql6` `libqt6widgets6` `qml6-module-qtqml-workerscript` `qml6-module-qtquick-controls` `qml6-module-qtquick-layouts` `qml6-module-qtquick-particles` `qml6-module-qtquick-templates` `qml6-module-qtquick-window` `qt6-qpa-plugins` |
 
 [^1]: These packages are only required to build Notes, meaning you can remove all of them (or some of them) afterward.
 [^2]: These packages are required to actually run Notes.
 [^3]: We recommend building and installing through the [official AUR package](https://aur.archlinux.org/packages/notes).
 [^4]: You may need to tell `cmake` to use use GCC 8 (or newer), e.g. run `export CXX=g++-10` before you invoke `cmake`.
-[^5]: This distro can only build Notes with Qt 5.
 
 ### Build options
 
