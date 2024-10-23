@@ -8,24 +8,13 @@ jobs:
   # NOTE: This job uses a fixed Qt version (set in the 'qt-version' key below)!
   # So, remember to keep it updated whenever a new Qt version is available on aqtinstall.
   build-aqtinstall:
-    name: Build (${{ matrix.arch }}, ${{ matrix.build-type }}, Qt ${{ matrix.qt-version }}, ${{ matrix.os }})
+    name: Build (${{ matrix.build-type }}, Qt ${{ matrix.qt-version }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: windows-2019
-            arch: x64
-            qt-version: 5.15.2
-            build-type: release
-
-          - os: windows-2019
-            arch: x86
-            qt-version: 5.15.2
-            build-type: release
-
-          - os: windows-2019
-            arch: x64
             qt-version: 6.4.3
             build-type: release
     outputs:
@@ -46,26 +35,26 @@ jobs:
           if ('${{ github.ref_type }}' -ne 'tag') {
               $version += "+g$($env:GITHUB_SHA.Substring(0,7))"
           }
-          $artifact_name = "Notes_$version-Qt${{ matrix.qt-version }}-${{ matrix.arch }}"
+          $artifact_name = "Notes_$version-Qt${{ matrix.qt-version }}-x64"
           Write-Output "version=$version" >> $env:GITHUB_OUTPUT
           Write-Output "artifact_name=$artifact_name" >> $env:GITHUB_OUTPUT
 
-      - name: Setup MSVC (${{ matrix.arch }})
+      - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
         with:
-          arch: ${{ matrix.arch }}
+          arch: x64
 
-      - name: Install Qt ${{ matrix.qt-version }} (aqtinstall, ${{ matrix.arch }})
+      - name: Install Qt ${{ matrix.qt-version }} (aqtinstall)
         uses: jurplel/install-qt-action@v4
         with:
           version: ${{ matrix.qt-version }}
           cache: true
-          arch: ${{ matrix.arch == 'x86' && 'win32_msvc2019' || 'win64_msvc2019_64' }}
+          arch: win64_msvc2019_64
 
       # Details about this OpenSSL build: https://kb.firedaemon.com/support/solutions/articles/4000121705
       # TODO: Remove/tweak this step if/when we get rid of the x86 build or upgrade to Qt 6.5+.
       - name: Download OpenSSL 1.x binaries from FireDaemon
-        if: ${{ startsWith(matrix.qt-version, '5.') || startsWith(matrix.qt-version, '6.4.') }}
+        if: startsWith(matrix.qt-version, '6.4.')
         run: |
           $out_file = "openssl-1.1.1w.zip"
           Invoke-WebRequest -Uri https://download.firedaemon.com/FireDaemon-OpenSSL/openssl-1.1.1w.zip -OutFile $env:Temp\$out_file
@@ -75,7 +64,7 @@ jobs:
       - name: Setup MSVC problem matcher
         uses: ammaraskar/msvc-problem-matcher@0.3.0
 
-      - name: Build (${{ matrix.build-type }}, ${{ matrix.arch }})
+      - name: Build (${{ matrix.build-type }})
         env:
           VERBOSE: 1
         run: |
@@ -88,49 +77,38 @@ jobs:
           cmake --build build
 
       - name: (FIXME) Run qmllint
-        if: startsWith(matrix.qt-version, '6.')
         run: |
           cmake --build build --target all_qmllint || $(exit 0)
 
-      - name: Install (${{ matrix.build-type }}, ${{ matrix.arch }})
+      - name: Install (${{ matrix.build-type }})
         run: |
           cmake --install build --prefix build
 
-      - name: Deploy (${{ matrix.build-type }}, ${{ matrix.arch }})
+      - name: Deploy (${{ matrix.build-type }})
         run: |
-          windeployqt ${{ startsWith(matrix.qt-version, '5.') && '--no-qmltooling' || ' ' }} --qmldir src\qml build\bin
+          windeployqt --qmldir src\qml build\bin
 
       - name: Remove unnecessary Qt plugins and libraries
         run: |
           Set-Location build\bin
           # We ship all required runtime DLLs individually.
           Remove-Item -Verbose vc_redist.*.exe
-          if ('${{ matrix.qt-version }}'.StartsWith('5.')) {
-              # The bearer plugin has caused problems for us in the past. Plus, it was removed altogether in Qt 6.
-              Remove-Item -Verbose -Recurse bearer
-          }
           # We only use the SQLite Qt driver, so it's fine to delete others.
           Remove-Item -Verbose sqldrivers\qsqlodbc.dll
           Remove-Item -Verbose sqldrivers\qsqlpsql.dll
 
-      - name: Include required runtime libraries (${{ matrix.build-type }}, ${{ matrix.arch }})
+      - name: Include required runtime libraries (${{ matrix.build-type }})
         run: |
           Set-Location build\bin
 
-          if ('${{ matrix.arch }}' -ieq 'x64') {
-              $openssl_lib_suffix = '-x64'
-          } else {
-              $openssl_lib_suffix = ''
-          }
-
           # Include OpenSSL libraries.
-          Copy-Item $env:Temp\OpenSSL\${{ matrix.arch }}\bin\libcrypto-1_1$openssl_lib_suffix.dll
-          Copy-Item $env:Temp\OpenSSL\${{ matrix.arch }}\bin\libssl-1_1$openssl_lib_suffix.dll
+          Copy-Item $env:Temp\OpenSSL\x64\bin\libcrypto-1_1-x64.dll
+          Copy-Item $env:Temp\OpenSSL\x64\bin\libssl-1_1-x64.dll
 
           # Also include OpenSSL debug symbols (when building Notes in debug mode).
           if ('${{ matrix.build-type }}' -ieq 'debug') {
-              Copy-Item $env:Temp\OpenSSL\${{ matrix.arch }}\bin\libcrypto-1_1$openssl_lib_suffix.pdb
-              Copy-Item $env:Temp\OpenSSL\${{ matrix.arch }}\bin\libssl-1_1$openssl_lib_suffix.pdb
+              Copy-Item $env:Temp\OpenSSL\x64\bin\libcrypto-1_1-x64.pdb
+              Copy-Item $env:Temp\OpenSSL\x64\bin\libssl-1_1-x64.pdb
           }
 
           # Include MSVC 2019 runtime libraries.
@@ -139,33 +117,25 @@ jobs:
                   # XXX: Hack to work around this issue: https://github.com/actions/runner-images/issues/10819
                   $env:VCToolsRedistDir = -join ($env:VCINSTALLDIR, "Redist\MSVC\", $env:VCToolsVersion, "\")
               }
-              Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\msvcp140.dll
-              Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\msvcp140_1.dll
-
-              # Only Qt 6 builds also need msvcp140_2.dll
-              if ('${{ matrix.qt-version }}'.StartsWith('6')) {
-                  Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\msvcp140_2.dll
-              }
-
-              Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\vcruntime140.dll
-              if ('${{ matrix.arch }}' -ieq 'x64') {
-                  # Only 64-bit builds also need 'vcruntime140_1.dll' (tested on Windows 7)
-                  Copy-Item $env:VCToolsRedistDir\${{ matrix.arch }}\Microsoft.VC142.CRT\vcruntime140_1.dll
-              }
+              Copy-Item $env:VCToolsRedistDir\x64\Microsoft.VC142.CRT\msvcp140.dll
+              Copy-Item $env:VCToolsRedistDir\x64\Microsoft.VC142.CRT\msvcp140_1.dll
+              Copy-Item $env:VCToolsRedistDir\x64\Microsoft.VC142.CRT\msvcp140_2.dll
+              Copy-Item $env:VCToolsRedistDir\x64\Microsoft.VC142.CRT\vcruntime140.dll
+              Copy-Item $env:VCToolsRedistDir\x64\Microsoft.VC142.CRT\vcruntime140_1.dll
           } else {
               # On debug builds, the libraries above are included automatically, so we only need 'urtcbased.dll'.
-              Copy-Item $env:WindowsSdkBinPath\${{ matrix.arch }}\ucrt\ucrtbased.dll
+              Copy-Item $env:WindowsSdkBinPath\x64\ucrt\ucrtbased.dll
           }
 
-      - name: Upload artifacts (${{ matrix.build-type }}, ${{ matrix.arch }})
+      - name: Upload artifacts (${{ matrix.build-type }})
         uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
           name: ${{ steps.vars.outputs.artifact_name }}-${{ runner.os }}-${{ matrix.build-type }}
           path: build\bin
 
-  unified-installer:
-    name: Unified x64-x86 Installer
+  installer:
+    name: Installer
     needs: build-aqtinstall
     runs-on: windows-2019
     steps:
@@ -178,29 +148,18 @@ jobs:
           path: artifacts
           pattern: '*Windows*'
 
-      - name: Ensure a 64-bit Qt 6 build is present
+      - name: Ensure a x64 Qt 6 build is present
         run: |
           Set-Location artifacts
           $x64_build = Get-ChildItem -Filter '*Qt6*-x64-Windows-release' -Attributes Directory |
               Sort-Object -Property @{Expression = "Name"; Descending = $true} |
               Select-Object -First 1
           if (!$x64_build) {
-              Throw 'Could not find a 64-bit Qt 6 build.'
+              Throw 'Could not find a x64 Qt 6 build.'
           }
           Move-Item $x64_build Notes64
 
-      - name: Ensure a 32-bit Qt 5 build is present
-        run: |
-          Set-Location artifacts
-          $x86_build = Get-ChildItem -Filter '*Qt5*-x86-Windows-release' -Attributes Directory |
-              Sort-Object -Property @{Expression = "Name"; Descending = $true} |
-              Select-Object -First 1
-          if (!$x86_build) {
-              Throw 'Could not find a 32-bit Qt 5 build.'
-          }
-          Move-Item $x86_build Notes32
-
-      - name: Create unified installer
+      - name: Create installer
         run: |
           Set-Location artifacts
           Copy-Item ..\packaging\windows\Notes_Inno_Script_Github.iss
@@ -214,7 +173,7 @@ jobs:
         run: |
           Set-Location artifacts
           $inno_setup_manifest = ".\installer\Setup-Manifest.txt"
-          $windeployqt_paths = @(".\Notes32", ".\Notes64")
+          $windeployqt_paths = @(".\Notes64")
 
           $inno_setup_files = @()
           Get-Content -LiteralPath $inno_setup_manifest -ErrorAction Stop | Select-Object -Skip 1 | Foreach-Object {
@@ -244,7 +203,7 @@ jobs:
           }
           Write-Host "SUCCESS: List of files in the installer matches the ones copied by windeployqt."
 
-      - name: Upload unified installer artifact
+      - name: Upload installer artifact
         uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error

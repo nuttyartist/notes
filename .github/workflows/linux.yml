@@ -9,7 +9,7 @@ env:
 
 jobs:
   deb:
-    name: deb (${{ matrix.build-type }}, Qt ${{ matrix.qt-version-major }}, ${{ matrix.image }})
+    name: deb (${{ matrix.build-type }}, Qt 6, ${{ matrix.image }})
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -18,20 +18,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Ubuntu's release cycle: https://wiki.ubuntu.com/Releases
-          - image: ubuntu-20_04
-            build-script: ubuntu_deb_entrypoint.sh
-            qt-version-major: 5
-            build-type: release
-
           - image: ubuntu-22_04
             build-script: ubuntu_deb_entrypoint.sh
-            qt-version-major: 6
             build-type: release
 
           - image: ubuntu-23_10
             build-script: ubuntu_deb_entrypoint.sh
-            qt-version-major: 6
             build-type: release
     steps:
       - name: Checkout code
@@ -75,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
-          name: ${{ steps.build.outputs.deb_name }}-qt${{ matrix.qt-version-major }}-${{ steps.build.outputs.distro_name }}-${{ matrix.build-type }}
+          name: ${{ steps.build.outputs.deb_name }}-qt6-${{ steps.build.outputs.distro_name }}-${{ matrix.build-type }}
           path: ${{ steps.build.outputs.deb_path }}
 
       - name: Login to GitHub Container Registry
@@ -104,7 +96,7 @@ jobs:
           tags: ${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}
 
   rpm:
-    name: rpm (${{ matrix.build-type }}, Qt ${{ matrix.qt-version-major }}, ${{ matrix.image }})
+    name: rpm (${{ matrix.build-type }}, Qt 6, ${{ matrix.image }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -113,13 +105,11 @@ jobs:
           # Fedora's release cycle: https://endoflife.date/fedora
           - image: fedora-38
             build-script: rpm_entrypoint.sh
-            qt-version-major: 6
             build-type: release
 
           # openSUSE's release cycle: https://endoflife.date/opensuse
           - image: opensuse-15_5
             build-script: rpm_entrypoint.sh
-            qt-version-major: 6
             build-type: release
     steps:
       - name: Checkout code
@@ -163,7 +153,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
-          name: ${{ steps.build.outputs.rpm_name }}-qt${{ matrix.qt-version-major }}-${{ steps.build.outputs.distro_name }}-${{ matrix.build-type }}
+          name: ${{ steps.build.outputs.rpm_name }}-qt6-${{ steps.build.outputs.distro_name }}-${{ matrix.build-type }}
           path: ${{ steps.build.outputs.rpm_path }}
 
       - name: Login to GitHub Container Registry
@@ -192,20 +182,14 @@ jobs:
           tags: ${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}
 
   appimage:
-    name: AppImage (${{ matrix.build-type }}, Qt ${{ matrix.qt-version-major }}, ${{ matrix.image }})
+    name: AppImage (${{ matrix.build-type }}, Qt 6, ${{ matrix.image }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          - image: appimage-qt5
-            build-script: appimage_entrypoint.sh
-            qt-version-major: 5
-            build-type: release
-
           - image: appimage-qt6
             build-script: appimage_entrypoint.sh
-            qt-version-major: 6
             build-type: release
     steps:
       - name: Checkout code
@@ -246,7 +230,6 @@ jobs:
         run: docker run --rm -v "${GITHUB_OUTPUT}:/GITHUB_OUTPUT" -v "$(pwd):/src" -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' -t ${{ matrix.build-type }} ${{ github.ref_type == 'tag' && '-n' || ' ' }}
 
       - name: (FIXME) Run qmllint
-        if: endsWith(matrix.image, 'qt6')
         run: docker run --rm -v "$(pwd):/src" --entrypoint '' -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' cmake --build build --target all_qmllint || true
 
       - name: Upload AppImage artifact

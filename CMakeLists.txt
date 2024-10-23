@@ -12,9 +12,6 @@ string(TIMESTAMP CURRENT_YEAR "%Y")
 set(CMAKE_OSX_DEPLOYMENT_TARGET
     "10.15"
     CACHE STRING "Minimum macOS version to target for deployment")
-set(USE_QT_VERSION
-    ""
-    CACHE STRING "Use a specific version of Qt to build the app")
 option(GIT_REVISION
        "Append the current git revision to the app's version string" OFF)
 option(UPDATE_CHECKER
@@ -56,43 +53,14 @@ set(QT_COMPONENTS
     Widgets
     Quick)
 
-# No Qt version was specified, try to use either Qt 6 (preferred) or Qt 5.
-if(USE_QT_VERSION STREQUAL "")
-  # This can probably be simplified once the following bug gets resolved:
-  # https://gitlab.kitware.com/cmake/cmake/-/issues/23575
-  message(STATUS "Trying to find Qt 6...")
+message(STATUS "Trying to find Qt 6...")
+find_package(QT NAMES Qt6 QUIET)
 
-  find_package(QT NAMES Qt6 QUIET)
-
-  if(NOT DEFINED QT_VERSION_MAJOR)
-    message(STATUS "Could not find Qt 6, will try Qt 5 next...")
-
-    find_package(QT NAMES Qt5 QUIET)
-
-    if(NOT DEFINED QT_VERSION_MAJOR)
-      message(FATAL_ERROR "Could not find Qt 5, aborting compilation.")
-    endif()
-  endif()
-
-  find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS ${QT_COMPONENTS})
-else()
-  if(NOT USE_QT_VERSION STREQUAL "5" AND NOT USE_QT_VERSION STREQUAL "6")
-    message(
-      FATAL_ERROR
-        "An unsupported version of Qt was specified: '${USE_QT_VERSION}'. Valid values are: 5 or 6."
-    )
-  endif()
-  message(STATUS "Trying to find Qt ${USE_QT_VERSION} (manually specified)...")
-
-  find_package(QT NAMES Qt${USE_QT_VERSION} QUIET)
-
-  if(NOT DEFINED QT_VERSION_MAJOR)
-    message(
-      FATAL_ERROR "Could not find Qt ${USE_QT_VERSION}, aborting compilation.")
-  endif()
-
-  find_package(Qt${USE_QT_VERSION} REQUIRED COMPONENTS ${QT_COMPONENTS})
+if(NOT DEFINED QT_VERSION_MAJOR OR QT_VERSION_MAJOR LESS 6)
+  message(STATUS "Could not find Qt 6, aborting compilation.")
 endif()
+
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS ${QT_COMPONENTS})
 
 message(STATUS "Success! Configuration details:")
 message(STATUS "App name: ${PROJECT_NAME}")
@@ -210,10 +178,6 @@ set(SOURCES
     ${PROJECT_SOURCE_DIR}/src/fonts.qrc
     ${PROJECT_SOURCE_DIR}/src/images.qrc
     ${PROJECT_SOURCE_DIR}/src/styles.qrc)
-
-if(QT_VERSION VERSION_LESS 6.0)
-  list(APPEND SOURCES ${PROJECT_SOURCE_DIR}/src/qml.qrc)
-endif()
 
 # Third-party source files.
 set(SOURCES_3RD_PARTY
@@ -490,16 +454,10 @@ elseif(UNIX)
 
   # deb-specific
   set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
-  if(QT_VERSION_MAJOR VERSION_GREATER_EQUAL 6)
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "qt6-qpa-plugins")
-    if(QT_VERSION_MINOR VERSION_GREATER_EQUAL 2)
-      set(CPACK_DEBIAN_PACKAGE_DEPENDS
-          "${CPACK_DEBIAN_PACKAGE_DEPENDS}, qml6-module-qtqml-workerscript, qml6-module-qtquick-controls, qml6-module-qtquick-layouts, qml6-module-qtquick-particles, qml6-module-qtquick-templates, qml6-module-qtquick-window"
-      )
-    endif()
-  elseif(QT_VERSION_MAJOR VERSION_EQUAL 5)
+  set(CPACK_DEBIAN_PACKAGE_DEPENDS "qt6-qpa-plugins")
+  if(QT_VERSION_MINOR VERSION_GREATER_EQUAL 2)
     set(CPACK_DEBIAN_PACKAGE_DEPENDS
-        "qml-module-qtquick2, qml-module-qtquick-controls2, qml-module-qtquick-window2"
+        "${CPACK_DEBIAN_PACKAGE_DEPENDS}, qml6-module-qtqml-workerscript, qml6-module-qtquick-controls, qml6-module-qtquick-layouts, qml6-module-qtquick-particles, qml6-module-qtquick-templates, qml6-module-qtquick-window"
     )
   endif()
   set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
@@ -508,16 +466,14 @@ elseif(UNIX)
 
   # rpm-specific
   set(CPACK_RPM_FILE_NAME RPM-DEFAULT)
-  if(QT_VERSION_MAJOR VERSION_GREATER_EQUAL 6)
-    if(UNIX
-       AND NOT APPLE
-       AND EXISTS /etc/os-release)
-      file(READ /etc/os-release DISTRO_INFO)
-      if(DISTRO_INFO MATCHES "SUSE")
-        # Note: Different from Fedora 36, the SQLite library we need is not a dependency
-        # of the base Qt 6 package on openSUSE Leap 15.4, so we have to manually include it here.
-        set(CPACK_RPM_PACKAGE_REQUIRES "qt6-sql-sqlite")
-      endif()
+  if(UNIX
+     AND NOT APPLE
+     AND EXISTS /etc/os-release)
+    file(READ /etc/os-release DISTRO_INFO)
+    if(DISTRO_INFO MATCHES "SUSE")
+      # Note: Different from Fedora 36, the SQLite library we need is not a dependency
+      # of the base Qt 6 package on openSUSE Leap 15.4, so we have to manually include it here.
+      set(CPACK_RPM_PACKAGE_REQUIRES "qt6-sql-sqlite")
     endif()
   endif()
   set(CPACK_RPM_PACKAGE_LICENSE MPL-2.0)

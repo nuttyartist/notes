@@ -204,11 +204,7 @@ void MainWindow::InitData()
             setButtonsAndFieldsEnabled(true);
         });
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
         QFuture<void> migration = QtConcurrent::run(&MainWindow::migrateFromV0_9_0, this);
-#else
-        QFuture<void> migration = QtConcurrent::run(this, &MainWindow::migrateFromV0_9_0);
-#endif
         watcher->setFuture(migration);
     }
     /// Check if it is running with an argument (ex. hide)
@@ -1040,10 +1036,8 @@ void MainWindow::setupEditorSettings()
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
     QUrl source("qrc:/qt/qml/EditorSettings.qml");
-#elif QT_VERSION > QT_VERSION_CHECK(5, 12, 8)
-    QUrl source("qrc:/qml/EditorSettings.qml");
 #else
-    QUrl source("qrc:/qml/EditorSettingsQt512.qml");
+    QUrl source("qrc:/qml/EditorSettings.qml");
 #endif
 
     m_editorSettingsQuickView.rootContext()->setContextProperty("mainWindow", this);
@@ -1138,11 +1132,7 @@ void MainWindow::setCurrentFontBasedOnTypeface(FontTypeface::Value selectedFontT
 
     // Set tab width
     QFontMetrics currentFontMetrics(m_currentSelectedFont);
-#if QT_VERSION < QT_VERSION_CHECK(5, 11, 0)
-    m_textEdit->setTabStopWidth(4 * currentFontMetrics.width(' '));
-#else
     m_textEdit->setTabStopDistance(4 * currentFontMetrics.horizontalAdvance(QLatin1Char(' ')));
-#endif
 
     alignTextEditText();
 
@@ -1212,11 +1202,7 @@ void MainWindow::alignTextEditText()
             QString("The quick brown fox jumps over the lazy dog the quick brown fox jumps over "
                     "the lazy dog the quick brown fox jumps over the lazy dog");
     limitingStringSample.truncate(m_textEdit->lineWrapColumnOrWidth());
-#if QT_VERSION < QT_VERSION_CHECK(5, 11, 0)
-    qreal textSamplePixelsWidth = fm.width(limitingStringSample);
-#else
     qreal textSamplePixelsWidth = fm.horizontalAdvance(limitingStringSample);
-#endif
     m_noteEditorLogic->setCurrentAdaptableEditorPadding(
             (m_textEdit->width() - textSamplePixelsWidth) / 2 - 10);
 
@@ -3186,11 +3172,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     if (event->buttons() == Qt::LeftButton) {
         if (isTitleBar(m_mousePressX, m_mousePressY)) {
 
-#  if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
             m_canMoveWindow = !window()->windowHandle()->startSystemMove();
-#  else
-            m_canMoveWindow = true;
-#  endif
 
 #  ifndef __APPLE__
         } else if (!isMaximized() && !isFullScreen()) {
@@ -3439,12 +3421,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 
     if (event->button() == Qt::LeftButton) {
         if (isTitleBar(event->position().toPoint().x(), event->position().toPoint().y())) {
-
-#  if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
             m_canMoveWindow = !window()->windowHandle()->startSystemMove();
-#  else
-            m_canMoveWindow = true;
-#  endif
             m_mousePressX = event->position().toPoint().x();
             m_mousePressY = event->position().toPoint().y();
         }

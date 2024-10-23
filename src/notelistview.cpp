@@ -534,9 +534,7 @@ void NoteListView::startDrag(Qt::DropActions supportedActions)
         drag->deleteLater();
         mimeData->deleteLater();
     }
-#if QT_VERSION > QT_VERSION_CHECK(5, 15, 0)
     d->dropEventMoved = false;
-#endif
     m_isDragging = false;
     // Reset the drop indicator
     d->dropIndicatorRect = QRect();
@@ -881,19 +879,8 @@ QPixmap NoteListViewPrivate::renderToPixmap(const QModelIndexList &indexes, QRec
     QItemViewPaintPairs paintPairs = draggablePaintPairs(indexes, r);
     if (paintPairs.isEmpty())
         return QPixmap();
-#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-    qreal scale = 1.0f;
-    Q_Q(const QAbstractItemView);
-    QWidget *window = q->window();
-    if (window) {
-        QWindow *windowHandle = window->windowHandle();
-        if (windowHandle)
-            scale = windowHandle->devicePixelRatio();
-    }
-#else
     QWindow *window = windowHandle(WindowHandleMode::Closest);
     const qreal scale = window ? window->devicePixelRatio() : qreal(1);
-#endif
 
     QPixmap pixmap(r->size() * scale);
     pixmap.setDevicePixelRatio(scale);
@@ -905,13 +892,9 @@ QPixmap NoteListViewPrivate::renderToPixmap(const QModelIndexList &indexes, QRec
     for (int j = 0; j < paintPairs.count(); ++j) {
         option.rect = paintPairs.at(j).rect.translated(-r->topLeft());
         const QModelIndex &current = paintPairs.at(j).index;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
         Q_Q(const QAbstractItemView);
         adjustViewOptionsForIndex(&option, current);
         q->itemDelegateForIndex(current)->paint(&painter, option, current);
-#else
-        delegateForIndex(current)->paint(&painter, option, current);
-#endif
     }
     return pixmap;
 }
@@ -919,11 +902,7 @@ QPixmap NoteListViewPrivate::renderToPixmap(const QModelIndexList &indexes, QRec
 QStyleOptionViewItem NoteListViewPrivate::viewOptionsV1() const
 {
     Q_Q(const NoteListView);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     QStyleOptionViewItem option;
     q->initViewItemOption(&option);
     return option;
-#else
-    return q->viewOptions();
-#endif
 }

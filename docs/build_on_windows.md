@@ -2,13 +2,13 @@ These are common steps to build Notes from source on Windows.
 
 ### Requirements
 
-Windows 7 (or newer) is required to build Notes.
+Windows 10 21H2 (1809 or later) is required to build Notes.
 
 Additionally, you need to install the following tools/components:
 
 - [Git](https://gitforwindows.org/)
 - [Microsoft Visual C++](https://visualstudio.microsoft.com/downloads) `>= 2017` *(only the build tools are required)*
-- [Qt](https://www.qt.io/download-qt-installer) `>= 5.12` *(using the latest version is recommended)*
+- [Qt](https://www.qt.io/download-qt-installer) `>= 6.0` *(using the latest version is recommended)*
   - [CMake](https://cmake.org/download/) *(can be installed via the Qt installer)*
   - [Ninja](https://ninja-build.org/) *(can be installed via the Qt installer)*
 
@@ -29,7 +29,7 @@ git clone https://github.com/nuttyartist/notes.git --recurse-submodules
 cd notes
 ```
 
-Now, let's configure our build environment. In this example, we will be using Microsoft Visual C++ 2017 and Qt 5.15.2 (the MSVC 2019 build), targeting a 64-bit system.
+Now, let's configure our build environment. In this example, we will be using Microsoft Visual C++ 2017 and Qt 6.4.3 (the MSVC 2019 build), targeting a 64-bit system.
 
 Depending on what versions of these applications you have installed, you may need to make some path adjustments in the following steps.
 
@@ -44,8 +44,8 @@ Now, we need to add CMake, Ninja, Qt sources and tools to our `Path` environment
 ```shell
 set Path=C:\Qt\Tools\CMake_64\bin;%Path%
 set Path=C:\Qt\Tools\Ninja;%Path%
-set Path=C:\Qt\5.15.2\msvc2019_64;%Path%
-set Path=C:\Qt\5.15.2\msvc2019_64\bin;%Path%
+set Path=C:\Qt\6.4.3\msvc2019_64;%Path%
+set Path=C:\Qt\6.4.3\msvc2019_64\bin;%Path%
 ```
 
 Optionally, if you want to dedicate all cores of your CPU to build Notes much faster, set this environment variable:
