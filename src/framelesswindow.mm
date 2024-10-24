@@ -99,7 +99,8 @@ void CFramelessWindow::initUI()
         return;
     }
 
-    // Since Qt 6.8 we need this to ask the QLayout to ignore the contents marginsto to make the window frameless on macOS
+    // Since Qt 6.8 we need this to ask the QLayout to ignore the contents marginsto to make the
+    // window frameless on macOS
     setAttribute(Qt::WA_ContentsMarginsRespectsSafeArea, false);
 
     AppObserver *observer = [[AppObserver alloc] init];

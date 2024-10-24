@@ -8,7 +8,7 @@ class NodeTreeViewPrivate : public QAbstractItemViewPrivate
     Q_DECLARE_PUBLIC(NodeTreeView)
 
 public:
-    NodeTreeViewPrivate() : QAbstractItemViewPrivate(){};
+    NodeTreeViewPrivate() : QAbstractItemViewPrivate() { };
     virtual ~NodeTreeViewPrivate() { }
 };
 

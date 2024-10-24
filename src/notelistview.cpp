@@ -109,7 +109,7 @@ void NoteListView::setIsPinnedNotesCollapsed(bool newIsPinnedNotesCollapsed)
     for (int i = 0; i < model()->rowCount(); ++i) {
         auto index = model()->index(i, 0);
         if (index.isValid()) {
-            emit itemDelegate()->sizeHintChanged(index);
+            emit itemDelegate() -> sizeHintChanged(index);
         }
     }
     update();

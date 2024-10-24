@@ -378,7 +378,8 @@ void MainWindow::setupMainWindow()
 #endif
 
 #if defined(Q_OS_MAC)
-    // Since Qt 6.8 we need this to ask the QLayout to ignore the contents marginsto to make the window frameless on macOS
+    // Since Qt 6.8 we need this to ask the QLayout to ignore the contents marginsto to make the
+    // window frameless on macOS
     ui->centralWidget->setAttribute(Qt::WA_LayoutOnEntireRect, true);
 #endif
 
