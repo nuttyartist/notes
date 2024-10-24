@@ -93,7 +93,7 @@ void NoteListModel::setListNote(const QVector<NodeData> &notes, const ListViewIn
     m_listViewInfo = inf;
     if ((!m_listViewInfo.isInTag)
         && (m_listViewInfo.parentFolderId != SpecialNodeID::TrashFolder)) {
-        for (const auto &note : qAsConst(notes)) {
+        for (const auto &note : std::as_const(notes)) {
             if (note.isPinnedNote()) {
                 m_pinnedList.append(note);
             } else {
@@ -404,14 +404,14 @@ bool NoteListModel::dropMimeData(const QMimeData *mime, Qt::DropAction action, i
     auto idl = QString::fromUtf8(mime->data(NOTE_MIME)).split(QStringLiteral(PATH_SEPARATOR));
     QSet<int> movedIds;
     QModelIndexList idxe;
-    for (const auto &id_s : qAsConst(idl)) {
+    for (const auto &id_s : std::as_const(idl)) {
         auto nodeId = id_s.toInt();
         idxe.append(getNoteIndex(nodeId));
     }
     emit rowsAboutToBeMovedC(idxe);
     beginResetModel();
     if (toPinned) {
-        for (const auto &index : qAsConst(idxe)) {
+        for (const auto &index : std::as_const(idxe)) {
             auto &note = getRef(index.row());
             if (!note.isPinnedNote()) {
                 note.setIsPinnedNote(true);
@@ -419,7 +419,7 @@ bool NoteListModel::dropMimeData(const QMimeData *mime, Qt::DropAction action, i
                 m_pinnedList.prepend(m_noteList.takeAt(index.row() - m_pinnedList.size()));
             }
         }
-        for (const auto &id_s : qAsConst(idl)) {
+        for (const auto &id_s : std::as_const(idl)) {
             auto nodeId = id_s.toInt();
             for (int i = 0; i < m_pinnedList.size(); ++i) {
                 if (m_pinnedList[i].id() == nodeId) {
@@ -430,7 +430,7 @@ bool NoteListModel::dropMimeData(const QMimeData *mime, Qt::DropAction action, i
             movedIds.insert(nodeId);
         }
     } else {
-        for (const auto &index : qAsConst(idxe)) {
+        for (const auto &index : std::as_const(idxe)) {
             auto &note = getRef(index.row());
             movedIds.insert(note.id());
             if (!note.isPinnedNote()) {
@@ -514,7 +514,7 @@ void NoteListModel::setNotesIsPinned(const QModelIndexList &indexes, bool isPinn
     if (isPinned) {
         emit rowsAboutToBeMovedC(needMovingIndexes);
         beginResetModel();
-        for (const auto &id : qAsConst(needMovingIds)) {
+        for (const auto &id : std::as_const(needMovingIds)) {
             auto index = getNoteIndex(id);
             if (!index.isValid()) {
                 continue;
@@ -541,7 +541,7 @@ void NoteListModel::setNotesIsPinned(const QModelIndexList &indexes, bool isPinn
     } else {
         emit rowsAboutToBeMovedC(needMovingIndexes);
         beginResetModel();
-        for (const auto &id : qAsConst(needMovingIds)) {
+        for (const auto &id : std::as_const(needMovingIds)) {
             auto index = getNoteIndex(id);
             if (!index.isValid()) {
                 continue;

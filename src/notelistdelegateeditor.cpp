@@ -518,11 +518,7 @@ void NoteListDelegateEditor::dragLeaveEvent(QDragLeaveEvent *event)
     Q_UNUSED(event);
 }
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 void NoteListDelegateEditor::enterEvent(QEnterEvent *event)
-#else
-void NoteListDelegateEditor::enterEvent(QEvent *event)
-#endif
 {
     m_containsMouse = true;
     QWidget::enterEvent(event);

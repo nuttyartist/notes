@@ -204,11 +204,7 @@ void MainWindow::InitData()
             setButtonsAndFieldsEnabled(true);
         });
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
         QFuture<void> migration = QtConcurrent::run(&MainWindow::migrateFromV0_9_0, this);
-#else
-        QFuture<void> migration = QtConcurrent::run(this, &MainWindow::migrateFromV0_9_0);
-#endif
         watcher->setFuture(migration);
     }
     /// Check if it is running with an argument (ex. hide)
@@ -379,6 +375,12 @@ void MainWindow::setupMainWindow()
 
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
     setAttribute(Qt::WA_TranslucentBackground);
+#endif
+
+#if defined(Q_OS_MAC)
+    // Since Qt 6.8 we need this to ask the QLayout to ignore the contents marginsto to make the
+    // window frameless on macOS
+    ui->centralWidget->setAttribute(Qt::WA_LayoutOnEntireRect, true);
 #endif
 
     // load stylesheet
@@ -1040,10 +1042,8 @@ void MainWindow::setupEditorSettings()
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
     QUrl source("qrc:/qt/qml/EditorSettings.qml");
-#elif QT_VERSION > QT_VERSION_CHECK(5, 12, 8)
-    QUrl source("qrc:/qml/EditorSettings.qml");
 #else
-    QUrl source("qrc:/qml/EditorSettingsQt512.qml");
+    QUrl source("qrc:/qml/EditorSettings.qml");
 #endif
 
     m_editorSettingsQuickView.rootContext()->setContextProperty("mainWindow", this);
@@ -1138,11 +1138,7 @@ void MainWindow::setCurrentFontBasedOnTypeface(FontTypeface::Value selectedFontT
 
     // Set tab width
     QFontMetrics currentFontMetrics(m_currentSelectedFont);
-#if QT_VERSION < QT_VERSION_CHECK(5, 11, 0)
-    m_textEdit->setTabStopWidth(4 * currentFontMetrics.width(' '));
-#else
     m_textEdit->setTabStopDistance(4 * currentFontMetrics.horizontalAdvance(QLatin1Char(' ')));
-#endif
 
     alignTextEditText();
 
@@ -1212,11 +1208,7 @@ void MainWindow::alignTextEditText()
             QString("The quick brown fox jumps over the lazy dog the quick brown fox jumps over "
                     "the lazy dog the quick brown fox jumps over the lazy dog");
     limitingStringSample.truncate(m_textEdit->lineWrapColumnOrWidth());
-#if QT_VERSION < QT_VERSION_CHECK(5, 11, 0)
-    qreal textSamplePixelsWidth = fm.width(limitingStringSample);
-#else
     qreal textSamplePixelsWidth = fm.horizontalAdvance(limitingStringSample);
-#endif
     m_noteEditorLogic->setCurrentAdaptableEditorPadding(
             (m_textEdit->width() - textSamplePixelsWidth) / 2 - 10);
 
@@ -1941,7 +1933,7 @@ void MainWindow::restoreStates()
             m_settingsDatabase->value(QStringLiteral("currentSelectTagsId"), QStringList{})
                     .toStringList();
     QSet<int> tags;
-    for (const auto &tagId : qAsConst(currentSelectTagsId)) {
+    for (const auto &tagId : std::as_const(currentSelectTagsId)) {
         tags.insert(tagId.toInt());
     }
     m_treeViewLogic->setLastSavedState(isSelectingFolder, currentSelectFolder, tags,
@@ -1950,7 +1942,7 @@ void MainWindow::restoreStates()
             m_settingsDatabase->value(QStringLiteral("currentSelectNotesId"), QStringList{})
                     .toStringList();
     QSet<int> notesId;
-    for (const auto &id : qAsConst(currentSelectNotes)) {
+    for (const auto &id : std::as_const(currentSelectNotes)) {
         notesId.insert(id.toInt());
     }
     m_listViewLogic->setLastSavedState(notesId);
@@ -3180,17 +3172,13 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         return;
     }
 
-    m_mousePressX = event->pos().x();
-    m_mousePressY = event->pos().y();
+    m_mousePressX = event->position().toPoint().x();
+    m_mousePressY = event->position().toPoint().y();
 
     if (event->buttons() == Qt::LeftButton) {
         if (isTitleBar(m_mousePressX, m_mousePressY)) {
 
-#  if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
             m_canMoveWindow = !window()->windowHandle()->startSystemMove();
-#  else
-            m_canMoveWindow = true;
-#  endif
 
 #  ifndef __APPLE__
         } else if (!isMaximized() && !isFullScreen()) {
@@ -3243,8 +3231,8 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 
 #  ifndef __APPLE__
     if (!m_canStretchWindow && !m_canMoveWindow) {
-        m_mousePressX = event->pos().x();
-        m_mousePressY = event->pos().y();
+        m_mousePressX = event->position().toPoint().x();
+        m_mousePressY = event->position().toPoint().y();
 
         if ((m_mousePressX < width() && m_mousePressX > width() - m_layoutMargin)
             && (m_mousePressY < m_layoutMargin && m_mousePressY > 0)) {
@@ -3298,8 +3286,8 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 #  endif
 
     if (m_canMoveWindow) {
-        int dx = event->globalX() - m_mousePressX;
-        int dy = event->globalY() - m_mousePressY;
+        int dx = event->globalPosition().x() - m_mousePressX;
+        int dy = event->globalPosition().y() - m_mousePressY;
         move(dx, dy);
     }
 
@@ -3314,11 +3302,11 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 
         switch (m_stretchSide) {
         case StretchSide::Right:
-            newWidth = abs(event->globalPos().x() - x() + 1);
+            newWidth = abs(event->globalPosition().x() - x() + 1);
             newWidth = newWidth < minimumWidth() ? minimumWidth() : newWidth;
             break;
         case StretchSide::Left:
-            newX = event->globalPos().x() - m_mousePressX;
+            newX = event->globalPosition().x() - m_mousePressX;
             newX = newX > 0 ? newX : 0;
             newX = newX > geometry().bottomRight().x() - minimumWidth()
                     ? geometry().bottomRight().x() - minimumWidth()
@@ -3327,7 +3315,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
             newWidth = newWidth < minimumWidth() ? minimumWidth() : newWidth;
             break;
         case StretchSide::Top:
-            newY = event->globalY() - m_mousePressY;
+            newY = event->globalPosition().y() - m_mousePressY;
             newY = newY < minY ? minY : newY;
             newY = newY > geometry().bottomRight().y() - minimumHeight()
                     ? geometry().bottomRight().y() - minimumHeight()
@@ -3337,18 +3325,18 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 
             break;
         case StretchSide::Bottom:
-            newHeight = abs(event->globalY() - y() + 1);
+            newHeight = abs(event->globalPosition().y() - y() + 1);
             newHeight = newHeight < minimumHeight() ? minimumHeight() : newHeight;
 
             break;
         case StretchSide::TopLeft:
-            newX = event->globalPos().x() - m_mousePressX;
+            newX = event->globalPosition().x() - m_mousePressX;
             newX = newX < 0 ? 0 : newX;
             newX = newX > geometry().bottomRight().x() - minimumWidth()
                     ? geometry().bottomRight().x() - minimumWidth()
                     : newX;
 
-            newY = event->globalY() - m_mousePressY;
+            newY = event->globalPosition().y() - m_mousePressY;
             newY = newY < minY ? minY : newY;
             newY = newY > geometry().bottomRight().y() - minimumHeight()
                     ? geometry().bottomRight().y() - minimumHeight()
@@ -3362,7 +3350,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 
             break;
         case StretchSide::BottomLeft:
-            newX = event->globalPos().x() - m_mousePressX;
+            newX = event->globalPosition().x() - m_mousePressX;
             newX = newX < 0 ? 0 : newX;
             newX = newX > geometry().bottomRight().x() - minimumWidth()
                     ? geometry().bottomRight().x() - minimumWidth()
@@ -3371,18 +3359,18 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
             newWidth = geometry().bottomRight().x() - newX + 1;
             newWidth = newWidth < minimumWidth() ? minimumWidth() : newWidth;
 
-            newHeight = event->globalY() - y() + 1;
+            newHeight = event->globalPosition().y() - y() + 1;
             newHeight = newHeight < minimumHeight() ? minimumHeight() : newHeight;
 
             break;
         case StretchSide::TopRight:
-            newY = event->globalY() - m_mousePressY;
+            newY = event->globalPosition().y() - m_mousePressY;
             newY = newY > geometry().bottomRight().y() - minimumHeight()
                     ? geometry().bottomRight().y() - minimumHeight()
                     : newY;
             newY = newY < minY ? minY : newY;
 
-            newWidth = event->globalPos().x() - x() + 1;
+            newWidth = event->globalPosition().x() - x() + 1;
             newWidth = newWidth < minimumWidth() ? minimumWidth() : newWidth;
 
             newHeight = geometry().bottomRight().y() - newY + 1;
@@ -3390,10 +3378,10 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 
             break;
         case StretchSide::BottomRight:
-            newWidth = event->globalPos().x() - x() + 1;
+            newWidth = event->globalPosition().x() - x() + 1;
             newWidth = newWidth < minimumWidth() ? minimumWidth() : newWidth;
 
-            newHeight = event->globalY() - y() + 1;
+            newHeight = event->globalPosition().y() - y() + 1;
             newHeight = newHeight < minimumHeight() ? minimumHeight() : newHeight;
 
             break;
@@ -3438,15 +3426,10 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     }
 
     if (event->button() == Qt::LeftButton) {
-        if (isTitleBar(event->pos().x(), event->pos().y())) {
-
-#  if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        if (isTitleBar(event->position().toPoint().x(), event->position().toPoint().y())) {
             m_canMoveWindow = !window()->windowHandle()->startSystemMove();
-#  else
-            m_canMoveWindow = true;
-#  endif
-            m_mousePressX = event->pos().x();
-            m_mousePressY = event->pos().y();
+            m_mousePressX = event->position().toPoint().x();
+            m_mousePressY = event->position().toPoint().y();
         }
     }
 
@@ -3467,8 +3450,8 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 
     if (m_canMoveWindow) {
         //        setCursor(Qt::ClosedHandCursor);
-        int dx = event->globalPos().x() - m_mousePressX;
-        int dy = event->globalY() - m_mousePressY;
+        int dx = event->globalPosition().x() - m_mousePressX;
+        int dy = event->globalPosition().y() - m_mousePressY;
         move(dx, dy);
     }
 }
@@ -3766,7 +3749,7 @@ double MainWindow::gaussianDist(double x, const double center, double sigma) con
 void MainWindow::mouseDoubleClickEvent(QMouseEvent *event)
 {
     if (m_useNativeWindowFrame || event->buttons() != Qt::LeftButton
-        || !isTitleBar(event->pos().x(), event->pos().y())) {
+        || !isTitleBar(event->position().toPoint().x(), event->position().toPoint().y())) {
         MainWindowBase::mouseDoubleClickEvent(event);
         return;
     }
@@ -3782,7 +3765,7 @@ void MainWindow::mouseDoubleClickEvent(QMouseEvent *event)
 /*!
  * \brief MainWindow::leaveEvent
  */
-void MainWindow::leaveEvent(QEvent *)
+void MainWindow::leaveEvent(QEvent * /*event*/)
 {
     unsetCursor();
 }

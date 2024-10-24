@@ -97,19 +97,11 @@ void CFramelessWindow::addIgnoreWidget(QWidget *widget)
     m_whiteList.append(widget);
 }
 
-#    if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 bool CFramelessWindow::nativeEvent(const QByteArray &eventType, void *message, qintptr *result)
-#    else
-bool CFramelessWindow::nativeEvent(const QByteArray &eventType, void *message, long *result)
-#    endif
 {
-// Workaround for known bug -> check Qt forum :
-// https://forum.qt.io/topic/93141/qtablewidget-itemselectionchanged/13
-#    if (QT_VERSION == QT_VERSION_CHECK(5, 11, 1))
-    MSG *msg = *reinterpret_cast<MSG **>(message);
-#    else
+    // Workaround for known bug -> check Qt forum :
+    // https://forum.qt.io/topic/93141/qtablewidget-itemselectionchanged/13
     MSG *msg = reinterpret_cast<MSG *>(message);
-#    endif
 
     switch (msg->message) {
     case WM_NCCALCSIZE: {

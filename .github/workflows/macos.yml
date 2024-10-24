@@ -9,18 +9,13 @@ jobs:
   # So it doesn't make much sense to have different build types other than 'debug' here.
   # The release dmg is built using aqtinstall instead (the job below this one).
   build-homebrew:
-    name: Build (${{ matrix.build-type }}, homebrew (qt${{ matrix.qt-version-major }}), ${{ matrix.os }})
+    name: Build (${{ matrix.build-type }}, homebrew (qt6), ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: macos-13
-            qt-version-major: 5
-            build-type: debug
-
-          - os: macos-13
-            qt-version-major: 6
             build-type: debug
     steps:
       - name: Checkout code
@@ -28,19 +23,9 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install Qt ${{ matrix.qt-version-major }} (homebrew)
+      - name: Install Qt 6 (homebrew)
         run: |
-          brew install ninja qt@${{ matrix.qt-version-major }} 
-
-      - name: Configure Qt ${{ matrix.qt-version-major }} (homebrew)
-        if: matrix.qt-version-major == 5
-        run: |
-          brew link qt@${{ matrix.qt-version-major }}
-          cat << EOF
-          LDFLAGS="-L/usr/local/opt/qt@${{ matrix.qt-version-major }}/lib"
-          export CPPFLAGS="-I/usr/local/opt/qt@${{ matrix.qt-version-major }}/include"
-          export PATH="/usr/local/opt/qt@${{ matrix.qt-version-major }}/bin:$PATH"
-          EOF >> ~/.bashrc
+          brew install ninja qt@6 
 
       - name: Setup CLang problem matcher
         # Technically, this action only supports GCC, but it seems to work well for Clang too.
@@ -55,13 +40,10 @@ jobs:
           cmake . --warn-uninitialized --warn-unused-vars \
               -G Ninja -B build \
               -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
-              -DCMAKE_PREFIX_PATH="$(brew --prefix qt@${{ matrix.qt-version-major }})" \
+              -DCMAKE_PREFIX_PATH="$(brew --prefix qt@6)" \
               -DPRO_VERSION=OFF
           cmake --build build
 
-  # Build the dmg disk image using the official Qt 5 release downloaded by aqtinstall.
-  # This is also done for Linux and Windows, just to make sure we use the exact same Qt version across all three OSes.
-  #
   # NOTE: This job uses a fixed Qt version (set in the 'qt-version' key below)!
   # So, remember to keep it updated whenever a new Qt version is available on aqtinstall.
   dmg-aqtinstall:
@@ -71,10 +53,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-13
-            qt-version: 5.15.2
-            build-type: release
-
           - os: macos-13
             qt-version: 6.5.2
             build-type: release
@@ -98,11 +76,7 @@ jobs:
           then
               version="${version}+g${GITHUB_SHA::7}"
           fi
-          arches='x86_64'
-          if [[ '${{ matrix.qt-version }}' == 6.* ]]
-          then
-              arches+='-arm64'
-          fi
+          arches='x86_64-arm64'
           artifact_name="Notes_${version}-Qt${{ matrix.qt-version }}-${arches}"
           if [ '${{ matrix.build-type }}' == 'debug' ]
           then
@@ -126,23 +100,20 @@ jobs:
 
       - name: Build (${{ matrix.build-type }})
         env:
-          # Only commercial Qt 5 supports targeting Apple Silicon at the moment:
-          # https://www.qt.io/blog/qt-on-apple-silicon
-          TARGET_ARCH: ${{ startsWith(matrix.qt-version, '6.') && 'x86_64;arm64' || 'x86_64' }}
+          TARGET_ARCH: x86_64;arm64
           VERBOSE: 1
         run: |
           export CMAKE_BUILD_PARALLEL_LEVEL=$(sysctl -n hw.logicalcpu)
           cmake . --warn-uninitialized --warn-unused-vars \
               -B build -G Ninja \
-              -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ startsWith(matrix.qt-version, '6.') && '11.0' || '10.15' }} \
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
               -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
               -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }} \
-              -DCMAKE_OSX_ARCHITECTURES="${{ env.TARGET_ARCH }}" \
+              -DCMAKE_OSX_ARCHITECTURES='x86_64;arm64' \
               -DPRO_VERSION=OFF
           cmake --build build
 
       - name: (FIXME) Run qmllint
-        if: startsWith(matrix.qt-version, '6.')
         run: |
           cmake --build build --target all_qmllint || true
 
@@ -157,17 +128,6 @@ jobs:
           # Rename the app folder to "Notes Better", so it doesn't conflict with macOS' "Notes" app.
           mv Notes.app 'Notes Better.app'
           macdeployqt 'Notes Better.app' -qmldir=../src/qml -appstore-compliant
-
-      - name: Remove unnecessary Qt plugins and libraries
-        run: |
-          set -x
-          set -e
-          cd 'build/Notes Better.app'
-          if [[ '${{ matrix.qt-version }}' == 5.* ]]
-          then
-              # The bearer plugin has caused problems for us in the past. Plus, it was removed altogether in Qt 6.
-              rm -rv Contents/PlugIns/bearer
-          fi
 
       - name: Import signing certificate
         if: github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request'
