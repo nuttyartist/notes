@@ -9,7 +9,7 @@ jobs:
   # So it doesn't make much sense to have different build types other than 'debug' here.
   # The release dmg is built using aqtinstall instead (the job below this one).
   build-homebrew:
-    name: Build (${{ matrix.build-type }}, homebrew (qt${{ matrix.qt-version-major }}), ${{ matrix.os }})
+    name: Build (${{ matrix.build-type }}, homebrew (qt5), ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -18,28 +18,23 @@ jobs:
           - os: macos-13
             qt-version-major: 5
             build-type: debug
-
-          - os: macos-13
-            qt-version-major: 6
-            build-type: debug
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Install Qt ${{ matrix.qt-version-major }} (homebrew)
+      - name: Install Qt 5 (homebrew)
         run: |
-          brew install ninja qt@${{ matrix.qt-version-major }} 
+          brew install ninja qt@5
 
-      - name: Configure Qt ${{ matrix.qt-version-major }} (homebrew)
-        if: matrix.qt-version-major == 5
+      - name: Configure Qt 5 (homebrew)
         run: |
-          brew link qt@${{ matrix.qt-version-major }}
+          brew link qt@5
           cat << EOF
-          LDFLAGS="-L/usr/local/opt/qt@${{ matrix.qt-version-major }}/lib"
-          export CPPFLAGS="-I/usr/local/opt/qt@${{ matrix.qt-version-major }}/include"
-          export PATH="/usr/local/opt/qt@${{ matrix.qt-version-major }}/bin:$PATH"
+          LDFLAGS="-L/usr/local/opt/qt@5/lib"
+          export CPPFLAGS="-I/usr/local/opt/qt@5/include"
+          export PATH="/usr/local/opt/qt@5/bin:$PATH"
           EOF >> ~/.bashrc
 
       - name: Setup CLang problem matcher
@@ -74,10 +69,6 @@ jobs:
           - os: macos-13
             qt-version: 5.15.2
             build-type: release
-
-          - os: macos-13
-            qt-version: 6.5.2
-            build-type: release
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -98,12 +89,7 @@ jobs:
           then
               version="${version}+g${GITHUB_SHA::7}"
           fi
-          arches='x86_64'
-          if [[ '${{ matrix.qt-version }}' == 6.* ]]
-          then
-              arches+='-arm64'
-          fi
-          artifact_name="Notes_${version}-Qt${{ matrix.qt-version }}-${arches}"
+          artifact_name="Notes_${version}-Qt${{ matrix.qt-version }}-x86_64"
           if [ '${{ matrix.build-type }}' == 'debug' ]
           then
               file_name="${artifact_name}-debug.dmg"
@@ -126,25 +112,17 @@ jobs:
 
       - name: Build (${{ matrix.build-type }})
         env:
-          # Only commercial Qt 5 supports targeting Apple Silicon at the moment:
-          # https://www.qt.io/blog/qt-on-apple-silicon
-          TARGET_ARCH: ${{ startsWith(matrix.qt-version, '6.') && 'x86_64;arm64' || 'x86_64' }}
           VERBOSE: 1
         run: |
           export CMAKE_BUILD_PARALLEL_LEVEL=$(sysctl -n hw.logicalcpu)
           cmake . --warn-uninitialized --warn-unused-vars \
               -B build -G Ninja \
-              -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ startsWith(matrix.qt-version, '6.') && '11.0' || '10.15' }} \
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 \
               -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
               -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }} \
-              -DCMAKE_OSX_ARCHITECTURES="${{ env.TARGET_ARCH }}" \
+              -DCMAKE_OSX_ARCHITECTURES=x86_64 \
               -DPRO_VERSION=OFF
           cmake --build build
-
-      - name: (FIXME) Run qmllint
-        if: startsWith(matrix.qt-version, '6.')
-        run: |
-          cmake --build build --target all_qmllint || true
 
       - name: Install (${{ matrix.build-type }})
         run: |
@@ -163,11 +141,8 @@ jobs:
           set -x
           set -e
           cd 'build/Notes Better.app'
-          if [[ '${{ matrix.qt-version }}' == 5.* ]]
-          then
-              # The bearer plugin has caused problems for us in the past. Plus, it was removed altogether in Qt 6.
-              rm -rv Contents/PlugIns/bearer
-          fi
+          # The bearer plugin has caused problems for us in the past. Plus, it was removed altogether in Qt 6.
+          rm -rv Contents/PlugIns/bearer
 
       - name: Import signing certificate
         if: github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request'

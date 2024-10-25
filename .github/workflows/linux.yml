@@ -9,7 +9,7 @@ env:
 
 jobs:
   deb:
-    name: deb (${{ matrix.build-type }}, Qt ${{ matrix.qt-version-major }}, ${{ matrix.image }})
+    name: deb (${{ matrix.build-type }}, Qt 5, ${{ matrix.image }})
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -21,17 +21,6 @@ jobs:
           # Ubuntu's release cycle: https://wiki.ubuntu.com/Releases
           - image: ubuntu-20_04
             build-script: ubuntu_deb_entrypoint.sh
-            qt-version-major: 5
-            build-type: release
-
-          - image: ubuntu-22_04
-            build-script: ubuntu_deb_entrypoint.sh
-            qt-version-major: 6
-            build-type: release
-
-          - image: ubuntu-23_10
-            build-script: ubuntu_deb_entrypoint.sh
-            qt-version-major: 6
             build-type: release
     steps:
       - name: Checkout code
@@ -44,11 +33,11 @@ jobs:
         run: |
           set -ex
           git remote add upstream https://github.com/nuttyartist/notes.git
-          git fetch --unshallow upstream master
+          git fetch --unshallow upstream qt5
           # NOTE: The following should give us the previous commit hash of the base branch, but that will
           #       only work reliably for 'push' and pull_request events. For workflow_dispatch events, we
-          #       have to fallback to the default branch ('master'), until a better solution is found...
-          previous_ref=${{ github.event.pull_request.base.sha || github.event.before || 'upstream/master' }}
+          #       have to fallback to the default branch ('qt5'), until a better solution is found...
+          previous_ref=${{ github.event.pull_request.base.sha || github.event.before || 'upstream/qt5' }}
           if ! git diff --compact-summary --exit-code "${previous_ref}" -- 'Dockerfiles/${{ matrix.image }}' 'Dockerfiles/${{ matrix.build-script }}'
           then
               needs_rebuild=true
@@ -75,11 +64,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
-          name: ${{ steps.build.outputs.deb_name }}-qt${{ matrix.qt-version-major }}-${{ steps.build.outputs.distro_name }}-${{ matrix.build-type }}
+          name: ${{ steps.build.outputs.deb_name }}-qt5-${{ steps.build.outputs.distro_name }}-${{ matrix.build-type }}
           path: ${{ steps.build.outputs.deb_path }}
 
       - name: Login to GitHub Container Registry
-        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'master' }}
+        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'qt5' }}
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -87,102 +76,14 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata (tags, labels) for Docker
-        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'master' }}
+        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'qt5' }}
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}
 
       - name: Build and push Docker image
-        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'master' }}
-        uses: docker/build-push-action@v6
-        env:
-          DOCKER_BUILD_SUMMARY: false
-        with:
-          file: Dockerfiles/${{ matrix.image }}
-          push: true
-          tags: ${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}
-
-  rpm:
-    name: rpm (${{ matrix.build-type }}, Qt ${{ matrix.qt-version-major }}, ${{ matrix.image }})
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # Fedora's release cycle: https://endoflife.date/fedora
-          - image: fedora-38
-            build-script: rpm_entrypoint.sh
-            qt-version-major: 6
-            build-type: release
-
-          # openSUSE's release cycle: https://endoflife.date/opensuse
-          - image: opensuse-15_5
-            build-script: rpm_entrypoint.sh
-            qt-version-major: 6
-            build-type: release
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Check if Dockerfile or build script has been modified
-        id: docker_image
-        run: |
-          set -ex
-          git remote add upstream https://github.com/nuttyartist/notes.git
-          git fetch --unshallow upstream master
-          # NOTE: The following should give us the previous commit hash of the base branch, but that will
-          #       only work reliably for 'push' and pull_request events. For workflow_dispatch events, we
-          #       have to fallback to the default branch ('master'), until a better solution is found...
-          previous_ref=${{ github.event.pull_request.base.sha || github.event.before || 'upstream/master' }}
-          if ! git diff --compact-summary --exit-code "${previous_ref}" -- 'Dockerfiles/${{ matrix.image }}' 'Dockerfiles/${{ matrix.build-script }}'
-          then
-              needs_rebuild=true
-          elif ! docker pull '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}'
-          then
-              needs_rebuild=true
-          else
-              needs_rebuild=false
-          fi
-          echo "needs_rebuild=${needs_rebuild}" >> "${GITHUB_OUTPUT}"
-
-      - name: Build and tag Docker image
-        if: steps.docker_image.outputs.needs_rebuild == 'true'
-        run: docker build -f 'Dockerfiles/${{ matrix.image }}' -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' .
-
-      - name: Setup GCC problem matcher
-        uses: ammaraskar/gcc-problem-matcher@0.3.0
-
-      - name: Build, package and lint
-        id: build
-        run: docker run --rm -v "${GITHUB_OUTPUT}:/GITHUB_OUTPUT" -v "$(pwd):/src" -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' -t ${{ matrix.build-type }} ${{ github.ref_type == 'tag' && '-n' || ' ' }}
-
-      - name: Upload rpm package
-        uses: actions/upload-artifact@v4
-        with:
-          if-no-files-found: error
-          name: ${{ steps.build.outputs.rpm_name }}-qt${{ matrix.qt-version-major }}-${{ steps.build.outputs.distro_name }}-${{ matrix.build-type }}
-          path: ${{ steps.build.outputs.rpm_path }}
-
-      - name: Login to GitHub Container Registry
-        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'master' }}
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata (tags, labels) for Docker
-        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'master' }}
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}
-
-      - name: Build and push Docker image
-        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'master' }}
+        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'qt5' }}
         uses: docker/build-push-action@v6
         env:
           DOCKER_BUILD_SUMMARY: false
@@ -192,7 +93,7 @@ jobs:
           tags: ${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}
 
   appimage:
-    name: AppImage (${{ matrix.build-type }}, Qt ${{ matrix.qt-version-major }}, ${{ matrix.image }})
+    name: AppImage (${{ matrix.build-type }}, Qt 5, ${{ matrix.image }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -200,12 +101,6 @@ jobs:
         include:
           - image: appimage-qt5
             build-script: appimage_entrypoint.sh
-            qt-version-major: 5
-            build-type: release
-
-          - image: appimage-qt6
-            build-script: appimage_entrypoint.sh
-            qt-version-major: 6
             build-type: release
     steps:
       - name: Checkout code
@@ -218,11 +113,11 @@ jobs:
         run: |
           set -ex
           git remote add upstream https://github.com/nuttyartist/notes.git
-          git fetch --unshallow upstream master
+          git fetch --unshallow upstream qt5
           # NOTE: The following should give us the previous commit hash of the base branch, but that will
           #       only work reliably for 'push' and pull_request events. For workflow_dispatch events, we
-          #       have to fallback to the default branch ('master'), until a better solution is found...
-          previous_ref=${{ github.event.pull_request.base.sha || github.event.before || 'upstream/master' }}
+          #       have to fallback to the default branch ('qt5'), until a better solution is found...
+          previous_ref=${{ github.event.pull_request.base.sha || github.event.before || 'upstream/qt5' }}
           if ! git diff --compact-summary --exit-code "${previous_ref}" -- 'Dockerfiles/${{ matrix.image }}' 'Dockerfiles/${{ matrix.build-script }}'
           then
               needs_rebuild=true
@@ -245,10 +140,6 @@ jobs:
         id: build
         run: docker run --rm -v "${GITHUB_OUTPUT}:/GITHUB_OUTPUT" -v "$(pwd):/src" -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' -t ${{ matrix.build-type }} ${{ github.ref_type == 'tag' && '-n' || ' ' }}
 
-      - name: (FIXME) Run qmllint
-        if: endsWith(matrix.image, 'qt6')
-        run: docker run --rm -v "$(pwd):/src" --entrypoint '' -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' cmake --build build --target all_qmllint || true
-
       - name: Upload AppImage artifact
         uses: actions/upload-artifact@v4
         with:
@@ -257,7 +148,7 @@ jobs:
           path: ${{ steps.build.outputs.appimage_path }}
 
       - name: Login to GitHub Container Registry
-        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'master' }}
+        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'qt5' }}
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -265,14 +156,14 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata (tags, labels) for Docker
-        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'master' }}
+        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'qt5' }}
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}
 
       - name: Build and push Docker image
-        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'master' }}
+        if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'qt5' }}
         uses: docker/build-push-action@v6
         env:
           DOCKER_BUILD_SUMMARY: false
@@ -280,46 +171,3 @@ jobs:
           file: Dockerfiles/${{ matrix.image }}
           push: true
           tags: ${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}
-
-  snap:
-    name: snap
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Install snapcraft
-        run: |
-          sudo snap install snapcraft --classic
-
-      - name: Set up LXD
-        run: |
-          sudo usermod -a -G lxd "${USER}"
-          sudo lxd init --auto
-          sudo iptables -P FORWARD ACCEPT
-
-      - name: Build
-        run: |
-          sg lxd -c 'snap run snapcraft -v'
-
-      - name: Grab snap package name
-        id: snap
-        shell: bash
-        run: |
-          set -x
-          if ! path=$(find . -maxdepth 1 -name '*.snap' -print -quit)
-          then
-              echo 'Fatal: Unable to find snap package'
-              exit 1
-          fi
-          echo "name=$(basename "${path%.*}")" >> "${GITHUB_OUTPUT}"
-          echo "path=${path}" >> "${GITHUB_OUTPUT}"
-
-      - name: Upload snap package
-        uses: actions/upload-artifact@v4
-        with:
-          if-no-files-found: error
-          name: ${{ steps.snap.outputs.name }}.snap
-          path: ${{ steps.snap.outputs.path }}

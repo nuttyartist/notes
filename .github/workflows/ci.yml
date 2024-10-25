@@ -3,9 +3,9 @@ name: CI
 on:
   push:
     branches:
-      - master
+      - qt5
     tags:
-      - v*
+      - v2.3.*
   pull_request:
   workflow_dispatch:
 
