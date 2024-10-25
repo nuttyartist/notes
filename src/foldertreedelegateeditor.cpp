@@ -158,36 +158,50 @@ void FolderTreeDelegateEditor::updateDelegate()
     auto displayName = m_index.data(NodeItem::Roles::DisplayText).toString();
     QFontMetrics fm(m_titleFont);
     displayName = fm.elidedText(displayName, Qt::ElideRight, m_label->contentsRect().width());
+    QString labelStyle;
+    QString folderIconStyle;
 
     if (m_view->selectionModel()->isSelected(m_index)) {
-        m_label->setStyleSheet(QStringLiteral("QLabel{color: rgb(%1, %2, %3);}")
-                                       .arg(QString::number(m_titleSelectedColor.red()),
-                                            QString::number(m_titleSelectedColor.green()),
-                                            QString::number(m_titleSelectedColor.blue())));
-        m_folderIcon->setStyleSheet(
+        labelStyle = QStringLiteral("QLabel{color: rgb(%1, %2, %3);}")
+                             .arg(QString::number(m_titleSelectedColor.red()),
+                                  QString::number(m_titleSelectedColor.green()),
+                                  QString::number(m_titleSelectedColor.blue()));
+        folderIconStyle =
                 QStringLiteral("QPushButton{border: none; padding: 0px; color: rgb(%1, %2, %3);}")
                         .arg(QString::number(m_titleSelectedColor.red()),
                              QString::number(m_titleSelectedColor.green()),
-                             QString::number(m_titleSelectedColor.blue())));
+                             QString::number(m_titleSelectedColor.blue()));
     } else {
-        m_label->setStyleSheet(QStringLiteral("QLabel{color: rgb(%1, %2, %3);}")
-                                       .arg(QString::number(m_titleColor.red()),
-                                            QString::number(m_titleColor.green()),
-                                            QString::number(m_titleColor.blue())));
-        m_folderIcon->setStyleSheet(
+        labelStyle = QStringLiteral("QLabel{color: rgb(%1, %2, %3);}")
+                             .arg(QString::number(m_titleColor.red()),
+                                  QString::number(m_titleColor.green()),
+                                  QString::number(m_titleColor.blue()));
+        folderIconStyle =
                 QStringLiteral("QPushButton{border: none; padding: 0px; color: rgb(%1, %2, %3);}")
                         .arg(QString::number(m_folderIconColor.red()),
                              QString::number(m_folderIconColor.green()),
-                             QString::number(m_folderIconColor.blue())));
+                             QString::number(m_folderIconColor.blue()));
     }
     m_label->setText(displayName);
     auto theme = dynamic_cast<NodeTreeView *>(m_view)->theme();
 
     QColor chevronColor(theme == Theme::Dark ? QColor(169, 160, 172) : QColor(103, 99, 105));
-    m_expandIcon->setStyleSheet(QStringLiteral("QLabel{color: rgb(%1, %2, %3);}")
-                                        .arg(QString::number(chevronColor.red()),
-                                             QString::number(chevronColor.green()),
-                                             QString::number(chevronColor.blue())));
+    QString expandIconStyle =
+            QStringLiteral("QLabel{color: rgb(%1, %2, %3);}")
+                    .arg(QString::number(chevronColor.red()), QString::number(chevronColor.green()),
+                         QString::number(chevronColor.blue()));
+
+    if (m_folderIcon->styleSheet() != folderIconStyle) {
+        m_folderIcon->setStyleSheet(folderIconStyle);
+    }
+
+    if (m_label->styleSheet() != labelStyle) {
+        m_label->setStyleSheet(labelStyle);
+    }
+
+    if (m_expandIcon->styleSheet() != expandIconStyle) {
+        m_expandIcon->setStyleSheet(expandIconStyle);
+    }
 
     if (m_index.data(NodeItem::Roles::IsExpandable).toBool()) {
         if (m_view->isExpanded(m_index)) {

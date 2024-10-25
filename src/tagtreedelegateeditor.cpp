@@ -123,19 +123,24 @@ void TagTreeDelegateEditor::updateDelegate()
     auto displayName = m_index.data(NodeItem::Roles::DisplayText).toString();
     QFontMetrics fm(m_titleFont);
     displayName = fm.elidedText(displayName, Qt::ElideRight, m_label->contentsRect().width());
+    QString labelStyle;
 
     if (m_view->selectionModel()->selectedIndexes().contains(m_index)) {
-        m_label->setStyleSheet(QStringLiteral("QLabel{color: rgb(%1, %2, %3);}")
-                                       .arg(QString::number(m_titleSelectedColor.red()),
-                                            QString::number(m_titleSelectedColor.green()),
-                                            QString::number(m_titleSelectedColor.blue())));
+        labelStyle = QStringLiteral("QLabel{color: rgb(%1, %2, %3);}")
+                             .arg(QString::number(m_titleSelectedColor.red()),
+                                  QString::number(m_titleSelectedColor.green()),
+                                  QString::number(m_titleSelectedColor.blue()));
     } else {
-        m_label->setStyleSheet(QStringLiteral("QLabel{color: rgb(%1, %2, %3);}")
-                                       .arg(QString::number(m_titleColor.red()),
-                                            QString::number(m_titleColor.green()),
-                                            QString::number(m_titleColor.blue())));
+        labelStyle = QStringLiteral("QLabel{color: rgb(%1, %2, %3);}")
+                             .arg(QString::number(m_titleColor.red()),
+                                  QString::number(m_titleColor.green()),
+                                  QString::number(m_titleColor.blue()));
     }
     m_label->setText(displayName);
+
+    if (m_label->styleSheet() != labelStyle) {
+        m_label->setStyleSheet(labelStyle);
+    }
 }
 
 void TagTreeDelegateEditor::paintEvent(QPaintEvent *event)
