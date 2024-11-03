@@ -198,7 +198,7 @@ bool CustomDocument::openLinkAtCursorPosition()
         }
 
         if (isLocalFilePath && convertLocalFilepathsToURLs) {
-            openUrl(QString("file://") + urlString);
+            openUrl(QStringLiteral("file://") + urlString);
         } else {
             openUrl(urlString);
         }

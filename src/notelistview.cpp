@@ -741,7 +741,7 @@ void NoteListView::onCustomContextMenu(QPoint point)
             }
             for (auto id : std::as_const(tagInNote)) {
                 auto tag = m_tagPool->getTag(id);
-                auto tagAction = new QAction(QString("✓ Remove tag ") + tag.name(), this);
+                auto tagAction = new QAction(QStringLiteral("✓ Remove tag ") + tag.name(), this);
                 connect(tagAction, &QAction::triggered, this,
                         [this, id, notes] { removeNotesFromTag(notes, id); });
                 tagAction->setIcon(createTagIcon(tag.color()));
@@ -754,7 +754,7 @@ void NoteListView::onCustomContextMenu(QPoint point)
                     continue;
                 }
                 auto tag = m_tagPool->getTag(id);
-                auto tagAction = new QAction(QString(" ") + tag.name(), this);
+                auto tagAction = new QAction(QStringLiteral(" ") + tag.name(), this);
                 connect(tagAction, &QAction::triggered, this,
                         [this, id, notes] { addNotesToTag(notes, id); });
                 tagAction->setIcon(createTagIcon(tag.color()));
