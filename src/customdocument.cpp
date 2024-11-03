@@ -198,7 +198,7 @@ bool CustomDocument::openLinkAtCursorPosition()
         }
 
         if (isLocalFilePath && convertLocalFilepathsToURLs) {
-            openUrl(QStringLiteral("file://") + urlString);
+            openUrl(QStringLiteral("file://%1").arg(urlString));
         } else {
             openUrl(urlString);
         }
@@ -284,7 +284,7 @@ QMap<QString, QString> CustomDocument::parseMarkdownUrlsFromText(const QString &
     while (iterator.hasNext()) {
         QRegularExpressionMatch match = iterator.next();
         QString url = match.captured(0);
-        urlMap[url] = QStringLiteral("http://") + url;
+        urlMap[url] = QStringLiteral("http://%1").arg(url);
     }
 
     // match reference urls like this: [this url][1] with this later:
@@ -296,8 +296,8 @@ QMap<QString, QString> CustomDocument::parseMarkdownUrlsFromText(const QString &
         QString linkText = match.captured(1);
         QString referenceId = match.captured(2);
 
-        QRegularExpression refRegExp(QStringLiteral("\\[") + QRegularExpression::escape(referenceId)
-                                     + QStringLiteral("\\]: (.+)"));
+        QRegularExpression refRegExp(
+                QStringLiteral("\\[%1\\]: (.+)").arg(QRegularExpression::escape(referenceId)));
         QRegularExpressionMatch urlMatch = refRegExp.match(toPlainText());
 
         if (urlMatch.hasMatch()) {

@@ -1103,7 +1103,8 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
     QSqlQuery query(m_db);
     auto node = getNode(nodeId);
 
-    QString newAbsolutePath = target.absolutePath() + PATH_SEPARATOR + QString::number(nodeId);
+    QString newAbsolutePath =
+            QStringLiteral("%1%2%3").arg(target.absolutePath(), PATH_SEPARATOR).arg(nodeId);
     if (target.id() == SpecialNodeID::TrashFolder) {
         qint64 deletionTime = QDateTime::currentMSecsSinceEpoch();
         query.prepare(QStringLiteral(
@@ -2415,13 +2416,15 @@ void DBManager::exportNotes(const QString &baseExportPath, const QString &extens
 {
     // Ensure the export directory exists
     QString rootFolderName = QStringLiteral("Notes");
-    QString exportPathNew = baseExportPath + QDir::separator() + rootFolderName;
+    QString exportPathNew =
+            QStringLiteral("%1%2%3").arg(baseExportPath, QDir::separator(), rootFolderName);
     QDir directory;
 
     int counter = 1;
     while (directory.exists(exportPathNew)) {
-        exportPathNew = baseExportPath + QDir::separator() + rootFolderName + " "
-                + QString::number(counter++);
+        exportPathNew = QStringLiteral("%1%2%3 %4")
+                                .arg(baseExportPath, QDir::separator(), rootFolderName)
+                                .arg(counter++);
     }
     qDebug() << "Exporting notes to:" << exportPathNew;
     directory.mkpath(exportPathNew);
@@ -2449,8 +2452,9 @@ void DBManager::exportNotes(const QString &baseExportPath, const QString &extens
 
             counter = 1;
             while (directory.exists(path)) {
-                path = exportPathNew + QDir::separator() + relativePath + " "
-                        + QString::number(counter++);
+                path = QStringLiteral("%1%2%3 %4")
+                               .arg(exportPathNew, QDir::separator(), relativePath)
+                               .arg(counter++);
             }
 
             QDir().mkpath(path);
@@ -2488,7 +2492,8 @@ void DBManager::exportNotes(const QString &baseExportPath, const QString &extens
         safeTitle = doc.toPlainText();
         safeTitle.replace(QRegularExpression(R"([\/\\:*?"<>|])"),
                           "_"); // Make the title filesystem-safe
-        QString filePath = notePath + QDir::separator() + safeTitle + extension;
+        QString filePath =
+                QStringLiteral("%1%2%3%4").arg(notePath, QDir::separator(), safeTitle, extension);
 
         if (safeTitle.isEmpty()) {
             safeTitle = QStringLiteral("Untitled Note");
@@ -2496,8 +2501,10 @@ void DBManager::exportNotes(const QString &baseExportPath, const QString &extens
 
         counter = 1;
         while (directory.exists(filePath)) {
-            filePath = notePath + QDir::separator() + safeTitle + " " + QString::number(counter++)
-                    + extension;
+            filePath = QStringLiteral("%1%2%3 %4%5")
+                               .arg(notePath, QDir::separator(), safeTitle)
+                               .arg(counter++)
+                               .arg(extension);
         }
 
         // qDebug() << "Exporting note:" << filePath;

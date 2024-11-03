@@ -180,8 +180,8 @@ void MainWindow::InitData()
 {
     QFileInfo fi(m_settingsDatabase->fileName());
     QDir dir(fi.absolutePath());
-    QString oldNoteDBPath(dir.path() + QStringLiteral("/Notes.ini"));
-    QString oldTrashDBPath(dir.path() + QStringLiteral("/Trash.ini"));
+    QString oldNoteDBPath = QStringLiteral("%1/Notes.ini").arg(dir.path());
+    QString oldTrashDBPath = QStringLiteral("%1/Trash.ini").arg(dir.path());
 
     bool isV0_9_0 = (QFile::exists(oldNoteDBPath) || QFile::exists(oldTrashDBPath));
     if (isV0_9_0) {
@@ -1657,7 +1657,7 @@ void MainWindow::setupDatabases()
     if (!folderCreated)
         qFatal("ERROR: Can't create settings folder : %s",
                dir.absolutePath().toStdString().c_str());
-    QString defaultDBPath = dir.path() + QDir::separator() + QStringLiteral("notes.db");
+    QString defaultDBPath = QStringLiteral("%1%2notes.db").arg(dir.path(), QDir::separator());
 
     QString noteDBFilePath =
             m_settingsDatabase->value(QStringLiteral("noteDBFilePath"), QString()).toString();
@@ -3522,12 +3522,12 @@ void MainWindow::migrateFromV0_9_0()
     QFileInfo fi(m_settingsDatabase->fileName());
     QDir dir(fi.absolutePath());
 
-    QString oldNoteDBPath(dir.path() + QDir::separator() + "Notes.ini");
+    QString oldNoteDBPath = QStringLiteral("%1%2Notes.ini").arg(dir.path(), QDir::separator());
     if (QFile::exists(oldNoteDBPath)) {
         migrateNoteFromV0_9_0(oldNoteDBPath);
     }
 
-    QString oldTrashDBPath(dir.path() + QDir::separator() + "Trash.ini");
+    QString oldTrashDBPath = QStringLiteral("%1%2Trash.ini").arg(dir.path(), QDir::separator());
     if (QFile::exists(oldTrashDBPath)) {
         migrateTrashFromV0_9_0(oldTrashDBPath);
     }

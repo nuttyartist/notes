@@ -22,11 +22,13 @@ NodePath NodePath::parentPath() const
 
 QString NodePath::getAllNoteFolderPath()
 {
-    return PATH_SEPARATOR + QString::number(SpecialNodeID::RootFolder);
+    return QStringLiteral("%1%2").arg(PATH_SEPARATOR).arg(SpecialNodeID::RootFolder);
 }
 
 QString NodePath::getTrashFolderPath()
 {
-    return PATH_SEPARATOR + QString::number(SpecialNodeID::RootFolder) + PATH_SEPARATOR
-            + QString::number(SpecialNodeID::TrashFolder);
+    return QStringLiteral("%1%2%1%3")
+            .arg(PATH_SEPARATOR)
+            .arg(SpecialNodeID::RootFolder)
+            .arg(SpecialNodeID::TrashFolder);
 }
