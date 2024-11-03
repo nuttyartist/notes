@@ -294,7 +294,7 @@ void UpdaterWindow::startDownload(const QUrl &url)
     /* Set file name */
     m_fileName = m_updater->getDownloadUrl(UPDATES_URL).split("/").last();
     if (m_fileName.isEmpty()) {
-        m_fileName = QString("%1_Update_%2.bin")
+        m_fileName = QStringLiteral("%1_Update_%2.bin")
                              .arg(QCoreApplication::applicationName(),
                                   m_updater->getLatestVersion(UPDATES_URL));
     }

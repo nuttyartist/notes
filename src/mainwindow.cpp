@@ -1076,11 +1076,11 @@ void MainWindow::setupEditorSettings()
     emit displayFontSet(QVariant(dataToSendToView));
 
 #if defined(Q_OS_WINDOWS)
-    emit platformSet(QVariant(QString("Windows")));
+    emit platformSet(QVariant(QStringLiteral("Windows")));
 #elif defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
-    emit platformSet(QVariant(QString("Unix")));
+    emit platformSet(QVariant(QStringLiteral("Unix")));
 #elif defined(Q_OS_MACOS)
-    emit platformSet(QVariant(QString("Apple")));
+    emit platformSet(QVariant(QStringLiteral("Apple")));
 #endif
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
@@ -1198,9 +1198,9 @@ void MainWindow::alignTextEditText()
     }
 
     QFontMetricsF fm(m_currentSelectedFont);
-    QString limitingStringSample =
-            QString("The quick brown fox jumps over the lazy dog the quick brown fox jumps over "
-                    "the lazy dog the quick brown fox jumps over the lazy dog");
+    QString limitingStringSample = QStringLiteral(
+            "The quick brown fox jumps over the lazy dog the quick brown fox jumps over "
+            "the lazy dog the quick brown fox jumps over the lazy dog");
     limitingStringSample.truncate(m_textEdit->lineWrapColumnOrWidth());
     qreal textSamplePixelsWidth = fm.horizontalAdvance(limitingStringSample);
     m_noteEditorLogic->setCurrentAdaptableEditorPadding(
@@ -1297,11 +1297,11 @@ void MainWindow::setupKanbanView()
     ui->verticalLayout_textEdit->insertWidget(ui->verticalLayout_textEdit->indexOf(m_textEdit),
                                               m_kanbanWidget);
 #  if defined(Q_OS_WINDOWS)
-    emit platformSet(QVariant(QString("Windows")));
+    emit platformSet(QVariant(QStringLiteral("Windows")));
 #  elif defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
-    emit platformSet(QVariant(QString("Unix")));
+    emit platformSet(QVariant(QStringLiteral("Unix")));
 #  elif defined(Q_OS_MACOS)
-    emit platformSet(QVariant(QString("Apple")));
+    emit platformSet(QVariant(QStringLiteral("Apple")));
 #  endif
 
     QJsonObject dataToSendToView{ { "displayFont",
@@ -4195,9 +4195,9 @@ void MainWindow::setHeading(int level)
             new_text.clear();
         }
         selected_text = selected_text.trimmed().remove(QRegularExpression("^#*\\s?"));
-        new_text += QString("#").repeated(level) + ((level == 0) ? "" : " ") + selected_text;
+        new_text += QStringLiteral("#").repeated(level) + ((level == 0) ? "" : " ") + selected_text;
     } else {
-        new_text = QString("#").repeated(level) + " ";
+        new_text = QStringLiteral("#").repeated(level) + " ";
     }
     cursor.insertText(new_text);
 }
