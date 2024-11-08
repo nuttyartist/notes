@@ -1743,18 +1743,17 @@ void MainWindow::setupModelView()
     m_listView->setModel(m_listModel);
     m_listViewLogic = new ListViewLogic(m_listView, m_listModel, m_searchEdit, m_clearButton,
                                         m_tagPool, m_dbManager, this);
-    m_treeView = static_cast<NodeTreeView *>(ui->treeView);
+    m_treeView = ui->treeView;
     m_treeView->setModel(m_treeModel);
     m_treeViewLogic = new TreeViewLogic(m_treeView, m_treeModel, m_dbManager, m_listView, this);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-    m_noteEditorLogic = new NoteEditorLogic(
-            m_textEdit, m_editorDateLabel, m_searchEdit, m_kanbanWidget,
-            static_cast<TagListView *>(ui->tagListView), m_tagPool, m_dbManager, this);
+    m_noteEditorLogic =
+            new NoteEditorLogic(m_textEdit, m_editorDateLabel, m_searchEdit, m_kanbanWidget,
+                                ui->tagListView, m_tagPool, m_dbManager, this);
     m_kanbanQuickView.rootContext()->setContextProperty("noteEditorLogic", m_noteEditorLogic);
 #else
     m_noteEditorLogic = new NoteEditorLogic(m_textEdit, m_editorDateLabel, m_searchEdit,
-                                            static_cast<TagListView *>(ui->tagListView), m_tagPool,
-                                            m_dbManager, this);
+                                            ui->tagListView, m_tagPool, m_dbManager, this);
 #endif
     m_editorSettingsQuickView.rootContext()->setContextProperty("noteEditorLogic",
                                                                 m_noteEditorLogic);
