@@ -411,7 +411,7 @@ void NoteEditorLogic::updateTaskText(int startLinePosition, int endLinePosition,
             }
         }
 
-        QString newTaskText = taskExpressionText + " " + newTextModified;
+        QString newTaskText = QStringLiteral("%1 %2").arg(taskExpressionText, newTextModified);
         if (newTaskText.size() > 0 && newTaskText[newTaskText.size() - 1] == '\n') {
             newTaskText.remove(newTaskText.size() - 1, 1);
         }
@@ -422,7 +422,7 @@ void NoteEditorLogic::updateTaskText(int startLinePosition, int endLinePosition,
 
 void NoteEditorLogic::addNewTask(int startLinePosition, const QString newTaskText)
 {
-    QString newText = "\n- [ ] " + newTaskText;
+    QString newText = QStringLiteral("\n- [ ] %1").arg(newTaskText);
     QTextDocument *document = m_textEdit->document();
     QTextBlock startBlock = document->findBlockByLineNumber(startLinePosition);
 
@@ -631,9 +631,9 @@ bool NoteEditorLogic::checkForTasksInEditor()
             else if (!line.isEmpty() && isPreviousLineATask) {
                 if (tasks.size() > 0) {
                     QJsonObject newTask = tasks[tasks.size() - 1].toObject();
-                    QString newTaskText = newTask["text"].toString() + "  \n"
-                            + lineTrimmed; // For markdown rendering a line break needs two white
-                                           // spaces
+                    QString newTaskText =
+                            QStringLiteral("%1  \n%2").arg(newTask["text"].toString(), lineTrimmed);
+                    // For markdown rendering a line break needs two white spaces
                     newTask["text"] = newTaskText;
                     newTask["taskEndLine"] = i;
                     tasks[tasks.size() - 1] = newTask;
