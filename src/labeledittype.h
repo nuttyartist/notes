@@ -1,10 +1,10 @@
 #ifndef LABELEDITTYPE_H
 #define LABELEDITTYPE_H
 
-#include <QLabel>
+#include "elidedlabel.h"
 
 class QLineEdit;
-class LabelEditType : public QLabel
+class LabelEditType : public ElidedLabel
 {
     Q_OBJECT
 public:

@@ -3,7 +3,7 @@
 #include <QBoxLayout>
 #include <QDebug>
 
-LabelEditType::LabelEditType(QWidget *parent) : QLabel(parent)
+LabelEditType::LabelEditType(QWidget *parent) : ElidedLabel(parent)
 {
     setContentsMargins(0, 0, 0, 0);
     m_editor = new QLineEdit(this);

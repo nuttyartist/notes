@@ -157,7 +157,6 @@ void FolderTreeDelegateEditor::updateDelegate()
 {
     auto displayName = m_index.data(NodeItem::Roles::DisplayText).toString();
     QFontMetrics fm(m_titleFont);
-    displayName = fm.elidedText(displayName, Qt::ElideRight, m_label->contentsRect().width());
     QString labelStyle;
     QString folderIconStyle;
 
