@@ -6,7 +6,7 @@
 ElidedLabel::ElidedLabel(QWidget *parent, Qt::WindowFlags f) : ElidedLabel("", parent, f) { }
 
 ElidedLabel::ElidedLabel(const QString &text, QWidget *parent, Qt::WindowFlags f)
-    : QLabel(text, parent, f), defaultType(Qt::ElideRight), eliding(false), original("")
+    : QLabel(text, parent, f), original(""), defaultType(Qt::ElideRight), eliding(false)
 {
     setText(text);
 }
