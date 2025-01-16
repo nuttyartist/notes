@@ -789,7 +789,7 @@ Item {
 
                             onVisibleChanged: {
                                 if (editorSettingsPopupContainer.visible) {
-                                    editorSettings.upadteScrollBarPosition();
+                                    editorSettings.updateScrollBarPosition();
                                 }
                             }
                         }

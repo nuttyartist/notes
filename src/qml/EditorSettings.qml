@@ -47,7 +47,7 @@ Item {
             var settingsPaneHeightByParentWindow = 0.80 * data.parentWindowHeight; // 80 percent of the parent window's height
             settingsPane.height = scrollViewControl.contentHeight > settingsPaneHeightByParentWindow ? settingsPaneHeightByParentWindow : scrollViewControl.contentHeight;
             revealSettingsAnimation.start();
-            settingsContainer.upadteScrollBarPosition();
+            settingsContainer.updateScrollBarPosition();
         }
 
         function onMainWindowResized (data) {
@@ -164,7 +164,7 @@ Item {
         easing.type: Easing.InOutQuad
     }
 
-    function upadteScrollBarPosition () {
+    function updateScrollBarPosition () {
         editorSettingsVerticalScrollBar.position = settingsContainer.latestScrollBarPosition;
     }
 
