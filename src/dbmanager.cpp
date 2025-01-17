@@ -2502,9 +2502,8 @@ void DBManager::exportNotes(const QString &baseExportPath, const QString &extens
         counter = 1;
         while (directory.exists(filePath)) {
             filePath = QStringLiteral("%1%2%3 %4%5")
-                               .arg(notePath, QDir::separator(), safeTitle)
-                               .arg(counter++)
-                               .arg(extension);
+                               .arg(notePath, QDir::separator(), safeTitle,
+                                    QString::number(counter++), extension);
         }
 
         // qDebug() << "Exporting note:" << filePath;
