@@ -1,3 +1,4 @@
+.pragma library
 // It takes four arguments. The verb, which defines the HTTP verb to be used (GET, POST, PUT, DELETE).
 // The second paramater is the BASE address (e.g. ‘http://localhost:5000 (opens new window)’).
 // The third parameter is the endpoint to be used as a postfix to the BASE address
