@@ -3918,10 +3918,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
     }
     case QEvent::ActivationChange: {
         if (m_editorSettingsWidget->isHidden()) {
-            QApplication::setActiveWindow(
-                    this); // TODO: The docs say this function is deprecated but it's the only one
-                           // that works in returning the user input from m_editorSettingsWidget
-                           // Qt::Popup
+            QWidget::activateWindow();
             m_textEdit->setFocus();
         }
         break;
