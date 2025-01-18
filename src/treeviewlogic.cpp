@@ -384,8 +384,22 @@ void TreeViewLogic::onMoveNodeRequested(int nodeId, int targetId)
     NodeData target;
     QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection,
                               Q_RETURN_ARG(NodeData, target), Q_ARG(int, targetId));
+    // only allow moving a node into a folder
     if (target.nodeType() != NodeData::Folder) {
         qDebug() << __FUNCTION__ << "Target is not folder!";
+        return;
+    }
+    // don't allow moving a node into itself (not sure how this can ever happen but just in case)
+    if (nodeId == targetId) {
+        qDebug() << __FUNCTION__ << "Can't move a node into itself";
+        return;
+    }
+    // don't allow moving a node into the same parent
+    NodeData node;
+    QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection,
+                              Q_RETURN_ARG(NodeData, node), Q_ARG(int, nodeId));
+    if (node.parentId() == targetId) {
+        qDebug() << __FUNCTION__ << "Can't move a node into the same parent";
         return;
     }
     emit requestMoveNodeInDB(nodeId, target);
