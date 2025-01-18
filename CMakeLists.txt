@@ -17,6 +17,7 @@ option(GIT_REVISION
 option(UPDATE_CHECKER
        "Enable or disable both the update checker and auto-updater" ON)
 option(PRO_VERSION "Enable or disable Notes Pro features" ON)
+option(ENABLE_ASAN "Enable address sanitizer" OFF)
 
 project(
   Notes
@@ -31,6 +32,13 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
+
+# address sanitizer can be enabled by running cmake with -DENABLE_ASAN=ON
+if(ENABLE_ASAN AND (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+                    OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
+  set(ADDRESS_SANITIZER_FLAGS "-fsanitize=address -fno-omit-frame-pointer")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ADDRESS_SANITIZER_FLAGS}")
+endif()
 
 if(POLICY CMP0083)
   cmake_policy(SET CMP0083 NEW)
@@ -72,6 +80,10 @@ if(CMAKE_BUILD_TYPE STREQUAL "")
   message(STATUS "Build type: (not set)")
 else()
   message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+endif()
+
+if(ENABLE_ASAN)
+  message(STATUS "Enabling AddressSanitizer")
 endif()
 
 set(GIT_REV "")
