@@ -10,6 +10,7 @@ You should set those while invoking CMake to build the project. See the [example
 | `GIT_REVISION`                             | `OFF`         | `ON` / `OFF`        | Append the current git revision to the app's version string |
 | `UPDATE_CHECKER`                           | `ON`          | `ON` / `OFF`        | Enable or disable both the update checker and auto-updater  |
 | `PRO_VERSION`                              | `ON`          | `ON` / `OFF`        | Enable or disable Notes Pro features                        |
+| `ENABLE_ASAN`                              | `OFF`         | `ON` / `OFF`        | Enable AddressSanitizer (ASan) for debugging                |
 
 ### Examples
 
