@@ -266,7 +266,7 @@ jobs:
 
   snap:
     name: snap
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04 # FIXME: See this issue before updating to ubuntu-24.08: https://github.com/actions/runner-images/issues/9932
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

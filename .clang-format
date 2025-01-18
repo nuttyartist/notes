@@ -106,3 +106,7 @@ AlignEscapedNewlines: Left
 # initializer list in list-initialization.
 SpaceBeforeCpp11BracedList: false
 
+# Custom styles added by this project
+
+# fix for https://bugreports.qt.io/browse/QTCREATORBUG-31858
+StatementAttributeLikeMacros: [emit, Q_EMIT]

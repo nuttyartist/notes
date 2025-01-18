@@ -7,7 +7,9 @@ on:
 jobs:
   lint:
     name: Format / Lint
-    runs-on: ubuntu-latest
+    # FIXME: ubuntu-latest has clang-format v18 which contains a bug: # https://bugreports.qt.io/browse/QTCREATORBUG-31858. 
+    # Update this once ubuntu ships clang-format v19
+    runs-on: ubuntu-22.04 
     strategy:
       fail-fast: false
     steps:
