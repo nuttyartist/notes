@@ -129,7 +129,7 @@ MainWindow::MainWindow(QWidget *parent)
                                         "master/notes_purchase_data.json")),
       m_purchaseDataAlt2(
               QStringLiteral("https://www.rubymamistvalove.com/notes/notes_purchase_data.json")),
-      m_dataBuffer(new QByteArray()),
+      m_dataBuffer(std::make_unique<QByteArray>()),
       m_netManager(new QNetworkAccessManager(this)),
       m_reqAlt1(QNetworkRequest(QUrl(m_purchaseDataAlt1))),
       m_reqAlt2(QNetworkRequest(QUrl(m_purchaseDataAlt2))),
@@ -1737,12 +1737,12 @@ void MainWindow::setupDatabases()
 void MainWindow::setupModelView()
 {
     m_listView = ui->listView;
-    m_tagPool = new TagPool(m_dbManager);
+    m_tagPool = new TagPool(m_dbManager, this);
     m_listModel = new NoteListModel(m_listView);
     m_listView->setTagPool(m_tagPool);
     m_listView->setModel(m_listModel);
     m_listViewLogic = new ListViewLogic(m_listView, m_listModel, m_searchEdit, m_clearButton,
-                                        m_tagPool, m_dbManager, this);
+                                        m_tagPool, m_dbManager, m_listView);
     m_treeView = ui->treeView;
     m_treeView->setModel(m_treeModel);
     m_treeViewLogic = new TreeViewLogic(m_treeView, m_treeModel, m_dbManager, m_listView, this);

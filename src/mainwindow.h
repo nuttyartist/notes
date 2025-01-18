@@ -262,7 +262,7 @@ private:
     QWindow *m_subscriptionWindow;
     QString m_purchaseDataAlt1;
     QString m_purchaseDataAlt2;
-    QByteArray *m_dataBuffer;
+    std::unique_ptr<QByteArray> m_dataBuffer;
     QNetworkAccessManager *m_netManager;
     QNetworkRequest m_reqAlt1;
     QNetworkRequest m_reqAlt2;
