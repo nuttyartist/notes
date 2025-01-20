@@ -9,16 +9,45 @@
 #include <QApplication>
 #include <QFontDatabase>
 
+void parseCommands(QApplication &app, QCommandLineParser &parser)
+{
+    parser.setApplicationDescription("Notes is a simple note-taking application.");
+    parser.addHelpOption();
+    parser.addVersionOption();
+    parser.addOption(QCommandLineOption("count", "Count the number of notes"));
+    parser.addOption(QCommandLineOption("trash-count", "Count the number of notes in the trash"));
+    parser.addOption(QCommandLineOption("list-notes", "List all notes"));
+    parser.process(app);
+
+    if (parser.isSet("version")) {
+        qDebug() << "Notes version: " << APP_VERSION;
+        exit(EXIT_SUCCESS);
+    }
+    if (parser.isSet("count")) {
+        throw std::runtime_error("Not implemented yet");
+    }
+    if (parser.isSet("trash-count")) {
+        throw std::runtime_error("Not implemented yet");
+    }
+    if (parser.isSet("list-notes")) {
+        throw std::runtime_error("Not implemented yet");
+    }
+}
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
     // Set application information
-    app.setApplicationName("Notes");
-    app.setApplicationVersion(APP_VERSION);
+    QApplication::setApplicationName("Notes");
+    QApplication::setApplicationVersion(APP_VERSION);
 
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
-    app.setDesktopFileName(APP_ID);
+    QApplication::setDesktopFileName(APP_ID);
 #endif
+
+    // Parse command line arguments
+    QCommandLineParser parser;
+    parseCommands(app, parser);
 
     if (QFontDatabase::addApplicationFont(":/fonts/fontawesome/fa-solid-900.ttf") < 0)
         qWarning() << "FontAwesome Solid cannot be loaded !";
@@ -100,5 +129,5 @@ int main(int argc, char *argv[])
     QObject::connect(&instance, &SingleInstance::newInstance, &w,
                      [&]() { (&w)->setMainWindowVisibility(true); });
 
-    return app.exec();
+    return QApplication::exec();
 }
