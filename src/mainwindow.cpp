@@ -1047,7 +1047,7 @@ void MainWindow::setupEditorSettings()
     m_editorSettingsQuickView.setResizeMode(QQuickView::SizeViewToRootObject);
     m_editorSettingsQuickView.setFlags(Qt::FramelessWindowHint);
     m_editorSettingsQuickView.setColor(Qt::transparent);
-    m_editorSettingsWidget = QWidget::createWindowContainer(&m_editorSettingsQuickView, nullptr);
+    m_editorSettingsWidget = QWidget::createWindowContainer(&m_editorSettingsQuickView, this);
 #if defined(Q_OS_MACOS)
 #  if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
     m_editorSettingsWidget->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint
@@ -1291,7 +1291,7 @@ void MainWindow::setupKanbanView()
     m_kanbanQuickView.rootContext()->setContextProperty("mainWindow", this);
     m_kanbanQuickView.setSource(source);
     m_kanbanQuickView.setResizeMode(QQuickView::SizeRootObjectToView);
-    m_kanbanWidget = QWidget::createWindowContainer(&m_kanbanQuickView);
+    m_kanbanWidget = QWidget::createWindowContainer(&m_kanbanQuickView, this);
     m_kanbanWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     m_kanbanWidget->hide();
     ui->verticalLayout_textEdit->insertWidget(ui->verticalLayout_textEdit->indexOf(m_textEdit),
