@@ -112,7 +112,7 @@ jobs:
             build-type: release
 
           # openSUSE's release cycle: https://endoflife.date/opensuse
-          - image: opensuse-15_5
+          - image: opensuse-15_6
             build-script: rpm_entrypoint.sh
             build-type: release
     steps:
