@@ -1,7 +1,7 @@
 # vim: set syntax=dockerfile:
-FROM fedora:38
+FROM fedora:41
 
-LABEL org.opencontainers.image.description="Base image used to build and RPM-package Notes on Fedora 38"
+LABEL org.opencontainers.image.description="Base image used to build and RPM-package Notes on Fedora 41"
 
 # Install dependencies.
 RUN dnf install -y --nodocs --noplugins --setopt=install_weak_deps=False \

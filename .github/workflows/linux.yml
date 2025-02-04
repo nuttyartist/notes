@@ -107,7 +107,7 @@ jobs:
       matrix:
         include:
           # Fedora's release cycle: https://endoflife.date/fedora
-          - image: fedora-38
+          - image: fedora-41
             build-script: rpm_entrypoint.sh
             build-type: release
 
