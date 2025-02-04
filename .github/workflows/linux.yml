@@ -22,7 +22,7 @@ jobs:
             build-script: ubuntu_deb_entrypoint.sh
             build-type: release
 
-          - image: ubuntu-23_10
+          - image: ubuntu-24_10
             build-script: ubuntu_deb_entrypoint.sh
             build-type: release
     steps:

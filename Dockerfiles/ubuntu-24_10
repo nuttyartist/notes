@@ -1,10 +1,13 @@
 # vim: set syntax=dockerfile:
-FROM ubuntu:23.10
+FROM ubuntu:24.10
 
-LABEL org.opencontainers.image.description="Base image used to build and DEB-package Notes on Ubuntu 23.10"
+LABEL org.opencontainers.image.description="Base image used to build and DEB-package Notes on Ubuntu 24.10"
 
 # Prevent tzdata from asking for input.
 ENV DEBIAN_FRONTEND=noninteractive
+
+# Silences a locale-related warning from AutoUic.
+ENV LANG=C.UTF-8
 
 # Install dependencies.
 RUN apt-get update && \
