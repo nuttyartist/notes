@@ -22,6 +22,10 @@ jobs:
             build-script: ubuntu_deb_entrypoint.sh
             build-type: release
 
+          - image: ubuntu-24_04
+            build-script: ubuntu_deb_entrypoint.sh
+            build-type: release
+
           - image: ubuntu-24_10
             build-script: ubuntu_deb_entrypoint.sh
             build-type: release

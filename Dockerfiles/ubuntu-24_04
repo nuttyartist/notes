@@ -1,0 +1,23 @@
+# vim: set syntax=dockerfile:
+FROM ubuntu:24.04
+
+LABEL org.opencontainers.image.description="Base image used to build and DEB-package Notes on Ubuntu 24.04"
+
+# Prevent tzdata from asking for input.
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install dependencies.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends cmake git g++ libgl-dev lintian qt6-base-private-dev qt6-declarative-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists
+
+# Prevent a fatal error from git: "detected dubious ownership in repository at '/src'".
+RUN git config --global --add safe.directory /src
+
+# Don't forget to mount the current git tree to /src, i.e.:
+# docker run -v $(pwd):/src -it --rm ...
+WORKDIR /src
+
+ADD --chmod=755 ./Dockerfiles/ubuntu_deb_entrypoint.sh /usr/bin/entrypoint.sh
+ENTRYPOINT ["entrypoint.sh"]
