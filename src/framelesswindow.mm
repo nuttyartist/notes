@@ -102,16 +102,14 @@ void CFramelessWindow::initUI()
     AppObserver *observer = [[AppObserver alloc] init];
     if (observer) {
         observer.window = this;
-        [[[NSWorkspace sharedWorkspace] notificationCenter]
-                addObserver:observer
-                   selector:@selector(appDidHide:)
-                       name:NSWorkspaceDidHideApplicationNotification
-                     object:nil];
-        [[[NSWorkspace sharedWorkspace] notificationCenter]
-                addObserver:observer
-                   selector:@selector(appDidUnhide:)
-                       name:NSWorkspaceDidUnhideApplicationNotification
-                     object:nil];
+        [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:observer
+                                                               selector:@selector(appDidHide:)
+                                                                   name:NSWorkspaceDidHideApplicationNotification
+                                                                 object:nil];
+        [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:observer
+                                                               selector:@selector(appDidUnhide:)
+                                                                   name:NSWorkspaceDidUnhideApplicationNotification
+                                                                 object:nil];
     } else {
         qWarning() << "Failed to set up Notification Observer!";
     }
@@ -140,13 +138,10 @@ void CFramelessWindow::initUI()
     // Currently, doesn't work
     NSButton *closeButton = [window standardWindowButton:NSWindowCloseButton];
     NSButton *minimizeButton = [window standardWindowButton:NSWindowMiniaturizeButton];
-    closeButton.frame = NSMakeRect(closeButton.frame.origin.x + 10, closeButton.frame.origin.y,
-                                   closeButton.frame.size.width, closeButton.frame.size.height);
+    closeButton.frame = NSMakeRect(closeButton.frame.origin.x + 10, closeButton.frame.origin.y, closeButton.frame.size.width, closeButton.frame.size.height);
     minimizeButton.frame =
-            NSMakeRect(minimizeButton.frame.origin.x + 10, minimizeButton.frame.origin.y,
-                       minimizeButton.frame.size.width, minimizeButton.frame.size.height);
-    zoomButton.frame = NSMakeRect(zoomButton.frame.origin.x + 10, zoomButton.frame.origin.y,
-                                  zoomButton.frame.size.width, zoomButton.frame.size.height);
+            NSMakeRect(minimizeButton.frame.origin.x + 10, minimizeButton.frame.origin.y, minimizeButton.frame.size.width, minimizeButton.frame.size.height);
+    zoomButton.frame = NSMakeRect(zoomButton.frame.origin.x + 10, zoomButton.frame.origin.y, zoomButton.frame.size.width, zoomButton.frame.size.height);
 }
 
 void CFramelessWindow::setCloseBtnQuit(bool bQuit)
