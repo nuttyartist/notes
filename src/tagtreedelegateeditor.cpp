@@ -101,7 +101,7 @@ TagTreeDelegateEditor::TagTreeDelegateEditor(QTreeView *view, const QStyleOption
 #else
     int pointSizeOffset = -4;
 #endif
-    m_contextButton->setFont(FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "",
+    m_contextButton->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
                                                                 14 + pointSizeOffset));
     m_contextButton->setText(u8"\uf141"); // fa-ellipsis-h
 
@@ -170,7 +170,7 @@ void TagTreeDelegateEditor::paintEvent(QPaintEvent *event)
 #else
     int iconPointSizeOffset = -4;
 #endif
-    painter.setFont(FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "",
+    painter.setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
                                                        16 + iconPointSizeOffset));
     painter.drawText(iconRect, u8"\uf111"); // fa-circle
     QWidget::paintEvent(event);

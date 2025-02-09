@@ -63,7 +63,7 @@ FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
 #else
     int iconPointSizeOffset = -4;
 #endif
-    m_expandIcon->setFont(FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "",
+    m_expandIcon->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
                                                              10 + iconPointSizeOffset));
 
     m_expandIcon->setScaledContents(true);
@@ -138,7 +138,7 @@ FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
 #else
     int pointSizeOffset = -4;
 #endif
-    m_contextButton->setFont(FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "",
+    m_contextButton->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
                                                                 14 + pointSizeOffset));
     m_contextButton->setText(u8"\uf141"); // fa-ellipsis-h
 

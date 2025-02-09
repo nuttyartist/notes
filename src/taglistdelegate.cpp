@@ -49,7 +49,7 @@ void TagListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
 #else
     int iconPointSizeOffset = -4;
 #endif
-    painter->setFont(FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "",
+    painter->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
                                                         12 + iconPointSizeOffset));
     painter->drawText(iconRect, u8"\uf111"); // fa-circle
     painter->setBrush(m_titleColor);

@@ -131,24 +131,24 @@ void NodeTreeDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         }
         if (m_theme == Theme::Dark) {
             if (itemType == NodeItem::Type::AllNoteButton) {
-                painter->setFont(FontLoader::getInstance().loadFont("Material Symbols Outlined", "",
+                painter->setFont(font_loader::loadFont("Material Symbols Outlined", "",
                                                                     16 + iconPointSizeOffset));
                 painter->drawText(iconRect, u8"\ue2c7"); // folder
             } else if (itemType == NodeItem::Type::TrashButton) {
                 iconRect.setY(iconRect.y() + 2);
-                painter->setFont(FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "",
+                painter->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
                                                                     16 + iconPointSizeOffset));
                 painter->drawText(iconRect, u8"\uf1f8"); // fa-trash
             }
         } else {
             auto iconPath = index.data(NodeItem::Roles::Icon).toString();
             if (itemType == NodeItem::Type::AllNoteButton) {
-                painter->setFont(FontLoader::getInstance().loadFont("Material Symbols Outlined", "",
+                painter->setFont(font_loader::loadFont("Material Symbols Outlined", "",
                                                                     16 + iconPointSizeOffset));
                 painter->drawText(iconRect, iconPath); // folder
             } else if (itemType == NodeItem::Type::TrashButton) {
                 iconRect.setY(iconRect.y() + 2);
-                painter->setFont(FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "",
+                painter->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
                                                                     16 + iconPointSizeOffset));
                 painter->drawText(iconRect, iconPath); // fa-trash
             }
@@ -195,7 +195,7 @@ void NodeTreeDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         auto iconRect = QRect(option.rect.x() + 10,
                               option.rect.y() + (option.rect.height() - 12) / 2, 12, 12);
         QString iconPath;
-        painter->setFont(FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "",
+        painter->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
                                                             10 + iconPointSizeOffset));
         if (m_theme == Theme::Dark) {
             painter->setPen(QColor(169, 160, 172));
@@ -227,7 +227,7 @@ void NodeTreeDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         } else {
             painter->setPen(m_folderIconColor);
         }
-        painter->setFont(FontLoader::getInstance().loadFont("Material Symbols Outlined", "",
+        painter->setFont(font_loader::loadFont("Material Symbols Outlined", "",
                                                             16 + iconPointSizeOffset));
         painter->drawText(folderIconRect, u8"\ue2c7"); // folder
 
@@ -281,7 +281,7 @@ void NodeTreeDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
                               option.rect.y() + (option.rect.height() - 14) / 2, 16, 16);
         auto tagColor = index.data(NodeItem::Roles::TagColor).toString();
         painter->setPen(QColor(tagColor));
-        painter->setFont(FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "",
+        painter->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
                                                             16 + iconPointSizeOffset));
         painter->drawText(iconRect, u8"\uf111"); // fa-circle
         painter->setBrush(Qt::black);
@@ -383,7 +383,7 @@ QWidget *NodeTreeDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
 #else
         int iconPointSizeOffset = -4;
 #endif
-        addButton->setFont(FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "",
+        addButton->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
                                                               16 + iconPointSizeOffset));
         addButton->setText(u8"\uf067"); // fa_plus
         addButton->setStyleSheet(QStringLiteral(R"(QPushButton { )"
