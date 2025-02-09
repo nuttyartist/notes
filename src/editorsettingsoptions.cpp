@@ -2,6 +2,7 @@
 #include <QStyle>
 #include <QVariant>
 #include <qdebug.h>
+#include <sstream>
 
 EditorSettingsOptions::EditorSettingsOptions(QObject *) { }
 
@@ -56,11 +57,10 @@ void setCSSThemeAndUpdate(QWidget *obj, Theme::Value theme)
     setCSSClassesAndUpdate(obj, QString::fromStdString(to_string(theme)).toLower().toStdString());
 }
 
-void setCSSClassesAndUpdate(QWidget *obj, std::string classNames)
+void setCSSClassesAndUpdate(QWidget *obj, std::string const &classNames)
 {
     if (obj->styleSheet().isEmpty()) {
-        qWarning() << "setCSSClassesAndUpdate: styleSheet is empty for widget with name "
-                   << obj->objectName();
+        qWarning() << "setCSSClassesAndUpdate: styleSheet is empty for widget with name " << obj->objectName();
     }
     // set the class
     obj->setProperty("class", classNames.c_str());

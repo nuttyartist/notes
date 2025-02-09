@@ -10,9 +10,9 @@ class CustomDocument : public QTextEdit
     Q_OBJECT
 
 public:
-    CustomDocument(QWidget *parent = nullptr);
+    explicit CustomDocument(QWidget *parent);
     void setDocumentPadding(int left, int top, int right, int bottom);
-    bool eventFilter(QObject *obj, QEvent *event);
+    bool eventFilter(QObject *obj, QEvent *event) override;
     bool openLinkAtCursorPosition();
     QString getMarkdownUrlAtPosition(const QString &text, int position);
     bool isValidUrl(const QString &urlString);
@@ -27,8 +27,8 @@ signals:
 
     // QWidget interface
 protected:
-    void resizeEvent(QResizeEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
+    void resizeEvent(QResizeEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
 
     QStringList _ignoredClickUrlSchemata;
 };

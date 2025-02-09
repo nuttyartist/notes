@@ -11,8 +11,7 @@
 #include <QApplication>
 #include "customapplicationstyle.h"
 
-TreeViewLogic::TreeViewLogic(NodeTreeView *treeView, NodeTreeModel *treeModel, DBManager *dbManager,
-                             NoteListView *listView, QObject *parent)
+TreeViewLogic::TreeViewLogic(NodeTreeView *treeView, NodeTreeModel *treeModel, DBManager *dbManager, NoteListView *listView, QObject *parent)
     : QObject(parent),
       m_treeView{ treeView },
       m_treeModel{ treeModel },
@@ -26,66 +25,42 @@ TreeViewLogic::TreeViewLogic(NodeTreeView *treeView, NodeTreeModel *treeModel, D
 {
     m_treeDelegate = new NodeTreeDelegate(m_treeView, m_treeView, m_listView);
     m_treeView->setItemDelegate(m_treeDelegate);
-    connect(m_dbManager, &DBManager::nodesTagTreeReceived, this, &TreeViewLogic::loadTreeModel,
-            Qt::QueuedConnection);
-    connect(m_treeModel, &NodeTreeModel::topLevelItemLayoutChanged, this,
-            &TreeViewLogic::updateTreeViewSeparator);
-    connect(m_treeView, &NodeTreeView::addFolderRequested, this,
-            [this] { onAddFolderRequested(false); });
-    connect(m_treeDelegate, &NodeTreeDelegate::addFolderRequested, this,
-            [this] { onAddFolderRequested(true); });
-    connect(m_treeDelegate, &NodeTreeDelegate::addTagRequested, this,
-            &TreeViewLogic::onAddTagRequested);
-    connect(m_treeView, &NodeTreeView::renameFolderInDatabase, this,
-            &TreeViewLogic::onRenameNodeRequestedFromTreeView);
-    connect(m_treeView, &NodeTreeView::renameTagInDatabase, this,
-            &TreeViewLogic::onRenameTagRequestedFromTreeView);
-    connect(this, &TreeViewLogic::requestRenameNodeInDB, m_dbManager, &DBManager::renameNode,
-            Qt::QueuedConnection);
-    connect(this, &TreeViewLogic::requestRenameTagInDB, m_dbManager, &DBManager::renameTag,
-            Qt::QueuedConnection);
-    connect(m_treeView, &NodeTreeView::deleteNodeRequested, this,
-            &TreeViewLogic::onDeleteFolderRequested);
-    connect(m_treeView, &NodeTreeView::changeTagColorRequested, this,
-            &TreeViewLogic::onChangeTagColorRequested);
-    connect(m_treeView, &NodeTreeView::deleteTagRequested, this,
-            &TreeViewLogic::onDeleteTagRequested);
-    connect(this, &TreeViewLogic::requestChangeTagColorInDB, m_dbManager,
-            &DBManager::changeTagColor, Qt::QueuedConnection);
-    connect(this, &TreeViewLogic::requestMoveNodeInDB, m_dbManager, &DBManager::moveNode,
-            Qt::QueuedConnection);
+    connect(m_dbManager, &DBManager::nodesTagTreeReceived, this, &TreeViewLogic::loadTreeModel, Qt::QueuedConnection);
+    connect(m_treeModel, &NodeTreeModel::topLevelItemLayoutChanged, this, &TreeViewLogic::updateTreeViewSeparator);
+    connect(m_treeView, &NodeTreeView::addFolderRequested, this, [this] { onAddFolderRequested(false); });
+    connect(m_treeDelegate, &NodeTreeDelegate::addFolderRequested, this, [this] { onAddFolderRequested(true); });
+    connect(m_treeDelegate, &NodeTreeDelegate::addTagRequested, this, &TreeViewLogic::onAddTagRequested);
+    connect(m_treeView, &NodeTreeView::renameFolderInDatabase, this, &TreeViewLogic::onRenameNodeRequestedFromTreeView);
+    connect(m_treeView, &NodeTreeView::renameTagInDatabase, this, &TreeViewLogic::onRenameTagRequestedFromTreeView);
+    connect(this, &TreeViewLogic::requestRenameNodeInDB, m_dbManager, &DBManager::renameNode, Qt::QueuedConnection);
+    connect(this, &TreeViewLogic::requestRenameTagInDB, m_dbManager, &DBManager::renameTag, Qt::QueuedConnection);
+    connect(m_treeView, &NodeTreeView::deleteNodeRequested, this, &TreeViewLogic::onDeleteFolderRequested);
+    connect(m_treeView, &NodeTreeView::changeTagColorRequested, this, &TreeViewLogic::onChangeTagColorRequested);
+    connect(m_treeView, &NodeTreeView::deleteTagRequested, this, &TreeViewLogic::onDeleteTagRequested);
+    connect(this, &TreeViewLogic::requestChangeTagColorInDB, m_dbManager, &DBManager::changeTagColor, Qt::QueuedConnection);
+    connect(this, &TreeViewLogic::requestMoveNodeInDB, m_dbManager, &DBManager::moveNode, Qt::QueuedConnection);
     connect(m_treeView, &NodeTreeView::moveNodeRequested, this, [this](int nodeId, int targetId) {
         onMoveNodeRequested(nodeId, targetId);
         emit noteMoved(nodeId, targetId);
     });
     connect(m_treeView, &NodeTreeView::addNoteToTag, this, &TreeViewLogic::addNoteToTag);
     connect(m_treeModel, &NodeTreeModel::requestExpand, m_treeView, &NodeTreeView::onRequestExpand);
-    connect(m_treeModel, &NodeTreeModel::requestUpdateAbsPath, m_treeView,
-            &NodeTreeView::onUpdateAbsPath);
-    connect(m_treeModel, &NodeTreeModel::requestMoveNode, this,
-            &TreeViewLogic::onMoveNodeRequested);
-    connect(m_treeModel, &NodeTreeModel::requestUpdateNodeRelativePosition, m_dbManager,
-            &DBManager::updateRelPosNode, Qt::QueuedConnection);
-    connect(m_treeModel, &NodeTreeModel::requestUpdateTagRelativePosition, m_dbManager,
-            &DBManager::updateRelPosTag, Qt::QueuedConnection);
-    connect(m_treeModel, &NodeTreeModel::dropFolderSuccessful, m_treeView,
-            &NodeTreeView::onFolderDropSuccessful);
-    connect(m_treeModel, &NodeTreeModel::dropTagsSuccessful, m_treeView,
-            &NodeTreeView::onTagsDropSuccessful);
-    connect(m_treeModel, &NodeTreeModel::requestMoveFolderToTrash, this,
-            &TreeViewLogic::onDeleteFolderRequested);
-    connect(m_dbManager, &DBManager::childNotesCountUpdatedFolder, this,
-            &TreeViewLogic::onChildNoteCountChangedFolder);
-    connect(m_dbManager, &DBManager::childNotesCountUpdatedTag, this,
-            &TreeViewLogic::onChildNotesCountChangedTag);
+    connect(m_treeModel, &NodeTreeModel::requestUpdateAbsPath, m_treeView, &NodeTreeView::onUpdateAbsPath);
+    connect(m_treeModel, &NodeTreeModel::requestMoveNode, this, &TreeViewLogic::onMoveNodeRequested);
+    connect(m_treeModel, &NodeTreeModel::requestUpdateNodeRelativePosition, m_dbManager, &DBManager::updateRelPosNode, Qt::QueuedConnection);
+    connect(m_treeModel, &NodeTreeModel::requestUpdateTagRelativePosition, m_dbManager, &DBManager::updateRelPosTag, Qt::QueuedConnection);
+    connect(m_treeModel, &NodeTreeModel::dropFolderSuccessful, m_treeView, &NodeTreeView::onFolderDropSuccessful);
+    connect(m_treeModel, &NodeTreeModel::dropTagsSuccessful, m_treeView, &NodeTreeView::onTagsDropSuccessful);
+    connect(m_treeModel, &NodeTreeModel::requestMoveFolderToTrash, this, &TreeViewLogic::onDeleteFolderRequested);
+    connect(m_dbManager, &DBManager::childNotesCountUpdatedFolder, this, &TreeViewLogic::onChildNoteCountChangedFolder);
+    connect(m_dbManager, &DBManager::childNotesCountUpdatedTag, this, &TreeViewLogic::onChildNotesCountChangedTag);
     m_style = new CustomApplicationStyle();
     qApp->setStyle(m_style);
 }
 
 void TreeViewLogic::updateTreeViewSeparator()
 {
-    m_treeView->setTreeSeparator(m_treeModel->getSeparatorIndex(),
-                                 m_treeModel->getDefaultNotesIndex());
+    m_treeView->setTreeSeparator(m_treeModel->getSeparatorIndex(), m_treeModel->getDefaultNotesIndex());
 }
 
 void TreeViewLogic::loadTreeModel(const NodeTagTreeData &treeData)
@@ -93,8 +68,7 @@ void TreeViewLogic::loadTreeModel(const NodeTagTreeData &treeData)
     m_treeModel->setTreeData(treeData);
     {
         NodeData node;
-        QMetaObject::invokeMethod(m_dbManager, "getChildNotesCountFolder",
-                                  Qt::BlockingQueuedConnection, Q_RETURN_ARG(NodeData, node),
+        QMetaObject::invokeMethod(m_dbManager, "getChildNotesCountFolder", Qt::BlockingQueuedConnection, Q_RETURN_ARG(NodeData, node),
                                   Q_ARG(int, SpecialNodeID::RootFolder));
         auto index = m_treeModel->getAllNotesButtonIndex();
         if (index.isValid()) {
@@ -103,8 +77,7 @@ void TreeViewLogic::loadTreeModel(const NodeTagTreeData &treeData)
     }
     {
         NodeData node;
-        QMetaObject::invokeMethod(m_dbManager, "getChildNotesCountFolder",
-                                  Qt::BlockingQueuedConnection, Q_RETURN_ARG(NodeData, node),
+        QMetaObject::invokeMethod(m_dbManager, "getChildNotesCountFolder", Qt::BlockingQueuedConnection, Q_RETURN_ARG(NodeData, node),
                                   Q_ARG(int, SpecialNodeID::TrashFolder));
         auto index = m_treeModel->getTrashButtonIndex();
         if (index.isValid()) {
@@ -158,8 +131,7 @@ void TreeViewLogic::onAddFolderRequested(bool fromPlusButton)
     QString currentAbsPath;
     int currentTagId = SpecialNodeID::InvalidNodeId;
     if (currentIndex.isValid() && !fromPlusButton) {
-        auto type =
-                static_cast<NodeItem::Type>(currentIndex.data(NodeItem::Roles::ItemType).toInt());
+        auto type = static_cast<NodeItem::Type>(currentIndex.data(NodeItem::Roles::ItemType).toInt());
         if (type == NodeItem::FolderItem) {
             parentId = currentIndex.data(NodeItem::Roles::NodeId).toInt();
             // we don't allow subfolder under default notes folder
@@ -173,8 +145,7 @@ void TreeViewLogic::onAddFolderRequested(bool fromPlusButton)
             currentIndex = m_treeModel->rootIndex();
         }
     } else {
-        currentType =
-                static_cast<NodeItem::Type>(currentIndex.data(NodeItem::Roles::ItemType).toInt());
+        currentType = static_cast<NodeItem::Type>(currentIndex.data(NodeItem::Roles::ItemType).toInt());
         if (currentType == NodeItem::FolderItem) {
             currentAbsPath = currentIndex.data(NodeItem::Roles::AbsPath).toString();
         } else if (currentType == NodeItem::TagItem) {
@@ -184,7 +155,7 @@ void TreeViewLogic::onAddFolderRequested(bool fromPlusButton)
     }
     int newlyCreatedNodeId;
     NodeData newFolder;
-    newFolder.setNodeType(NodeData::Folder);
+    newFolder.setNodeType(NodeData::Type::Folder);
     QDateTime noteDate = QDateTime::currentDateTime();
     newFolder.setCreationDateTime(noteDate);
     newFolder.setLastModificationDateTime(noteDate);
@@ -195,8 +166,7 @@ void TreeViewLogic::onAddFolderRequested(bool fromPlusButton)
     }
     newFolder.setParentId(parentId);
 
-    QMetaObject::invokeMethod(m_dbManager, "addNode", Qt::BlockingQueuedConnection,
-                              Q_RETURN_ARG(int, newlyCreatedNodeId), Q_ARG(NodeData, newFolder));
+    QMetaObject::invokeMethod(m_dbManager, "addNode", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, newlyCreatedNodeId), Q_ARG(NodeData, newFolder));
 
     QHash<NodeItem::Roles, QVariant> hs;
     hs[NodeItem::Roles::ItemType] = NodeItem::Type::FolderItem;
@@ -204,15 +174,13 @@ void TreeViewLogic::onAddFolderRequested(bool fromPlusButton)
     hs[NodeItem::Roles::NodeId] = newlyCreatedNodeId;
 
     if (parentId != SpecialNodeID::RootFolder) {
-        hs[NodeItem::Roles::AbsPath] = currentIndex.data(NodeItem::Roles::AbsPath).toString()
-                + PATH_SEPARATOR + QString::number(newlyCreatedNodeId);
+        hs[NodeItem::Roles::AbsPath] = currentIndex.data(NodeItem::Roles::AbsPath).toString() + PATH_SEPARATOR + QString::number(newlyCreatedNodeId);
         m_treeModel->appendChildNodeToParent(currentIndex, hs);
         if (!m_treeView->isExpanded(currentIndex)) {
             m_treeView->expand(currentIndex);
         }
     } else {
-        hs[NodeItem::Roles::AbsPath] = PATH_SEPARATOR + QString::number(SpecialNodeID::RootFolder)
-                + PATH_SEPARATOR + QString::number(newlyCreatedNodeId);
+        hs[NodeItem::Roles::AbsPath] = PATH_SEPARATOR + QString::number(SpecialNodeID::RootFolder) + PATH_SEPARATOR + QString::number(newlyCreatedNodeId);
         m_treeModel->appendChildNodeToParent(m_treeModel->rootIndex(), hs);
     }
     if (fromPlusButton) {
@@ -253,8 +221,7 @@ void TreeViewLogic::onAddTagRequested()
     auto color = QColor::fromHsv(h, s, v);
 
     newTag.setColor(color.name());
-    QMetaObject::invokeMethod(m_dbManager, "addTag", Qt::BlockingQueuedConnection,
-                              Q_RETURN_ARG(int, newlyCreatedTagId), Q_ARG(TagData, newTag));
+    QMetaObject::invokeMethod(m_dbManager, "addTag", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, newlyCreatedTagId), Q_ARG(TagData, newTag));
 
     QHash<NodeItem::Roles, QVariant> hs;
     hs[NodeItem::Roles::ItemType] = NodeItem::Type::TagItem;
@@ -264,8 +231,7 @@ void TreeViewLogic::onAddTagRequested()
     m_treeModel->appendChildNodeToParent(m_treeModel->rootIndex(), hs);
 }
 
-void TreeViewLogic::onRenameNodeRequestedFromTreeView(const QModelIndex &index,
-                                                      const QString &newName)
+void TreeViewLogic::onRenameNodeRequestedFromTreeView(const QModelIndex &index, const QString &newName)
 {
     m_treeModel->setData(index, newName, NodeItem::Roles::DisplayText);
     auto id = index.data(NodeItem::Roles::NodeId).toInt();
@@ -284,18 +250,15 @@ void TreeViewLogic::onDeleteFolderRequested(const QModelIndex &index)
             return;
         }
         NodeData node;
-        QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection,
-                                  Q_RETURN_ARG(NodeData, node), Q_ARG(int, id));
+        QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection, Q_RETURN_ARG(NodeData, node), Q_ARG(int, id));
         auto parentPath = NodePath{ node.absolutePath() }.parentPath();
         auto parentIndex = m_treeModel->folderIndexFromIdPath(parentPath);
         if (parentIndex.isValid()) {
             m_treeModel->deleteRow(index, parentIndex);
-            QMetaObject::invokeMethod(m_dbManager, "moveFolderToTrash", Qt::QueuedConnection,
-                                      Q_ARG(NodeData, node));
+            QMetaObject::invokeMethod(m_dbManager, "moveFolderToTrash", Qt::QueuedConnection, Q_ARG(NodeData, node));
             m_treeView->setCurrentIndexC(m_treeModel->getAllNotesButtonIndex());
         } else {
-            qDebug() << __FUNCTION__ << "Parent index with path" << parentPath.path()
-                     << "is not valid";
+            qDebug() << __FUNCTION__ << "Parent index with path" << parentPath.path() << "is not valid";
         }
     } else {
         m_treeView->closePersistentEditor(m_treeModel->getTrashButtonIndex());
@@ -303,8 +266,7 @@ void TreeViewLogic::onDeleteFolderRequested(const QModelIndex &index)
     }
 }
 
-void TreeViewLogic::onRenameTagRequestedFromTreeView(const QModelIndex &index,
-                                                     const QString &newName)
+void TreeViewLogic::onRenameTagRequestedFromTreeView(const QModelIndex &index, const QString &newName)
 {
     m_treeModel->setData(index, newName, NodeItem::Roles::DisplayText);
     auto id = index.data(NodeItem::Roles::NodeId).toInt();
@@ -340,8 +302,7 @@ void TreeViewLogic::onChildNotesCountChangedTag(int tagId, int notesCount)
     }
 }
 
-void TreeViewLogic::onChildNoteCountChangedFolder(int folderId, const QString &absPath,
-                                                  int notesCount)
+void TreeViewLogic::onChildNoteCountChangedFolder(int folderId, const QString &absPath, int notesCount)
 {
     QModelIndex index;
     if (folderId == SpecialNodeID::RootFolder) {
@@ -359,9 +320,8 @@ void TreeViewLogic::onChildNoteCountChangedFolder(int folderId, const QString &a
 void TreeViewLogic::openFolder(int id)
 {
     NodeData target;
-    QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection,
-                              Q_RETURN_ARG(NodeData, target), Q_ARG(int, id));
-    if (target.nodeType() != NodeData::Folder) {
+    QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection, Q_RETURN_ARG(NodeData, target), Q_ARG(int, id));
+    if (target.nodeType() != NodeData::Type::Folder) {
         qDebug() << __FUNCTION__ << "Target is not folder!";
         return;
     }
@@ -382,10 +342,9 @@ void TreeViewLogic::openFolder(int id)
 void TreeViewLogic::onMoveNodeRequested(int nodeId, int targetId)
 {
     NodeData target;
-    QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection,
-                              Q_RETURN_ARG(NodeData, target), Q_ARG(int, targetId));
+    QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection, Q_RETURN_ARG(NodeData, target), Q_ARG(int, targetId));
     // only allow moving a node into a folder
-    if (target.nodeType() != NodeData::Folder) {
+    if (target.nodeType() != NodeData::Type::Folder) {
         qDebug() << __FUNCTION__ << "Target is not folder!";
         return;
     }
@@ -396,8 +355,7 @@ void TreeViewLogic::onMoveNodeRequested(int nodeId, int targetId)
     }
     // don't allow moving a node into the same parent
     NodeData node;
-    QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection,
-                              Q_RETURN_ARG(NodeData, node), Q_ARG(int, nodeId));
+    QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection, Q_RETURN_ARG(NodeData, node), Q_ARG(int, nodeId));
     if (node.parentId() == targetId) {
         qDebug() << __FUNCTION__ << "Can't move a node into the same parent";
         return;
@@ -412,8 +370,7 @@ void TreeViewLogic::setTheme(Theme::Value theme)
     m_style->setTheme(theme);
 }
 
-void TreeViewLogic::setLastSavedState(bool isLastSelectFolder, const QString &lastSelectFolder,
-                                      const QSet<int> &lastSelectTag,
+void TreeViewLogic::setLastSavedState(bool isLastSelectFolder, const QString &lastSelectFolder, const QSet<int> &lastSelectTag,
                                       const QStringList &expandedFolder)
 {
     m_isLastSelectFolder = isLastSelectFolder;

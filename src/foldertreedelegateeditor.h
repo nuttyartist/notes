@@ -17,8 +17,7 @@ class FolderTreeDelegateEditor : public QWidget
 {
     Q_OBJECT
 public:
-    explicit FolderTreeDelegateEditor(QTreeView *view, const QStyleOptionViewItem &option,
-                                      const QModelIndex &index, QListView *listView,
+    explicit FolderTreeDelegateEditor(QTreeView *view, const QStyleOptionViewItem &option, const QModelIndex &index, QListView *listView,
                                       QWidget *parent = nullptr);
     void setTheme(Theme::Value theme);
 

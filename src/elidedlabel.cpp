@@ -17,7 +17,7 @@ void ElidedLabel::setType(const Qt::TextElideMode type)
     elide();
 }
 
-QString ElidedLabel::text() const
+QString const &ElidedLabel::text() const
 {
     return original;
 }
@@ -39,7 +39,7 @@ void ElidedLabel::setText(const QString &text)
 
 void ElidedLabel::elide()
 {
-    if (eliding == false) {
+    if (!eliding) {
         eliding = true;
 
         QFontMetrics metrics(font());

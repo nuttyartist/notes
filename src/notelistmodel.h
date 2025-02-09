@@ -33,8 +33,7 @@ public:
     QModelIndex getNoteIndex(int id) const;
     void setListNote(const QVector<NodeData> &notes, const ListViewInfo &inf);
     void removeNotes(const QModelIndexList &noteIndexes);
-    bool moveRow(const QModelIndex &sourceParent, int sourceRow,
-                 const QModelIndex &destinationParent, int destinationChild);
+    bool moveRow(const QModelIndex &sourceParent, int sourceRow, const QModelIndex &destinationParent, int destinationChild);
 
     void clearNotes();
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
@@ -44,12 +43,11 @@ public:
     void sort(int column, Qt::SortOrder order) override;
     void setNoteData(const QModelIndex &index, const NodeData &note);
 
-    virtual Qt::DropActions supportedDropActions() const override;
-    virtual Qt::DropActions supportedDragActions() const override;
-    virtual QStringList mimeTypes() const override;
-    virtual QMimeData *mimeData(const QModelIndexList &indexes) const override;
-    virtual bool dropMimeData(const QMimeData *mime, Qt::DropAction action, int row, int column,
-                              const QModelIndex &parent) override;
+    Qt::DropActions supportedDropActions() const override;
+    Qt::DropActions supportedDragActions() const override;
+    QStringList mimeTypes() const override;
+    QMimeData *mimeData(const QModelIndexList &indexes) const override;
+    bool dropMimeData(const QMimeData *mime, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
 
     bool noteIsHaveTag(const QModelIndex &index) const;
     bool isFirstPinnedNote(const QModelIndex &index) const;

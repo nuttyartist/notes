@@ -31,13 +31,11 @@ class NoteEditorLogic : public QObject
     Q_OBJECT
 public:
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-    explicit NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLabel,
-                             QLineEdit *searchEdit, QWidget *kanbanWidget, TagListView *tagListView,
+    explicit NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLabel, QLineEdit *searchEdit, QWidget *kanbanWidget, TagListView *tagListView,
                              TagPool *tagPool, DBManager *dbManager, QObject *parent = nullptr);
 
 #else
-    explicit NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLabel,
-                             QLineEdit *searchEdit, TagListView *tagListView, TagPool *tagPool,
+    explicit NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLabel, QLineEdit *searchEdit, TagListView *tagListView, TagPool *tagPool,
                              DBManager *dbManager, QObject *parent = nullptr);
 #endif
 
@@ -68,10 +66,8 @@ public slots:
     void onNoteTagListChanged(int noteId, const QSet<int> &tagIds);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
     bool checkForTasksInEditor();
-    void rearrangeTasksInTextEditor(int startLinePosition, int endLinePosition,
-                                    int newLinePosition);
-    void rearrangeColumnsInTextEditor(int startLinePosition, int endLinePosition,
-                                      int newLinePosition);
+    void rearrangeTasksInTextEditor(int startLinePosition, int endLinePosition, int newLinePosition);
+    void rearrangeColumnsInTextEditor(int startLinePosition, int endLinePosition, int newLinePosition);
     void checkTaskInLine(int lineNumber);
     void uncheckTaskInLine(int lineNumber);
     void updateTaskText(int startLinePosition, int endLinePosition, const QString &newText);
@@ -104,14 +100,11 @@ private:
     static QDateTime getQDateTime(const QString &date);
     void showTagListForCurrentNote();
     bool isInEditMode() const;
-    QString moveTextToNewLinePosition(const QString &inputText, int startLinePosition,
-                                      int endLinePosition, int newLinePosition,
-                                      bool isColumns = false);
+    QString moveTextToNewLinePosition(const QString &inputText, int startLinePosition, int endLinePosition, int newLinePosition, bool isColumns = false);
     QMap<QString, int> getTaskDataInLine(const QString &line);
     void replaceTextBetweenLines(int startLinePosition, int endLinePosition, QString &newText);
     void removeTextBetweenLines(int startLinePosition, int endLinePosition);
-    void appendNewColumn(QJsonArray &data, QJsonObject &currentColumn, QString &currentTitle,
-                         QJsonArray &tasks);
+    void appendNewColumn(QJsonArray &data, QJsonObject &currentColumn, QString &currentTitle, QJsonArray &tasks);
     void addUntitledColumnToTextEditor(int startLinePosition);
 
 private:

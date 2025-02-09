@@ -7,11 +7,10 @@ class SplitterStyle : public QProxyStyle
 {
     Q_OBJECT
 public:
-    SplitterStyle(QObject *parent);
+    explicit SplitterStyle(QObject *parent);
 
 public:
-    void drawControl(ControlElement element, const QStyleOption *opt, QPainter *p,
-                     const QWidget *w) const override;
+    void drawControl(ControlElement element, const QStyleOption *opt, QPainter *p, const QWidget *w) const override;
 };
 
 #endif // SPLITTERSTYLE_H

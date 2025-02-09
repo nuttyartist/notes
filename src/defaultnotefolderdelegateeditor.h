@@ -14,8 +14,7 @@ class DefaultNoteFolderDelegateEditor : public QWidget
 {
     Q_OBJECT
 public:
-    explicit DefaultNoteFolderDelegateEditor(QTreeView *view, const QStyleOptionViewItem &option,
-                                             const QModelIndex &index, QListView *listView,
+    explicit DefaultNoteFolderDelegateEditor(QTreeView *view, const QStyleOptionViewItem &option, const QModelIndex &index, QListView *listView,
                                              QWidget *parent = nullptr);
     void setTheme(Theme::Value theme);
 
