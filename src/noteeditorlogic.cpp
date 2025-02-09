@@ -17,13 +17,10 @@
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 
-NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLabel,
-                                 QLineEdit *searchEdit, QWidget *kanbanWidget,
-                                 TagListView *tagListView, TagPool *tagPool, DBManager *dbManager,
-                                 QObject *parent)
+NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLabel, QLineEdit *searchEdit, QWidget *kanbanWidget, TagListView *tagListView,
+                                 TagPool *tagPool, DBManager *dbManager, QObject *parent)
 #else
-NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLabel,
-                                 QLineEdit *searchEdit, TagListView *tagListView, TagPool *tagPool,
+NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLabel, QLineEdit *searchEdit, TagListView *tagListView, TagPool *tagPool,
                                  DBManager *dbManager, QObject *parent)
 #endif
     : QObject(parent),
@@ -42,8 +39,7 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLab
       m_currentMinimumEditorPadding{ 0 }
 {
     connect(m_textEdit, &QTextEdit::textChanged, this, &NoteEditorLogic::onTextEditTextChanged);
-    connect(this, &NoteEditorLogic::requestCreateUpdateNote, m_dbManager,
-            &DBManager::onCreateUpdateRequestedNoteContent, Qt::QueuedConnection);
+    connect(this, &NoteEditorLogic::requestCreateUpdateNote, m_dbManager, &DBManager::onCreateUpdateRequestedNoteContent, Qt::QueuedConnection);
     // auto save timer
     m_autoSaveTimer.setSingleShot(true);
     m_autoSaveTimer.setInterval(50);
@@ -108,8 +104,7 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
         emit resetKanbanSettings();
-        emit checkMultipleNotesSelected(
-                QVariant(false)); // TODO: if not PRO version, should be true
+        emit checkMultipleNotesSelected(QVariant(false)); // TODO: if not PRO version, should be true
 #endif
 
         m_textEdit->blockSignals(true);
@@ -163,16 +158,13 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
         m_textEdit->blockSignals(true);
         auto verticalScrollBarValueToRestore = m_textEdit->verticalScrollBar()->value();
         m_textEdit->clear();
-        auto padding = m_currentAdaptableEditorPadding > m_currentMinimumEditorPadding
-                ? m_currentAdaptableEditorPadding
-                : m_currentMinimumEditorPadding;
+        auto padding = m_currentAdaptableEditorPadding > m_currentMinimumEditorPadding ? m_currentAdaptableEditorPadding : m_currentMinimumEditorPadding;
         QPixmap sep(QSize{ m_textEdit->width() - padding * 2 - 12, 4 });
         sep.fill(Qt::transparent);
         QPainter painter(&sep);
         painter.setPen(m_spacerColor);
         painter.drawRect(0, 1, sep.width(), 1);
-        m_textEdit->document()->addResource(QTextDocument::ImageResource, QUrl("mydata://sep.png"),
-                                            sep);
+        m_textEdit->document()->addResource(QTextDocument::ImageResource, QUrl("mydata://sep.png"), sep);
         for (int i = 0; i < notes.size(); ++i) {
             auto cursor = m_textEdit->textCursor();
             cursor.movePosition(QTextCursor::End);
@@ -235,14 +227,12 @@ void NoteEditorLogic::onTextEditTextChanged()
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 
-void NoteEditorLogic::rearrangeTasksInTextEditor(int startLinePosition, int endLinePosition,
-                                                 int newLinePosition)
+void NoteEditorLogic::rearrangeTasksInTextEditor(int startLinePosition, int endLinePosition, int newLinePosition)
 {
     QTextDocument *document = m_textEdit->document();
     QTextCursor cursor(document);
     cursor.setPosition(document->findBlockByNumber(startLinePosition).position());
-    cursor.setPosition(document->findBlockByNumber(endLinePosition).position(),
-                       QTextCursor::KeepAnchor);
+    cursor.setPosition(document->findBlockByNumber(endLinePosition).position(), QTextCursor::KeepAnchor);
     cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
     if (document->findBlockByNumber(endLinePosition + 1).isValid()) {
         cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor);
@@ -253,16 +243,13 @@ void NoteEditorLogic::rearrangeTasksInTextEditor(int startLinePosition, int endL
     if (newLinePosition <= startLinePosition) {
         cursor.setPosition(document->findBlockByLineNumber(newLinePosition).position());
     } else {
-        int newPositionBecauseOfRemoval =
-                newLinePosition - (endLinePosition - startLinePosition + 1);
+        int newPositionBecauseOfRemoval = newLinePosition - (endLinePosition - startLinePosition + 1);
         if (newPositionBecauseOfRemoval == document->lineCount()) {
-            cursor.setPosition(
-                    document->findBlockByLineNumber(newPositionBecauseOfRemoval - 1).position());
+            cursor.setPosition(document->findBlockByLineNumber(newPositionBecauseOfRemoval - 1).position());
             cursor.movePosition(QTextCursor::EndOfBlock);
             selectedText = "\n" + selectedText;
         } else {
-            cursor.setPosition(
-                    document->findBlockByLineNumber(newPositionBecauseOfRemoval).position());
+            cursor.setPosition(document->findBlockByLineNumber(newPositionBecauseOfRemoval).position());
         }
     }
     cursor.insertText(selectedText);
@@ -270,14 +257,12 @@ void NoteEditorLogic::rearrangeTasksInTextEditor(int startLinePosition, int endL
     checkForTasksInEditor();
 }
 
-void NoteEditorLogic::rearrangeColumnsInTextEditor(int startLinePosition, int endLinePosition,
-                                                   int newLinePosition)
+void NoteEditorLogic::rearrangeColumnsInTextEditor(int startLinePosition, int endLinePosition, int newLinePosition)
 {
     QTextDocument *document = m_textEdit->document();
     QTextCursor cursor(document);
     cursor.setPosition(document->findBlockByNumber(startLinePosition).position());
-    cursor.setPosition(document->findBlockByNumber(endLinePosition).position(),
-                       QTextCursor::KeepAnchor);
+    cursor.setPosition(document->findBlockByNumber(endLinePosition).position(), QTextCursor::KeepAnchor);
     cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
     if (document->findBlockByNumber(endLinePosition + 1).isValid()) {
         cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor);
@@ -292,8 +277,7 @@ void NoteEditorLogic::rearrangeColumnsInTextEditor(int startLinePosition, int en
 
     if (startLinePosition < newLinePosition) {
         // Goes down
-        int newPositionBecauseOfRemoval =
-                newLinePosition - (endLinePosition - startLinePosition + 1);
+        int newPositionBecauseOfRemoval = newLinePosition - (endLinePosition - startLinePosition + 1);
         cursor.setPosition(document->findBlockByLineNumber(newPositionBecauseOfRemoval).position());
         cursor.movePosition(QTextCursor::EndOfBlock);
         cursor.insertText("\n" + selectedText);
@@ -362,8 +346,7 @@ void NoteEditorLogic::uncheckTaskInLine(int lineNumber)
     }
 }
 
-void NoteEditorLogic::replaceTextBetweenLines(int startLinePosition, int endLinePosition,
-                                              QString &newText)
+void NoteEditorLogic::replaceTextBetweenLines(int startLinePosition, int endLinePosition, QString &newText)
 {
     QTextDocument *document = m_textEdit->document();
     QTextBlock startBlock = document->findBlockByLineNumber(startLinePosition);
@@ -374,8 +357,7 @@ void NoteEditorLogic::replaceTextBetweenLines(int startLinePosition, int endLine
     cursor.insertText(newText);
 }
 
-void NoteEditorLogic::updateTaskText(int startLinePosition, int endLinePosition,
-                                     const QString &newText)
+void NoteEditorLogic::updateTaskText(int startLinePosition, int endLinePosition, const QString &newText)
 {
     QTextDocument *document = m_textEdit->document();
     QTextBlock block = document->findBlockByLineNumber(startLinePosition);
@@ -384,8 +366,7 @@ void NoteEditorLogic::updateTaskText(int startLinePosition, int endLinePosition,
         int indexOfTaskInLine = taskData["taskMatchIndex"];
         if (indexOfTaskInLine == -1)
             return;
-        QString taskExpressionText =
-                block.text().mid(0, taskData["taskMatchIndex"] + taskData["taskExpressionSize"]);
+        QString taskExpressionText = block.text().mid(0, taskData["taskMatchIndex"] + taskData["taskExpressionSize"]);
 
         QString newTextModified = newText;
         newTextModified.replace("\n\n", "\n");
@@ -445,8 +426,7 @@ void NoteEditorLogic::removeTextBetweenLines(int startLinePosition, int endLineP
     QTextDocument *document = m_textEdit->document();
     QTextCursor cursor(document);
     cursor.setPosition(document->findBlockByNumber(startLinePosition).position());
-    cursor.setPosition(document->findBlockByNumber(endLinePosition).position(),
-                       QTextCursor::KeepAnchor);
+    cursor.setPosition(document->findBlockByNumber(endLinePosition).position(), QTextCursor::KeepAnchor);
     cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
     if (document->findBlockByNumber(endLinePosition + 1).isValid()) {
         cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor);
@@ -545,8 +525,7 @@ void NoteEditorLogic::addUntitledColumnToTextEditor(int startLinePosition)
     }
 }
 
-void NoteEditorLogic::appendNewColumn(QJsonArray &data, QJsonObject &currentColumn,
-                                      QString &currentTitle, QJsonArray &tasks)
+void NoteEditorLogic::appendNewColumn(QJsonArray &data, QJsonObject &currentColumn, QString &currentTitle, QJsonArray &tasks)
 {
     if (!tasks.isEmpty()) {
         currentColumn["title"] = currentTitle;
@@ -617,9 +596,7 @@ bool NoteEditorLogic::checkForTasksInEditor()
 
             if (indexOfTaskInLine != -1) {
                 QJsonObject taskObject;
-                QString taskText =
-                        line.mid(indexOfTaskInLine + taskDataInLine["taskExpressionSize"])
-                                .trimmed();
+                QString taskText = line.mid(indexOfTaskInLine + taskDataInLine["taskExpressionSize"]).trimmed();
                 taskObject["text"] = taskText;
                 taskObject["checked"] = taskDataInLine["taskChecked"] == 1;
                 taskObject["taskStartLine"] = i;
@@ -631,8 +608,7 @@ bool NoteEditorLogic::checkForTasksInEditor()
             else if (!line.isEmpty() && isPreviousLineATask) {
                 if (tasks.size() > 0) {
                     QJsonObject newTask = tasks[tasks.size() - 1].toObject();
-                    QString newTaskText =
-                            QStringLiteral("%1  \n%2").arg(newTask["text"].toString(), lineTrimmed);
+                    QString newTaskText = QStringLiteral("%1  \n%2").arg(newTask["text"].toString(), lineTrimmed);
                     // For markdown rendering a line break needs two white spaces
                     newTask["text"] = newTaskText;
                     newTask["taskEndLine"] = i;
@@ -716,8 +692,7 @@ int NoteEditorLogic::currentEditingNoteId() const
 
 void NoteEditorLogic::saveNoteToDB()
 {
-    if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId && m_isContentModified
-        && !m_currentNotes[0].isTempNote()) {
+    if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId && m_isContentModified && !m_currentNotes[0].isTempNote()) {
         emit requestCreateUpdateNote(m_currentNotes[0]);
         m_isContentModified = false;
     }
@@ -780,9 +755,7 @@ QString NoteEditorLogic::getNthLine(const QString &str, int targetLineNumber)
     for (int i = 0; i <= str.length(); i++) {
         if (i == str.length() || str[i] == '\n') {
             lineCount++;
-            if (lineCount >= targetLineNumber
-                && (i - previousLineBreakIndex > 1
-                    || (i > 0 && i == str.length() && str[i - 1] != '\n'))) {
+            if (lineCount >= targetLineNumber && (i - previousLineBreakIndex > 1 || (i > 0 && i == str.length() && str[i - 1] != '\n'))) {
                 QString line = str.mid(previousLineBreakIndex + 1, i - previousLineBreakIndex - 1);
                 line = line.trimmed();
                 if (!line.isEmpty() && !line.startsWith("---") && !line.startsWith("```")) {
@@ -844,8 +817,7 @@ void NoteEditorLogic::setTheme(Theme::Value theme, QColor textColor, qreal fontS
     }
     if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId) {
         int verticalScrollBarValueToRestore = m_textEdit->verticalScrollBar()->value();
-        m_textEdit->setText(
-                m_textEdit->toPlainText()); // TODO: Update the text color without setting the text
+        m_textEdit->setText(m_textEdit->toPlainText()); // TODO: Update the text color without setting the text
         m_textEdit->verticalScrollBar()->setValue(verticalScrollBarValueToRestore);
     } else {
         int verticalScrollBarValueToRestore = m_textEdit->verticalScrollBar()->value();

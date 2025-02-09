@@ -12,20 +12,15 @@
 #include "labeledittype.h"
 #include "fontloader.h"
 
-FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
-                                                   const QStyleOptionViewItem &option,
-                                                   const QModelIndex &index, QListView *listView,
+FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view, const QStyleOptionViewItem &option, const QModelIndex &index, QListView *listView,
                                                    QWidget *parent)
     : QWidget(parent),
       m_option(option),
       m_index(index),
 #ifdef __APPLE__
-      m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch()
-                            ? QStringLiteral("SF Pro Text")
-                            : QStringLiteral("Roboto")),
+      m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")),
 #elif _WIN32
-      m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI")
-                                                                   : QStringLiteral("Roboto")),
+      m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI") : QStringLiteral("Roboto")),
 #else
       m_displayFont(QStringLiteral("Roboto")),
 #endif
@@ -63,14 +58,12 @@ FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
 #else
     int iconPointSizeOffset = -4;
 #endif
-    m_expandIcon->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
-                                                             10 + iconPointSizeOffset));
+    m_expandIcon->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "", 10 + iconPointSizeOffset));
 
     m_expandIcon->setScaledContents(true);
     layout->addWidget(m_expandIcon);
 
-    if (!m_index.data(NodeItem::Roles::IsExpandable).toBool()
-        || (m_index.data(NodeItem::Roles::IsExpandable).toBool() && m_view->isExpanded(m_index))) {
+    if (!m_index.data(NodeItem::Roles::IsExpandable).toBool() || (m_index.data(NodeItem::Roles::IsExpandable).toBool() && m_view->isExpanded(m_index))) {
         layout->addSpacing(2);
     }
 
@@ -92,16 +85,15 @@ FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
     m_label->setSizePolicy(labelPolicy);
     m_label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     connect(m_label, &LabelEditType::editingStarted, this, [this] {
-        auto tree_view = dynamic_cast<NodeTreeView *>(m_view);
-        tree_view->setIsEditing(true);
+        auto *treeView = static_cast<NodeTreeView *>(m_view);
+        treeView->setIsEditing(true);
     });
     connect(m_label, &LabelEditType::editingFinished, this, [this](const QString &label) {
-        auto tree_view = dynamic_cast<NodeTreeView *>(m_view);
-        tree_view->onRenameFolderFinished(label);
-        tree_view->setIsEditing(false);
+        auto *treeView = static_cast<NodeTreeView *>(m_view);
+        treeView->onRenameFolderFinished(label);
+        treeView->setIsEditing(false);
     });
-    connect(dynamic_cast<NodeTreeView *>(m_view), &NodeTreeView::renameFolderRequested, m_label,
-            &LabelEditType::openEditor);
+    connect(static_cast<NodeTreeView *>(m_view), &NodeTreeView::renameFolderRequested, m_label, &LabelEditType::openEditor);
     layout->addWidget(m_label);
     layout->addSpacing(5);
     m_contextButton = new PushButtonType(parent);
@@ -138,15 +130,13 @@ FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
 #else
     int pointSizeOffset = -4;
 #endif
-    m_contextButton->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
-                                                                14 + pointSizeOffset));
+    m_contextButton->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "", 14 + pointSizeOffset));
     m_contextButton->setText(u8"\uf141"); // fa-ellipsis-h
 
     connect(m_contextButton, &QPushButton::clicked, m_view, [this](bool) {
-        auto tree_view = dynamic_cast<NodeTreeView *>(m_view);
+        auto *const treeView = static_cast<NodeTreeView *>(m_view);
         //        tree_view->setCurrentIndexC(m_index);
-        tree_view->onCustomContextMenu(tree_view->visualRect(m_index).topLeft()
-                                       + m_contextButton->geometry().bottomLeft());
+        treeView->onCustomContextMenu(treeView->visualRect(m_index).topLeft() + m_contextButton->geometry().bottomLeft());
     });
     layout->addWidget(m_contextButton, 0, Qt::AlignRight);
     layout->addSpacing(5);
@@ -162,33 +152,24 @@ void FolderTreeDelegateEditor::updateDelegate()
 
     if (m_view->selectionModel()->isSelected(m_index)) {
         labelStyle = QStringLiteral("QLabel{color: rgb(%1, %2, %3);}")
-                             .arg(QString::number(m_titleSelectedColor.red()),
-                                  QString::number(m_titleSelectedColor.green()),
+                             .arg(QString::number(m_titleSelectedColor.red()), QString::number(m_titleSelectedColor.green()),
                                   QString::number(m_titleSelectedColor.blue()));
-        folderIconStyle =
-                QStringLiteral("QPushButton{border: none; padding: 0px; color: rgb(%1, %2, %3);}")
-                        .arg(QString::number(m_titleSelectedColor.red()),
-                             QString::number(m_titleSelectedColor.green()),
-                             QString::number(m_titleSelectedColor.blue()));
+        folderIconStyle = QStringLiteral("QPushButton{border: none; padding: 0px; color: rgb(%1, %2, %3);}")
+                                  .arg(QString::number(m_titleSelectedColor.red()), QString::number(m_titleSelectedColor.green()),
+                                       QString::number(m_titleSelectedColor.blue()));
     } else {
         labelStyle = QStringLiteral("QLabel{color: rgb(%1, %2, %3);}")
-                             .arg(QString::number(m_titleColor.red()),
-                                  QString::number(m_titleColor.green()),
-                                  QString::number(m_titleColor.blue()));
+                             .arg(QString::number(m_titleColor.red()), QString::number(m_titleColor.green()), QString::number(m_titleColor.blue()));
         folderIconStyle =
                 QStringLiteral("QPushButton{border: none; padding: 0px; color: rgb(%1, %2, %3);}")
-                        .arg(QString::number(m_folderIconColor.red()),
-                             QString::number(m_folderIconColor.green()),
-                             QString::number(m_folderIconColor.blue()));
+                        .arg(QString::number(m_folderIconColor.red()), QString::number(m_folderIconColor.green()), QString::number(m_folderIconColor.blue()));
     }
     m_label->setText(displayName);
-    auto theme = dynamic_cast<NodeTreeView *>(m_view)->theme();
+    auto theme = static_cast<NodeTreeView *>(m_view)->theme();
 
     QColor chevronColor(theme == Theme::Dark ? QColor(169, 160, 172) : QColor(103, 99, 105));
-    QString expandIconStyle =
-            QStringLiteral("QLabel{color: rgb(%1, %2, %3);}")
-                    .arg(QString::number(chevronColor.red()), QString::number(chevronColor.green()),
-                         QString::number(chevronColor.blue()));
+    QString expandIconStyle = QStringLiteral("QLabel{color: rgb(%1, %2, %3);}")
+                                      .arg(QString::number(chevronColor.red()), QString::number(chevronColor.green()), QString::number(chevronColor.blue()));
 
     if (m_folderIcon->styleSheet() != folderIconStyle) {
         m_folderIcon->setStyleSheet(folderIconStyle);
@@ -218,7 +199,7 @@ void FolderTreeDelegateEditor::paintEvent(QPaintEvent *event)
     if (m_view->selectionModel()->isSelected(m_index)) {
         painter.fillRect(rect(), QBrush(m_activeColor));
     } else {
-        auto listView = dynamic_cast<NoteListView *>(m_listView);
+        auto const *listView = static_cast<NoteListView *>(m_listView);
         if (listView->isDragging()) {
             if (m_theme == Theme::Dark) {
                 painter.fillRect(rect(), QBrush(QColor(35, 52, 69)));

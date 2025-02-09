@@ -52,8 +52,8 @@
 #include "nodetreeview.h"
 #include "editorsettingsoptions.h"
 
-L_DECLARE_ENUM(SubscriptionStatus, NoSubscription, Active, ActivationLimitReached, Expired, Invalid,
-               EnteredGracePeriod, GracePeriodOver, NoInternetConnection, UnknownError)
+L_DECLARE_ENUM(SubscriptionStatus, NoSubscription, Active, ActivationLimitReached, Expired, Invalid, EnteredGracePeriod, GracePeriodOver, NoInternetConnection,
+               UnknownError)
 
 namespace Ui {
 class MainWindow;
@@ -82,28 +82,9 @@ class MainWindow : public MainWindowBase
 public:
     enum class ShadowType { Linear = 0, Radial };
 
-    enum class ShadowSide {
-        Left = 0,
-        Right,
-        Top,
-        Bottom,
-        TopLeft,
-        TopRight,
-        BottomLeft,
-        BottomRight
-    };
+    enum class ShadowSide { Left = 0, Right, Top, Bottom, TopLeft, TopRight, BottomLeft, BottomRight };
 
-    enum class StretchSide {
-        None = 0,
-        Left,
-        Right,
-        Top,
-        Bottom,
-        TopLeft,
-        TopRight,
-        BottomLeft,
-        BottomRight
-    };
+    enum class StretchSide { None = 0, Left, Right, Top, Bottom, TopLeft, TopRight, BottomLeft, BottomRight };
 
     Q_ENUM(ShadowType)
     Q_ENUM(ShadowSide)
@@ -115,11 +96,10 @@ public:
     void setMainWindowVisibility(bool state);
 
 public slots:
-    void saveLastSelectedFolderTags(bool isFolder, const QString &folderPath,
-                                    const QSet<int> &tagId);
+    void saveLastSelectedFolderTags(bool isFolder, const QString &folderPath, const QSet<int> &tagId);
     void saveExpandedFolder(const QStringList &folderPaths);
     void saveLastSelectedNote(const QSet<int> &notesId);
-    void changeEditorFontTypeFromStyleButtons(FontTypeface::Value fontType, int chosenFontIndex);
+    void changeEditorFontTypeFromStyleButtons(FontTypeface::Value fontTypeface, int chosenFontIndex);
     void changeEditorFontSizeFromStyleButtons(FontSizeAction::Value fontSizeAction);
     void changeEditorTextWidthFromStyleButtons(EditorTextWidth::Value editorTextWidth);
     void resetEditorSettings();
@@ -135,7 +115,7 @@ public slots:
     void toggleEditorSettings();
     void setEditorSettingsFromQuickViewVisibility(bool isVisible);
     void setEditorSettingsScrollBarPosition(double position);
-    void setActivationSuccessful(QString licenseKey, bool removeGracePeriodStartedDate = true);
+    void setActivationSuccessful(QString const &licenseKey, bool removeGracePeriodStartedDate = true);
     void checkProVersion();
     QVariant getUserLicenseKey();
 

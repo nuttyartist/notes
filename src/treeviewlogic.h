@@ -16,13 +16,11 @@ class TreeViewLogic : public QObject
 {
     Q_OBJECT
 public:
-    explicit TreeViewLogic(NodeTreeView *treeView, NodeTreeModel *treeModel, DBManager *dbManager,
-                           NoteListView *listView, QObject *parent = nullptr);
+    explicit TreeViewLogic(NodeTreeView *treeView, NodeTreeModel *treeModel, DBManager *dbManager, NoteListView *listView, QObject *parent = nullptr);
     void openFolder(int id);
     void onMoveNodeRequested(int nodeId, int targetId);
     void setTheme(Theme::Value theme);
-    void setLastSavedState(bool isLastSelectFolder, const QString &lastSelectFolder,
-                           const QSet<int> &lastSelectTag, const QStringList &expandedFolder);
+    void setLastSavedState(bool isLastSelectFolder, const QString &lastSelectFolder, const QSet<int> &lastSelectTag, const QStringList &expandedFolder);
 private slots:
     void updateTreeViewSeparator();
     void loadTreeModel(const NodeTagTreeData &treeData);

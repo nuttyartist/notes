@@ -10,6 +10,8 @@ class TagPool;
 class NoteListViewPrivate;
 enum class NoteListState;
 
+enum class ShowAction : uint8_t { NotInit, ShowPin, ShowBoth, ShowUnpin };
+
 class NoteListView : public QListView
 {
     Q_OBJECT
@@ -38,7 +40,7 @@ public:
     bool isPinnedNotesCollapsed() const;
     void setIsPinnedNotesCollapsed(bool newIsPinnedNotesCollapsed);
     void setCurrentIndexC(const QModelIndex &index);
-    QModelIndexList selectedIndex() const;
+    QModelIndexList getSelectedIndex() const;
     bool isDraggingInsidePinned() const;
 
 public slots:
@@ -51,13 +53,13 @@ protected:
     void mousePressEvent(QMouseEvent *e) override;
     void mouseReleaseEvent(QMouseEvent *e) override;
     bool viewportEvent(QEvent *e) override;
-    virtual void dragEnterEvent(QDragEnterEvent *event) override;
-    virtual void dragMoveEvent(QDragMoveEvent *event) override;
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    void dragMoveEvent(QDragMoveEvent *event) override;
 
     // QAbstractScrollArea interface
 protected:
-    virtual void scrollContentsBy(int dx, int dy) override;
-    virtual void startDrag(Qt::DropActions supportedActions) override;
+    void scrollContentsBy(int dx, int dy) override;
+    void startDrag(Qt::DropActions supportedActions) override;
 
 public slots:
     void rowsAboutToBeMoved(const QModelIndexList &source);
@@ -86,13 +88,13 @@ private:
     bool m_isMousePressed;
     bool m_mousePressHandled;
     int m_rowHeight;
-    QMenu *contextMenu;
+    QMenu *m_contextMenu;
     QMenu *m_tagsMenu;
-    QAction *deleteNoteAction;
-    QAction *restoreNoteAction;
-    QAction *pinNoteAction;
-    QAction *unpinNoteAction;
-    QAction *newNoteAction;
+    QAction *m_deleteNoteAction;
+    QAction *m_restoreNoteAction;
+    QAction *m_pinNoteAction;
+    QAction *m_unpinNoteAction;
+    QAction *m_newNoteAction;
     TagPool *m_tagPool;
     DBManager *m_dbManager;
     int m_currentFolderId;
@@ -111,16 +113,15 @@ private:
     void setupSignalsSlots();
     void setupStyleSheet();
 
-    void addNotesToTag(QSet<int> notesId, int tagId);
-    void removeNotesFromTag(QSet<int> notesId, int tagId);
+    void addNotesToTag(QSet<int> const &notesId, int tagId);
+    void removeNotesFromTag(QSet<int> const &notesId, int tagId);
 
 private:
     Q_DECLARE_PRIVATE(NoteListView)
 
     // QAbstractItemView interface
 protected slots:
-    void selectionChanged(const QItemSelection &selected,
-                          const QItemSelection &deselected) override;
+    void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected) override;
 };
 
 #endif // NOTELISTVIEW_H

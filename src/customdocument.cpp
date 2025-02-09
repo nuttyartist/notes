@@ -46,8 +46,7 @@ bool CustomDocument::eventFilter(QObject *obj, QEvent *event)
 
     if (event->type() == QEvent::HoverMove) {
         // if hovering and the control key is active, check whether the mouse is over a link
-        if (QGuiApplication::keyboardModifiers() == Qt::ExtraButton24
-            && getUrlUnderMouse().isValid()) {
+        if (QGuiApplication::keyboardModifiers() == Qt::ExtraButton24 && getUrlUnderMouse().isValid()) {
             viewport()->setCursor(Qt::PointingHandCursor);
         } else {
             viewport()->setCursor(Qt::IBeamCursor);
@@ -74,8 +73,7 @@ bool CustomDocument::eventFilter(QObject *obj, QEvent *event)
         auto *mouseEvent = static_cast<QMouseEvent *>(event);
 
         // track `Ctrl + Click` in the text edit
-        if ((obj == viewport()) && (mouseEvent->button() == Qt::LeftButton)
-            && (QGuiApplication::keyboardModifiers() == Qt::ExtraButton24)) {
+        if ((obj == viewport()) && (mouseEvent->button() == Qt::LeftButton) && (QGuiApplication::keyboardModifiers() == Qt::ExtraButton24)) {
             // open the link (if any) at the current position
             // in the noteTextEdit
 
@@ -168,8 +166,7 @@ bool CustomDocument::openLinkAtCursorPosition()
 
     const bool convertLocalFilepathsToURLs = true;
 
-    if ((url.isValid() && isValidUrl(urlString)) || isFileUrl || isLocalFilePath
-        || isLegacyAttachmentUrl) {
+    if ((url.isValid() && isValidUrl(urlString)) || isFileUrl || isLocalFilePath || isLegacyAttachmentUrl) {
 
         if (_ignoredClickUrlSchemata.contains(url.scheme())) {
             qDebug() << __func__ << "ignored URL scheme:" << urlString;
@@ -182,9 +179,7 @@ bool CustomDocument::openLinkAtCursorPosition()
             if (!QFile::exists(trimmed)) {
                 qDebug() << __func__ << ": File does not exist:" << urlString;
                 // show a message box
-                QMessageBox::warning(
-                        nullptr, tr("File not found"),
-                        tr("The file <strong>%1</strong> does not exist.").arg(trimmed));
+                QMessageBox::warning(nullptr, tr("File not found"), tr("The file <strong>%1</strong> does not exist.").arg(trimmed));
                 return false;
             }
         }
@@ -192,8 +187,7 @@ bool CustomDocument::openLinkAtCursorPosition()
         if (isLocalFilePath && !QFile::exists(urlString)) {
             qDebug() << __func__ << ": File does not exist:" << urlString;
             // show a message box
-            QMessageBox::warning(nullptr, tr("File not found"),
-                                 tr("The file <strong>%1</strong> does not exist.").arg(urlString));
+            QMessageBox::warning(nullptr, tr("File not found"), tr("The file <strong>%1</strong> does not exist.").arg(urlString));
             return false;
         }
 
@@ -296,8 +290,7 @@ QMap<QString, QString> CustomDocument::parseMarkdownUrlsFromText(const QString &
         QString linkText = match.captured(1);
         QString referenceId = match.captured(2);
 
-        QRegularExpression refRegExp(
-                QStringLiteral("\\[%1\\]: (.+)").arg(QRegularExpression::escape(referenceId)));
+        QRegularExpression refRegExp(QStringLiteral("\\[%1\\]: (.+)").arg(QRegularExpression::escape(referenceId)));
         QRegularExpressionMatch urlMatch = refRegExp.match(toPlainText());
 
         if (urlMatch.hasMatch()) {

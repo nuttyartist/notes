@@ -14,12 +14,9 @@ TagPool::TagPool(DBManager *dbManager, QObject *parent) : QObject(parent), m_dbM
             },
             Qt::QueuedConnection);
     connect(m_dbManager, &DBManager::tagAdded, this, &TagPool::onTagAdded, Qt::QueuedConnection);
-    connect(m_dbManager, &DBManager::tagRemoved, this, &TagPool::onTagDeleted,
-            Qt::QueuedConnection);
-    connect(m_dbManager, &DBManager::tagRenamed, this, &TagPool::onTagRenamed,
-            Qt::QueuedConnection);
-    connect(m_dbManager, &DBManager::tagColorChanged, this, &TagPool::onTagColorChanged,
-            Qt::QueuedConnection);
+    connect(m_dbManager, &DBManager::tagRemoved, this, &TagPool::onTagDeleted, Qt::QueuedConnection);
+    connect(m_dbManager, &DBManager::tagRenamed, this, &TagPool::onTagRenamed, Qt::QueuedConnection);
+    connect(m_dbManager, &DBManager::tagColorChanged, this, &TagPool::onTagColorChanged, Qt::QueuedConnection);
 }
 
 void TagPool::setTagPool(const QMap<int, TagData> &newPool)

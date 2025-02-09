@@ -3,8 +3,7 @@
 #include <QStyleOption>
 #include "editorsettingsoptions.h"
 
-void CustomApplicationStyle::drawPrimitive(PrimitiveElement element, const QStyleOption *option,
-                                           QPainter *painter, const QWidget *widget) const
+void CustomApplicationStyle::drawPrimitive(PrimitiveElement element, const QStyleOption *option, QPainter *painter, const QWidget *widget) const
 {
     if (element == QStyle::PE_IndicatorItemViewItemDrop) {
         painter->setRenderHint(QPainter::Antialiasing, true);

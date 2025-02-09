@@ -23,8 +23,7 @@ class NodeTreeView : public QTreeView
 public:
     explicit NodeTreeView(QWidget *parent = nullptr);
 
-    void setTreeSeparator(const QVector<QModelIndex> &newTreeSeparator,
-                          const QModelIndex &defaultNotesIndex);
+    void setTreeSeparator(const QVector<QModelIndex> &newTreeSeparator, const QModelIndex &defaultNotesIndex);
     void setIsEditing(bool newIsEditing);
     void onRenameFolderFinished(const QString &newName);
     void onRenameTagFinished(const QString &newName);
@@ -53,10 +52,8 @@ signals:
     void renameFolderInDatabase(const QModelIndex &index, const QString &newName);
     void renameTagInDatabase(const QModelIndex &index, const QString &newName);
     void deleteNodeRequested(const QModelIndex &index);
-    void loadNotesInFolderRequested(int folderID, bool isRecursive, bool notInterested = false,
-                                    int scrollToId = SpecialNodeID::InvalidNodeId);
-    void loadNotesInTagsRequested(const QSet<int> &tagIds, bool notInterested = false,
-                                  int scrollToId = SpecialNodeID::InvalidNodeId);
+    void loadNotesInFolderRequested(int folderID, bool isRecursive, bool notInterested = false, int scrollToId = SpecialNodeID::InvalidNodeId);
+    void loadNotesInTagsRequested(const QSet<int> &tagIds, bool notInterested = false, int scrollToId = SpecialNodeID::InvalidNodeId);
     void moveNodeRequested(int node, int target);
     void renameTagRequested();
     void changeTagColorRequested(const QModelIndex &index);
@@ -98,8 +95,7 @@ private:
 
     // QAbstractItemView interface
 protected slots:
-    virtual void selectionChanged(const QItemSelection &selected,
-                                  const QItemSelection &deselected) override;
+    virtual void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected) override;
     virtual void currentChanged(const QModelIndex &current, const QModelIndex &previous) override;
 
     // QWidget interface

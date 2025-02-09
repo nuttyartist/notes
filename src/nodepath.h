@@ -1,21 +1,21 @@
-#ifndef NODEPATH_H
-#define NODEPATH_H
+#pragma once
 
 #include <QString>
 #include <QList>
 
-#define PATH_SEPARATOR "/"
-#define FOLDER_MIME "application/x-foldernode"
-#define TAG_MIME "application/x-tagnode"
-#define NOTE_MIME "application/x-notenode"
+auto constexpr PATH_SEPARATOR = '/';
+auto constexpr FOLDER_MIME = "application/x-foldernode";
+auto constexpr TAG_MIME = "application/x-tagnode";
+auto constexpr NOTE_MIME = "application/x-notenode";
 
 class NodePath
 {
 public:
-    NodePath(const QString &path);
+    // cppcheck-suppress noExplicitConstructor
+    NodePath(QString path);
     QStringList separate() const;
 
-    QString path() const;
+    QString const &path() const;
     NodePath parentPath() const;
     static QString getAllNoteFolderPath();
     static QString getTrashFolderPath();
@@ -23,5 +23,3 @@ public:
 private:
     QString m_path;
 };
-
-#endif // NODEPATH_H
