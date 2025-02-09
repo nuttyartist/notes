@@ -20,9 +20,8 @@ class ListViewLogic : public QObject
 {
     Q_OBJECT
 public:
-    explicit ListViewLogic(NoteListView *noteView, NoteListModel *noteModel, QLineEdit *searchEdit,
-                           QToolButton *clearButton, TagPool *tagPool, DBManager *dbManager,
-                           QObject *parent = nullptr);
+    explicit ListViewLogic(NoteListView *noteView, NoteListModel *noteModel, QLineEdit *searchEdit, QToolButton *clearButton, TagPool *tagPool,
+                           DBManager *dbManager, QObject *parent = nullptr);
     void selectNote(const QModelIndex &noteIndex);
 
     const ListViewInfo &listViewInfo() const;

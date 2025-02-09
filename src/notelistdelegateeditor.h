@@ -19,22 +19,17 @@ struct NoteListConstant
     static constexpr int dateDescSpace = 5; // space between date and description
     static constexpr int descFolderSpace = 14; // space between description and folder name
     static constexpr int lastElSepSpace = 12; // space between the last element and the separator
-    static constexpr int nextNoteOffset =
-            0; // space between the separator and the next note underneath it
-    static constexpr int pinnedHeaderToNoteSpace =
-            0; // space between Pinned label to the pinned list
-    static constexpr int unpinnedHeaderToNoteSpace =
-            0; // space between Notes label and the normal notes list
-    static constexpr int lastPinnedToUnpinnedHeader =
-            10; // space between the last pinned note to Notes label
+    static constexpr int nextNoteOffset = 0; // space between the separator and the next note underneath it
+    static constexpr int pinnedHeaderToNoteSpace = 0; // space between Pinned label to the pinned list
+    static constexpr int unpinnedHeaderToNoteSpace = 0; // space between Notes label and the normal notes list
+    static constexpr int lastPinnedToUnpinnedHeader = 10; // space between the last pinned note to Notes label
 };
 
 class NoteListDelegateEditor : public QWidget
 {
     Q_OBJECT
 public:
-    explicit NoteListDelegateEditor(const NoteListDelegate *delegate, NoteListView *view,
-                                    const QStyleOptionViewItem &option, const QModelIndex &index,
+    explicit NoteListDelegateEditor(const NoteListDelegate *delegate, NoteListView *view, const QStyleOptionViewItem &option, const QModelIndex &index,
                                     TagPool *tagPool, QWidget *parent = nullptr);
     ~NoteListDelegateEditor();
 
@@ -53,12 +48,9 @@ signals:
     void nearDestroyed(int id, const QModelIndex &index);
 
 private:
-    void paintBackground(QPainter *painter, const QStyleOptionViewItem &option,
-                         const QModelIndex &index) const;
-    void paintLabels(QPainter *painter, const QStyleOptionViewItem &option,
-                     const QModelIndex &index) const;
-    void paintSeparator(QPainter *painter, const QStyleOptionViewItem &option,
-                        const QModelIndex &index) const;
+    void paintBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    void paintLabels(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    void paintSeparator(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     QString parseDateTime(const QDateTime &dateTime) const;
 
     const NoteListDelegate *m_delegate;

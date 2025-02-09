@@ -28,6 +28,13 @@ struct ListViewInfo
     int scrollToId;
 };
 
+struct Folder
+{
+    int id;
+    int parentId;
+    std::vector<Folder *> children;
+};
+
 using FolderListType = QMap<int, QString>;
 
 class DBManager : public QObject
@@ -39,7 +46,7 @@ public:
     Q_INVOKABLE NodeData getNode(int nodeId);
     Q_INVOKABLE void moveFolderToTrash(const NodeData &node);
     Q_INVOKABLE FolderListType getFolderList();
-    void exportNotes(const QString &exportPath, const QString &extension);
+    void exportNotes(const QString &baseExportPath, const QString &extension);
     void addNotesToNewImportedFolder(const QList<QPair<QString, QDateTime>> &fileDatas);
 
 private:
@@ -80,10 +87,8 @@ signals:
 
 public slots:
     void onNodeTagTreeRequested();
-    void onNotesListInFolderRequested(int parentID, bool isRecursive, bool newNote = false,
-                                      int scrollToId = SpecialNodeID::InvalidNodeId);
-    void onNotesListInTagsRequested(const QSet<int> &tagIds, bool newNote = false,
-                                    int scrollToId = SpecialNodeID::InvalidNodeId);
+    void onNotesListInFolderRequested(int parentID, bool isRecursive, bool newNote = false, int scrollToId = SpecialNodeID::InvalidNodeId);
+    void onNotesListInTagsRequested(const QSet<int> &tagIds, bool newNote = false, int scrollToId = SpecialNodeID::InvalidNodeId);
     void onOpenDBManagerRequested(const QString &path, bool doCreate);
     void onCreateUpdateRequestedNoteContent(const NodeData &note);
     void onImportNotesRequested(const QString &fileName);

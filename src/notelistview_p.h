@@ -1,7 +1,7 @@
-#ifndef NOTELISTVIEW_P_H
-#define NOTELISTVIEW_P_H
-#include <QtWidgets/private/qabstractitemview_p.h>
+#pragma once
 #include "notelistview.h"
+
+#include <QtWidgets/private/qabstractitemview_p.h>
 
 class NoteListViewPrivate : public QAbstractItemViewPrivate
 {
@@ -13,5 +13,3 @@ public:
     QPixmap renderToPixmap(const QModelIndexList &indexes, QRect *r) const;
     QStyleOptionViewItem viewOptionsV1() const;
 };
-
-#endif // NOTELISTVIEW_P_H

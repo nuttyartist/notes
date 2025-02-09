@@ -3,24 +3,18 @@
 #include <QDebug>
 #include <QTreeView>
 #include "nodetreemodel.h"
-#include "nodetreeview.h"
 #include "notelistview.h"
 #include "fontloader.h"
 
-TrashButtonDelegateEditor::TrashButtonDelegateEditor(QTreeView *view,
-                                                     const QStyleOptionViewItem &option,
-                                                     const QModelIndex &index, QListView *listView,
+TrashButtonDelegateEditor::TrashButtonDelegateEditor(QTreeView *view, const QStyleOptionViewItem &option, const QModelIndex &index, QListView *listView,
                                                      QWidget *parent)
     : QWidget(parent),
       m_option(option),
       m_index(index),
 #ifdef __APPLE__
-      m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch()
-                            ? QStringLiteral("SF Pro Text")
-                            : QStringLiteral("Roboto")),
+      m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")),
 #elif _WIN32
-      m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI")
-                                                                   : QStringLiteral("Roboto")),
+      m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI") : QStringLiteral("Roboto")),
 #else
       m_displayFont(QStringLiteral("Roboto")),
 #endif
@@ -39,7 +33,8 @@ TrashButtonDelegateEditor::TrashButtonDelegateEditor(QTreeView *view,
       m_numberOfNotesColor(26, 26, 26, 127),
       m_numberOfNotesSelectedColor(255, 255, 255),
       m_view(view),
-      m_listView(listView)
+      m_listView(listView),
+      m_theme(Theme::Light)
 {
     setContentsMargins(0, 0, 0, 0);
 }
@@ -47,7 +42,7 @@ TrashButtonDelegateEditor::TrashButtonDelegateEditor(QTreeView *view,
 void TrashButtonDelegateEditor::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
-    auto iconRect = QRect(rect().x() + 22, rect().y() + 2 + (rect().height() - 20) / 2, 18, 20);
+    auto iconRect = QRect(rect().x() + 22, rect().y() + 2 + ((rect().height() - 20) / 2), 18, 20);
     auto iconPath = m_index.data(NodeItem::Roles::Icon).toString();
     auto displayName = m_index.data(NodeItem::Roles::DisplayText).toString();
     QRect nameRect(rect());
@@ -57,7 +52,7 @@ void TrashButtonDelegateEditor::paintEvent(QPaintEvent *event)
         painter.fillRect(rect(), QBrush(m_activeColor));
         painter.setPen(m_titleSelectedColor);
     } else {
-        auto listView = dynamic_cast<NoteListView *>(m_listView);
+        auto const *listView = static_cast<NoteListView *>(m_listView);
         if (listView->isDragging()) {
             if (m_theme == Theme::Dark) {
                 painter.fillRect(rect(), QBrush(QColor(35, 52, 69)));
@@ -74,8 +69,7 @@ void TrashButtonDelegateEditor::paintEvent(QPaintEvent *event)
 #else
     int iconPointSizeOffset = -4;
 #endif
-    painter.setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
-                                                       16 + iconPointSizeOffset));
+    painter.setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "", 16 + iconPointSizeOffset));
     painter.drawText(iconRect, iconPath); // fa-trash
 
     if (m_view->selectionModel()->isSelected(m_index)) {
@@ -96,8 +90,7 @@ void TrashButtonDelegateEditor::paintEvent(QPaintEvent *event)
         painter.setPen(m_numberOfNotesColor);
     }
     painter.setFont(m_numberOfNotesFont);
-    painter.drawText(childCountRect, Qt::AlignHCenter | Qt::AlignVCenter,
-                     QString::number(childCount));
+    painter.drawText(childCountRect, Qt::AlignHCenter | Qt::AlignVCenter, QString::number(childCount));
     QWidget::paintEvent(event);
 }
 

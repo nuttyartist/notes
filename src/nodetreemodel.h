@@ -40,23 +40,22 @@ enum Type {
 class NodeTreeItem
 {
 public:
-    explicit NodeTreeItem(const QHash<NodeItem::Roles, QVariant> &data,
-                          NodeTreeItem *parentItem = nullptr);
+    explicit NodeTreeItem(const QHash<NodeItem::Roles, QVariant> &data, NodeTreeItem *parentItem = nullptr);
     ~NodeTreeItem();
 
     void appendChild(NodeTreeItem *child);
     void insertChild(int row, NodeTreeItem *child);
-    NodeTreeItem *child(int row);
+    NodeTreeItem *getChild(int row) const;
     void removeChild(int row);
     NodeTreeItem *takeChildAt(int row);
-    int childCount() const;
-    int columnCount() const;
+    int getChildCount() const;
+    static int getColumnCount(); // columnCount is always 1 => static
     int recursiveNodeCount() const;
     void recursiveUpdateFolderPath(const QString &oldP, const QString &newP);
-    QVariant data(NodeItem::Roles role) const;
+    QVariant getData(NodeItem::Roles role) const;
     void setData(NodeItem::Roles role, const QVariant &d);
-    int row() const;
-    NodeTreeItem *parentItem();
+    int getRow() const;
+    NodeTreeItem *getParentItem() const;
     void setParentItem(NodeTreeItem *parentItem);
     void moveChild(int from, int to);
     void recursiveSort();
@@ -74,8 +73,7 @@ public:
     explicit NodeTreeModel(QObject *parent = nullptr);
     ~NodeTreeModel();
 
-    void appendChildNodeToParent(const QModelIndex &parentIndex,
-                                 const QHash<NodeItem::Roles, QVariant> &data);
+    void appendChildNodeToParent(const QModelIndex &parentIndex, const QHash<NodeItem::Roles, QVariant> &data);
     QModelIndex rootIndex() const;
     QModelIndex folderIndexFromIdPath(const NodePath &idPath);
     QModelIndex tagIndexFromId(int id);
@@ -92,19 +90,18 @@ public slots:
 
     // QAbstractItemModel interface
 public:
-    virtual QModelIndex index(int row, int column, const QModelIndex &parent) const override;
-    virtual QModelIndex parent(const QModelIndex &index) const override;
-    virtual int rowCount(const QModelIndex &parent) const override;
-    virtual int columnCount(const QModelIndex &parent) const override;
-    virtual QVariant data(const QModelIndex &index, int role) const override;
-    virtual Qt::ItemFlags flags(const QModelIndex &index) const override;
-    virtual bool setData(const QModelIndex &index, const QVariant &value, int role) override;
-    virtual Qt::DropActions supportedDropActions() const override;
-    virtual Qt::DropActions supportedDragActions() const override;
-    virtual QStringList mimeTypes() const override;
-    virtual QMimeData *mimeData(const QModelIndexList &indexes) const override;
-    virtual bool dropMimeData(const QMimeData *mime, Qt::DropAction action, int row, int column,
-                              const QModelIndex &parent) override;
+    QModelIndex index(int row, int column, const QModelIndex &parent) const override;
+    QModelIndex parent(const QModelIndex &index) const override;
+    int rowCount(const QModelIndex &parent) const override;
+    int columnCount(const QModelIndex &parent) const override;
+    QVariant data(const QModelIndex &index, int role) const override;
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
+    bool setData(const QModelIndex &index, const QVariant &value, int role) override;
+    Qt::DropActions supportedDropActions() const override;
+    Qt::DropActions supportedDragActions() const override;
+    QStringList mimeTypes() const override;
+    QMimeData *mimeData(const QModelIndexList &indexes) const override;
+    bool dropMimeData(const QMimeData *mime, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
 
 signals:
     void topLevelItemLayoutChanged();
@@ -118,13 +115,13 @@ signals:
     void requestMoveFolderToTrash(const QModelIndex &index);
 
 private:
-    NodeTreeItem *rootItem;
+    NodeTreeItem *m_rootItem;
     void loadNodeTree(const QVector<NodeData> &nodeData, NodeTreeItem *rootNode);
     void appendAllNotesAndTrashButton(NodeTreeItem *rootNode);
     void appendFolderSeparator(NodeTreeItem *rootNode);
     void appendTagsSeparator(NodeTreeItem *rootNode);
     void loadTagList(const QVector<TagData> &tagData, NodeTreeItem *rootNode);
-    void updateChildRelativePosition(NodeTreeItem *parent, const NodeItem::Type type);
+    void updateChildRelativePosition(NodeTreeItem *parent, NodeItem::Type type);
 };
 
 #endif // NODETREEMODEL_H
