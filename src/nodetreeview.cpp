@@ -59,7 +59,7 @@ NodeTreeView::NodeTreeView(QWidget *parent)
     connect(clearSelectionAction, &QAction::triggered, this, [this] {
         closeCurrentEditor();
         clearSelection();
-        setCurrentIndexC(dynamic_cast<NodeTreeModel *>(model())->getAllNotesButtonIndex());
+        setCurrentIndexC(static_cast<NodeTreeModel *>(model())->getAllNotesButtonIndex());
     });
 
     contextMenuTimer.setInterval(100);
@@ -123,23 +123,23 @@ void NodeTreeView::setIgnoreThisCurrentLoad(bool newIgnoreThisCurrentLoad)
 
 void NodeTreeView::onFolderDropSuccessful(const QString &path)
 {
-    auto m_model = dynamic_cast<NodeTreeModel *>(model());
-    auto index = m_model->folderIndexFromIdPath(path);
+    auto *nodeTreeModel = static_cast<NodeTreeModel *>(model());
+    auto index = nodeTreeModel->folderIndexFromIdPath(path);
     if (index.isValid()) {
         setCurrentIndexC(index);
     } else {
-        setCurrentIndexC(m_model->getAllNotesButtonIndex());
+        setCurrentIndexC(nodeTreeModel->getAllNotesButtonIndex());
     }
 }
 
 void NodeTreeView::onTagsDropSuccessful(const QSet<int> &ids)
 {
-    auto m_model = dynamic_cast<NodeTreeModel *>(model());
+    auto *nodeTreeModel = static_cast<NodeTreeModel *>(model());
     setCurrentIndex(QModelIndex());
     clearSelection();
     setSelectionMode(QAbstractItemView::MultiSelection);
     for (const auto &id : std::as_const(ids)) {
-        auto index = m_model->tagIndexFromId(id);
+        auto index = nodeTreeModel->tagIndexFromId(id);
         if (index.isValid()) {
             setCurrentIndex(index);
             setSelectionMode(QAbstractItemView::MultiSelection);
@@ -148,7 +148,7 @@ void NodeTreeView::onTagsDropSuccessful(const QSet<int> &ids)
     }
 
     if (selectionModel()->selectedIndexes().isEmpty()) {
-        setCurrentIndexC(m_model->getAllNotesButtonIndex());
+        setCurrentIndexC(nodeTreeModel->getAllNotesButtonIndex());
     }
 }
 
@@ -165,11 +165,10 @@ bool NodeTreeView::isDragging() const
 void NodeTreeView::reExpandC()
 {
     auto needExpand = std::move(m_expanded);
-    m_expanded.clear();
     QTreeView::reset();
     for (const auto &path : needExpand) {
-        auto m_model = dynamic_cast<NodeTreeModel *>(model());
-        auto index = m_model->folderIndexFromIdPath(path);
+        auto *m = static_cast<NodeTreeModel *>(model());
+        auto index = m->folderIndexFromIdPath(path);
         if (index.isValid()) {
             expand(index);
         }
@@ -178,7 +177,6 @@ void NodeTreeView::reExpandC()
 
 void NodeTreeView::reExpandC(const QStringList &expanded)
 {
-    m_expanded.clear();
     m_expanded = expanded.toVector();
     reExpandC();
 }
@@ -195,8 +193,8 @@ void NodeTreeView::onChangeTagColorAction()
 
 void NodeTreeView::onRequestExpand(const QString &folderPath)
 {
-    auto m_model = dynamic_cast<NodeTreeModel *>(model());
-    expand(m_model->folderIndexFromIdPath(folderPath));
+    auto *nodeTreeModel = static_cast<NodeTreeModel *>(model());
+    expand(nodeTreeModel->folderIndexFromIdPath(folderPath));
 }
 
 void NodeTreeView::onUpdateAbsPath(const QString &oldPath, const QString &newPath)
@@ -328,7 +326,7 @@ void NodeTreeView::dragMoveEvent(QDragMoveEvent *event)
             }
         } else if (event->mimeData()->hasFormat(FOLDER_MIME)) {
             auto trashRect =
-                    visualRect(dynamic_cast<NodeTreeModel *>(model())->getTrashButtonIndex());
+                    visualRect(static_cast<NodeTreeModel *>(model())->getTrashButtonIndex());
             if (event->position().toPoint().y() > (trashRect.y() + 5)
                 && event->position().toPoint().y() < (trashRect.bottom() - 5)) {
                 setDropIndicatorShown(true);
@@ -363,8 +361,7 @@ void NodeTreeView::dropEvent(QDropEvent *event)
             auto itemType =
                     static_cast<NodeItem::Type>(dropIndex.data(NodeItem::Roles::ItemType).toInt());
             bool ok = false;
-            auto idl = QString::fromUtf8(event->mimeData()->data(NOTE_MIME))
-                               .split(QStringLiteral(PATH_SEPARATOR));
+            auto idl = QString::fromUtf8(event->mimeData()->data(NOTE_MIME)).split(PATH_SEPARATOR);
             for (const auto &s : std::as_const(idl)) {
                 auto nodeId = s.toInt(&ok);
                 if (ok) {
@@ -523,7 +520,7 @@ void NodeTreeView::mousePressEvent(QMouseEvent *event)
             switch (itemType) {
             case NodeItem::Type::FolderItem: {
                 auto rect = visualRect(index);
-                auto iconRect = QRect(rect.x() + 5, rect.y() + (rect.height() - 20) / 2, 20, 20);
+                auto iconRect = QRect(rect.x() + 5, rect.y() + ((rect.height() - 20) / 2), 20, 20);
                 if (iconRect.contains(event->position().toPoint())) {
                     if (isExpanded(index)) {
                         collapse(index);
@@ -593,17 +590,17 @@ void NodeTreeView::mouseReleaseEvent(QMouseEvent *event)
         selectionModel()->select(m_needReleaseIndex, QItemSelectionModel::Deselect);
         if (selectionModel()->selectedIndexes().isEmpty()) {
             if (!m_isLastSelectedFolder) {
-                auto index = dynamic_cast<NodeTreeModel *>(model())->folderIndexFromIdPath(
+                auto index = static_cast<NodeTreeModel *>(model())->folderIndexFromIdPath(
                         m_lastSelectFolder);
                 if (index.isValid()) {
                     emit requestLoadLastSelectedNote();
                     setCurrentIndexC(index);
                 } else {
                     setCurrentIndexC(
-                            dynamic_cast<NodeTreeModel *>(model())->getAllNotesButtonIndex());
+                            static_cast<NodeTreeModel *>(model())->getAllNotesButtonIndex());
                 }
             } else {
-                setCurrentIndexC(dynamic_cast<NodeTreeModel *>(model())->getAllNotesButtonIndex());
+                setCurrentIndexC(static_cast<NodeTreeModel *>(model())->getAllNotesButtonIndex());
             }
         }
     }

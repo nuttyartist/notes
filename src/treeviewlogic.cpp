@@ -184,7 +184,7 @@ void TreeViewLogic::onAddFolderRequested(bool fromPlusButton)
     }
     int newlyCreatedNodeId;
     NodeData newFolder;
-    newFolder.setNodeType(NodeData::Folder);
+    newFolder.setNodeType(NodeData::Type::Folder);
     QDateTime noteDate = QDateTime::currentDateTime();
     newFolder.setCreationDateTime(noteDate);
     newFolder.setLastModificationDateTime(noteDate);
@@ -361,7 +361,7 @@ void TreeViewLogic::openFolder(int id)
     NodeData target;
     QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection,
                               Q_RETURN_ARG(NodeData, target), Q_ARG(int, id));
-    if (target.nodeType() != NodeData::Folder) {
+    if (target.nodeType() != NodeData::Type::Folder) {
         qDebug() << __FUNCTION__ << "Target is not folder!";
         return;
     }
@@ -385,7 +385,7 @@ void TreeViewLogic::onMoveNodeRequested(int nodeId, int targetId)
     QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection,
                               Q_RETURN_ARG(NodeData, target), Q_ARG(int, targetId));
     // only allow moving a node into a folder
-    if (target.nodeType() != NodeData::Folder) {
+    if (target.nodeType() != NodeData::Type::Folder) {
         qDebug() << __FUNCTION__ << "Target is not folder!";
         return;
     }

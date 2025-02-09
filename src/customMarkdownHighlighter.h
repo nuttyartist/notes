@@ -6,8 +6,9 @@
 class CustomMarkdownHighlighter : public MarkdownHighlighter
 {
 public:
-    CustomMarkdownHighlighter(QTextDocument *parent = nullptr,
-                              HighlightingOptions highlightingOptions = HighlightingOption::None);
+    explicit CustomMarkdownHighlighter(
+            QTextDocument *parent,
+            HighlightingOptions highlightingOptions = HighlightingOption::None);
     ~CustomMarkdownHighlighter() override = default;
 
     void setFontSize(qreal fontSize);

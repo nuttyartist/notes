@@ -53,25 +53,19 @@ void CustomMarkdownHighlighter::setTheme(Theme::Value theme, QColor textColor, q
     setHeaderColors(textColor);
     setFontSize(fontSize);
 
+    auto &icBlock = _formats[static_cast<HighlighterState>(HighlighterState::InlineCodeBlock)];
     switch (theme) {
     case Theme::Light:
-        _formats[static_cast<HighlighterState>(HighlighterState::InlineCodeBlock)].setBackground(
-                QColor(239, 241, 243));
-        _formats[static_cast<HighlighterState>(HighlighterState::InlineCodeBlock)].setForeground(
-                QColor(42, 46, 51));
+        icBlock.setBackground(QColor(239, 241, 243));
+        icBlock.setForeground(QColor(42, 46, 51));
         break;
     case Theme::Dark:
-        _formats[static_cast<HighlighterState>(HighlighterState::InlineCodeBlock)].setBackground(
-                QColor(52, 57, 66));
-        _formats[static_cast<HighlighterState>(HighlighterState::InlineCodeBlock)].setForeground(
-                QColor(230, 237, 243));
+        icBlock.setBackground(QColor(52, 57, 66));
+        icBlock.setForeground(QColor(230, 237, 243));
         break;
     case Theme::Sepia:
-        _formats[static_cast<HighlighterState>(HighlighterState::InlineCodeBlock)].setBackground(
-                QColor(239, 241, 243));
-        _formats[static_cast<HighlighterState>(HighlighterState::InlineCodeBlock)].setForeground(
-                QColor(42, 46, 51));
-        break;
+        icBlock.setBackground(QColor(239, 241, 243));
+        icBlock.setForeground(QColor(42, 46, 51));
         break;
     }
 }

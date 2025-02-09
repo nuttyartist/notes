@@ -76,7 +76,7 @@ NoteListDelegate::NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject
             animationQueue.pop_front();
             QModelIndexList indexes;
             for (const auto &id : std::as_const(a.first)) {
-                auto model = dynamic_cast<NoteListModel *>(m_view->model());
+                auto model = static_cast<NoteListModel *>(m_view->model());
                 if (model) {
                     auto index = model->getNoteIndex(id);
                     if (index.isValid()) {
@@ -123,7 +123,7 @@ void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         return;
     }
     if (m_view->isPinnedNotesCollapsed()) {
-        auto model = dynamic_cast<NoteListModel *>(m_view->model());
+        auto model = static_cast<NoteListModel *>(m_view->model());
         auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
         if (isPinned) {
             if (model && (!model->isFirstPinnedNote(index))) {
@@ -163,7 +163,7 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
 {
     QSize result; // = QStyledItemDelegate::sizeHint(option, index);
     result.setWidth(option.rect.width());
-    auto model = dynamic_cast<NoteListModel *>(m_view->model());
+    auto model = static_cast<NoteListModel *>(m_view->model());
     const auto &note = model->getNote(index);
     auto id = note.id();
     bool isHaveTags = note.tagIds().size() > 0;
@@ -260,7 +260,7 @@ QSize NoteListDelegate::bufferSizeHint(const QStyleOptionViewItem &option,
     if (m_isInAllNotes) {
         result.setHeight(result.height() + 20);
     }
-    auto model = dynamic_cast<NoteListModel *>(m_view->model());
+    auto model = static_cast<NoteListModel *>(m_view->model());
     //    if (model) {
     //        if (model->hasPinnedNote() &&
     //                (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
@@ -321,9 +321,9 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
     bufferPainter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     QRect bufferRect = buffer.rect();
     auto isPinned = index.data(NoteListModel::NoteIsPinned).toBool();
-    auto model = dynamic_cast<NoteListModel *>(m_view->model());
+    auto model = static_cast<NoteListModel *>(m_view->model());
     if (model && model->hasPinnedNote() && model->isFirstPinnedNote(index)
-        && dynamic_cast<NoteListView *>(m_view)->isPinnedNotesCollapsed()) {
+        && static_cast<NoteListView *>(m_view)->isPinnedNotesCollapsed()) {
         bufferPainter.fillRect(bufferRect, QBrush(m_defaultColor));
     } else if ((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
         if (qApp->applicationState() == Qt::ApplicationActive) {
@@ -336,7 +336,7 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
             bufferPainter.fillRect(bufferRect, QBrush(m_applicationInactiveColor));
         }
     } else if ((option.state & QStyle::State_MouseOver) == QStyle::State_MouseOver) {
-        if (dynamic_cast<NoteListView *>(m_view)->isDragging()) {
+        if (static_cast<NoteListView *>(m_view)->isDragging()) {
             if (isPinned) {
                 auto rect = bufferRect;
                 rect.setTop(rect.bottom() - 5);
@@ -354,8 +354,8 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
             bufferPainter.fillRect(bufferRect, QBrush(m_defaultColor));
         }
     }
-    if (dynamic_cast<NoteListView *>(m_view)->isDragging() && !isPinned
-        && !dynamic_cast<NoteListView *>(m_view)->isDraggingInsidePinned()) {
+    if (static_cast<NoteListView *>(m_view)->isDragging() && !isPinned
+        && !static_cast<NoteListView *>(m_view)->isDraggingInsidePinned()) {
         if (model && model->isFirstUnpinnedNote(index)
             && (index.row() == (model->rowCount() - 1))) {
             auto rect = bufferRect;
@@ -487,7 +487,7 @@ void NoteListDelegate::paintLabels(QPainter *painter, const QStyleOptionViewItem
         QRect fmRectContent = fmContent.boundingRect(content);
         double rowPosX = 0; // option.rect.x();
         double rowPosY = 0; // option.rect.y();
-        auto model = dynamic_cast<NoteListModel *>(m_view->model());
+        auto model = static_cast<NoteListModel *>(m_view->model());
         if (m_view->isPinnedNotesCollapsed()) {
             auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
             if (isPinned) {
@@ -669,7 +669,7 @@ void NoteListDelegate::paintLabels(QPainter *painter, const QStyleOptionViewItem
 
         double rowPosX = option.rect.x();
         double rowPosY = option.rect.y();
-        auto model = dynamic_cast<NoteListModel *>(m_view->model());
+        auto model = static_cast<NoteListModel *>(m_view->model());
         int fifthYOffset = 0;
         if (model && model->hasPinnedNote() && !m_view->isPinnedNotesCollapsed()
             && model->isFirstUnpinnedNote(index)) {
@@ -854,7 +854,7 @@ bool NoteListDelegate::shouldPaintSeparator(const QModelIndex &index,
     if (index.row() == model.rowCount() - 1) {
         return false;
     }
-    const auto &selectedIndexes = m_view->selectedIndex();
+    const auto &selectedIndexes = m_view->getSelectedIndex();
     bool isCurrentSelected = selectedIndexes.contains(index);
     bool isNextRowSelected = false;
     for (const auto &selected : selectedIndexes) {
@@ -975,7 +975,7 @@ QWidget *NoteListDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
     if (!index.isValid()) {
         return nullptr;
     }
-    auto model = dynamic_cast<NoteListModel *>(m_view->model());
+    auto model = static_cast<NoteListModel *>(m_view->model());
     if (m_view->isPinnedNotesCollapsed()) {
         auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
         if (isPinned) {

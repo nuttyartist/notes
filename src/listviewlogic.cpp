@@ -274,7 +274,7 @@ void ListViewLogic::onSearchEditTextChanged(const QString &keyword)
         clearSearch();
     } else {
         if (!m_listViewInfo.isInSearch) {
-            auto indexes = m_listView->selectedIndex();
+            auto indexes = m_listView->getSelectedIndex();
             m_listViewInfo.currentNotesId.clear();
             for (const auto &index : std::as_const(indexes)) {
                 if (index.isValid()) {
@@ -417,7 +417,7 @@ void ListViewLogic::onNoteMovedOut(int nodeId, int targetId)
 
 void ListViewLogic::setLastSelectedNote()
 {
-    auto indexes = m_listView->selectedIndex();
+    auto indexes = m_listView->getSelectedIndex();
     QSet<int> ids;
     for (const auto &index : std::as_const(indexes)) {
         if (index.isValid()) {
@@ -768,7 +768,7 @@ void ListViewLogic::selectAllNotes()
     //            QItemSelectionModel::SelectCurrent);
     //        }
     //    }
-    onNotePressed(m_listView->selectedIndex());
+    onNotePressed(m_listView->getSelectedIndex());
 }
 
 const ListViewInfo &ListViewLogic::listViewInfo() const

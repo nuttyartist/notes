@@ -11,7 +11,7 @@ public:
     explicit ElidedLabel(const QString &text, QWidget *parent = nullptr,
                          Qt::WindowFlags f = Qt::WindowFlags());
     void setType(const Qt::TextElideMode type);
-    QString text() const;
+    QString const &text() const;
 
 public slots:
     void setText(const QString &text);

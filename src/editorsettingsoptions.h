@@ -3,7 +3,6 @@
 
 #include <QObject>
 #include <QtQml/qqml.h>
-#include <sstream>
 #include <QString>
 #include <QWidget>
 #include "lqtutils_enum.h"
@@ -28,6 +27,6 @@ std::string to_string(FontTypeface::Value fontTypeface);
 std::string to_string(Theme::Value theme);
 
 void setCSSThemeAndUpdate(QWidget *obj, Theme::Value theme);
-void setCSSClassesAndUpdate(QWidget *obj, std::string classNames);
+void setCSSClassesAndUpdate(QWidget *obj, const std::string &classNames);
 
 #endif

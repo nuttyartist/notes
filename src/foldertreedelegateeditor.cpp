@@ -63,8 +63,8 @@ FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
 #else
     int iconPointSizeOffset = -4;
 #endif
-    m_expandIcon->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
-                                                             10 + iconPointSizeOffset));
+    m_expandIcon->setFont(
+            font_loader::loadFont("Font Awesome 6 Free Solid", "", 10 + iconPointSizeOffset));
 
     m_expandIcon->setScaledContents(true);
     layout->addWidget(m_expandIcon);
@@ -92,15 +92,15 @@ FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
     m_label->setSizePolicy(labelPolicy);
     m_label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     connect(m_label, &LabelEditType::editingStarted, this, [this] {
-        auto tree_view = dynamic_cast<NodeTreeView *>(m_view);
-        tree_view->setIsEditing(true);
+        auto *treeView = static_cast<NodeTreeView *>(m_view);
+        treeView->setIsEditing(true);
     });
     connect(m_label, &LabelEditType::editingFinished, this, [this](const QString &label) {
-        auto tree_view = dynamic_cast<NodeTreeView *>(m_view);
-        tree_view->onRenameFolderFinished(label);
-        tree_view->setIsEditing(false);
+        auto *treeView = static_cast<NodeTreeView *>(m_view);
+        treeView->onRenameFolderFinished(label);
+        treeView->setIsEditing(false);
     });
-    connect(dynamic_cast<NodeTreeView *>(m_view), &NodeTreeView::renameFolderRequested, m_label,
+    connect(static_cast<NodeTreeView *>(m_view), &NodeTreeView::renameFolderRequested, m_label,
             &LabelEditType::openEditor);
     layout->addWidget(m_label);
     layout->addSpacing(5);
@@ -138,15 +138,15 @@ FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view,
 #else
     int pointSizeOffset = -4;
 #endif
-    m_contextButton->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
-                                                                14 + pointSizeOffset));
+    m_contextButton->setFont(
+            font_loader::loadFont("Font Awesome 6 Free Solid", "", 14 + pointSizeOffset));
     m_contextButton->setText(u8"\uf141"); // fa-ellipsis-h
 
     connect(m_contextButton, &QPushButton::clicked, m_view, [this](bool) {
-        auto tree_view = dynamic_cast<NodeTreeView *>(m_view);
+        auto *const treeView = static_cast<NodeTreeView *>(m_view);
         //        tree_view->setCurrentIndexC(m_index);
-        tree_view->onCustomContextMenu(tree_view->visualRect(m_index).topLeft()
-                                       + m_contextButton->geometry().bottomLeft());
+        treeView->onCustomContextMenu(treeView->visualRect(m_index).topLeft()
+                                      + m_contextButton->geometry().bottomLeft());
     });
     layout->addWidget(m_contextButton, 0, Qt::AlignRight);
     layout->addSpacing(5);
@@ -182,7 +182,7 @@ void FolderTreeDelegateEditor::updateDelegate()
                              QString::number(m_folderIconColor.blue()));
     }
     m_label->setText(displayName);
-    auto theme = dynamic_cast<NodeTreeView *>(m_view)->theme();
+    auto theme = static_cast<NodeTreeView *>(m_view)->theme();
 
     QColor chevronColor(theme == Theme::Dark ? QColor(169, 160, 172) : QColor(103, 99, 105));
     QString expandIconStyle =
@@ -218,7 +218,7 @@ void FolderTreeDelegateEditor::paintEvent(QPaintEvent *event)
     if (m_view->selectionModel()->isSelected(m_index)) {
         painter.fillRect(rect(), QBrush(m_activeColor));
     } else {
-        auto listView = dynamic_cast<NoteListView *>(m_listView);
+        auto const *listView = static_cast<NoteListView *>(m_listView);
         if (listView->isDragging()) {
             if (m_theme == Theme::Dark) {
                 painter.fillRect(rect(), QBrush(QColor(35, 52, 69)));

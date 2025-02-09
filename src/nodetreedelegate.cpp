@@ -132,24 +132,24 @@ void NodeTreeDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         if (m_theme == Theme::Dark) {
             if (itemType == NodeItem::Type::AllNoteButton) {
                 painter->setFont(font_loader::loadFont("Material Symbols Outlined", "",
-                                                                    16 + iconPointSizeOffset));
+                                                       16 + iconPointSizeOffset));
                 painter->drawText(iconRect, u8"\ue2c7"); // folder
             } else if (itemType == NodeItem::Type::TrashButton) {
                 iconRect.setY(iconRect.y() + 2);
                 painter->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
-                                                                    16 + iconPointSizeOffset));
+                                                       16 + iconPointSizeOffset));
                 painter->drawText(iconRect, u8"\uf1f8"); // fa-trash
             }
         } else {
             auto iconPath = index.data(NodeItem::Roles::Icon).toString();
             if (itemType == NodeItem::Type::AllNoteButton) {
                 painter->setFont(font_loader::loadFont("Material Symbols Outlined", "",
-                                                                    16 + iconPointSizeOffset));
+                                                       16 + iconPointSizeOffset));
                 painter->drawText(iconRect, iconPath); // folder
             } else if (itemType == NodeItem::Type::TrashButton) {
                 iconRect.setY(iconRect.y() + 2);
                 painter->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
-                                                                    16 + iconPointSizeOffset));
+                                                       16 + iconPointSizeOffset));
                 painter->drawText(iconRect, iconPath); // fa-trash
             }
         }
@@ -195,8 +195,8 @@ void NodeTreeDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         auto iconRect = QRect(option.rect.x() + 10,
                               option.rect.y() + (option.rect.height() - 12) / 2, 12, 12);
         QString iconPath;
-        painter->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
-                                                            10 + iconPointSizeOffset));
+        painter->setFont(
+                font_loader::loadFont("Font Awesome 6 Free Solid", "", 10 + iconPointSizeOffset));
         if (m_theme == Theme::Dark) {
             painter->setPen(QColor(169, 160, 172));
             if ((option.state & QStyle::State_Open) == QStyle::State_Open) {
@@ -227,8 +227,8 @@ void NodeTreeDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         } else {
             painter->setPen(m_folderIconColor);
         }
-        painter->setFont(font_loader::loadFont("Material Symbols Outlined", "",
-                                                            16 + iconPointSizeOffset));
+        painter->setFont(
+                font_loader::loadFont("Material Symbols Outlined", "", 16 + iconPointSizeOffset));
         painter->drawText(folderIconRect, u8"\ue2c7"); // folder
 
         QRect nameRect(option.rect);
@@ -281,8 +281,8 @@ void NodeTreeDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
                               option.rect.y() + (option.rect.height() - 14) / 2, 16, 16);
         auto tagColor = index.data(NodeItem::Roles::TagColor).toString();
         painter->setPen(QColor(tagColor));
-        painter->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
-                                                            16 + iconPointSizeOffset));
+        painter->setFont(
+                font_loader::loadFont("Font Awesome 6 Free Solid", "", 16 + iconPointSizeOffset));
         painter->drawText(iconRect, u8"\uf111"); // fa-circle
         painter->setBrush(Qt::black);
         painter->setPen(Qt::black);
@@ -323,7 +323,7 @@ void NodeTreeDelegate::paintBackgroundSelectable(QPainter *painter,
     if ((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
         painter->fillRect(option.rect, QBrush(m_ActiveColor));
     } else if ((option.state & QStyle::State_MouseOver) == QStyle::State_MouseOver) {
-        auto treeView = dynamic_cast<NodeTreeView *>(m_view);
+        auto const *treeView = static_cast<NodeTreeView *>(m_view);
         auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
         if (itemType == NodeItem::Type::TrashButton) {
             return;
@@ -383,8 +383,8 @@ QWidget *NodeTreeDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
 #else
         int iconPointSizeOffset = -4;
 #endif
-        addButton->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
-                                                              16 + iconPointSizeOffset));
+        addButton->setFont(
+                font_loader::loadFont("Font Awesome 6 Free Solid", "", 16 + iconPointSizeOffset));
         addButton->setText(u8"\uf067"); // fa_plus
         addButton->setStyleSheet(QStringLiteral(R"(QPushButton { )"
                                                 R"(    border: none; )"

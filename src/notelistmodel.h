@@ -44,12 +44,12 @@ public:
     void sort(int column, Qt::SortOrder order) override;
     void setNoteData(const QModelIndex &index, const NodeData &note);
 
-    virtual Qt::DropActions supportedDropActions() const override;
-    virtual Qt::DropActions supportedDragActions() const override;
-    virtual QStringList mimeTypes() const override;
-    virtual QMimeData *mimeData(const QModelIndexList &indexes) const override;
-    virtual bool dropMimeData(const QMimeData *mime, Qt::DropAction action, int row, int column,
-                              const QModelIndex &parent) override;
+    Qt::DropActions supportedDropActions() const override;
+    Qt::DropActions supportedDragActions() const override;
+    QStringList mimeTypes() const override;
+    QMimeData *mimeData(const QModelIndexList &indexes) const override;
+    bool dropMimeData(const QMimeData *mime, Qt::DropAction action, int row, int column,
+                      const QModelIndex &parent) override;
 
     bool noteIsHaveTag(const QModelIndex &index) const;
     bool isFirstPinnedNote(const QModelIndex &index) const;

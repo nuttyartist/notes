@@ -55,15 +55,15 @@ TagTreeDelegateEditor::TagTreeDelegateEditor(QTreeView *view, const QStyleOption
     m_label->setSizePolicy(labelPolicy);
     m_label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     connect(m_label, &LabelEditType::editingStarted, this, [this] {
-        auto tree_view = dynamic_cast<NodeTreeView *>(m_view);
+        auto tree_view = static_cast<NodeTreeView *>(m_view);
         tree_view->setIsEditing(true);
     });
     connect(m_label, &LabelEditType::editingFinished, this, [this](const QString &label) {
-        auto tree_view = dynamic_cast<NodeTreeView *>(m_view);
+        auto tree_view = static_cast<NodeTreeView *>(m_view);
         tree_view->onRenameTagFinished(label);
         tree_view->setIsEditing(false);
     });
-    connect(dynamic_cast<NodeTreeView *>(m_view), &NodeTreeView::renameTagRequested, m_label,
+    connect(static_cast<NodeTreeView *>(m_view), &NodeTreeView::renameTagRequested, m_label,
             &LabelEditType::openEditor);
     layout->addWidget(m_label);
     m_contextButton = new PushButtonType(parent);
@@ -101,12 +101,12 @@ TagTreeDelegateEditor::TagTreeDelegateEditor(QTreeView *view, const QStyleOption
 #else
     int pointSizeOffset = -4;
 #endif
-    m_contextButton->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
-                                                                14 + pointSizeOffset));
+    m_contextButton->setFont(
+            font_loader::loadFont("Font Awesome 6 Free Solid", "", 14 + pointSizeOffset));
     m_contextButton->setText(u8"\uf141"); // fa-ellipsis-h
 
     connect(m_contextButton, &QPushButton::clicked, m_view, [this](bool) {
-        auto tree_view = dynamic_cast<NodeTreeView *>(m_view);
+        auto tree_view = static_cast<NodeTreeView *>(m_view);
         if (!m_view->selectionModel()->selectedIndexes().contains(m_index)) {
             tree_view->setCurrentIndexC(m_index);
         }
@@ -150,7 +150,7 @@ void TagTreeDelegateEditor::paintEvent(QPaintEvent *event)
     if (m_view->selectionModel()->selectedIndexes().contains(m_index)) {
         painter.fillRect(rect(), QBrush(m_activeColor));
     } else {
-        auto listView = dynamic_cast<NoteListView *>(m_listView);
+        auto const *listView = static_cast<NoteListView *>(m_listView);
         if (listView->isDragging()) {
             if (m_theme == Theme::Dark) {
                 painter.fillRect(rect(), QBrush(QColor(35, 52, 69)));
@@ -170,8 +170,8 @@ void TagTreeDelegateEditor::paintEvent(QPaintEvent *event)
 #else
     int iconPointSizeOffset = -4;
 #endif
-    painter.setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
-                                                       16 + iconPointSizeOffset));
+    painter.setFont(
+            font_loader::loadFont("Font Awesome 6 Free Solid", "", 16 + iconPointSizeOffset));
     painter.drawText(iconRect, u8"\uf111"); // fa-circle
     QWidget::paintEvent(event);
 }
@@ -180,7 +180,7 @@ void TagTreeDelegateEditor::mouseDoubleClickEvent(QMouseEvent *event)
 {
     auto iconRect = QRect(rect().x() + 10, rect().y() + (rect().height() - 14) / 2, 14, 14);
     if (iconRect.contains(event->position().toPoint())) {
-        dynamic_cast<NodeTreeView *>(m_view)->onChangeTagColorAction();
+        static_cast<NodeTreeView *>(m_view)->onChangeTagColorAction();
     } else if (m_label->geometry().contains(event->position().toPoint())) {
         m_label->openEditor();
     } else {

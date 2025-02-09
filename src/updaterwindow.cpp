@@ -510,7 +510,7 @@ void UpdaterWindow::calculateTimeRemaining(qint64 received, qint64 total)
             } else {
                 timeString = tr("1 minute");
             }
-        } else if (timeRemaining <= 60) {
+        } else { // timeRemaining <= 60
             int seconds = int(timeRemaining + 0.5);
 
             if (seconds > 1) {

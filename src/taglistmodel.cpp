@@ -1,7 +1,6 @@
 #include "taglistmodel.h"
 #include "tagpool.h"
 #include <QDebug>
-#include "nodepath.h"
 
 TagListModel::TagListModel(QObject *parent) : QAbstractListModel(parent), m_tagPool{ nullptr } { }
 
@@ -19,7 +18,7 @@ void TagListModel::setTagPool(TagPool *tagPool)
 
 void TagListModel::setModelData(const QSet<int> &data)
 {
-    if (!m_tagPool) {
+    if (m_tagPool == nullptr) {
         qDebug() << __FUNCTION__ << "Tag pool is not init yet";
         return;
     }
@@ -31,7 +30,7 @@ void TagListModel::setModelData(const QSet<int> &data)
 
 void TagListModel::addTag(int tagId)
 {
-    if (!m_tagPool) {
+    if (m_tagPool == nullptr) {
         qDebug() << __FUNCTION__ << "Tag pool is not init yet";
         return;
     }
@@ -53,17 +52,18 @@ int TagListModel::rowCount(const QModelIndex &parent) const
 QVariant TagListModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid()) {
-        return QVariant();
+        return {};
     }
     const TagData &tag = m_data[index.row()];
-    if (role == IdRole) {
+    switch (static_cast<TagListRole>(role)) {
+    case TagListRole::IdRole:
         return tag.id();
-    } else if (role == NameRole) {
+    case TagListRole::NameRole:
         return tag.name();
-    } else if (role == ColorRole) {
+    case TagListRole::ColorRole:
         return tag.color();
     }
-    return QVariant();
+    return {};
 }
 
 void TagListModel::updateTagData()

@@ -4,7 +4,7 @@
 #include <QTimer>
 #include <QMimeData>
 
-NoteListModel::NoteListModel(QObject *parent) : QAbstractListModel(parent) { }
+NoteListModel::NoteListModel(QObject *parent) : QAbstractListModel(parent), m_listViewInfo() { }
 
 NoteListModel::~NoteListModel() { }
 
@@ -18,15 +18,14 @@ QModelIndex NoteListModel::addNote(const NodeData &note)
         emit rowsInsertedC({ createIndex(rowCnt, 0) });
         emit rowCountChanged();
         return createIndex(rowCnt, 0);
-    } else {
-        const int rowCnt = m_pinnedList.size();
-        beginInsertRows(QModelIndex(), rowCnt, rowCnt);
-        m_pinnedList << note;
-        endInsertRows();
-        emit rowsInsertedC({ createIndex(rowCnt, 0) });
-        emit rowCountChanged();
-        return createIndex(rowCnt, 0);
     }
+    const int rowCnt = m_pinnedList.size();
+    beginInsertRows(QModelIndex(), rowCnt, rowCnt);
+    m_pinnedList << note;
+    endInsertRows();
+    emit rowsInsertedC({ createIndex(rowCnt, 0) });
+    emit rowCountChanged();
+    return createIndex(rowCnt, 0);
 }
 
 QModelIndex NoteListModel::insertNote(const NodeData &note, int row)
@@ -373,8 +372,8 @@ QMimeData *NoteListModel::mimeData(const QModelIndexList &indexes) const
     if (d.isEmpty()) {
         return nullptr;
     }
-    QMimeData *mimeData = new QMimeData;
-    mimeData->setData(NOTE_MIME, d.join(QStringLiteral(PATH_SEPARATOR)).toUtf8());
+    auto *mimeData = new QMimeData;
+    mimeData->setData(NOTE_MIME, d.join(PATH_SEPARATOR).toUtf8());
     return mimeData;
 }
 
@@ -383,7 +382,7 @@ bool NoteListModel::dropMimeData(const QMimeData *mime, Qt::DropAction action, i
 {
     Q_UNUSED(column);
 
-    if (!(mime->hasFormat(NOTE_MIME) && action == Qt::MoveAction)) {
+    if (!mime->hasFormat(NOTE_MIME) || action != Qt::MoveAction) {
         return false;
     }
     if (row == -1) {
@@ -395,17 +394,12 @@ bool NoteListModel::dropMimeData(const QMimeData *mime, Qt::DropAction action, i
             row = rowCount(parent);
         }
     }
-    bool toPinned = false;
-    if (row >= m_pinnedList.size()) {
-        toPinned = false;
-    } else {
-        toPinned = true;
-    }
-    auto idl = QString::fromUtf8(mime->data(NOTE_MIME)).split(QStringLiteral(PATH_SEPARATOR));
+    bool toPinned = row < m_pinnedList.size();
+    auto idl = QString::fromUtf8(mime->data(NOTE_MIME)).split(PATH_SEPARATOR);
     QSet<int> movedIds;
     QModelIndexList idxe;
-    for (const auto &id_s : std::as_const(idl)) {
-        auto nodeId = id_s.toInt();
+    for (const auto &idString : std::as_const(idl)) {
+        auto nodeId = idString.toInt();
         idxe.append(getNoteIndex(nodeId));
     }
     emit rowsAboutToBeMovedC(idxe);
@@ -419,8 +413,8 @@ bool NoteListModel::dropMimeData(const QMimeData *mime, Qt::DropAction action, i
                 m_pinnedList.prepend(m_noteList.takeAt(index.row() - m_pinnedList.size()));
             }
         }
-        for (const auto &id_s : std::as_const(idl)) {
-            auto nodeId = id_s.toInt();
+        for (const auto &idString : std::as_const(idl)) {
+            auto nodeId = idString.toInt();
             for (int i = 0; i < m_pinnedList.size(); ++i) {
                 if (m_pinnedList[i].id() == nodeId) {
                     m_pinnedList.move(i, row);
@@ -479,9 +473,8 @@ QModelIndex NoteListModel::getFirstUnpinnedNote() const
 {
     if (!m_noteList.isEmpty()) {
         return createIndex(m_pinnedList.size(), 0);
-    } else {
-        return QModelIndex();
     }
+    return {};
 }
 
 bool NoteListModel::hasPinnedNote() const
@@ -609,10 +602,7 @@ bool NoteListModel::isFirstPinnedNote(const QModelIndex &index) const
         return false;
     }
     const NodeData &note = getRef(index.row());
-    if (index.row() == 0 && note.isPinnedNote()) {
-        return true;
-    }
-    return false;
+    return index.row() == 0 && note.isPinnedNote();
 }
 
 bool NoteListModel::isFirstUnpinnedNote(const QModelIndex &index) const
@@ -621,16 +611,13 @@ bool NoteListModel::isFirstUnpinnedNote(const QModelIndex &index) const
         return false;
     }
     const NodeData &note = getRef(index.row());
-    if ((index.row() - m_pinnedList.size()) == 0 && !note.isPinnedNote()) {
-        return true;
-    }
-    return false;
+    return (index.row() - m_pinnedList.size()) == 0 && !note.isPinnedNote();
 }
 
 QModelIndex NoteListModel::getFirstPinnedNote() const
 {
     if (m_pinnedList.isEmpty()) {
-        return QModelIndex();
+        return {};
     }
     return createIndex(0, 0);
 }

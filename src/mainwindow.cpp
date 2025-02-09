@@ -2515,7 +2515,7 @@ void MainWindow::createNewNote()
         m_noteEditorLogic->closeEditor();
 
         NodeData tmpNote;
-        tmpNote.setNodeType(NodeData::Note);
+        tmpNote.setNodeType(NodeData::Type::Note);
         QDateTime noteDate = QDateTime::currentDateTime();
         tmpNote.setCreationDateTime(noteDate);
         tmpNote.setLastModificationDateTime(noteDate);
@@ -2526,7 +2526,7 @@ void MainWindow::createNewNote()
             QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection,
                                       Q_RETURN_ARG(NodeData, parent),
                                       Q_ARG(int, inf.parentFolderId));
-            if (parent.nodeType() == NodeData::Folder) {
+            if (parent.nodeType() == NodeData::Type::Folder) {
                 tmpNote.setParentId(parent.id());
                 tmpNote.setParentName(parent.fullTitle());
             } else {
