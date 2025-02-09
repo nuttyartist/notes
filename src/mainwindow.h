@@ -119,7 +119,7 @@ public slots:
                                     const QSet<int> &tagId);
     void saveExpandedFolder(const QStringList &folderPaths);
     void saveLastSelectedNote(const QSet<int> &notesId);
-    void changeEditorFontTypeFromStyleButtons(FontTypeface::Value fontType, int chosenFontIndex);
+    void changeEditorFontTypeFromStyleButtons(FontTypeface::Value fontTypeface, int chosenFontIndex);
     void changeEditorFontSizeFromStyleButtons(FontSizeAction::Value fontSizeAction);
     void changeEditorTextWidthFromStyleButtons(EditorTextWidth::Value editorTextWidth);
     void resetEditorSettings();
@@ -135,7 +135,7 @@ public slots:
     void toggleEditorSettings();
     void setEditorSettingsFromQuickViewVisibility(bool isVisible);
     void setEditorSettingsScrollBarPosition(double position);
-    void setActivationSuccessful(QString licenseKey, bool removeGracePeriodStartedDate = true);
+    void setActivationSuccessful(QString const & licenseKey, bool removeGracePeriodStartedDate = true);
     void checkProVersion();
     QVariant getUserLicenseKey();
 
