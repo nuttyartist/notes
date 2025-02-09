@@ -7,12 +7,9 @@
 TagListDelegate::TagListDelegate(QObject *parent)
     : QStyledItemDelegate(parent),
 #ifdef __APPLE__
-      m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch()
-                            ? QStringLiteral("SF Pro Text")
-                            : QStringLiteral("Roboto")),
+      m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")),
 #elif _WIN32
-      m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI")
-                                                                   : QStringLiteral("Roboto")),
+      m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI") : QStringLiteral("Roboto")),
 #else
       m_displayFont(QStringLiteral("Roboto")),
 #endif
@@ -26,8 +23,7 @@ TagListDelegate::TagListDelegate(QObject *parent)
 {
 }
 
-void TagListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
-                            const QModelIndex &index) const
+void TagListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     painter->setRenderHint(QPainter::Antialiasing);
     auto name = index.data(static_cast<int>(TagListModel::TagListRole::NameRole)).toString();
@@ -49,8 +45,7 @@ void TagListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
 #else
     int iconPointSizeOffset = -4;
 #endif
-    painter->setFont(
-            font_loader::loadFont("Font Awesome 6 Free Solid", "", 12 + iconPointSizeOffset));
+    painter->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "", 12 + iconPointSizeOffset));
     painter->drawText(iconRect, u8"\uf111"); // fa-circle
     painter->setBrush(m_titleColor);
     painter->setPen(m_titleColor);

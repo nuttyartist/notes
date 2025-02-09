@@ -7,21 +7,15 @@
 #include "editorsettingsoptions.h"
 #include "fontloader.h"
 
-DefaultNoteFolderDelegateEditor::DefaultNoteFolderDelegateEditor(QTreeView *view,
-                                                                 const QStyleOptionViewItem &option,
-                                                                 const QModelIndex &index,
-                                                                 QListView *listView,
-                                                                 QWidget *parent)
+DefaultNoteFolderDelegateEditor::DefaultNoteFolderDelegateEditor(QTreeView *view, const QStyleOptionViewItem &option, const QModelIndex &index,
+                                                                 QListView *listView, QWidget *parent)
     : QWidget(parent),
       m_option(option),
       m_index(index),
 #ifdef __APPLE__
-      m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch()
-                            ? QStringLiteral("SF Pro Text")
-                            : QStringLiteral("Roboto")),
+      m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")),
 #elif _WIN32
-      m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI")
-                                                                   : QStringLiteral("Roboto")),
+      m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI") : QStringLiteral("Roboto")),
 #else
       m_displayFont(QStringLiteral("Roboto")),
 #endif
@@ -76,8 +70,7 @@ void DefaultNoteFolderDelegateEditor::paintEvent(QPaintEvent *event)
 #else
     int iconPointSizeOffset = -4;
 #endif
-    painter.setFont(
-            font_loader::loadFont("Material Symbols Outlined", "", 16 + iconPointSizeOffset));
+    painter.setFont(font_loader::loadFont("Material Symbols Outlined", "", 16 + iconPointSizeOffset));
     painter.drawText(folderIconRect, u8"\ue2c7"); // folder
 
     QRect nameRect(rect());
@@ -105,8 +98,7 @@ void DefaultNoteFolderDelegateEditor::paintEvent(QPaintEvent *event)
         painter.setPen(m_numberOfNotesColor);
     }
     painter.setFont(m_numberOfNotesFont);
-    painter.drawText(childCountRect, Qt::AlignHCenter | Qt::AlignVCenter,
-                     QString::number(childCount));
+    painter.drawText(childCountRect, Qt::AlignHCenter | Qt::AlignVCenter, QString::number(childCount));
     QWidget::paintEvent(event);
 }
 

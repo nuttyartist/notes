@@ -60,8 +60,7 @@ void setCSSThemeAndUpdate(QWidget *obj, Theme::Value theme)
 void setCSSClassesAndUpdate(QWidget *obj, std::string const &classNames)
 {
     if (obj->styleSheet().isEmpty()) {
-        qWarning() << "setCSSClassesAndUpdate: styleSheet is empty for widget with name "
-                   << obj->objectName();
+        qWarning() << "setCSSClassesAndUpdate: styleSheet is empty for widget with name " << obj->objectName();
     }
     // set the class
     obj->setProperty("class", classNames.c_str());

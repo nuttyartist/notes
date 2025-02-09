@@ -12,19 +12,15 @@
 #include "notelistview.h"
 #include "fontloader.h"
 
-TagTreeDelegateEditor::TagTreeDelegateEditor(QTreeView *view, const QStyleOptionViewItem &option,
-                                             const QModelIndex &index, QListView *listView,
+TagTreeDelegateEditor::TagTreeDelegateEditor(QTreeView *view, const QStyleOptionViewItem &option, const QModelIndex &index, QListView *listView,
                                              QWidget *parent)
     : QWidget(parent),
       m_option(option),
       m_index(index),
 #ifdef __APPLE__
-      m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch()
-                            ? QStringLiteral("SF Pro Text")
-                            : QStringLiteral("Roboto")),
+      m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto")),
 #elif _WIN32
-      m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI")
-                                                                   : QStringLiteral("Roboto")),
+      m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI") : QStringLiteral("Roboto")),
 #else
       m_displayFont(QStringLiteral("Roboto")),
 #endif
@@ -63,8 +59,7 @@ TagTreeDelegateEditor::TagTreeDelegateEditor(QTreeView *view, const QStyleOption
         tree_view->onRenameTagFinished(label);
         tree_view->setIsEditing(false);
     });
-    connect(static_cast<NodeTreeView *>(m_view), &NodeTreeView::renameTagRequested, m_label,
-            &LabelEditType::openEditor);
+    connect(static_cast<NodeTreeView *>(m_view), &NodeTreeView::renameTagRequested, m_label, &LabelEditType::openEditor);
     layout->addWidget(m_label);
     m_contextButton = new PushButtonType(parent);
     m_contextButton->setMaximumSize({ 33, 25 });
@@ -101,8 +96,7 @@ TagTreeDelegateEditor::TagTreeDelegateEditor(QTreeView *view, const QStyleOption
 #else
     int pointSizeOffset = -4;
 #endif
-    m_contextButton->setFont(
-            font_loader::loadFont("Font Awesome 6 Free Solid", "", 14 + pointSizeOffset));
+    m_contextButton->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "", 14 + pointSizeOffset));
     m_contextButton->setText(u8"\uf141"); // fa-ellipsis-h
 
     connect(m_contextButton, &QPushButton::clicked, m_view, [this](bool) {
@@ -110,8 +104,7 @@ TagTreeDelegateEditor::TagTreeDelegateEditor(QTreeView *view, const QStyleOption
         if (!m_view->selectionModel()->selectedIndexes().contains(m_index)) {
             tree_view->setCurrentIndexC(m_index);
         }
-        tree_view->onCustomContextMenu(tree_view->visualRect(m_index).topLeft()
-                                       + m_contextButton->geometry().bottomLeft());
+        tree_view->onCustomContextMenu(tree_view->visualRect(m_index).topLeft() + m_contextButton->geometry().bottomLeft());
     });
     layout->addWidget(m_contextButton, 0, Qt::AlignRight);
     layout->addSpacing(5);
@@ -127,14 +120,11 @@ void TagTreeDelegateEditor::updateDelegate()
 
     if (m_view->selectionModel()->selectedIndexes().contains(m_index)) {
         labelStyle = QStringLiteral("QLabel{color: rgb(%1, %2, %3);}")
-                             .arg(QString::number(m_titleSelectedColor.red()),
-                                  QString::number(m_titleSelectedColor.green()),
+                             .arg(QString::number(m_titleSelectedColor.red()), QString::number(m_titleSelectedColor.green()),
                                   QString::number(m_titleSelectedColor.blue()));
     } else {
         labelStyle = QStringLiteral("QLabel{color: rgb(%1, %2, %3);}")
-                             .arg(QString::number(m_titleColor.red()),
-                                  QString::number(m_titleColor.green()),
-                                  QString::number(m_titleColor.blue()));
+                             .arg(QString::number(m_titleColor.red()), QString::number(m_titleColor.green()), QString::number(m_titleColor.blue()));
     }
     m_label->setText(displayName);
 
@@ -170,8 +160,7 @@ void TagTreeDelegateEditor::paintEvent(QPaintEvent *event)
 #else
     int iconPointSizeOffset = -4;
 #endif
-    painter.setFont(
-            font_loader::loadFont("Font Awesome 6 Free Solid", "", 16 + iconPointSizeOffset));
+    painter.setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "", 16 + iconPointSizeOffset));
     painter.drawText(iconRect, u8"\uf111"); // fa-circle
     QWidget::paintEvent(event);
 }

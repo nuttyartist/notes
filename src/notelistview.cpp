@@ -272,8 +272,7 @@ void NoteListView::mouseMoveEvent(QMouseEvent *event)
         return;
     }
     if (event->buttons() & Qt::LeftButton) {
-        if ((event->position().toPoint() - m_dragStartPosition).manhattanLength()
-            >= QApplication::startDragDistance()) {
+        if ((event->position().toPoint() - m_dragStartPosition).manhattanLength() >= QApplication::startDragDistance()) {
             startDrag(Qt::MoveAction);
         }
     }
@@ -465,16 +464,14 @@ void NoteListView::startDrag(Qt::DropActions supportedActions)
             if (!wl.empty()) {
                 pixmap = wl.first()->grab();
             } else {
-                qDebug() << __FUNCTION__ << "Dragging row" << current.row()
-                         << "is in opened editor list but editor widget is null";
+                qDebug() << __FUNCTION__ << "Dragging row" << current.row() << "is in opened editor list but editor widget is null";
             }
         } else {
             pixmap = d->renderToPixmap(indexes, &rect);
         }
         auto const *noteListModel = static_cast<NoteListModel *>(this->model());
         if ((noteListModel != nullptr) && noteListModel->hasPinnedNote()
-            && (noteListModel->isFirstPinnedNote(current)
-                || noteListModel->isFirstUnpinnedNote(current))) {
+            && (noteListModel->isFirstPinnedNote(current) || noteListModel->isFirstUnpinnedNote(current))) {
             QRect r(0, 25, rect.width(), rect.height() - 25);
             pixmap = pixmap.copy(r);
             rect.setHeight(rect.height() - 25);
@@ -482,16 +479,11 @@ void NoteListView::startDrag(Qt::DropActions supportedActions)
         rect.adjust(horizontalOffset(), verticalOffset(), 0, 0);
     } else {
         pixmap.load(":/images/notepad.ico");
-        pixmap = pixmap.scaled(pixmap.width() / 4, pixmap.height() / 4, Qt::KeepAspectRatio,
-                               Qt::SmoothTransformation);
+        pixmap = pixmap.scaled(pixmap.width() / 4, pixmap.height() / 4, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 #ifdef __APPLE__
-        QFont m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch()
-                                    ? QStringLiteral("SF Pro Text")
-                                    : QStringLiteral("Roboto"));
+        QFont m_displayFont(QFont(QStringLiteral("SF Pro Text")).exactMatch() ? QStringLiteral("SF Pro Text") : QStringLiteral("Roboto"));
 #elif _WIN32
-        QFont m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch()
-                                    ? QStringLiteral("Segoe UI")
-                                    : QStringLiteral("Roboto"));
+        QFont m_displayFont(QFont(QStringLiteral("Segoe UI")).exactMatch() ? QStringLiteral("Segoe UI") : QStringLiteral("Roboto"));
 #else
         QFont displayFont(QStringLiteral("Roboto"));
 #endif
@@ -514,9 +506,7 @@ void NoteListView::startDrag(Qt::DropActions supportedActions)
     }
     m_isDraggingPinnedNotes = false;
     m_isDraggingPinnedNotes =
-            std::any_of(indexes.cbegin(), indexes.cend(), [](const QModelIndex &index) {
-                return index.data(NoteListModel::NoteIsPinned).toBool();
-            });
+            std::any_of(indexes.cbegin(), indexes.cend(), [](const QModelIndex &index) { return index.data(NoteListModel::NoteIsPinned).toBool(); });
     auto *drag = new QDrag(this);
     drag->setPixmap(pixmap);
     drag->setMimeData(mimeData);
@@ -565,22 +555,21 @@ void NoteListView::setupSignalsSlots()
 {
     // remove/add separator
     // current selectected row changed
-    connect(selectionModel(), &QItemSelectionModel::currentRowChanged, this,
-            [this](const QModelIndex &current, const QModelIndex &previous) {
-                if (model()) {
-                    if (current.row() < previous.row()) {
-                        if (current.row() > 0) {
-                            QModelIndex prevIndex = model()->index(current.row() - 1, 0);
-                            viewport()->update(visualRect(prevIndex));
-                        }
-                    }
-
-                    if (current.row() > 1) {
-                        QModelIndex prevPrevIndex = model()->index(current.row() - 2, 0);
-                        viewport()->update(visualRect(prevPrevIndex));
-                    }
+    connect(selectionModel(), &QItemSelectionModel::currentRowChanged, this, [this](const QModelIndex &current, const QModelIndex &previous) {
+        if (model()) {
+            if (current.row() < previous.row()) {
+                if (current.row() > 0) {
+                    QModelIndex prevIndex = model()->index(current.row() - 1, 0);
+                    viewport()->update(visualRect(prevIndex));
                 }
-            });
+            }
+
+            if (current.row() > 1) {
+                QModelIndex prevPrevIndex = model()->index(current.row() - 2, 0);
+                viewport()->update(visualRect(prevPrevIndex));
+            }
+        }
+    });
 
     // row was entered
     connect(this, &NoteListView::entered, this, [this](const QModelIndex &index) {
@@ -667,8 +656,7 @@ void NoteListView::removeNotesFromTag(QSet<int> const &notesId, int tagId)
     }
 }
 
-void NoteListView::selectionChanged(const QItemSelection &selected,
-                                    const QItemSelection &deselected)
+void NoteListView::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
 {
     QListView::selectionChanged(selected, deselected);
     QSet<int> ids;
@@ -718,8 +706,7 @@ void NoteListView::onCustomContextMenu(QPoint point)
 #else
                 int iconPointSizeOffset = -4;
 #endif
-                painter.setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
-                                                      24 + iconPointSizeOffset));
+                painter.setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "", 24 + iconPointSizeOffset));
                 painter.drawText(iconRect, u8"\uf111"); // fa-circle
                 return QIcon{ pix };
             };
@@ -740,10 +727,8 @@ void NoteListView::onCustomContextMenu(QPoint point)
             }
             for (auto id : std::as_const(tagInNote)) {
                 auto tag = m_tagPool->getTag(id);
-                auto *tagAction =
-                        new QAction(QStringLiteral("✓ Remove tag %1").arg(tag.name()), this);
-                connect(tagAction, &QAction::triggered, this,
-                        [this, id, notes] { removeNotesFromTag(notes, id); });
+                auto *tagAction = new QAction(QStringLiteral("✓ Remove tag %1").arg(tag.name()), this);
+                connect(tagAction, &QAction::triggered, this, [this, id, notes] { removeNotesFromTag(notes, id); });
                 tagAction->setIcon(createTagIcon(tag.color()));
                 m_tagsMenu->addAction(tagAction);
                 m_noteTagActions.append(tagAction);
@@ -755,8 +740,7 @@ void NoteListView::onCustomContextMenu(QPoint point)
                 }
                 auto tag = m_tagPool->getTag(id);
                 auto *tagAction = new QAction(QStringLiteral(" %1").arg(tag.name()), this);
-                connect(tagAction, &QAction::triggered, this,
-                        [this, id, notes] { addNotesToTag(notes, id); });
+                connect(tagAction, &QAction::triggered, this, [this, id, notes] { addNotesToTag(notes, id); });
                 tagAction->setIcon(createTagIcon(tag.color()));
                 m_tagsMenu->addAction(tagAction);
                 m_noteTagActions.append(tagAction);
@@ -776,8 +760,7 @@ void NoteListView::onCustomContextMenu(QPoint point)
             m_deleteNoteAction->setText(tr("Delete Note"));
         }
         m_contextMenu->addAction(m_deleteNoteAction);
-        if ((!m_listViewInfo.isInTag)
-            && (m_listViewInfo.parentFolderId != SpecialNodeID::TrashFolder)) {
+        if ((!m_listViewInfo.isInTag) && (m_listViewInfo.parentFolderId != SpecialNodeID::TrashFolder)) {
             m_contextMenu->addSeparator();
             if (notes.size() > 1) {
                 m_pinNoteAction->setText(tr("Pin Notes"));
@@ -829,8 +812,7 @@ void NoteListView::onCustomContextMenu(QPoint point)
             m_folderActions.clear();
             auto *m = m_contextMenu->addMenu("Move to");
             FolderListType folders;
-            QMetaObject::invokeMethod(m_dbManager, "getFolderList", Qt::BlockingQueuedConnection,
-                                      Q_RETURN_ARG(FolderListType, folders));
+            QMetaObject::invokeMethod(m_dbManager, "getFolderList", Qt::BlockingQueuedConnection, Q_RETURN_ARG(FolderListType, folders));
             for (const auto &id : folders.keys()) {
                 if (id == m_currentFolderId) {
                     continue;
@@ -840,8 +822,7 @@ void NoteListView::onCustomContextMenu(QPoint point)
                     auto indexes = selectedIndexes();
                     for (const auto &selectedIndex : std::as_const(indexes)) {
                         if (selectedIndex.isValid()) {
-                            emit moveNoteRequested(
-                                    selectedIndex.data(NoteListModel::NoteID).toInt(), id);
+                            emit moveNoteRequested(selectedIndex.data(NoteListModel::NoteID).toInt(), id);
                         }
                     }
                 });

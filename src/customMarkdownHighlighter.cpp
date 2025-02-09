@@ -1,8 +1,7 @@
 #include "customMarkdownHighlighter.h"
 #include "editorsettingsoptions.h"
 
-CustomMarkdownHighlighter::CustomMarkdownHighlighter(QTextDocument *parent,
-                                                     HighlightingOptions highlightingOptions)
+CustomMarkdownHighlighter::CustomMarkdownHighlighter(QTextDocument *parent, HighlightingOptions highlightingOptions)
     : MarkdownHighlighter(parent, highlightingOptions)
 {
     setListsColor(QColor(35, 131, 226)); // accent color
@@ -34,16 +33,13 @@ void CustomMarkdownHighlighter::setFontSize(qreal fontSize)
     }
 
     qreal codeBlockFontSize = fontSize - 4;
-    _formats[static_cast<HighlighterState>(HighlighterState::InlineCodeBlock)].setFontPointSize(
-            codeBlockFontSize);
+    _formats[static_cast<HighlighterState>(HighlighterState::InlineCodeBlock)].setFontPointSize(codeBlockFontSize);
 }
 
 void CustomMarkdownHighlighter::setListsColor(QColor color)
 {
-    _formats[static_cast<HighlighterState>(HighlighterState::CheckBoxUnChecked)].setForeground(
-            color);
-    _formats[static_cast<HighlighterState>(HighlighterState::CheckBoxChecked)].setForeground(
-            QColor(90, 113, 140));
+    _formats[static_cast<HighlighterState>(HighlighterState::CheckBoxUnChecked)].setForeground(color);
+    _formats[static_cast<HighlighterState>(HighlighterState::CheckBoxChecked)].setForeground(QColor(90, 113, 140));
     _formats[static_cast<HighlighterState>(HighlighterState::List)].setForeground(color);
     _formats[static_cast<HighlighterState>(HighlighterState::BlockQuote)].setForeground(color);
 }

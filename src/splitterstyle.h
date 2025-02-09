@@ -10,8 +10,7 @@ public:
     explicit SplitterStyle(QObject *parent);
 
 public:
-    void drawControl(ControlElement element, const QStyleOption *opt, QPainter *p,
-                     const QWidget *w) const override;
+    void drawControl(ControlElement element, const QStyleOption *opt, QPainter *p, const QWidget *w) const override;
 };
 
 #endif // SPLITTERSTYLE_H

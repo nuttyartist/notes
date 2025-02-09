@@ -90,8 +90,7 @@ void NoteListModel::setListNote(const QVector<NodeData> &notes, const ListViewIn
     m_pinnedList.clear();
     m_noteList.clear();
     m_listViewInfo = inf;
-    if ((!m_listViewInfo.isInTag)
-        && (m_listViewInfo.parentFolderId != SpecialNodeID::TrashFolder)) {
+    if ((!m_listViewInfo.isInTag) && (m_listViewInfo.parentFolderId != SpecialNodeID::TrashFolder)) {
         for (const auto &note : std::as_const(notes)) {
             if (note.isPinnedNote()) {
                 m_pinnedList.append(note);
@@ -112,16 +111,13 @@ void NoteListModel::removeNotes(const QModelIndexList &noteIndexes)
     emit requestRemoveNotes(noteIndexes);
 }
 
-bool NoteListModel::moveRow(const QModelIndex &sourceParent, int sourceRow,
-                            const QModelIndex &destinationParent, int destinationChild)
+bool NoteListModel::moveRow(const QModelIndex &sourceParent, int sourceRow, const QModelIndex &destinationParent, int destinationChild)
 {
-    if (sourceRow < 0 || sourceRow >= rowCount() || destinationChild < 0
-        || destinationChild >= rowCount()) {
+    if (sourceRow < 0 || sourceRow >= rowCount() || destinationChild < 0 || destinationChild >= rowCount()) {
         return false;
     }
     if (sourceRow < m_pinnedList.size() && destinationChild < m_pinnedList.size()) {
-        if (beginMoveRows(sourceParent, sourceRow, sourceRow, destinationParent,
-                          destinationChild)) {
+        if (beginMoveRows(sourceParent, sourceRow, sourceRow, destinationParent, destinationChild)) {
             m_pinnedList.move(sourceRow, destinationChild);
             endMoveRows();
             emit rowsAboutToBeMovedC({ createIndex(sourceRow, 0) });
@@ -133,8 +129,7 @@ bool NoteListModel::moveRow(const QModelIndex &sourceParent, int sourceRow,
     if (sourceRow >= m_pinnedList.size() && destinationChild >= m_pinnedList.size()) {
         sourceRow = sourceRow - m_pinnedList.size();
         destinationChild = destinationChild - m_pinnedList.size();
-        if (beginMoveRows(sourceParent, sourceRow, sourceRow, destinationParent,
-                          destinationChild)) {
+        if (beginMoveRows(sourceParent, sourceRow, sourceRow, destinationParent, destinationChild)) {
             m_noteList.move(sourceRow, destinationChild);
             endMoveRows();
             emit rowsAboutToBeMovedC({ createIndex(sourceRow, 0) });
@@ -241,8 +236,7 @@ Qt::ItemFlags NoteListModel::flags(const QModelIndex &index) const
         return Qt::ItemIsEnabled | Qt::ItemIsDropEnabled;
     }
 
-    return QAbstractListModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsDragEnabled
-            | Qt::ItemIsDropEnabled;
+    return QAbstractListModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
 }
 
 int NoteListModel::rowCount(const QModelIndex &parent) const
@@ -257,23 +251,18 @@ void NoteListModel::sort(int column, Qt::SortOrder order)
     Q_UNUSED(order)
     if (m_listViewInfo.parentFolderId == SpecialNodeID::TrashFolder) {
         std::stable_sort(m_noteList.begin(), m_noteList.end(),
-                         [](const NodeData &lhs, const NodeData &rhs) {
-                             return lhs.deletionDateTime() > rhs.deletionDateTime();
-                         });
+                         [](const NodeData &lhs, const NodeData &rhs) { return lhs.deletionDateTime() > rhs.deletionDateTime(); });
     } else {
-        std::stable_sort(m_pinnedList.begin(), m_pinnedList.end(),
-                         [this](const NodeData &lhs, const NodeData &rhs) {
-                             if (isInAllNote()) {
-                                 return lhs.relativePosAN() < rhs.relativePosAN();
-                             } else {
-                                 return lhs.relativePosition() < rhs.relativePosition();
-                             }
-                         });
+        std::stable_sort(m_pinnedList.begin(), m_pinnedList.end(), [this](const NodeData &lhs, const NodeData &rhs) {
+            if (isInAllNote()) {
+                return lhs.relativePosAN() < rhs.relativePosAN();
+            } else {
+                return lhs.relativePosition() < rhs.relativePosition();
+            }
+        });
 
         std::stable_sort(m_noteList.begin(), m_noteList.end(),
-                         [](const NodeData &lhs, const NodeData &rhs) {
-                             return lhs.lastModificationdateTime() > rhs.lastModificationdateTime();
-                         });
+                         [](const NodeData &lhs, const NodeData &rhs) { return lhs.lastModificationdateTime() > rhs.lastModificationdateTime(); });
     }
 
     emit dataChanged(index(0), index(rowCount() - 1));
@@ -307,8 +296,7 @@ void NoteListModel::updatePinnedRelativePosition()
 
 bool NoteListModel::isInAllNote() const
 {
-    return (!m_listViewInfo.isInTag)
-            && (m_listViewInfo.parentFolderId == SpecialNodeID::RootFolder);
+    return (!m_listViewInfo.isInTag) && (m_listViewInfo.parentFolderId == SpecialNodeID::RootFolder);
 }
 
 NodeData &NoteListModel::getRef(int row)
@@ -377,8 +365,7 @@ QMimeData *NoteListModel::mimeData(const QModelIndexList &indexes) const
     return mimeData;
 }
 
-bool NoteListModel::dropMimeData(const QMimeData *mime, Qt::DropAction action, int row, int column,
-                                 const QModelIndex &parent)
+bool NoteListModel::dropMimeData(const QMimeData *mime, Qt::DropAction action, int row, int column, const QModelIndex &parent)
 {
     Q_UNUSED(column);
 
@@ -435,16 +422,14 @@ bool NoteListModel::dropMimeData(const QMimeData *mime, Qt::DropAction action, i
             int destinationChild = 0;
             if (m_listViewInfo.parentFolderId == SpecialNodeID::TrashFolder) {
                 auto lastMod = index.data(NoteDeletionDateTime).toDateTime();
-                for (destinationChild = 0; destinationChild < m_noteList.size();
-                     ++destinationChild) {
+                for (destinationChild = 0; destinationChild < m_noteList.size(); ++destinationChild) {
                     if (m_noteList[destinationChild].deletionDateTime() <= lastMod) {
                         break;
                     }
                 }
             } else {
                 auto lastMod = index.data(NoteLastModificationDateTime).toDateTime();
-                for (destinationChild = 0; destinationChild < m_noteList.size();
-                     ++destinationChild) {
+                for (destinationChild = 0; destinationChild < m_noteList.size(); ++destinationChild) {
                     if (m_noteList[destinationChild].deletionDateTime() <= lastMod) {
                         break;
                     }
@@ -479,8 +464,7 @@ QModelIndex NoteListModel::getFirstUnpinnedNote() const
 
 bool NoteListModel::hasPinnedNote() const
 {
-    if ((!m_listViewInfo.isInTag)
-        && (m_listViewInfo.parentFolderId == SpecialNodeID::TrashFolder)) {
+    if ((!m_listViewInfo.isInTag) && (m_listViewInfo.parentFolderId == SpecialNodeID::TrashFolder)) {
         // Trash don't have pinned note
         return false;
     }
@@ -542,8 +526,7 @@ void NoteListModel::setNotesIsPinned(const QModelIndexList &indexes, bool isPinn
             int destinationChild = 0;
             if (m_listViewInfo.parentFolderId == SpecialNodeID::TrashFolder) {
                 auto lastMod = index.data(NoteDeletionDateTime).toDateTime();
-                for (destinationChild = 0; destinationChild < m_noteList.size();
-                     ++destinationChild) {
+                for (destinationChild = 0; destinationChild < m_noteList.size(); ++destinationChild) {
                     const auto &note = m_noteList[destinationChild];
                     if (note.deletionDateTime() <= lastMod) {
                         break;
@@ -551,8 +534,7 @@ void NoteListModel::setNotesIsPinned(const QModelIndexList &indexes, bool isPinn
                 }
             } else {
                 auto lastMod = index.data(NoteLastModificationDateTime).toDateTime();
-                for (destinationChild = 0; destinationChild < m_noteList.size();
-                     ++destinationChild) {
+                for (destinationChild = 0; destinationChild < m_noteList.size(); ++destinationChild) {
                     const auto &note = m_noteList[destinationChild];
                     if (note.lastModificationdateTime() <= lastMod) {
                         break;

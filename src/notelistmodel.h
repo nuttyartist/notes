@@ -33,8 +33,7 @@ public:
     QModelIndex getNoteIndex(int id) const;
     void setListNote(const QVector<NodeData> &notes, const ListViewInfo &inf);
     void removeNotes(const QModelIndexList &noteIndexes);
-    bool moveRow(const QModelIndex &sourceParent, int sourceRow,
-                 const QModelIndex &destinationParent, int destinationChild);
+    bool moveRow(const QModelIndex &sourceParent, int sourceRow, const QModelIndex &destinationParent, int destinationChild);
 
     void clearNotes();
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
@@ -48,8 +47,7 @@ public:
     Qt::DropActions supportedDragActions() const override;
     QStringList mimeTypes() const override;
     QMimeData *mimeData(const QModelIndexList &indexes) const override;
-    bool dropMimeData(const QMimeData *mime, Qt::DropAction action, int row, int column,
-                      const QModelIndex &parent) override;
+    bool dropMimeData(const QMimeData *mime, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
 
     bool noteIsHaveTag(const QModelIndex &index) const;
     bool isFirstPinnedNote(const QModelIndex &index) const;
