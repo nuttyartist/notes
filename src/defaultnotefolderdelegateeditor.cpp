@@ -75,7 +75,7 @@ void DefaultNoteFolderDelegateEditor::paintEvent(QPaintEvent *event)
 #else
     int iconPointSizeOffset = -4;
 #endif
-    painter.setFont(FontLoader::getInstance().loadFont("Material Symbols Outlined", "",
+    painter.setFont(font_loader::loadFont("Material Symbols Outlined", "",
                                                        16 + iconPointSizeOffset));
     painter.drawText(folderIconRect, u8"\ue2c7"); // folder
 

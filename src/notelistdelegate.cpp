@@ -624,7 +624,7 @@ void NoteListDelegate::paintLabels(QPainter *painter, const QStyleOptionViewItem
 #else
                 int iconPointSizeOffset = -4;
 #endif
-                painter->setFont(FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "",
+                painter->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
                                                                     14 + iconPointSizeOffset));
                 painter->setPen(QColor(68, 138, 201));
                 if (m_view->isPinnedNotesCollapsed()) {
@@ -684,7 +684,7 @@ void NoteListDelegate::paintLabels(QPainter *painter, const QStyleOptionViewItem
 #else
                 int iconPointSizeOffset = -4;
 #endif
-                painter->setFont(FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "",
+                painter->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
                                                                     14 + iconPointSizeOffset));
                 painter->setPen(QColor(68, 138, 201));
                 if (m_view->isPinnedNotesCollapsed()) {
@@ -835,7 +835,7 @@ void NoteListDelegate::paintTagList(int top, QPainter *painter, const QStyleOpti
 #else
         int iconPointSizeOffset = -4;
 #endif
-        painter->setFont(FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "",
+        painter->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
                                                             14 + iconPointSizeOffset));
         painter->drawText(iconRect, u8"\uf111"); // fa-circle
         painter->setBrush(m_titleColor);

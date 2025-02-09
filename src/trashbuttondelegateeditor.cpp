@@ -74,7 +74,7 @@ void TrashButtonDelegateEditor::paintEvent(QPaintEvent *event)
 #else
     int iconPointSizeOffset = -4;
 #endif
-    painter.setFont(FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "",
+    painter.setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
                                                        16 + iconPointSizeOffset));
     painter.drawText(iconRect, iconPath); // fa-trash
 

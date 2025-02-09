@@ -4,20 +4,10 @@
 #include <QString>
 #include <QFontDatabase>
 
-class FontLoader
+namespace font_loader {
+
+inline QFont loadFont(const QString &family, const QString &style, int pointSize)
 {
-public:
-    static FontLoader &getInstance()
-    {
-        static FontLoader instance;
-        return instance;
-    }
-
-    FontLoader(const FontLoader &) = delete;
-    void operator=(const FontLoader &) = delete;
-    QFont loadFont(const QString &family, const QString &style, int pointSize);
-
-private:
-    FontLoader() = default;
-    ~FontLoader() = default;
-};
+    return QFontDatabase::font(family, style, pointSize);
+}
+} // namespace font_loader

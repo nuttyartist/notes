@@ -76,8 +76,8 @@ void AllNoteButtonTreeDelegateEditor::paintEvent(QPaintEvent *event)
 #else
     int iconPointSizeOffset = -4;
 #endif
-    painter.setFont(FontLoader::getInstance().loadFont("Material Symbols Outlined", "",
-                                                       16 + iconPointSizeOffset));
+    painter.setFont(
+            font_loader::loadFont("Material Symbols Outlined", "", 16 + iconPointSizeOffset));
     painter.drawText(iconRect, iconPath); // folder
 
     if (m_view->selectionModel()->isSelected(m_index)) {

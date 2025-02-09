@@ -701,8 +701,8 @@ void MainWindow::setupButtons()
     m_yellowMinimizeButton->installEventFilter(this);
     m_greenMaximizeButton->installEventFilter(this);
 
-    QFont fontAwesomeIcon = FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "", 16);
-    QFont materialSymbols = FontLoader::getInstance().loadFont("Material Symbols Outlined", "", 30);
+    QFont fontAwesomeIcon = font_loader::loadFont("Font Awesome 6 Free Solid", "", 16);
+    QFont materialSymbols = font_loader::loadFont("Material Symbols Outlined", "", 30);
 
 #if defined(Q_OS_MACOS)
     int pointSizeOffset = 0;
