@@ -1,6 +1,9 @@
 #include "splitterstyle.h"
 
-SplitterStyle::SplitterStyle() { }
+SplitterStyle::SplitterStyle(QObject *parent) : QProxyStyle()
+{
+    setParent(parent); // to ensure proper object destruction
+}
 
 void SplitterStyle::drawControl(ControlElement element, const QStyleOption *opt, QPainter *p,
                                 const QWidget *w) const

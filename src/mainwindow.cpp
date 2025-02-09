@@ -491,7 +491,7 @@ void MainWindow::setupMainWindow()
 #endif
     ui->listviewLabel1->setFont(titleFont);
     ui->listviewLabel2->setFont(titleFont);
-    m_splitterStyle = new SplitterStyle();
+    m_splitterStyle = new SplitterStyle(this);
     m_splitter->setStyle(m_splitterStyle);
     m_splitter->setHandleWidth(0);
     setNoteListLoading();
