@@ -719,7 +719,7 @@ void NoteListView::onCustomContextMenu(QPoint point)
 #else
                 int iconPointSizeOffset = -4;
 #endif
-                painter.setFont(FontLoader::getInstance().loadFont("Font Awesome 6 Free Solid", "",
+                painter.setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "",
                                                                    24 + iconPointSizeOffset));
                 painter.drawText(iconRect, u8"\uf111"); // fa-circle
                 return QIcon{ pix };
