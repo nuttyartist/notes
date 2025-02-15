@@ -84,7 +84,7 @@ void NodeTreeView::onDeleteNodeAction()
     auto itemType = static_cast<NodeItem::Type>(m_currentEditingIndex.data(NodeItem::Roles::ItemType).toInt());
     auto id = m_currentEditingIndex.data(NodeItem::Roles::NodeId).toInt();
     if (itemType == NodeItem::Type::FolderItem || itemType == NodeItem::Type::NoteItem) {
-        if (id > SpecialNodeID::DefaultNotesFolder) {
+        if (id > DEFAULT_NOTES_FOLDER_ID) {
             auto index = m_currentEditingIndex;
             emit deleteNodeRequested(index);
         }
@@ -242,7 +242,7 @@ void NodeTreeView::selectionChanged(const QItemSelection &selected, const QItemS
             auto folderPath = index.data(NodeItem::Roles::AbsPath).toString();
             m_lastSelectFolder = folderPath;
             m_isLastSelectedFolder = true;
-            emit loadNotesInFolderRequested(SpecialNodeID::RootFolder, true);
+            emit loadNotesInFolderRequested(ROOT_FOLDER_ID, true);
             emit saveSelected(true, NodePath::getAllNoteFolderPath(), {});
             return;
         }
@@ -250,7 +250,7 @@ void NodeTreeView::selectionChanged(const QItemSelection &selected, const QItemS
             auto folderPath = index.data(NodeItem::Roles::AbsPath).toString();
             m_lastSelectFolder = folderPath;
             m_isLastSelectedFolder = true;
-            emit loadNotesInFolderRequested(SpecialNodeID::TrashFolder, true);
+            emit loadNotesInFolderRequested(TRASH_FOLDER_ID, true);
             emit saveSelected(true, NodePath::getTrashFolderPath(), {});
             return;
         }
@@ -360,7 +360,7 @@ void NodeTreeView::dropEvent(QDropEvent *event)
                     } else if (itemType == NodeItem::Type::TagItem) {
                         emit addNoteToTag(nodeId, dropIndex.data(NodeItem::NodeId).toInt());
                     } else if (itemType == NodeItem::Type::TrashButton) {
-                        emit moveNodeRequested(nodeId, SpecialNodeID::TrashFolder);
+                        emit moveNodeRequested(nodeId, TRASH_FOLDER_ID);
                         event->acceptProposedAction();
                     }
                 }
@@ -435,7 +435,7 @@ void NodeTreeView::onCustomContextMenu(QPoint point)
         contextMenu->clear();
         if (itemType == NodeItem::Type::FolderItem) {
             auto id = index.data(NodeItem::Roles::NodeId).toInt();
-            if (id != SpecialNodeID::DefaultNotesFolder) {
+            if (id != DEFAULT_NOTES_FOLDER_ID) {
                 m_isContextMenuOpened = true;
                 contextMenu->addAction(renameFolderAction);
                 contextMenu->addAction(deleteFolderAction);

@@ -94,7 +94,7 @@ void NoteListDelegate::setState(NoteListState NewState, QModelIndexList indexes)
         QSet<int> ids;
         for (const auto &index : std::as_const(indexes)) {
             auto noteId = index.data(NoteListModel::NoteID).toInt();
-            if (noteId != SpecialNodeID::InvalidNodeId) {
+            if (noteId != INVALID_NODE_ID) {
                 ids.insert(noteId);
             }
         }

@@ -387,7 +387,7 @@ QWidget *NodeTreeDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
         return widget;
     } else if (itemType == NodeItem::Type::FolderItem) {
         auto id = index.data(NodeItem::Roles::NodeId).toInt();
-        if (id == SpecialNodeID::DefaultNotesFolder) {
+        if (id == DEFAULT_NOTES_FOLDER_ID) {
             auto widget = new DefaultNoteFolderDelegateEditor(m_view, option, index, m_listView, parent);
             widget->setTheme(m_theme);
             connect(this, &NodeTreeDelegate::themeChanged, widget, &DefaultNoteFolderDelegateEditor::setTheme);

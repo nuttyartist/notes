@@ -87,8 +87,8 @@ signals:
 
 public slots:
     void onNodeTagTreeRequested();
-    void onNotesListInFolderRequested(int parentID, bool isRecursive, bool newNote = false, int scrollToId = SpecialNodeID::InvalidNodeId);
-    void onNotesListInTagsRequested(const QSet<int> &tagIds, bool newNote = false, int scrollToId = SpecialNodeID::InvalidNodeId);
+    void onNotesListInFolderRequested(int parentID, bool isRecursive, bool newNote = false, int scrollToId = INVALID_NODE_ID);
+    void onNotesListInTagsRequested(const QSet<int> &tagIds, bool newNote = false, int scrollToId = INVALID_NODE_ID);
     void onOpenDBManagerRequested(const QString &path, bool doCreate);
     void onCreateUpdateRequestedNoteContent(const NodeData &note);
     void onImportNotesRequested(const QString &fileName);

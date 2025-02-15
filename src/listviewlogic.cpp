@@ -17,7 +17,7 @@ static bool isInvalidCurrentNotesId(const QSet<int> &currentNotesId)
     }
     bool isInvalid = true;
     for (const auto &id : std::as_const(currentNotesId)) {
-        if (id != SpecialNodeID::InvalidNodeId) {
+        if (id != INVALID_NODE_ID) {
             isInvalid = false;
         }
     }
@@ -271,7 +271,7 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData> &noteList, const L
 {
     auto currentNotesId = m_listViewInfo.currentNotesId;
     m_listViewInfo = inf;
-    if ((!m_listViewInfo.isInTag) && m_listViewInfo.parentFolderId == SpecialNodeID::RootFolder) {
+    if ((!m_listViewInfo.isInTag) && m_listViewInfo.parentFolderId == ROOT_FOLDER_ID) {
         m_listDelegate->setIsInAllNotes(true);
     } else {
         m_listDelegate->setIsInAllNotes(false);
@@ -281,7 +281,7 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData> &noteList, const L
     m_listView->setListViewInfo(m_listViewInfo);
     updateListViewLabel();
 
-    if ((!m_listViewInfo.isInTag) && m_listViewInfo.parentFolderId == SpecialNodeID::TrashFolder) {
+    if ((!m_listViewInfo.isInTag) && m_listViewInfo.parentFolderId == TRASH_FOLDER_ID) {
         emit setNewNoteButtonVisible(false);
         m_listView->setIsInTrash(true);
     } else {
@@ -289,7 +289,7 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData> &noteList, const L
         m_listView->setIsInTrash(false);
     }
     if (m_listViewInfo.isInTag) {
-        m_listView->setCurrentFolderId(SpecialNodeID::InvalidNodeId);
+        m_listView->setCurrentFolderId(INVALID_NODE_ID);
     } else {
         m_listView->setCurrentFolderId(m_listViewInfo.parentFolderId);
     }
@@ -300,14 +300,14 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData> &noteList, const L
     }
 
     if (!m_listViewInfo.isInSearch && !isInvalidCurrentNotesId(currentNotesId)) {
-        if (m_listViewInfo.scrollToId != SpecialNodeID::InvalidNodeId) {
+        if (m_listViewInfo.scrollToId != INVALID_NODE_ID) {
             currentNotesId = { m_listViewInfo.scrollToId };
-            m_listViewInfo.scrollToId = SpecialNodeID::InvalidNodeId;
+            m_listViewInfo.scrollToId = INVALID_NODE_ID;
         }
         if (!currentNotesId.isEmpty()) {
             QModelIndexList indexes;
             for (const auto &id : std::as_const(currentNotesId)) {
-                if (id != SpecialNodeID::InvalidNodeId) {
+                if (id != INVALID_NODE_ID) {
                     indexes.append(m_listModel->getNoteIndex(id));
                 }
             }
@@ -322,7 +322,7 @@ void ListViewLogic::loadNoteListModel(const QVector<NodeData> &noteList, const L
         if (!m_lastSelectedNotes.isEmpty()) {
             QModelIndexList indexes;
             for (const auto &id : std::as_const(m_lastSelectedNotes)) {
-                if (id != SpecialNodeID::InvalidNodeId) {
+                if (id != INVALID_NODE_ID) {
                     indexes.append(m_listModel->getNoteIndex(id));
                 }
             }
@@ -364,8 +364,8 @@ void ListViewLogic::onNoteMovedOut(int nodeId, int targetId)
 {
     auto index = m_listModel->getNoteIndex(nodeId);
     if (index.isValid()) {
-        if ((!m_listViewInfo.isInTag && m_listViewInfo.parentFolderId != SpecialNodeID::RootFolder && m_listViewInfo.parentFolderId != targetId)
-            || targetId == SpecialNodeID::TrashFolder) {
+        if ((!m_listViewInfo.isInTag && m_listViewInfo.parentFolderId != ROOT_FOLDER_ID && m_listViewInfo.parentFolderId != targetId)
+            || targetId == TRASH_FOLDER_ID) {
             selectNoteDown();
             m_listModel->removeNotes({ index });
             if (m_listModel->rowCount() == 0) {
@@ -374,7 +374,7 @@ void ListViewLogic::onNoteMovedOut(int nodeId, int targetId)
         } else {
             NodeData note;
             QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection, Q_RETURN_ARG(NodeData, note), Q_ARG(int, nodeId));
-            if (note.id() != SpecialNodeID::InvalidNodeId) {
+            if (note.id() != INVALID_NODE_ID) {
                 m_listView->closePersistentEditorC(index);
                 m_listModel->setNoteData(index, note);
                 m_listView->openPersistentEditorC(index);
@@ -410,7 +410,7 @@ void ListViewLogic::onNotesListInFolderRequested(int parentID, bool isRecursive,
         m_listViewInfo.isInTag = false;
         m_listViewInfo.needCreateNewNote = false;
         m_listViewInfo.currentTagList = {};
-        m_listViewInfo.scrollToId = SpecialNodeID::InvalidNodeId;
+        m_listViewInfo.scrollToId = INVALID_NODE_ID;
         m_clearButton->show();
         emit requestSearchInDb(m_searchEdit->text(), m_listViewInfo);
     } else {
@@ -421,12 +421,12 @@ void ListViewLogic::onNotesListInFolderRequested(int parentID, bool isRecursive,
 void ListViewLogic::onNotesListInTagsRequested(const QSet<int> &tagIds, bool newNote, int scrollToId)
 {
     if (m_listViewInfo.isInSearch && !m_searchEdit->text().isEmpty()) {
-        m_listViewInfo.parentFolderId = SpecialNodeID::InvalidNodeId;
+        m_listViewInfo.parentFolderId = INVALID_NODE_ID;
         m_listViewInfo.currentNotesId.clear();
         m_listViewInfo.isInTag = true;
         m_listViewInfo.needCreateNewNote = false;
         m_listViewInfo.currentTagList = tagIds;
-        m_listViewInfo.scrollToId = SpecialNodeID::InvalidNodeId;
+        m_listViewInfo.scrollToId = INVALID_NODE_ID;
         emit requestSearchInDb(m_searchEdit->text(), m_listViewInfo);
     } else {
         emit requestNotesListInTags(tagIds, newNote, scrollToId);
@@ -506,7 +506,7 @@ void ListViewLogic::deleteNoteRequestedI(const QModelIndexList &indexes)
                 auto id = index.data(NoteListModel::NoteID).toInt();
                 NodeData note;
                 QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection, Q_RETURN_ARG(NodeData, note), Q_ARG(int, id));
-                if (note.parentId() == SpecialNodeID::TrashFolder) {
+                if (note.parentId() == TRASH_FOLDER_ID) {
                     isInTrash = true;
                 }
                 needDeleteI.append(index);
@@ -557,7 +557,7 @@ void ListViewLogic::restoreNotesRequestedI(const QModelIndexList &indexes)
             auto id = index.data(NoteListModel::NoteID).toInt();
             NodeData note;
             QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection, Q_RETURN_ARG(NodeData, note), Q_ARG(int, id));
-            if (note.parentId() == SpecialNodeID::TrashFolder) {
+            if (note.parentId() == TRASH_FOLDER_ID) {
                 needRestoredI.append(index);
                 needRestored.insert(note.id());
             } else {
@@ -575,7 +575,7 @@ void ListViewLogic::restoreNotesRequestedI(const QModelIndexList &indexes)
     }
     NodeData defaultNotesFolder;
     QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection, Q_RETURN_ARG(NodeData, defaultNotesFolder),
-                              Q_ARG(int, SpecialNodeID::DefaultNotesFolder));
+                              Q_ARG(int, DEFAULT_NOTES_FOLDER_ID));
     for (const auto &id : std::as_const(needRestored)) {
         emit requestMoveNoteDb(id, defaultNotesFolder);
     }
@@ -584,9 +584,9 @@ void ListViewLogic::restoreNotesRequestedI(const QModelIndexList &indexes)
 void ListViewLogic::updateListViewLabel()
 {
     QString l1, l2;
-    if ((!m_listViewInfo.isInTag) && m_listViewInfo.parentFolderId == SpecialNodeID::RootFolder) {
+    if ((!m_listViewInfo.isInTag) && m_listViewInfo.parentFolderId == ROOT_FOLDER_ID) {
         l1 = "All Notes";
-    } else if ((!m_listViewInfo.isInTag) && m_listViewInfo.parentFolderId == SpecialNodeID::TrashFolder) {
+    } else if ((!m_listViewInfo.isInTag) && m_listViewInfo.parentFolderId == TRASH_FOLDER_ID) {
         l1 = "Trash";
     } else if (!m_listViewInfo.isInTag) {
         NodeData parentFolder;

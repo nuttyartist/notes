@@ -1818,7 +1818,7 @@ void MainWindow::setButtonsAndFieldsEnabled(bool doEnable)
 void MainWindow::setKanbanVisibility(bool isVisible)
 {
     auto inf = m_listViewLogic->listViewInfo();
-    if (isVisible && inf.parentFolderId != SpecialNodeID::TrashFolder) {
+    if (isVisible && inf.parentFolderId != TRASH_FOLDER_ID) {
         emit m_noteEditorLogic->showKanbanView();
     } else {
         emit m_noteEditorLogic->hideKanbanView();
@@ -2354,21 +2354,21 @@ void MainWindow::createNewNote()
         tmpNote.setLastModificationDateTime(noteDate);
         tmpNote.setFullTitle(QStringLiteral("New Note"));
         auto inf = m_listViewLogic->listViewInfo();
-        if ((!inf.isInTag) && (inf.parentFolderId > SpecialNodeID::RootFolder)) {
+        if ((!inf.isInTag) && (inf.parentFolderId > ROOT_FOLDER_ID)) {
             NodeData parent;
             QMetaObject::invokeMethod(m_dbManager, "getNode", Qt::BlockingQueuedConnection, Q_RETURN_ARG(NodeData, parent), Q_ARG(int, inf.parentFolderId));
             if (parent.nodeType() == NodeData::Type::Folder) {
                 tmpNote.setParentId(parent.id());
                 tmpNote.setParentName(parent.fullTitle());
             } else {
-                tmpNote.setParentId(SpecialNodeID::DefaultNotesFolder);
+                tmpNote.setParentId(DEFAULT_NOTES_FOLDER_ID);
                 tmpNote.setParentName("Notes");
             }
         } else {
-            tmpNote.setParentId(SpecialNodeID::DefaultNotesFolder);
+            tmpNote.setParentId(DEFAULT_NOTES_FOLDER_ID);
             tmpNote.setParentName("Notes");
         }
-        int noteId = SpecialNodeID::InvalidNodeId;
+        int noteId = INVALID_NODE_ID;
         QMetaObject::invokeMethod(m_dbManager, "nextAvailableNodeId", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, noteId));
         tmpNote.setId(noteId);
         tmpNote.setIsTempNote(true);
@@ -2400,7 +2400,7 @@ void MainWindow::selectNoteDown()
  */
 void MainWindow::setFocusOnText()
 {
-    if (m_noteEditorLogic->currentEditingNoteId() != SpecialNodeID::InvalidNodeId && !m_textEdit->hasFocus()) {
+    if (m_noteEditorLogic->currentEditingNoteId() != INVALID_NODE_ID && !m_textEdit->hasFocus()) {
         m_listView->setCurrentRowActive(true);
         m_textEdit->setFocus();
     }
@@ -2663,7 +2663,7 @@ void MainWindow::executeImport(const bool replace)
             emit requestImportNotes(fileName);
         }
         setButtonsAndFieldsEnabled(true);
-        //        emit requestNotesList(SpecialNodeID::RootFolder, true);
+        //        emit requestNotesList(ROOT_FOLDER_ID, true);
     }
 }
 
@@ -3768,14 +3768,14 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                     if (!m_searchEdit->text().isEmpty()) {
                         m_listViewLogic->clearSearch(true);
                     } else {
-                        if (inf.parentFolderId != SpecialNodeID::TrashFolder) {
+                        if (inf.parentFolderId != TRASH_FOLDER_ID) {
                             createNewNote();
                         }
                     }
                 }
             }
             m_listView->setCurrentRowActive(true);
-            if (inf.parentFolderId == SpecialNodeID::TrashFolder) {
+            if (inf.parentFolderId == TRASH_FOLDER_ID) {
                 m_textEdit->setReadOnly(true);
             } else {
                 m_textEdit->setFocus();
