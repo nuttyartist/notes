@@ -187,7 +187,7 @@ void NodeTreeModel::appendChildNodeToParent(const QModelIndex &parentIndex, cons
                 for (int i = 0; i < parentItem->getChildCount(); ++i) {
                     auto const *childItem = parentItem->getChild(i);
                     auto childType = static_cast<NodeItem::Type>(childItem->getData(NodeItem::Roles::ItemType).toInt());
-                    if (childType == NodeItem::Type::FolderItem && childItem->getData(NodeItem::Roles::NodeId).toInt() == SpecialNodeID::DefaultNotesFolder) {
+                    if (childType == NodeItem::Type::FolderItem && childItem->getData(NodeItem::Roles::NodeId).toInt() == DEFAULT_NOTES_FOLDER_ID) {
                         row = i + 1;
                         break;
                     }
@@ -435,7 +435,7 @@ QModelIndex NodeTreeModel::getDefaultNotesIndex()
         for (int i = 0; i < m_rootItem->getChildCount(); ++i) {
             auto *child = m_rootItem->getChild(i);
             auto type = static_cast<NodeItem::Type>(child->getData(NodeItem::Roles::ItemType).toInt());
-            if (type == NodeItem::Type::FolderItem && child->getData(NodeItem::Roles::NodeId).toInt() == SpecialNodeID::DefaultNotesFolder) {
+            if (type == NodeItem::Type::FolderItem && child->getData(NodeItem::Roles::NodeId).toInt() == DEFAULT_NOTES_FOLDER_ID) {
                 return createIndex(i, 0, child);
             }
         }
@@ -475,7 +475,7 @@ void NodeTreeModel::deleteRow(const QModelIndex &rowIndex, const QModelIndex &pa
 {
     auto type = static_cast<NodeItem::Type>(rowIndex.data(NodeItem::Roles::ItemType).toInt());
     auto id = rowIndex.data(NodeItem::Roles::NodeId).toInt();
-    if ((type != NodeItem::Type::FolderItem || id <= SpecialNodeID::DefaultNotesFolder) && type != NodeItem::Type::TagItem) {
+    if ((type != NodeItem::Type::FolderItem || id <= DEFAULT_NOTES_FOLDER_ID) && type != NodeItem::Type::TagItem) {
         qDebug() << "Can not delete this row with id" << id;
         return;
     }
@@ -516,9 +516,9 @@ void NodeTreeModel::setTreeData(const NodeTagTreeData &treeData)
 void NodeTreeModel::loadNodeTree(const QVector<NodeData> &nodeData, NodeTreeItem *rootNode)
 {
     QHash<int, NodeTreeItem *> itemMap;
-    itemMap[SpecialNodeID::RootFolder] = rootNode;
+    itemMap[ROOT_FOLDER_ID] = rootNode;
     for (const auto &node : nodeData) {
-        if (node.id() != SpecialNodeID::RootFolder && node.id() != SpecialNodeID::TrashFolder && node.parentId() != SpecialNodeID::TrashFolder) {
+        if (node.id() != ROOT_FOLDER_ID && node.id() != TRASH_FOLDER_ID && node.parentId() != TRASH_FOLDER_ID) {
             auto hs = QHash<NodeItem::Roles, QVariant>{};
             if (node.nodeType() == NodeData::Type::Folder) {
                 hs[NodeItem::Roles::ItemType] = NodeItem::Type::FolderItem;
@@ -539,8 +539,7 @@ void NodeTreeModel::loadNodeTree(const QVector<NodeData> &nodeData, NodeTreeItem
     }
 
     for (const auto &node : nodeData) {
-        if (node.id() != SpecialNodeID::RootFolder && node.parentId() != -1 && node.id() != SpecialNodeID::TrashFolder
-            && node.parentId() != SpecialNodeID::TrashFolder) {
+        if (node.id() != ROOT_FOLDER_ID && node.parentId() != -1 && node.id() != TRASH_FOLDER_ID && node.parentId() != TRASH_FOLDER_ID) {
             auto parentNode = itemMap.find(node.parentId());
             auto nodeItem = itemMap.find(node.id());
             if (parentNode != itemMap.end() && nodeItem != itemMap.end()) {
@@ -701,7 +700,7 @@ QMimeData *NodeTreeModel::mimeData(const QModelIndexList &indexes) const
     if (itemType == NodeItem::Type::FolderItem) {
         const auto &idx = indexes[0];
         auto id = idx.data(NodeItem::Roles::NodeId).toInt();
-        if (id == SpecialNodeID::DefaultNotesFolder) {
+        if (id == DEFAULT_NOTES_FOLDER_ID) {
             return nullptr;
         }
         auto absPath = idx.data(NodeItem::Roles::AbsPath).toString();
@@ -799,7 +798,7 @@ bool NodeTreeModel::dropMimeData(const QMimeData *mime, Qt::DropAction action, i
                 return false;
             }
         }
-        if (parent.data(NodeItem::Roles::NodeId).toInt() == SpecialNodeID::DefaultNotesFolder) {
+        if (parent.data(NodeItem::Roles::NodeId).toInt() == DEFAULT_NOTES_FOLDER_ID) {
             return false;
         }
 

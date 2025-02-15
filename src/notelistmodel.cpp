@@ -90,7 +90,7 @@ void NoteListModel::setListNote(const QVector<NodeData> &notes, const ListViewIn
     m_pinnedList.clear();
     m_noteList.clear();
     m_listViewInfo = inf;
-    if ((!m_listViewInfo.isInTag) && (m_listViewInfo.parentFolderId != SpecialNodeID::TrashFolder)) {
+    if ((!m_listViewInfo.isInTag) && (m_listViewInfo.parentFolderId != TRASH_FOLDER_ID)) {
         for (const auto &note : std::as_const(notes)) {
             if (note.isPinnedNote()) {
                 m_pinnedList.append(note);
@@ -249,7 +249,7 @@ void NoteListModel::sort(int column, Qt::SortOrder order)
 {
     Q_UNUSED(column)
     Q_UNUSED(order)
-    if (m_listViewInfo.parentFolderId == SpecialNodeID::TrashFolder) {
+    if (m_listViewInfo.parentFolderId == TRASH_FOLDER_ID) {
         std::stable_sort(m_noteList.begin(), m_noteList.end(),
                          [](const NodeData &lhs, const NodeData &rhs) { return lhs.deletionDateTime() > rhs.deletionDateTime(); });
     } else {
@@ -296,7 +296,7 @@ void NoteListModel::updatePinnedRelativePosition()
 
 bool NoteListModel::isInAllNote() const
 {
-    return (!m_listViewInfo.isInTag) && (m_listViewInfo.parentFolderId == SpecialNodeID::RootFolder);
+    return (!m_listViewInfo.isInTag) && (m_listViewInfo.parentFolderId == ROOT_FOLDER_ID);
 }
 
 NodeData &NoteListModel::getRef(int row)
@@ -420,7 +420,7 @@ bool NoteListModel::dropMimeData(const QMimeData *mime, Qt::DropAction action, i
             note.setIsPinnedNote(false);
             emit requestUpdatePinned(note.id(), false);
             int destinationChild = 0;
-            if (m_listViewInfo.parentFolderId == SpecialNodeID::TrashFolder) {
+            if (m_listViewInfo.parentFolderId == TRASH_FOLDER_ID) {
                 auto lastMod = index.data(NoteDeletionDateTime).toDateTime();
                 for (destinationChild = 0; destinationChild < m_noteList.size(); ++destinationChild) {
                     if (m_noteList[destinationChild].deletionDateTime() <= lastMod) {
@@ -464,7 +464,7 @@ QModelIndex NoteListModel::getFirstUnpinnedNote() const
 
 bool NoteListModel::hasPinnedNote() const
 {
-    if ((!m_listViewInfo.isInTag) && (m_listViewInfo.parentFolderId == SpecialNodeID::TrashFolder)) {
+    if ((!m_listViewInfo.isInTag) && (m_listViewInfo.parentFolderId == TRASH_FOLDER_ID)) {
         // Trash don't have pinned note
         return false;
     }
@@ -524,7 +524,7 @@ void NoteListModel::setNotesIsPinned(const QModelIndexList &indexes, bool isPinn
                 continue;
             }
             int destinationChild = 0;
-            if (m_listViewInfo.parentFolderId == SpecialNodeID::TrashFolder) {
+            if (m_listViewInfo.parentFolderId == TRASH_FOLDER_ID) {
                 auto lastMod = index.data(NoteDeletionDateTime).toDateTime();
                 for (destinationChild = 0; destinationChild < m_noteList.size(); ++destinationChild) {
                     const auto &note = m_noteList[destinationChild];

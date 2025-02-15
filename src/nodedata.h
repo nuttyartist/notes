@@ -5,14 +5,12 @@
 #include <QDateTime>
 #include <QSet>
 
-namespace SpecialNodeID {
-enum Value {
-    InvalidNodeId = -1,
-    RootFolder = 0,
-    TrashFolder = 1,
-    DefaultNotesFolder = 2,
-};
-}
+namespace {
+auto constexpr INVALID_NODE_ID = -1;
+auto constexpr ROOT_FOLDER_ID = 0;
+auto constexpr TRASH_FOLDER_ID = 1;
+auto constexpr DEFAULT_NOTES_FOLDER_ID = 2;
+} // namespace
 
 class NodeData
 {

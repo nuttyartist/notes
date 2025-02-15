@@ -69,7 +69,7 @@ void TreeViewLogic::loadTreeModel(const NodeTagTreeData &treeData)
     {
         NodeData node;
         QMetaObject::invokeMethod(m_dbManager, "getChildNotesCountFolder", Qt::BlockingQueuedConnection, Q_RETURN_ARG(NodeData, node),
-                                  Q_ARG(int, SpecialNodeID::RootFolder));
+                                  Q_ARG(int, ROOT_FOLDER_ID));
         auto index = m_treeModel->getAllNotesButtonIndex();
         if (index.isValid()) {
             m_treeModel->setData(index, node.childNotesCount(), NodeItem::Roles::ChildCount);
@@ -78,7 +78,7 @@ void TreeViewLogic::loadTreeModel(const NodeTagTreeData &treeData)
     {
         NodeData node;
         QMetaObject::invokeMethod(m_dbManager, "getChildNotesCountFolder", Qt::BlockingQueuedConnection, Q_RETURN_ARG(NodeData, node),
-                                  Q_ARG(int, SpecialNodeID::TrashFolder));
+                                  Q_ARG(int, TRASH_FOLDER_ID));
         auto index = m_treeModel->getTrashButtonIndex();
         if (index.isValid()) {
             m_treeModel->setData(index, node.childNotesCount(), NodeItem::Roles::ChildCount);
@@ -126,17 +126,17 @@ void TreeViewLogic::onAddFolderRequested(bool fromPlusButton)
             currentIndex = m_treeView->currentIndex();
         }
     }
-    int parentId = SpecialNodeID::RootFolder;
+    int parentId = ROOT_FOLDER_ID;
     NodeItem::Type currentType = NodeItem::AllNoteButton;
     QString currentAbsPath;
-    int currentTagId = SpecialNodeID::InvalidNodeId;
+    int currentTagId = INVALID_NODE_ID;
     if (currentIndex.isValid() && !fromPlusButton) {
         auto type = static_cast<NodeItem::Type>(currentIndex.data(NodeItem::Roles::ItemType).toInt());
         if (type == NodeItem::FolderItem) {
             parentId = currentIndex.data(NodeItem::Roles::NodeId).toInt();
             // we don't allow subfolder under default notes folder
-            if (parentId == SpecialNodeID::DefaultNotesFolder) {
-                parentId = SpecialNodeID::RootFolder;
+            if (parentId == DEFAULT_NOTES_FOLDER_ID) {
+                parentId = ROOT_FOLDER_ID;
             }
         } else if (type == NodeItem::NoteItem) {
             qDebug() << "Can create folder under this item";
@@ -159,7 +159,7 @@ void TreeViewLogic::onAddFolderRequested(bool fromPlusButton)
     QDateTime noteDate = QDateTime::currentDateTime();
     newFolder.setCreationDateTime(noteDate);
     newFolder.setLastModificationDateTime(noteDate);
-    if (parentId != SpecialNodeID::RootFolder) {
+    if (parentId != ROOT_FOLDER_ID) {
         newFolder.setFullTitle(m_treeModel->getNewFolderPlaceholderName(currentIndex));
     } else {
         newFolder.setFullTitle(m_treeModel->getNewFolderPlaceholderName(m_treeModel->rootIndex()));
@@ -173,14 +173,14 @@ void TreeViewLogic::onAddFolderRequested(bool fromPlusButton)
     hs[NodeItem::Roles::DisplayText] = newFolder.fullTitle();
     hs[NodeItem::Roles::NodeId] = newlyCreatedNodeId;
 
-    if (parentId != SpecialNodeID::RootFolder) {
+    if (parentId != ROOT_FOLDER_ID) {
         hs[NodeItem::Roles::AbsPath] = currentIndex.data(NodeItem::Roles::AbsPath).toString() + PATH_SEPARATOR + QString::number(newlyCreatedNodeId);
         m_treeModel->appendChildNodeToParent(currentIndex, hs);
         if (!m_treeView->isExpanded(currentIndex)) {
             m_treeView->expand(currentIndex);
         }
     } else {
-        hs[NodeItem::Roles::AbsPath] = PATH_SEPARATOR + QString::number(SpecialNodeID::RootFolder) + PATH_SEPARATOR + QString::number(newlyCreatedNodeId);
+        hs[NodeItem::Roles::AbsPath] = PATH_SEPARATOR + QString::number(ROOT_FOLDER_ID) + PATH_SEPARATOR + QString::number(newlyCreatedNodeId);
         m_treeModel->appendChildNodeToParent(m_treeModel->rootIndex(), hs);
     }
     if (fromPlusButton) {
@@ -245,7 +245,7 @@ void TreeViewLogic::onDeleteFolderRequested(const QModelIndex &index)
                                      "any subfolders will be deleted.");
     if (btn == QMessageBox::Yes) {
         auto id = index.data(NodeItem::Roles::NodeId).toInt();
-        if (id < SpecialNodeID::DefaultNotesFolder) {
+        if (id < DEFAULT_NOTES_FOLDER_ID) {
             qDebug() << __FUNCTION__ << "Failed while trying to delete folder with id" << id;
             return;
         }
@@ -305,9 +305,9 @@ void TreeViewLogic::onChildNotesCountChangedTag(int tagId, int notesCount)
 void TreeViewLogic::onChildNoteCountChangedFolder(int folderId, const QString &absPath, int notesCount)
 {
     QModelIndex index;
-    if (folderId == SpecialNodeID::RootFolder) {
+    if (folderId == ROOT_FOLDER_ID) {
         index = m_treeModel->getAllNotesButtonIndex();
-    } else if (folderId == SpecialNodeID::TrashFolder) {
+    } else if (folderId == TRASH_FOLDER_ID) {
         index = m_treeModel->getTrashButtonIndex();
     } else {
         index = m_treeModel->folderIndexFromIdPath(absPath);
@@ -325,9 +325,9 @@ void TreeViewLogic::openFolder(int id)
         qDebug() << __FUNCTION__ << "Target is not folder!";
         return;
     }
-    if (target.id() == SpecialNodeID::TrashFolder) {
+    if (target.id() == TRASH_FOLDER_ID) {
         m_treeView->setCurrentIndexC(m_treeModel->getTrashButtonIndex());
-    } else if (target.id() == SpecialNodeID::RootFolder) {
+    } else if (target.id() == ROOT_FOLDER_ID) {
         m_treeView->setCurrentIndexC(m_treeModel->getAllNotesButtonIndex());
     } else {
         auto index = m_treeModel->folderIndexFromIdPath(target.absolutePath());

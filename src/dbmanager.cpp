@@ -360,7 +360,7 @@ int DBManager::addNode(const NodeData &node)
     }
     if (node.nodeType() == NodeData::Type::Note) {
         increaseChildNotesCountFolder(node.parentId());
-        increaseChildNotesCountFolder(SpecialNodeID::RootFolder);
+        increaseChildNotesCountFolder(ROOT_FOLDER_ID);
     }
     return nodeId;
 }
@@ -470,7 +470,7 @@ void DBManager::recalculateChildNotesCount()
     if (status) {
         while (query.next()) {
             auto id = query.value(0).toInt();
-            if (id != SpecialNodeID::RootFolder) {
+            if (id != ROOT_FOLDER_ID) {
                 folderIds[id] = query.value(1).toString();
             }
         }
@@ -576,7 +576,7 @@ void DBManager::recalculateChildNotesCountAllNotes()
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
     query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Type::Note));
-    query.bindValue(QStringLiteral(":parent_id"), static_cast<int>(SpecialNodeID::TrashFolder));
+    query.bindValue(QStringLiteral(":parent_id"), static_cast<int>(TRASH_FOLDER_ID));
     bool status = query.exec();
     int childNotesCount = 0;
     if (status) {
@@ -590,13 +590,13 @@ void DBManager::recalculateChildNotesCountAllNotes()
                                       "WHERE id = :id"))) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
-    query.bindValue(QStringLiteral(":id"), SpecialNodeID::RootFolder);
+    query.bindValue(QStringLiteral(":id"), ROOT_FOLDER_ID);
     query.bindValue(QStringLiteral(":child_notes_count"), childNotesCount);
     status = query.exec();
     if (!status) {
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
-    emit childNotesCountUpdatedFolder(SpecialNodeID::RootFolder, getNodeAbsolutePath(SpecialNodeID::RootFolder).path(), childNotesCount);
+    emit childNotesCountUpdatedFolder(ROOT_FOLDER_ID, getNodeAbsolutePath(ROOT_FOLDER_ID).path(), childNotesCount);
 }
 
 void DBManager::increaseChildNotesCountTag(int tagId)
@@ -890,7 +890,7 @@ void DBManager::changeTagColor(int id, const QString &newColor)
  */
 void DBManager::removeNote(const NodeData &note)
 {
-    if (note.parentId() == SpecialNodeID::TrashFolder) {
+    if (note.parentId() == TRASH_FOLDER_ID) {
         QSqlQuery query(m_db);
         if (!query.prepare(R"(DELETE FROM "node_table" )"
                            R"(WHERE id = (:id) AND node_type = (:node_type);)")) {
@@ -911,10 +911,10 @@ void DBManager::removeNote(const NodeData &note)
             qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
         }
         if (note.nodeType() == NodeData::Type::Note) {
-            decreaseChildNotesCountFolder(SpecialNodeID::TrashFolder);
+            decreaseChildNotesCountFolder(TRASH_FOLDER_ID);
         }
     } else {
-        auto trashFolder = getNode(SpecialNodeID::TrashFolder);
+        auto trashFolder = getNode(TRASH_FOLDER_ID);
         moveNode(note.id(), trashFolder);
     }
 }
@@ -953,7 +953,7 @@ bool DBManager::updateNoteContent(const NodeData &note)
     QString emptyStr;
 
     int id = note.id();
-    if (id == SpecialNodeID::InvalidNodeId) {
+    if (id == INVALID_NODE_ID) {
         qDebug() << "Invalid Note ID";
         return false;
     }
@@ -1145,7 +1145,7 @@ void DBManager::moveFolderToTrash(const NodeData &node)
         qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
     }
     query.clear();
-    auto trashFolder = getNode(SpecialNodeID::TrashFolder);
+    auto trashFolder = getNode(TRASH_FOLDER_ID);
     for (const auto &id : childIds) {
         moveNode(id, trashFolder);
     }
@@ -1201,7 +1201,7 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
     auto node = getNode(nodeId);
 
     QString newAbsolutePath = QStringLiteral("%1%2%3").arg(target.absolutePath(), PATH_SEPARATOR).arg(nodeId);
-    if (target.id() == SpecialNodeID::TrashFolder) {
+    if (target.id() == TRASH_FOLDER_ID) {
         qint64 deletionTime = QDateTime::currentMSecsSinceEpoch();
         if (!query.prepare(QStringLiteral("UPDATE node_table SET parent_id = :parent_id, absolute_path = :absolute_path, "
                                           "is_pinned_note = :is_pinned_note, deletion_date = :deletion_date "
@@ -1248,7 +1248,7 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
         for (const auto id : children.keys()) {
             QString oldP = children[id];
             QString newP = oldP.replace(oldP.indexOf(oldAbsolutePath), oldAbsolutePath.size(), newAbsolutePath);
-            if (target.id() == SpecialNodeID::TrashFolder) {
+            if (target.id() == TRASH_FOLDER_ID) {
                 qint64 deletionTime = QDateTime::currentMSecsSinceEpoch();
                 if (!query.prepare(QStringLiteral("UPDATE node_table SET absolute_path = :absolute_path, is_pinned_note = "
                                                   ":is_pinned_note, deletion_date = :deletion_date "
@@ -1274,14 +1274,14 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
         recalculateChildNotesCount();
     } else {
         decreaseChildNotesCountFolder(node.parentId());
-        if (node.parentId() != SpecialNodeID::TrashFolder && target.id() == SpecialNodeID::TrashFolder) {
-            decreaseChildNotesCountFolder(SpecialNodeID::RootFolder);
+        if (node.parentId() != TRASH_FOLDER_ID && target.id() == TRASH_FOLDER_ID) {
+            decreaseChildNotesCountFolder(ROOT_FOLDER_ID);
             auto allTagInNote = getAllTagForNote(node.id());
             for (const auto &tagId : std::as_const(allTagInNote)) {
                 decreaseChildNotesCountTag(tagId);
             }
-        } else if (node.parentId() == SpecialNodeID::TrashFolder && target.id() != SpecialNodeID::TrashFolder) {
-            increaseChildNotesCountFolder(SpecialNodeID::RootFolder);
+        } else if (node.parentId() == TRASH_FOLDER_ID && target.id() != TRASH_FOLDER_ID) {
+            increaseChildNotesCountFolder(ROOT_FOLDER_ID);
             auto allTagInNote = getAllTagForNote(node.id());
             for (const auto &tagId : std::as_const(allTagInNote)) {
                 increaseChildNotesCountTag(tagId);
@@ -1295,7 +1295,7 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
 {
     QVector<NodeData> nodeList;
     QSqlQuery query(m_db);
-    if (!inf.isInTag && inf.parentFolderId == SpecialNodeID::RootFolder) {
+    if (!inf.isInTag && inf.parentFolderId == ROOT_FOLDER_ID) {
         if (!query.prepare(R"(SELECT )"
                            R"("id",)"
                            R"("title",)"
@@ -1317,7 +1317,7 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
             qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
         }
         query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Type::Note));
-        query.bindValue(QStringLiteral(":parent_id"), static_cast<int>(SpecialNodeID::TrashFolder));
+        query.bindValue(QStringLiteral(":parent_id"), static_cast<int>(TRASH_FOLDER_ID));
         query.bindValue(QStringLiteral(":search_expr"), keyword);
 
         bool status = query.exec();
@@ -1442,7 +1442,7 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
         }
         for (const auto &id : noteIds) {
             NodeData node = getNode(id);
-            if (node.id() != SpecialNodeID::InvalidNodeId && node.nodeType() == NodeData::Type::Note && node.content().contains(keyword)) {
+            if (node.id() != INVALID_NODE_ID && node.nodeType() == NodeData::Type::Note && node.content().contains(keyword)) {
                 nodeList.append(node);
             } else {
                 qDebug() << __FUNCTION__ << "Note with id" << id << "is not valid";
@@ -1461,7 +1461,7 @@ void DBManager::clearSearch(const ListViewInfo &inf)
     if (inf.isInTag) {
         onNotesListInTagsRequested(inf.currentTagList, inf.needCreateNewNote, inf.scrollToId);
     } else {
-        if (inf.parentFolderId == SpecialNodeID::RootFolder) {
+        if (inf.parentFolderId == ROOT_FOLDER_ID) {
             onNotesListInFolderRequested(inf.parentFolderId, true, inf.needCreateNewNote, inf.scrollToId);
         } else {
             onNotesListInFolderRequested(inf.parentFolderId, false, inf.needCreateNewNote, inf.scrollToId);
@@ -1587,7 +1587,7 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive, boo
 {
     QVector<NodeData> nodeList;
     QSqlQuery query(m_db);
-    if (parentID == SpecialNodeID::RootFolder) {
+    if (parentID == ROOT_FOLDER_ID) {
         if (!query.prepare(R"(SELECT )"
                            R"("id",)"
                            R"("title",)"
@@ -1608,7 +1608,7 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive, boo
             qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
         }
         query.bindValue(QStringLiteral(":node_type"), static_cast<int>(NodeData::Type::Note));
-        query.bindValue(QStringLiteral(":parent_id"), static_cast<int>(SpecialNodeID::TrashFolder));
+        query.bindValue(QStringLiteral(":parent_id"), static_cast<int>(TRASH_FOLDER_ID));
 
         bool status = query.exec();
         if (status) {
@@ -1735,7 +1735,7 @@ void DBManager::onNotesListInFolderRequested(int parentID, bool isRecursive, boo
     inf.isInSearch = false;
     inf.isInTag = false;
     inf.parentFolderId = parentID;
-    inf.currentNotesId = { SpecialNodeID::InvalidNodeId };
+    inf.currentNotesId = { INVALID_NODE_ID };
     inf.needCreateNewNote = newNote;
     inf.scrollToId = scrollToId;
     std::sort(nodeList.begin(), nodeList.end(),
@@ -1751,7 +1751,7 @@ void DBManager::onNotesListInTagsRequested(const QSet<int> &tagIds, bool newNote
     inf.isInSearch = false;
     inf.isInTag = true;
     inf.currentTagList = tagIds;
-    inf.currentNotesId = { SpecialNodeID::InvalidNodeId };
+    inf.currentNotesId = { INVALID_NODE_ID };
     inf.needCreateNewNote = newNote;
     inf.scrollToId = scrollToId;
     for (const auto &tagId : tagIds) {
@@ -1798,7 +1798,7 @@ void DBManager::onNotesListInTagsRequested(const QSet<int> &tagIds, bool newNote
     }
     for (const auto &id : noteIds) {
         NodeData node = getNode(id);
-        if (node.id() != SpecialNodeID::InvalidNodeId && node.nodeType() == NodeData::Type::Note) {
+        if (node.id() != INVALID_NODE_ID && node.nodeType() == NodeData::Type::Note) {
             nodeList.append(node);
         } else {
             qDebug() << __FUNCTION__ << "Note with id" << id << "is not valid";
@@ -1909,9 +1909,9 @@ void DBManager::onImportNotesRequested(const QString &fileName)
             }
         }
         {
-            folderIdMap[SpecialNodeID::RootFolder] = SpecialNodeID::RootFolder;
-            folderIdMap[SpecialNodeID::TrashFolder] = SpecialNodeID::TrashFolder;
-            folderIdMap[SpecialNodeID::DefaultNotesFolder] = SpecialNodeID::DefaultNotesFolder;
+            folderIdMap[ROOT_FOLDER_ID] = ROOT_FOLDER_ID;
+            folderIdMap[TRASH_FOLDER_ID] = TRASH_FOLDER_ID;
+            folderIdMap[DEFAULT_NOTES_FOLDER_ID] = DEFAULT_NOTES_FOLDER_ID;
             QSqlQuery outQuery(outsideDatabase);
             if (!outQuery.prepare(R"(SELECT)"
                                   R"("id",)"
@@ -1993,13 +1993,13 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                     f.id = node.id();
                     f.parentId = node.parentId();
                     needImportFolderMap[node.id()] = f;
-                    if (f.id == SpecialNodeID::RootFolder) {
+                    if (f.id == ROOT_FOLDER_ID) {
                         rootFolder = &needImportFolderMap[node.id()];
                     }
                 }
                 if (rootFolder != nullptr) {
                     for (const auto &folder : std::as_const(needImportFolderMap)) {
-                        if (folder.id != SpecialNodeID::RootFolder) {
+                        if (folder.id != ROOT_FOLDER_ID) {
                             needImportFolderMap[folder.parentId].children.push_back(&needImportFolderMap[folder.id]);
                         }
                     }
@@ -2158,7 +2158,7 @@ void DBManager::onImportNotesRequested(const QString &fileName)
         if (noteList.isEmpty()) {
             emit showErrorMessage(tr("Invalid file"), "Please select a valid notes export file");
         } else {
-            auto defaultNoteFolder = getNode(SpecialNodeID::DefaultNotesFolder);
+            auto defaultNoteFolder = getNode(DEFAULT_NOTES_FOLDER_ID);
             int nodeId = nextAvailableNodeId();
             int notePos = nextAvailablePosition(defaultNoteFolder.id(), NodeData::Type::Note);
             const QString &parentAbsPath = defaultNoteFolder.absolutePath();
@@ -2170,7 +2170,7 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                 note.setRelativePosition(notePos);
                 note.setAbsolutePath(parentAbsPath + PATH_SEPARATOR + QString::number(nodeId));
                 note.setNodeType(NodeData::Type::Note);
-                note.setParentId(SpecialNodeID::DefaultNotesFolder);
+                note.setParentId(DEFAULT_NOTES_FOLDER_ID);
                 note.setParentName("Notes");
                 note.setIsTempNote(false);
                 addNodePreComputed(note);
@@ -2230,7 +2230,7 @@ void DBManager::onRestoreNotesRequested(const QString &fileName)
             QSqlDatabase::removeDatabase(DEFAULT_DATABASE_NAME);
             QFile::remove(m_dbpath);
             open(m_dbpath, true);
-            auto defaultNoteFolder = getNode(SpecialNodeID::DefaultNotesFolder);
+            auto defaultNoteFolder = getNode(DEFAULT_NOTES_FOLDER_ID);
             int nodeId = nextAvailableNodeId();
             int notePos = nextAvailablePosition(defaultNoteFolder.id(), NodeData::Type::Note);
             const QString &parentAbsPath = defaultNoteFolder.absolutePath();
@@ -2300,7 +2300,7 @@ void DBManager::onExportNotesRequested(const QString &fileName)
  */
 void DBManager::onMigrateNotesFromV0_9_0Requested(QVector<NodeData> &noteList)
 {
-    auto defaultNoteFolder = getNode(SpecialNodeID::DefaultNotesFolder);
+    auto defaultNoteFolder = getNode(DEFAULT_NOTES_FOLDER_ID);
     int nodeId = nextAvailableNodeId();
     int notePos = nextAvailablePosition(defaultNoteFolder.id(), NodeData::Type::Note);
     const QString &parentAbsPath = defaultNoteFolder.absolutePath();
@@ -2340,7 +2340,7 @@ void DBManager::onMigrateNotesFromV0_9_0Requested(QVector<NodeData> &noteList)
  */
 void DBManager::onMigrateTrashFrom0_9_0Requested(QVector<NodeData> &noteList)
 {
-    auto trashFolder = getNode(SpecialNodeID::TrashFolder);
+    auto trashFolder = getNode(TRASH_FOLDER_ID);
     int nodeId = nextAvailableNodeId();
     int notePos = nextAvailablePosition(trashFolder.id(), NodeData::Type::Note);
     const QString &parentAbsPath = trashFolder.absolutePath();
@@ -2443,8 +2443,8 @@ void DBManager::onMigrateNotesFrom1_5_0Requested(const QString &fileName)
             qDebug() << __FUNCTION__ << __LINE__ << query.lastError();
         }
     }
-    auto defaultNoteFolder = getNode(SpecialNodeID::DefaultNotesFolder);
-    auto trashFolder = getNode(SpecialNodeID::TrashFolder);
+    auto defaultNoteFolder = getNode(DEFAULT_NOTES_FOLDER_ID);
+    auto trashFolder = getNode(TRASH_FOLDER_ID);
     int nodeId = nextAvailableNodeId();
     int notePos = nextAvailablePosition(defaultNoteFolder.id(), NodeData::Type::Note);
     QString parentAbsPath = defaultNoteFolder.absolutePath();
@@ -2517,7 +2517,7 @@ void DBManager::addNotesToNewImportedFolder(const QList<QPair<QString, QDateTime
     newFolder.setCreationDateTime(currentDate);
     newFolder.setLastModificationDateTime(currentDate);
     newFolder.setFullTitle("Imported Notes");
-    newFolder.setParentId(SpecialNodeID::RootFolder);
+    newFolder.setParentId(ROOT_FOLDER_ID);
 
     int newFolderId = addNode(newFolder);
     if (newFolderId <= 0) {
@@ -2571,13 +2571,13 @@ void DBManager::exportNotes(const QString &baseExportPath, const QString &extens
     QMap<int, QString> folderPaths;
     for (const NodeData &folder : folders) {
         QString path = exportPathNew;
-        if (folder.id() != SpecialNodeID::RootFolder) { // Skip root folder
+        if (folder.id() != ROOT_FOLDER_ID) { // Skip root folder
             QStringList folderNames;
             QString currentPath = folder.absolutePath();
             QStringList pathParts = currentPath.split(QDir::separator(), Qt::SkipEmptyParts);
             for (const auto &part : pathParts) {
                 int id = part.toInt();
-                if (id == SpecialNodeID::RootFolder)
+                if (id == ROOT_FOLDER_ID)
                     continue;
                 auto folderTemp = getNode(id);
                 folderNames << folderTemp.fullTitle();

@@ -32,7 +32,7 @@ NoteListView::NoteListView(QWidget *parent)
       m_rowHeight(38),
       m_tagPool(nullptr),
       m_dbManager(nullptr),
-      m_currentFolderId{ SpecialNodeID::InvalidNodeId },
+      m_currentFolderId{ INVALID_NODE_ID },
       m_isInTrash{ false },
       m_isDragging{ false },
       m_isDraggingPinnedNotes{ false },
@@ -760,7 +760,7 @@ void NoteListView::onCustomContextMenu(QPoint point)
             m_deleteNoteAction->setText(tr("Delete Note"));
         }
         m_contextMenu->addAction(m_deleteNoteAction);
-        if ((!m_listViewInfo.isInTag) && (m_listViewInfo.parentFolderId != SpecialNodeID::TrashFolder)) {
+        if ((!m_listViewInfo.isInTag) && (m_listViewInfo.parentFolderId != TRASH_FOLDER_ID)) {
             m_contextMenu->addSeparator();
             if (notes.size() > 1) {
                 m_pinNoteAction->setText(tr("Pin Notes"));

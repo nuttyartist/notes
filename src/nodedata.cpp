@@ -2,12 +2,12 @@
 #include <QDataStream>
 
 NodeData::NodeData()
-    : m_id{ SpecialNodeID::InvalidNodeId },
+    : m_id{ INVALID_NODE_ID },
       m_isModified(false),
       m_isSelected(false),
       m_scrollBarPosition(0),
       m_nodeType(Type::Note),
-      m_parentId(SpecialNodeID::InvalidNodeId),
+      m_parentId(INVALID_NODE_ID),
       m_relativePosition(0),
       m_isTempNote{ false },
       m_isPinnedNote{ false },
@@ -242,7 +242,7 @@ QDataStream &operator>>(QDataStream &stream, NodeData *&nodeData)
     QDateTime creationDateTime;
     QString content;
     stream >> id >> fullTitle >> creationDateTime >> lastModificationDateTime >> content;
-    nodeData->setId(SpecialNodeID::InvalidNodeId);
+    nodeData->setId(INVALID_NODE_ID);
     nodeData->setFullTitle(fullTitle);
     nodeData->setLastModificationDateTime(lastModificationDateTime);
     nodeData->setCreationDateTime(creationDateTime);

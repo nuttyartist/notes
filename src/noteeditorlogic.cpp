@@ -51,7 +51,7 @@ NoteEditorLogic::NoteEditorLogic(CustomDocument *textEdit, QLabel *editorDateLab
     m_tagListView->setItemDelegate(m_tagListDelegate);
     connect(tagPool, &TagPool::dataUpdated, this, [this](int) { showTagListForCurrentNote(); });
     connect(m_textEdit->verticalScrollBar(), &QScrollBar::valueChanged, this, [this](int value) {
-        if (m_currentNotes.size() == 1 && m_currentNotes[0].id() != SpecialNodeID::InvalidNodeId) {
+        if (m_currentNotes.size() == 1 && m_currentNotes[0].id() != INVALID_NODE_ID) {
             m_currentNotes[0].setScrollBarPosition(value);
             emit updateNoteDataInList(m_currentNotes[0]);
             m_isContentModified = true;
@@ -97,8 +97,8 @@ void NoteEditorLogic::setMarkdownEnabled(bool enabled)
 void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
 {
     auto currentId = currentEditingNoteId();
-    if (notes.size() == 1 && notes[0].id() != SpecialNodeID::InvalidNodeId) {
-        if (currentId != SpecialNodeID::InvalidNodeId && notes[0].id() != currentId) {
+    if (notes.size() == 1 && notes[0].id() != INVALID_NODE_ID) {
+        if (currentId != INVALID_NODE_ID && notes[0].id() != currentId) {
             emit noteEditClosed(m_currentNotes[0], false);
         }
 
@@ -195,7 +195,7 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
 
 void NoteEditorLogic::onTextEditTextChanged()
 {
-    if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId) {
+    if (currentEditingNoteId() != INVALID_NODE_ID) {
         m_textEdit->blockSignals(true);
         QString content = m_currentNotes[0].content();
         if (m_textEdit->toPlainText() != content) {
@@ -642,7 +642,7 @@ QDateTime NoteEditorLogic::getQDateTime(const QString &date)
 
 void NoteEditorLogic::showTagListForCurrentNote()
 {
-    if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId) {
+    if (currentEditingNoteId() != INVALID_NODE_ID) {
         auto tagIds = m_currentNotes[0].tagIds();
         if (tagIds.count() > 0) {
             m_tagListView->setVisible(true);
@@ -687,12 +687,12 @@ int NoteEditorLogic::currentEditingNoteId() const
     if (isInEditMode()) {
         return m_currentNotes[0].id();
     }
-    return SpecialNodeID::InvalidNodeId;
+    return INVALID_NODE_ID;
 }
 
 void NoteEditorLogic::saveNoteToDB()
 {
-    if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId && m_isContentModified && !m_currentNotes[0].isTempNote()) {
+    if (currentEditingNoteId() != INVALID_NODE_ID && m_isContentModified && !m_currentNotes[0].isTempNote()) {
         emit requestCreateUpdateNote(m_currentNotes[0]);
         m_isContentModified = false;
     }
@@ -700,7 +700,7 @@ void NoteEditorLogic::saveNoteToDB()
 
 void NoteEditorLogic::closeEditor()
 {
-    if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId) {
+    if (currentEditingNoteId() != INVALID_NODE_ID) {
         saveNoteToDB();
         emit noteEditClosed(m_currentNotes[0], false);
     }
@@ -731,7 +731,7 @@ void NoteEditorLogic::deleteCurrentNote()
         m_textEdit->clearFocus();
         m_textEdit->blockSignals(false);
         emit noteEditClosed(noteNeedDeleted, true);
-    } else if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId) {
+    } else if (currentEditingNoteId() != INVALID_NODE_ID) {
         auto noteNeedDeleted = m_currentNotes[0];
         saveNoteToDB();
         m_currentNotes.clear();
@@ -815,7 +815,7 @@ void NoteEditorLogic::setTheme(Theme::Value theme, QColor textColor, qreal fontS
         break;
     }
     }
-    if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId) {
+    if (currentEditingNoteId() != INVALID_NODE_ID) {
         int verticalScrollBarValueToRestore = m_textEdit->verticalScrollBar()->value();
         m_textEdit->setText(m_textEdit->toPlainText()); // TODO: Update the text color without setting the text
         m_textEdit->verticalScrollBar()->setValue(verticalScrollBarValueToRestore);
@@ -858,7 +858,7 @@ void NoteEditorLogic::highlightSearch() const
 
 bool NoteEditorLogic::isTempNote() const
 {
-    if (currentEditingNoteId() != SpecialNodeID::InvalidNodeId && m_currentNotes[0].isTempNote()) {
+    if (currentEditingNoteId() != INVALID_NODE_ID && m_currentNotes[0].isTempNote()) {
         return true;
     }
     return false;
