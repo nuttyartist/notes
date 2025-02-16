@@ -9,7 +9,7 @@
 
 class TagPool;
 class NoteListModel;
-enum class NoteListState { Normal, Insert, Remove, MoveOut, MoveIn };
+enum class NoteListState : uint8_t { Normal, Insert, Remove, MoveOut, MoveIn };
 
 class NoteListDelegate : public QStyledItemDelegate
 {
@@ -19,7 +19,7 @@ public:
     NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject *parent = nullptr);
 
     void setState(NoteListState NewState, QModelIndexList indexes);
-    void setAnimationDuration(const int duration);
+    void setAnimationDuration(int duration);
 
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
 
@@ -44,7 +44,7 @@ public slots:
 
     // QAbstractItemDelegate interface
 public:
-    virtual QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
     const QModelIndex &hoveredIndex() const;
     bool shouldPaintSeparator(const QModelIndex &index, const NoteListModel &model) const;
 
@@ -57,7 +57,6 @@ private:
     void paintLabels(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     void paintSeparator(QPainter *painter, QRect rect, const QModelIndex &index) const;
     void paintTagList(int top, QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
-    QString parseDateTime(const QDateTime &dateTime) const;
     void setStateI(NoteListState NewState, const QModelIndexList &indexes);
 
     NoteListView *m_view;
@@ -70,7 +69,7 @@ private:
     QColor m_titleColor;
     QColor m_dateColor;
     QColor m_contentColor;
-    QColor m_ActiveColor;
+    QColor m_activeColor;
     QColor m_notActiveColor;
     QColor m_hoverColor;
     QColor m_applicationInactiveColor;
@@ -87,8 +86,8 @@ private:
     QTimeLine *m_timeLine;
     QModelIndexList m_animatedIndexes;
     QModelIndex m_hoveredIndex;
-    QMap<int, QSize> szMap;
-    QQueue<QPair<QSet<int>, NoteListState>> animationQueue;
+    QMap<int, QSize> m_sizeMap;
+    QQueue<QPair<QSet<int>, NoteListState>> m_animationQueue;
 };
 
 #endif // NOTELISTDELEGATE_H

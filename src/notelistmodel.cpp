@@ -6,8 +6,6 @@
 
 NoteListModel::NoteListModel(QObject *parent) : QAbstractListModel(parent), m_listViewInfo() { }
 
-NoteListModel::~NoteListModel() { }
-
 QModelIndex NoteListModel::addNote(const NodeData &note)
 {
     if (!note.isPinnedNote()) {
@@ -42,19 +40,18 @@ QModelIndex NoteListModel::insertNote(const NodeData &note, int row)
         emit rowsInsertedC({ createIndex(row, 0) });
         emit rowCountChanged();
         return createIndex(row, 0);
-    } else {
-        if (row < m_pinnedList.size()) {
-            row = m_pinnedList.size();
-        } else if (row > (m_pinnedList.size() + m_noteList.size())) {
-            row = m_pinnedList.size() + m_noteList.size();
-        }
-        beginInsertRows(QModelIndex(), row, row);
-        m_noteList.insert(row - m_pinnedList.size(), note);
-        endInsertRows();
-        emit rowsInsertedC({ createIndex(row, 0) });
-        emit rowCountChanged();
-        return createIndex(row, 0);
     }
+    if (row < m_pinnedList.size()) {
+        row = m_pinnedList.size();
+    } else if (row > (m_pinnedList.size() + m_noteList.size())) {
+        row = m_pinnedList.size() + m_noteList.size();
+    }
+    beginInsertRows(QModelIndex(), row, row);
+    m_noteList.insert(row - m_pinnedList.size(), note);
+    endInsertRows();
+    emit rowsInsertedC({ createIndex(row, 0) });
+    emit rowCountChanged();
+    return createIndex(row, 0);
 }
 
 const NodeData &NoteListModel::getNote(const QModelIndex &index) const
@@ -62,10 +59,9 @@ const NodeData &NoteListModel::getNote(const QModelIndex &index) const
     auto row = index.row();
     if (row < m_pinnedList.size()) {
         return m_pinnedList.at(row);
-    } else {
-        row = row - m_pinnedList.size();
-        return m_noteList.at(row);
     }
+    row = row - m_pinnedList.size();
+    return m_noteList.at(row);
 }
 
 QModelIndex NoteListModel::getNoteIndex(int id) const
@@ -153,44 +149,47 @@ void NoteListModel::clearNotes()
 QVariant NoteListModel::data(const QModelIndex &index, int role) const
 {
     if (index.row() < 0 || index.row() >= (m_noteList.count() + m_pinnedList.count())) {
-        return QVariant();
+        return {};
     }
     if (role < NoteID || role > NoteIsPinned) {
-        return QVariant();
+        return {};
     }
     const NodeData &note = getRef(index.row());
-    if (role == NoteID) {
+
+    switch (role) {
+    case NoteID:
         return note.id();
-    } else if (role == NoteFullTitle) {
+    case NoteFullTitle: {
         auto text = note.fullTitle().trimmed();
         if (text.startsWith("#")) {
             text.remove(0, 1);
             text = text.trimmed();
         }
         return text;
-    } else if (role == NoteCreationDateTime) {
+    }
+    case NoteCreationDateTime:
         return note.creationDateTime();
-    } else if (role == NoteLastModificationDateTime) {
+    case NoteLastModificationDateTime:
         return note.lastModificationdateTime();
-    } else if (role == NoteDeletionDateTime) {
+    case NoteDeletionDateTime:
         return note.deletionDateTime();
-    } else if (role == NoteContent) {
+    case NoteContent:
         return note.content();
-    } else if (role == NoteScrollbarPos) {
+    case NoteScrollbarPos:
         return note.scrollBarPosition();
-    } else if (role == NoteTagsList) {
+    case NoteTagsList:
         return QVariant::fromValue(note.tagIds());
-    } else if (role == NoteIsTemp) {
+    case NoteIsTemp:
         return note.isTempNote();
-    } else if (role == NoteParentName) {
+    case NoteParentName:
         return note.parentName();
-    } else if (role == NoteTagListScrollbarPos) {
+    case NoteTagListScrollbarPos:
         return note.tagListScrollBarPos();
-    } else if (role == NoteIsPinned) {
+    case NoteIsPinned:
         return note.isPinnedNote();
     }
 
-    return QVariant();
+    return {};
 }
 
 bool NoteListModel::setData(const QModelIndex &index, const QVariant &value, int role)
@@ -256,9 +255,8 @@ void NoteListModel::sort(int column, Qt::SortOrder order)
         std::stable_sort(m_pinnedList.begin(), m_pinnedList.end(), [this](const NodeData &lhs, const NodeData &rhs) {
             if (isInAllNote()) {
                 return lhs.relativePosAN() < rhs.relativePosAN();
-            } else {
-                return lhs.relativePosition() < rhs.relativePosition();
             }
+            return lhs.relativePosition() < rhs.relativePosition();
         });
 
         std::stable_sort(m_noteList.begin(), m_noteList.end(),

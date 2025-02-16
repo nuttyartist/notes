@@ -120,8 +120,13 @@ void NodeTreeItem::recursiveSort()
             child->recursiveSort();
         }
     } else if (type == NodeItem::Type::RootItem) {
-        QVector<NodeTreeItem *> allNoteButton, trashFolder, folderSep, folderItems, tagSep, tagItems;
-        for (const auto child : std::as_const(m_childItems)) {
+        QVector<NodeTreeItem *> allNoteButton;
+        QVector<NodeTreeItem *> trashFolder;
+        QVector<NodeTreeItem *> folderSep;
+        QVector<NodeTreeItem *> folderItems;
+        QVector<NodeTreeItem *> tagSep;
+        QVector<NodeTreeItem *> tagItems;
+        for (auto *const child : std::as_const(m_childItems)) {
             auto childType = static_cast<NodeItem::Type>(child->getData(NodeItem::Roles::ItemType).toInt());
             if (childType == NodeItem::Type::AllNoteButton) {
                 allNoteButton.append(child);

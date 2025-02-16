@@ -182,6 +182,7 @@ set(SOURCES
     ${PROJECT_SOURCE_DIR}/src/trashbuttondelegateeditor.h
     ${PROJECT_SOURCE_DIR}/src/treeviewlogic.cpp
     ${PROJECT_SOURCE_DIR}/src/treeviewlogic.h
+    ${PROJECT_SOURCE_DIR}/src/utils.h
     # ui
     ${PROJECT_SOURCE_DIR}/src/aboutwindow.ui
     ${PROJECT_SOURCE_DIR}/src/mainwindow.ui

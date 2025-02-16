@@ -13,7 +13,9 @@
 #include <QDebug>
 #include <QCursor>
 
-#define FIRST_LINE_MAX 80
+namespace {
+auto constexpr FIRST_LINE_MAX = 80;
+}
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 
@@ -142,9 +144,9 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
             }
             m_textEdit->setVisible(false);
             return;
-        } else {
-            m_textEdit->setVisible(true);
         }
+        m_textEdit->setVisible(true);
+
 #else
         m_textEdit->setVisible(true);
 #endif
@@ -159,7 +161,7 @@ void NoteEditorLogic::showNotesInEditor(const QVector<NodeData> &notes)
         auto verticalScrollBarValueToRestore = m_textEdit->verticalScrollBar()->value();
         m_textEdit->clear();
         auto padding = m_currentAdaptableEditorPadding > m_currentMinimumEditorPadding ? m_currentAdaptableEditorPadding : m_currentMinimumEditorPadding;
-        QPixmap sep(QSize{ m_textEdit->width() - padding * 2 - 12, 4 });
+        QPixmap sep(QSize{ m_textEdit->width() - (padding * 2) - 12, 4 });
         sep.fill(Qt::transparent);
         QPainter painter(&sep);
         painter.setPen(m_spacerColor);
@@ -297,12 +299,12 @@ QMap<QString, int> NoteEditorLogic::getTaskDataInLine(const QString &line)
     taskMatchLineData["taskMatchIndex"] = -1;
 
     int taskMatchIndex = -1;
-    for (int j = 0; j < taskExpressions.size(); j++) {
-        taskMatchIndex = line.indexOf(taskExpressions[j]);
+    for (auto &taskExpression : taskExpressions) {
+        taskMatchIndex = line.indexOf(taskExpression);
         if (taskMatchIndex != -1) {
             taskMatchLineData["taskMatchIndex"] = taskMatchIndex;
-            taskMatchLineData["taskExpressionSize"] = taskExpressions[j].size();
-            taskMatchLineData["taskChecked"] = taskExpressions[j][3] == 'x' ? 1 : 0;
+            taskMatchLineData["taskExpressionSize"] = taskExpression.size();
+            taskMatchLineData["taskChecked"] = taskExpression[3] == 'x' ? 1 : 0;
             return taskMatchLineData;
         }
     }
@@ -401,7 +403,7 @@ void NoteEditorLogic::updateTaskText(int startLinePosition, int endLinePosition,
     }
 }
 
-void NoteEditorLogic::addNewTask(int startLinePosition, const QString newTaskText)
+void NoteEditorLogic::addNewTask(int startLinePosition, const QString &newTaskText)
 {
     QString newText = QStringLiteral("\n- [ ] %1").arg(newTaskText);
     QTextDocument *document = m_textEdit->document();
@@ -560,7 +562,7 @@ bool NoteEditorLogic::checkForTasksInEditor()
     bool isPreviousLineATask = false;
 
     for (int i = 0; i < lines.size(); i++) {
-        QString line = lines[i];
+        const QString &line = lines[i];
         QString lineTrimmed = line.trimmed();
 
         // Header title
@@ -606,7 +608,7 @@ bool NoteEditorLogic::checkForTasksInEditor()
             }
             // If it's a continues description of the task push current line's text to the last task
             else if (!line.isEmpty() && isPreviousLineATask) {
-                if (tasks.size() > 0) {
+                if (!tasks.empty()) {
                     QJsonObject newTask = tasks[tasks.size() - 1].toObject();
                     QString newTaskText = QStringLiteral("%1  \n%2").arg(newTask["text"].toString(), lineTrimmed);
                     // For markdown rendering a line break needs two white spaces
@@ -656,10 +658,7 @@ void NoteEditorLogic::showTagListForCurrentNote()
 
 bool NoteEditorLogic::isInEditMode() const
 {
-    if (m_currentNotes.size() == 1) {
-        return true;
-    }
-    return false;
+    return m_currentNotes.size() == 1;
 }
 
 int NoteEditorLogic::currentMinimumEditorPadding() const
@@ -858,8 +857,5 @@ void NoteEditorLogic::highlightSearch() const
 
 bool NoteEditorLogic::isTempNote() const
 {
-    if (currentEditingNoteId() != INVALID_NODE_ID && m_currentNotes[0].isTempNote()) {
-        return true;
-    }
-    return false;
+    return currentEditingNoteId() != INVALID_NODE_ID && m_currentNotes[0].isTempNote();
 }

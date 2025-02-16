@@ -4,7 +4,7 @@
 #include <QDialog>
 #include "editorsettingsoptions.h"
 
-namespace Ui {
+namespace Ui { // NOLINT(readability-identifier-naming)
 class AboutWindow;
 }
 
@@ -13,8 +13,8 @@ class AboutWindow : public QDialog
     Q_OBJECT
 
 public:
-    explicit AboutWindow(QWidget *parent = 0);
-    ~AboutWindow();
+    explicit AboutWindow(QWidget *parent = nullptr);
+    ~AboutWindow() override;
     void setTheme(Theme::Value theme);
     void setProVersion(bool isProVersion);
 

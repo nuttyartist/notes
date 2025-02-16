@@ -39,7 +39,7 @@ FolderTreeDelegateEditor::FolderTreeDelegateEditor(QTreeView *view, const QStyle
       m_theme(Theme::Light)
 {
     setContentsMargins(0, 0, 0, 0);
-    auto layout = new QHBoxLayout(this);
+    auto *layout = new QHBoxLayout(this);
     layout->setContentsMargins(10, 0, 0, 0);
     layout->setSpacing(0);
     setLayout(layout);

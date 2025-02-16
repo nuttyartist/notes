@@ -7,7 +7,7 @@ SingleInstance::SingleInstance(QObject *parent) : QObject(parent)
 
 void SingleInstance::listen(const QString &name)
 {
-    m_server.removeServer(name);
+    QLocalServer::removeServer(name);
     m_server.listen(name);
 }
 

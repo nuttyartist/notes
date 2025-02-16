@@ -9,5 +9,5 @@ class NodeTreeViewPrivate : public QAbstractItemViewPrivate
 
 public:
     NodeTreeViewPrivate() : QAbstractItemViewPrivate(){};
-    virtual ~NodeTreeViewPrivate() { }
+    ~NodeTreeViewPrivate() override = default;
 };

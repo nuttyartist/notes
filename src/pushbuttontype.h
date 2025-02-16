@@ -17,9 +17,9 @@ protected:
     bool event(QEvent *event) override;
 
 private:
-    QIcon normalIcon;
-    QIcon hoveredIcon;
-    QIcon pressedIcon;
+    QIcon m_normalIcon;
+    QIcon m_hoveredIcon;
+    QIcon m_pressedIcon;
 };
 
 #endif // PUSHBUTTONTYPE_H

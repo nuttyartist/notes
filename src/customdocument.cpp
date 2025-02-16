@@ -63,7 +63,8 @@ bool CustomDocument::eventFilter(QObject *obj, QEvent *event)
             if (keyEvent->key() == Qt::Key_Up) {
                 moveBlockUp();
                 return true;
-            } else if (keyEvent->key() == Qt::Key_Down) {
+            }
+            if (keyEvent->key() == Qt::Key_Down) {
                 moveBlockDown();
                 return true;
             }
@@ -147,7 +148,7 @@ QUrl CustomDocument::getUrlUnderMouse()
     cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
 
     // get the correct link from the selected text, or an empty URL if none found
-    return QUrl(getMarkdownUrlAtPosition(cursor.selectedText(), indexInBlock));
+    return { getMarkdownUrlAtPosition(cursor.selectedText(), indexInBlock) };
 }
 
 /**

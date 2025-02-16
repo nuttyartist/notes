@@ -71,7 +71,7 @@ public slots:
     void checkTaskInLine(int lineNumber);
     void uncheckTaskInLine(int lineNumber);
     void updateTaskText(int startLinePosition, int endLinePosition, const QString &newText);
-    void addNewTask(int startLinePosition, const QString newTaskText);
+    void addNewTask(int startLinePosition, const QString &newTaskText);
     void removeTask(int startLinePosition, int endLinePosition);
     void addNewColumn(int startLinePosition, const QString &columnTitle);
     void removeColumn(int startLinePosition, int endLinePosition);

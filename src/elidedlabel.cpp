@@ -6,20 +6,20 @@
 ElidedLabel::ElidedLabel(QWidget *parent, Qt::WindowFlags f) : ElidedLabel("", parent, f) { }
 
 ElidedLabel::ElidedLabel(const QString &text, QWidget *parent, Qt::WindowFlags f)
-    : QLabel(text, parent, f), original(""), defaultType(Qt::ElideRight), eliding(false)
+    : QLabel(text, parent, f), m_original(""), m_defaultType(Qt::ElideRight), m_eliding(false)
 {
     setText(text);
 }
 
-void ElidedLabel::setType(const Qt::TextElideMode type)
+void ElidedLabel::setType(Qt::TextElideMode type)
 {
-    defaultType = type;
+    m_defaultType = type;
     elide();
 }
 
 QString const &ElidedLabel::text() const
 {
-    return original;
+    return m_original;
 }
 
 void ElidedLabel::resizeEvent(QResizeEvent *event)
@@ -31,7 +31,7 @@ void ElidedLabel::resizeEvent(QResizeEvent *event)
 
 void ElidedLabel::setText(const QString &text)
 {
-    original = text;
+    m_original = text;
     QLabel::setText(text);
 
     elide();
@@ -39,12 +39,12 @@ void ElidedLabel::setText(const QString &text)
 
 void ElidedLabel::elide()
 {
-    if (!eliding) {
-        eliding = true;
+    if (!m_eliding) {
+        m_eliding = true;
 
         QFontMetrics metrics(font());
-        QLabel::setText(metrics.elidedText(original, defaultType, width()));
+        QLabel::setText(metrics.elidedText(m_original, m_defaultType, width()));
 
-        eliding = false;
+        m_eliding = false;
     }
 }
