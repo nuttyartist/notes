@@ -19,7 +19,7 @@ class CFramelessWindow : public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit CFramelessWindow(QWidget *parent = 0);
+    explicit CFramelessWindow(QWidget *parent = nullptr);
 
 public:
     // 设置是否可以通过鼠标调整窗口大小
@@ -77,7 +77,7 @@ class CFramelessWindow : public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit CFramelessWindow(QWidget *parent = 0);
+    explicit CFramelessWindow(QWidget *parent = nullptr);
 
 private:
     void initUI();

@@ -39,8 +39,8 @@ private:
 
     // QWidget interface
 protected:
-    virtual void paintEvent(QPaintEvent *event) override;
-    virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
 };
 
 #endif // TAGTREEDELEGATEEDITOR_H

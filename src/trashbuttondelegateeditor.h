@@ -36,7 +36,7 @@ private:
     Theme::Value m_theme;
     // QWidget interface
 protected:
-    virtual void paintEvent(QPaintEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 };
 
 #endif // TRASHBUTTONDELEGATEEDITOR_H

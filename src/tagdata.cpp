@@ -1,6 +1,6 @@
 #include "tagdata.h"
 
-TagData::TagData() : m_id{ SpecialTagID::InvalidTagId }, m_relativePosition{ -1 }, m_childNotesCount{ 0 } { }
+TagData::TagData() : m_id{ INVALID_TAG_ID }, m_relativePosition{ -1 }, m_childNotesCount{ 0 } { }
 
 int TagData::id() const
 {

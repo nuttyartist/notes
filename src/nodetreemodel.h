@@ -71,7 +71,7 @@ class NodeTreeModel : public QAbstractItemModel
     Q_OBJECT
 public:
     explicit NodeTreeModel(QObject *parent = nullptr);
-    ~NodeTreeModel();
+    ~NodeTreeModel() override;
 
     void appendChildNodeToParent(const QModelIndex &parentIndex, const QHash<NodeItem::Roles, QVariant> &data);
     QModelIndex rootIndex() const;

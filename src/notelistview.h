@@ -8,7 +8,7 @@
 
 class TagPool;
 class NoteListViewPrivate;
-enum class NoteListState;
+enum class NoteListState : uint8_t;
 
 enum class ShowAction : uint8_t { NotInit, ShowPin, ShowBoth, ShowUnpin };
 
@@ -18,7 +18,7 @@ class NoteListView : public QListView
 
 public:
     explicit NoteListView(QWidget *parent = nullptr);
-    ~NoteListView();
+    ~NoteListView() override;
 
     void animateAddedRow(const QModelIndexList &indexes);
     void setAnimationEnabled(bool isEnabled);

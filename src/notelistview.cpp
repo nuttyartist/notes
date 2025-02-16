@@ -271,7 +271,7 @@ void NoteListView::mouseMoveEvent(QMouseEvent *event)
         QListView::mouseMoveEvent(event);
         return;
     }
-    if (event->buttons() & Qt::LeftButton) {
+    if ((event->buttons() & Qt::LeftButton) != 0U) {
         if ((event->position().toPoint() - m_dragStartPosition).manhattanLength() >= QApplication::startDragDistance()) {
             startDrag(Qt::MoveAction);
         }

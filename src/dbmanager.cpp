@@ -1228,7 +1228,7 @@ void DBManager::moveNode(int nodeId, const NodeData &target)
     }
 
     if (node.nodeType() == NodeData::Type::Folder) {
-        QString oldAbsolutePath = node.absolutePath();
+        const QString &oldAbsolutePath = node.absolutePath();
         QMap<int, QString> children;
         query.clear();
         if (!query.prepare(R"(SELECT id, absolute_path FROM "node_table" )"
@@ -1415,7 +1415,7 @@ void DBManager::searchForNotes(const QString &keyword, const ListViewInfo &inf)
             }
             nds.append(nd);
         }
-        if (nds.size() == 0) {
+        if (nds.empty()) {
             emit notesListReceived(nodeList, inf);
             return;
         }
@@ -1771,7 +1771,7 @@ void DBManager::onNotesListInTagsRequested(const QSet<int> &tagIds, bool newNote
         }
         nds.append(nd);
     }
-    if (nds.size() == 0) {
+    if (nds.empty()) {
         emit notesListReceived(nodeList, inf);
         return;
     }
@@ -1885,7 +1885,7 @@ void DBManager::onImportNotesRequested(const QString &fileName)
                 qDebug() << __FUNCTION__ << __LINE__ << outQuery.lastError();
             }
             outQuery.finish();
-            std::sort(tagList.begin(), tagList.end(), [](auto a, auto b) { return a.relativePosition() < b.relativePosition(); });
+            std::sort(tagList.begin(), tagList.end(), [](auto const &a, auto const &b) { return a.relativePosition() < b.relativePosition(); });
             for (const auto &tag : std::as_const(tagList)) {
                 QSqlQuery query(m_db);
                 if (!query.prepare(R"(SELECT "id" FROM tag_table WHERE name = :name AND color = :color;)")) {

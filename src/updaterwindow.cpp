@@ -7,7 +7,7 @@
 #include "updaterwindow.h"
 #include "ui_updaterwindow.h"
 
-#include <math.h>
+#include <cmath>
 
 #include <QTimer>
 #include <QMessageBox>
@@ -400,8 +400,8 @@ void UpdaterWindow::openDownloadFolder(const QString &file)
                              QMessageBox::Ok);
 
     /* Get the full path list of the downloaded file */
-    QString native_path = QDir::toNativeSeparators(QDir(file).absolutePath());
-    QStringList directories = native_path.split(QDir::separator());
+    QString nativePath = QDir::toNativeSeparators(QDir(file).absolutePath());
+    QStringList directories = nativePath.split(QDir::separator());
 
     /* Remove file name from list to get the folder of the update file */
     directories.removeLast();

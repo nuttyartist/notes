@@ -9,19 +9,19 @@ class TagListView : public QListView
 public:
     explicit TagListView(QWidget *parent = nullptr);
     void setTheme(Theme::Value theme);
-    void setBackground(const QColor color);
+    void setBackground(QColor color);
 signals:
     // QAbstractItemView interface
 public slots:
-    virtual void reset() override;
+    void reset() override;
 
     // QWidget interface
 protected:
-    virtual void resizeEvent(QResizeEvent *event) override;
-    virtual void mousePressEvent(QMouseEvent *event) override;
-    virtual void mouseReleaseEvent(QMouseEvent *event) override;
-    virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
-    virtual void mouseMoveEvent(QMouseEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
 
 private:
     QColor m_backgroundColor;

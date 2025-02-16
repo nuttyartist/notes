@@ -4,10 +4,8 @@
 #include <QString>
 #include <QMetaClassInfo>
 
-namespace SpecialTagID {
-enum Value {
-    InvalidTagId = -1,
-};
+namespace {
+auto constexpr INVALID_TAG_ID = -1;
 }
 
 class TagData

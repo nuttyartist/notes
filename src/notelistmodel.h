@@ -9,7 +9,7 @@ class NoteListModel : public QAbstractListModel
 {
     Q_OBJECT
 public:
-    enum NoteRoles {
+    enum NoteRoles : uint16_t {
         NoteID = Qt::UserRole + 1,
         NoteFullTitle,
         NoteCreationDateTime,
@@ -25,7 +25,7 @@ public:
     };
 
     explicit NoteListModel(QObject *parent = nullptr);
-    ~NoteListModel();
+    ~NoteListModel() override = default;
 
     QModelIndex addNote(const NodeData &note);
     QModelIndex insertNote(const NodeData &note, int row);

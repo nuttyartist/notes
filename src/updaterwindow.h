@@ -10,7 +10,7 @@
 #include <QDialog>
 #include <QDir>
 
-namespace Ui {
+namespace Ui { // NOLINT(readability-identifier-naming)
 class UpdaterWindow;
 }
 
@@ -24,10 +24,10 @@ class UpdaterWindow : public QDialog
     Q_OBJECT
 
 public:
-    explicit UpdaterWindow(QWidget *parent = 0);
-    ~UpdaterWindow();
+    explicit UpdaterWindow(QWidget *parent = nullptr);
+    ~UpdaterWindow() override;
 
-    void setShowWindowDisable(const bool dontShowWindow);
+    void setShowWindowDisable(bool dontShowWindow);
 
 public slots:
     void checkForUpdates(bool force);
@@ -43,7 +43,7 @@ private slots:
     void startDownload(const QUrl &url);
     void openDownload(const QString &file);
     void onCheckFinished(const QString &url);
-    void onXdgOpenFinished(const int exitCode);
+    void onXdgOpenFinished(int exitCode);
     void openDownloadFolder(const QString &file);
     void calculateSizes(qint64 received, qint64 total);
     void updateProgress(qint64 received, qint64 total);

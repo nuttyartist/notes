@@ -42,7 +42,7 @@ void TagListView::reset()
 {
     QListView::reset();
     auto sz = sizeHint();
-    if (!model() || model()->rowCount() == 0) {
+    if ((model() == nullptr) || model()->rowCount() == 0) {
         sz.setHeight(0);
     } else {
         auto firstIndex = model()->index(0, 0);

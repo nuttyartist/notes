@@ -4,7 +4,7 @@
 #include <qdebug.h>
 #include <sstream>
 
-EditorSettingsOptions::EditorSettingsOptions(QObject *) { }
+EditorSettingsOptions::EditorSettingsOptions(QObject *parent) : QObject(parent) { }
 
 std::ostream &operator<<(std::ostream &os, const FontTypeface::Value &fontTypeface)
 {

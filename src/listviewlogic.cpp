@@ -583,7 +583,8 @@ void ListViewLogic::restoreNotesRequestedI(const QModelIndexList &indexes)
 
 void ListViewLogic::updateListViewLabel()
 {
-    QString l1, l2;
+    QString l1;
+    QString l2;
     if ((!m_listViewInfo.isInTag) && m_listViewInfo.parentFolderId == ROOT_FOLDER_ID) {
         l1 = "All Notes";
     } else if ((!m_listViewInfo.isInTag) && m_listViewInfo.parentFolderId == TRASH_FOLDER_ID) {
@@ -594,7 +595,7 @@ void ListViewLogic::updateListViewLabel()
                                   Q_ARG(int, m_listViewInfo.parentFolderId));
         l1 = parentFolder.fullTitle();
     } else {
-        if (m_listViewInfo.currentTagList.size() == 0) {
+        if (m_listViewInfo.currentTagList.empty()) {
             l1 = "Tags ...";
         } else if (m_listViewInfo.currentTagList.size() > 1) {
             l1 = "Multiple tags ...";
@@ -622,7 +623,8 @@ void ListViewLogic::onRowCountChanged()
         auto range = abs(m_listView->viewport()->height());
         if (y < -range) {
             continue;
-        } else if (y > 2 * range) {
+        }
+        if (y > 2 * range) {
             break;
         }
         m_listView->openPersistentEditorC(index);

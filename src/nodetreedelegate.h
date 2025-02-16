@@ -20,10 +20,10 @@ signals:
 
     // QAbstractItemDelegate interface
 public:
-    virtual void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
-    virtual QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
-    virtual QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
-    virtual void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+    void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
 
 private:
     void paintBackgroundSelectable(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
@@ -38,7 +38,7 @@ private:
     QColor m_titleColor;
     QColor m_titleSelectedColor;
     QColor m_dateColor;
-    QColor m_ActiveColor;
+    QColor m_activeColor;
     QColor m_notActiveColor;
     QColor m_hoverColor;
     QColor m_applicationInactiveColor;

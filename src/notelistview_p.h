@@ -9,7 +9,7 @@ class NoteListViewPrivate : public QAbstractItemViewPrivate
 
 public:
     NoteListViewPrivate() : QAbstractItemViewPrivate(){};
-    virtual ~NoteListViewPrivate() { }
+    ~NoteListViewPrivate() override = default;
     QPixmap renderToPixmap(const QModelIndexList &indexes, QRect *r) const;
     QStyleOptionViewItem viewOptionsV1() const;
 };

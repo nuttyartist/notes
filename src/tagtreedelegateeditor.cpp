@@ -37,7 +37,7 @@ TagTreeDelegateEditor::TagTreeDelegateEditor(QTreeView *view, const QStyleOption
       m_listView(listView)
 {
     setContentsMargins(0, 0, 0, 0);
-    auto layout = new QHBoxLayout(this);
+    auto *layout = new QHBoxLayout(this);
     layout->setContentsMargins(22, 0, 0, 0);
     layout->setSpacing(5);
     setLayout(layout);
@@ -51,13 +51,13 @@ TagTreeDelegateEditor::TagTreeDelegateEditor(QTreeView *view, const QStyleOption
     m_label->setSizePolicy(labelPolicy);
     m_label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     connect(m_label, &LabelEditType::editingStarted, this, [this] {
-        auto tree_view = static_cast<NodeTreeView *>(m_view);
-        tree_view->setIsEditing(true);
+        auto *treeView = static_cast<NodeTreeView *>(m_view);
+        treeView->setIsEditing(true);
     });
     connect(m_label, &LabelEditType::editingFinished, this, [this](const QString &label) {
-        auto tree_view = static_cast<NodeTreeView *>(m_view);
-        tree_view->onRenameTagFinished(label);
-        tree_view->setIsEditing(false);
+        auto *treeView = static_cast<NodeTreeView *>(m_view);
+        treeView->onRenameTagFinished(label);
+        treeView->setIsEditing(false);
     });
     connect(static_cast<NodeTreeView *>(m_view), &NodeTreeView::renameTagRequested, m_label, &LabelEditType::openEditor);
     layout->addWidget(m_label);
@@ -152,7 +152,7 @@ void TagTreeDelegateEditor::paintEvent(QPaintEvent *event)
         }
     }
 
-    auto iconRect = QRect(rect().x() + 22, rect().y() + (rect().height() - 14) / 2, 16, 16);
+    auto iconRect = QRect(rect().x() + 22, rect().y() + ((rect().height() - 14) / 2), 16, 16);
     auto tagColor = m_index.data(NodeItem::Roles::TagColor).toString();
     painter.setPen(QColor(tagColor));
 #ifdef __APPLE__
@@ -167,7 +167,7 @@ void TagTreeDelegateEditor::paintEvent(QPaintEvent *event)
 
 void TagTreeDelegateEditor::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    auto iconRect = QRect(rect().x() + 10, rect().y() + (rect().height() - 14) / 2, 14, 14);
+    auto iconRect = QRect(rect().x() + 10, rect().y() + ((rect().height() - 14) / 2), 14, 14);
     if (iconRect.contains(event->position().toPoint())) {
         static_cast<NodeTreeView *>(m_view)->onChangeTagColorAction();
     } else if (m_label->geometry().contains(event->position().toPoint())) {

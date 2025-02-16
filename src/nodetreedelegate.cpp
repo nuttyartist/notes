@@ -40,7 +40,7 @@ NodeTreeDelegate::NodeTreeDelegate(QTreeView *view, QObject *parent, QListView *
       m_titleColor(26, 26, 26),
       m_titleSelectedColor(255, 255, 255),
       m_dateColor(132, 132, 132),
-      m_ActiveColor(68, 138, 201),
+      m_activeColor(68, 138, 201),
       m_notActiveColor(175, 212, 228),
       m_hoverColor(180, 208, 233),
       m_applicationInactiveColor(207, 207, 207),
@@ -66,7 +66,7 @@ void NodeTreeDelegate::setTheme(Theme::Value theme)
         m_titleColor = QColor(26, 26, 26);
         m_dateColor = QColor(26, 26, 26);
         m_defaultColor = QColor(247, 247, 247);
-        //        m_ActiveColor = QColor(218, 233, 239);
+        //        m_activeColor = QColor(218, 233, 239);
         m_notActiveColor = QColor(175, 212, 228);
         m_hoverColor = QColor(180, 208, 233);
         m_currentBackgroundColor = QColor(247, 247, 247);
@@ -77,7 +77,7 @@ void NodeTreeDelegate::setTheme(Theme::Value theme)
         m_titleColor = QColor(212, 212, 212);
         m_dateColor = QColor(212, 212, 212);
         m_defaultColor = QColor(25, 25, 25);
-        //        m_ActiveColor = QColor(0, 59, 148);
+        //        m_activeColor = QColor(0, 59, 148);
         m_notActiveColor = QColor(35, 52, 69);
         m_hoverColor = QColor(35, 52, 69);
         m_currentBackgroundColor = QColor(25, 25, 25);
@@ -88,7 +88,7 @@ void NodeTreeDelegate::setTheme(Theme::Value theme)
         m_titleColor = QColor(26, 26, 26);
         m_dateColor = QColor(26, 26, 26);
         m_defaultColor = QColor(251, 240, 217);
-        //        m_ActiveColor = QColor(218, 233, 239);
+        //        m_activeColor = QColor(218, 233, 239);
         m_notActiveColor = QColor(175, 212, 228);
         m_hoverColor = QColor(180, 208, 233);
         m_currentBackgroundColor = QColor(251, 240, 217);
@@ -117,7 +117,7 @@ void NodeTreeDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     case NodeItem::Type::AllNoteButton:
     case NodeItem::Type::TrashButton: {
         paintBackgroundSelectable(painter, option, index);
-        auto iconRect = QRect(option.rect.x() + 22, option.rect.y() + (option.rect.height() - 20) / 2, 18, 20);
+        auto iconRect = QRect(option.rect.x() + 22, option.rect.y() + ((option.rect.height() - 20) / 2), 18, 20);
         QFont previousPainterFont = painter->font();
         if ((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
             painter->setPen(m_titleSelectedColor);
@@ -173,7 +173,7 @@ void NodeTreeDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     case NodeItem::Type::TagSeparator: {
         auto textRect = option.rect;
         textRect.moveLeft(textRect.x() + 5);
-        textRect.moveBottom(textRect.y() + NoteTreeConstant::folderLabelHeight + 2);
+        textRect.moveBottom(textRect.y() + NoteTreeConstant::FOLDER_LABEL_HEIGHT + 2);
         auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
         painter->setPen(m_separatorColor);
         painter->setFont(m_separatorFont);
@@ -182,7 +182,7 @@ void NodeTreeDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     }
     case NodeItem::Type::FolderItem: {
         paintBackgroundSelectable(painter, option, index);
-        auto iconRect = QRect(option.rect.x() + 10, option.rect.y() + (option.rect.height() - 12) / 2, 12, 12);
+        auto iconRect = QRect(option.rect.x() + 10, option.rect.y() + ((option.rect.height() - 12) / 2), 12, 12);
         QString iconPath;
         painter->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "", 10 + iconPointSizeOffset));
         if (m_theme == Theme::Dark) {
@@ -263,7 +263,7 @@ void NodeTreeDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     }
     case NodeItem::Type::TagItem: {
         paintBackgroundSelectable(painter, option, index);
-        auto iconRect = QRect(option.rect.x() + 22, option.rect.y() + (option.rect.height() - 14) / 2, 16, 16);
+        auto iconRect = QRect(option.rect.x() + 22, option.rect.y() + ((option.rect.height() - 14) / 2), 16, 16);
         auto tagColor = index.data(NodeItem::Roles::TagColor).toString();
         painter->setPen(QColor(tagColor));
         painter->setFont(font_loader::loadFont("Font Awesome 6 Free Solid", "", 16 + iconPointSizeOffset));
@@ -302,7 +302,7 @@ void NodeTreeDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
 void NodeTreeDelegate::paintBackgroundSelectable(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     if ((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
-        painter->fillRect(option.rect, QBrush(m_ActiveColor));
+        painter->fillRect(option.rect, QBrush(m_activeColor));
     } else if ((option.state & QStyle::State_MouseOver) == QStyle::State_MouseOver) {
         auto const *treeView = static_cast<NodeTreeView *>(m_view);
         auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
@@ -320,13 +320,13 @@ QSize NodeTreeDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
     QSize result = QStyledItemDelegate::sizeHint(option, index);
     auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
     if (itemType == NodeItem::Type::FolderSeparator) {
-        result.setHeight(NoteTreeConstant::folderLabelHeight);
+        result.setHeight(NoteTreeConstant::FOLDER_LABEL_HEIGHT);
     } else if (itemType == NodeItem::Type::TagSeparator) {
-        result.setHeight(NoteTreeConstant::tagLabelHeight);
+        result.setHeight(NoteTreeConstant::TAG_LABEL_HEIGHT);
     } else if (itemType == NodeItem::Type::FolderItem || itemType == NodeItem::Type::TrashButton || itemType == NodeItem::Type::AllNoteButton) {
-        result.setHeight(NoteTreeConstant::folderItemHeight);
+        result.setHeight(NoteTreeConstant::FOLDER_ITEM_HEIGHT);
     } else if (itemType == NodeItem::Type::TagItem) {
-        result.setHeight(NoteTreeConstant::tagItemHeight);
+        result.setHeight(NoteTreeConstant::TAG_ITEM_HEIGHT);
     } else {
         result.setHeight(30);
     }
@@ -338,12 +338,12 @@ QWidget *NodeTreeDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
 {
     auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
     if (itemType == NodeItem::Type::FolderSeparator || itemType == NodeItem::Type::TagSeparator) {
-        auto widget = new QWidget(parent);
+        auto *widget = new QWidget(parent);
         widget->setContentsMargins(0, 0, 0, 0);
-        auto layout = new QHBoxLayout(widget);
+        auto *layout = new QHBoxLayout(widget);
         layout->setContentsMargins(5, 7, 0, 0);
         widget->setLayout(layout);
-        auto label = new QLabel(widget);
+        auto *label = new QLabel(widget);
         auto displayName = index.data(NodeItem::Roles::DisplayText).toString();
         label->setStyleSheet(QStringLiteral("QLabel{color: rgb(%1, %2, %3);}")
                                      .arg(QString::number(m_separatorTextColor.red()), QString::number(m_separatorTextColor.green()),
@@ -351,7 +351,7 @@ QWidget *NodeTreeDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
         label->setFont(m_separatorFont);
         label->setText(displayName);
         layout->addWidget(label);
-        auto addButton = new PushButtonType(parent);
+        auto *addButton = new PushButtonType(parent);
         addButton->setMaximumSize({ 38, 25 });
         addButton->setMinimumSize({ 38, 25 });
         addButton->setCursor(QCursor(Qt::PointingHandCursor));
@@ -385,31 +385,34 @@ QWidget *NodeTreeDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
         }
         layout->addWidget(addButton, 1, Qt::AlignRight);
         return widget;
-    } else if (itemType == NodeItem::Type::FolderItem) {
+    }
+    if (itemType == NodeItem::Type::FolderItem) {
         auto id = index.data(NodeItem::Roles::NodeId).toInt();
         if (id == DEFAULT_NOTES_FOLDER_ID) {
-            auto widget = new DefaultNoteFolderDelegateEditor(m_view, option, index, m_listView, parent);
+            auto *widget = new DefaultNoteFolderDelegateEditor(m_view, option, index, m_listView, parent);
             widget->setTheme(m_theme);
             connect(this, &NodeTreeDelegate::themeChanged, widget, &DefaultNoteFolderDelegateEditor::setTheme);
             return widget;
-        } else {
-            auto widget = new FolderTreeDelegateEditor(m_view, option, index, m_listView, parent);
-            widget->setTheme(m_theme);
-            connect(this, &NodeTreeDelegate::themeChanged, widget, &FolderTreeDelegateEditor::setTheme);
-            return widget;
         }
-    } else if (itemType == NodeItem::Type::TagItem) {
-        auto widget = new TagTreeDelegateEditor(m_view, option, index, m_listView, parent);
+        auto *widget = new FolderTreeDelegateEditor(m_view, option, index, m_listView, parent);
+        widget->setTheme(m_theme);
+        connect(this, &NodeTreeDelegate::themeChanged, widget, &FolderTreeDelegateEditor::setTheme);
+        return widget;
+    }
+    if (itemType == NodeItem::Type::TagItem) {
+        auto *widget = new TagTreeDelegateEditor(m_view, option, index, m_listView, parent);
         widget->setTheme(m_theme);
         connect(this, &NodeTreeDelegate::themeChanged, widget, &TagTreeDelegateEditor::setTheme);
         return widget;
-    } else if (itemType == NodeItem::Type::TrashButton) {
-        auto widget = new TrashButtonDelegateEditor(m_view, option, index, m_listView, parent);
+    }
+    if (itemType == NodeItem::Type::TrashButton) {
+        auto *widget = new TrashButtonDelegateEditor(m_view, option, index, m_listView, parent);
         widget->setTheme(m_theme);
         connect(this, &NodeTreeDelegate::themeChanged, widget, &TrashButtonDelegateEditor::setTheme);
         return widget;
-    } else if (itemType == NodeItem::Type::AllNoteButton) {
-        auto widget = new AllNoteButtonTreeDelegateEditor(m_view, option, index, m_listView, parent);
+    }
+    if (itemType == NodeItem::Type::AllNoteButton) {
+        auto *widget = new AllNoteButtonTreeDelegateEditor(m_view, option, index, m_listView, parent);
         widget->setTheme(m_theme);
         connect(this, &NodeTreeDelegate::themeChanged, widget, &AllNoteButtonTreeDelegateEditor::setTheme);
         return widget;

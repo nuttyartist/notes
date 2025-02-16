@@ -9,10 +9,10 @@ class SingleInstance : public QObject
 {
     Q_OBJECT
 public:
-    explicit SingleInstance(QObject *parent = 0);
+    explicit SingleInstance(QObject *parent = nullptr);
 
     void listen(const QString &name);
-    bool hasPrevious(const QString &name);
+    static bool hasPrevious(const QString &name);
 
 signals:
     void newInstance();

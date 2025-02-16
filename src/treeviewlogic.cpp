@@ -209,15 +209,15 @@ void TreeViewLogic::onAddTagRequested()
     TagData newTag;
     newTag.setName(m_treeModel->getNewTagPlaceholderName());
     // random color generator
-    const double lower_bound = 0;
-    const double upper_bound = 1;
-    static std::uniform_real_distribution<double> unif(lower_bound, upper_bound);
-    static std::random_device rand_dev;
-    static std::mt19937 rand_engine(rand_dev());
-    double rand = unif(rand_engine);
+    const double lowerBound = 0;
+    const double upperBound = 1;
+    static std::uniform_real_distribution<double> unif(lowerBound, upperBound);
+    static std::random_device randDev;
+    static std::mt19937 randEngine(randDev());
+    double rand = unif(randEngine);
     int h = rand * 359;
     int s = 255;
-    int v = 128 + rand * 127;
+    int v = 128 + (rand * 127);
     auto color = QColor::fromHsv(h, s, v);
 
     newTag.setColor(color.name());

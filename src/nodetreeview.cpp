@@ -31,45 +31,45 @@ NodeTreeView::NodeTreeView(QWidget *parent)
     setSelectionMode(QAbstractItemView::MultiSelection);
     setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this, &QWidget::customContextMenuRequested, this, &NodeTreeView::onCustomContextMenu);
-    contextMenu = new QMenu(this);
-    renameFolderAction = new QAction(tr("Rename Folder"), this);
-    connect(renameFolderAction, &QAction::triggered, this, [this] {
+    m_contextMenu = new QMenu(this);
+    m_renameFolderAction = new QAction(tr("Rename Folder"), this);
+    connect(m_renameFolderAction, &QAction::triggered, this, [this] {
         setIsEditing(true);
         emit renameFolderRequested();
     });
-    deleteFolderAction = new QAction(tr("Delete Folder"), this);
-    connect(deleteFolderAction, &QAction::triggered, this, &NodeTreeView::onDeleteNodeAction);
-    addSubfolderAction = new QAction(tr("Add Subfolder"), this);
-    connect(addSubfolderAction, &QAction::triggered, this, &NodeTreeView::addFolderRequested);
+    m_deleteFolderAction = new QAction(tr("Delete Folder"), this);
+    connect(m_deleteFolderAction, &QAction::triggered, this, &NodeTreeView::onDeleteNodeAction);
+    m_addSubfolderAction = new QAction(tr("Add Subfolder"), this);
+    connect(m_addSubfolderAction, &QAction::triggered, this, &NodeTreeView::addFolderRequested);
 
-    renameTagAction = new QAction(tr("Rename Tag"), this);
-    connect(renameTagAction, &QAction::triggered, this, [this] {
+    m_renameTagAction = new QAction(tr("Rename Tag"), this);
+    connect(m_renameTagAction, &QAction::triggered, this, [this] {
         setIsEditing(true);
         emit renameTagRequested();
     });
-    changeTagColorAction = new QAction(tr("Change Tag Color"), this);
-    connect(changeTagColorAction, &QAction::triggered, this, &NodeTreeView::onChangeTagColorAction);
-    deleteTagAction = new QAction(tr("Delete Tag"), this);
-    connect(deleteTagAction, &QAction::triggered, this, &NodeTreeView::onDeleteNodeAction);
-    clearSelectionAction = new QAction(tr("Clear Selection"), this);
-    connect(clearSelectionAction, &QAction::triggered, this, [this] {
+    m_changeTagColorAction = new QAction(tr("Change Tag Color"), this);
+    connect(m_changeTagColorAction, &QAction::triggered, this, &NodeTreeView::onChangeTagColorAction);
+    m_deleteTagAction = new QAction(tr("Delete Tag"), this);
+    connect(m_deleteTagAction, &QAction::triggered, this, &NodeTreeView::onDeleteNodeAction);
+    m_clearSelectionAction = new QAction(tr("Clear Selection"), this);
+    connect(m_clearSelectionAction, &QAction::triggered, this, [this] {
         closeCurrentEditor();
         clearSelection();
         setCurrentIndexC(static_cast<NodeTreeModel *>(model())->getAllNotesButtonIndex());
     });
 
-    contextMenuTimer.setInterval(100);
-    contextMenuTimer.setSingleShot(true);
-    connect(&contextMenuTimer, &QTimer::timeout, this, [this] {
+    m_contextMenuTimer.setInterval(100);
+    m_contextMenuTimer.setSingleShot(true);
+    connect(&m_contextMenuTimer, &QTimer::timeout, this, [this] {
         if (!m_isEditing) {
             closeCurrentEditor();
         }
     });
 
-    connect(contextMenu, &QMenu::aboutToHide, this, [this] {
+    connect(m_contextMenu, &QMenu::aboutToHide, this, [this] {
         m_isContextMenuOpened = false;
         // this signal is emitted before QAction::triggered
-        contextMenuTimer.start();
+        m_contextMenuTimer.start();
     });
     connect(this, &NodeTreeView::expanded, this, &NodeTreeView::onExpanded);
     connect(this, &NodeTreeView::collapsed, this, &NodeTreeView::onCollapsed);
@@ -432,25 +432,25 @@ void NodeTreeView::onCustomContextMenu(QPoint point)
     QModelIndex index = indexAt(point);
     if (index.isValid()) {
         auto itemType = static_cast<NodeItem::Type>(index.data(NodeItem::Roles::ItemType).toInt());
-        contextMenu->clear();
+        m_contextMenu->clear();
         if (itemType == NodeItem::Type::FolderItem) {
             auto id = index.data(NodeItem::Roles::NodeId).toInt();
             if (id != DEFAULT_NOTES_FOLDER_ID) {
                 m_isContextMenuOpened = true;
-                contextMenu->addAction(renameFolderAction);
-                contextMenu->addAction(deleteFolderAction);
-                contextMenu->addSeparator();
-                contextMenu->addAction(addSubfolderAction);
-                contextMenu->exec(viewport()->mapToGlobal(point));
+                m_contextMenu->addAction(m_renameFolderAction);
+                m_contextMenu->addAction(m_deleteFolderAction);
+                m_contextMenu->addSeparator();
+                m_contextMenu->addAction(m_addSubfolderAction);
+                m_contextMenu->exec(viewport()->mapToGlobal(point));
             }
         } else if (itemType == NodeItem::Type::TagItem) {
             m_isContextMenuOpened = true;
-            contextMenu->addAction(renameTagAction);
-            contextMenu->addAction(changeTagColorAction);
-            contextMenu->addAction(clearSelectionAction);
-            contextMenu->addSeparator();
-            contextMenu->addAction(deleteTagAction);
-            contextMenu->exec(viewport()->mapToGlobal(point));
+            m_contextMenu->addAction(m_renameTagAction);
+            m_contextMenu->addAction(m_changeTagColorAction);
+            m_contextMenu->addAction(m_clearSelectionAction);
+            m_contextMenu->addSeparator();
+            m_contextMenu->addAction(m_deleteTagAction);
+            m_contextMenu->exec(viewport()->mapToGlobal(point));
         }
     }
 }

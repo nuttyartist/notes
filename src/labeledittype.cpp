@@ -7,7 +7,7 @@ LabelEditType::LabelEditType(QWidget *parent) : ElidedLabel(parent)
 {
     setContentsMargins(0, 0, 0, 0);
     m_editor = new QLineEdit(this);
-    auto layout = new QBoxLayout(QBoxLayout::LeftToRight, this);
+    auto *layout = new QBoxLayout(QBoxLayout::LeftToRight, this);
     layout->addWidget(m_editor);
     layout->setContentsMargins(0, 0, 0, 0);
     setLayout(layout);
