@@ -24,10 +24,10 @@ These shortcuts are meant to be used while the Notes window is currently focused
 | <kbd>Ctrl</kbd> + <kbd>E</kbd>                        | Clear the search bar                                          |
 | <kbd>Ctrl</kbd> + <kbd>↓</kbd> (or just <kbd>↓</kbd>) | Select note below                                             |
 | <kbd>Ctrl</kbd> + <kbd>↑</kbd> (or just <kbd>↑</kbd>) | Select note above                                             |
-| <kbd>Command</kbd> + <kbd>↓</kbd> (macOS)             | Select note below                                             |
-| <kbd>Command</kbd> + <kbd>↑</kbd> (macOS)             | Select note above                                             |
+| <kbd>Ctrl</kbd> + <kbd>↓</kbd> (macOS)             | Select note below                                             |
+| <kbd>Ctrl</kbd> + <kbd>↑</kbd> (macOS)             | Select note above                                             |
 | <kbd>Ctrl</kbd> + <kbd>Enter</kbd>                    | Focus on the text editor                                      |
-| <kbd>Command</kbd> + <kbd>L</kbd> (macOS)             | Focus on the text editor                                      |
+| <kbd>Ctrl</kbd> + <kbd>L</kbd> (macOS)             | Focus on the text editor                                      |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd>     | Toggle full screen mode                                       |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>K</kbd>     | Toggle kanban view                                            |
 | <kbd>F11</kbd>                                        | Toggle full screen mode                                       |
