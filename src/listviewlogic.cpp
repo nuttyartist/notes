@@ -189,6 +189,9 @@ void ListViewLogic::deleteNoteRequested(const NodeData &note)
 
 void ListViewLogic::selectNoteUp()
 {
+    // Ensure the list view has focus
+    m_listView->setFocus();
+    
     auto currentIndex = m_listView->currentIndex();
     if (currentIndex.isValid()) {
         int currentRow = currentIndex.row();
@@ -209,6 +212,9 @@ void ListViewLogic::selectNoteUp()
 
 void ListViewLogic::selectNoteDown()
 {
+    // Ensure the list view has focus
+    m_listView->setFocus();
+    
     auto currentIndex = m_listView->currentIndex();
     if (currentIndex.isValid()) {
         int currentRow = currentIndex.row();
