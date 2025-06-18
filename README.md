@@ -34,7 +34,7 @@ All keyboard shortcuts are [documented here](docs/keyboard_shortcuts.md).
 
 ## Pro Version
 
-To support our open source development you can purchase a [Pro Version license](https://notesapp.lemonsqueezy.com/checkout/buy/0e791d1e-9feb-4a67-b05a-f2f07f5c82ad?discount=0) that will allow you to edit inside the Kanban view and recieve free Pro version updates for a year. You can also donate money either through [Github Sponsors](https://github.com/sponsors/nuttyartist), or [Patreon](https://www.patreon.com/rubymamis), or put a bounty on specific issues using Bountysource. If you wish, you can access all Pro features at no cost by building the app from source. See "Building from source" below.
+To support our open source development you can purchase a [Pro Version license](https://notesapp.lemonsqueezy.com/checkout/buy/0e791d1e-9feb-4a67-b05a-f2f07f5c82ad?discount=0) that will allow you to edit inside the Kanban view and receive free Pro version updates for a year. You can also donate money either through [Github Sponsors](https://github.com/sponsors/nuttyartist), or [Patreon](https://www.patreon.com/rubymamis), or put a bounty on specific issues using Bountysource. If you wish, you can access all Pro features at no cost by building the app from source. See "Building from source" below.
 
 ## Building from source
 
