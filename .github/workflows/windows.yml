@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2019
+          - os: windows-2025
             qt-version: 6.4.3
             build-type: release
     outputs:
@@ -117,11 +117,11 @@ jobs:
                   # XXX: Hack to work around this issue: https://github.com/actions/runner-images/issues/10819
                   $env:VCToolsRedistDir = -join ($env:VCINSTALLDIR, "Redist\MSVC\", $env:VCToolsVersion, "\")
               }
-              Copy-Item $env:VCToolsRedistDir\x64\Microsoft.VC142.CRT\msvcp140.dll
-              Copy-Item $env:VCToolsRedistDir\x64\Microsoft.VC142.CRT\msvcp140_1.dll
-              Copy-Item $env:VCToolsRedistDir\x64\Microsoft.VC142.CRT\msvcp140_2.dll
-              Copy-Item $env:VCToolsRedistDir\x64\Microsoft.VC142.CRT\vcruntime140.dll
-              Copy-Item $env:VCToolsRedistDir\x64\Microsoft.VC142.CRT\vcruntime140_1.dll
+              Copy-Item $env:VCToolsRedistDir\x64\Microsoft.VC143.CRT\msvcp140.dll
+              Copy-Item $env:VCToolsRedistDir\x64\Microsoft.VC143.CRT\msvcp140_1.dll
+              Copy-Item $env:VCToolsRedistDir\x64\Microsoft.VC143.CRT\msvcp140_2.dll
+              Copy-Item $env:VCToolsRedistDir\x64\Microsoft.VC143.CRT\vcruntime140.dll
+              Copy-Item $env:VCToolsRedistDir\x64\Microsoft.VC143.CRT\vcruntime140_1.dll
           } else {
               # On debug builds, the libraries above are included automatically, so we only need 'urtcbased.dll'.
               Copy-Item $env:WindowsSdkBinPath\x64\ucrt\ucrtbased.dll
@@ -137,7 +137,7 @@ jobs:
   installer:
     name: Installer
     needs: build-aqtinstall
-    runs-on: windows-2019
+    runs-on: windows-2025
     steps:
       - name: Checkout code to grab the ISS script
         uses: actions/checkout@v4
@@ -158,6 +158,12 @@ jobs:
               Throw 'Could not find a x64 Qt 6 build.'
           }
           Move-Item $x64_build Notes64
+
+      - name: Install latest Inno Setup
+        run: |
+          winget install --id JRSoftware.InnoSetup --exact --silent --source winget
+          # Add to PATH
+          Add-Content $env:GITHUB_PATH "$env:LOCALAPPDATA\Programs\Inno Setup 6"
 
       - name: Create installer
         run: |
