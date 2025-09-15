@@ -66,8 +66,7 @@ MainWindow::MainWindow(QWidget *parent)
       m_treeModel(new NodeTreeModel(this)),
       m_treeViewLogic(nullptr),
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-      m_kanbanQuickView(nullptr),
-      m_kanbanWidget(this),
+      m_kanbanWidget(nullptr),
 #endif
       m_editorSettingsQuickView(nullptr),
       m_editorSettingsWidget(new QWidget(this)),
@@ -1205,11 +1204,11 @@ void MainWindow::setupKanbanView()
     // https://doc.qt.io/qt-6/qtquick-quickwidgets-qquickwidgetversuswindow-opengl-example.html
 
     QUrl source("qrc:/qt/qml/kanbanMain.qml");
-    m_kanbanQuickView.rootContext()->setContextProperty("noteEditorLogic", m_noteEditorLogic);
-    m_kanbanQuickView.rootContext()->setContextProperty("mainWindow", this);
-    m_kanbanQuickView.setSource(source);
-    m_kanbanQuickView.setResizeMode(QQuickView::SizeRootObjectToView);
-    m_kanbanWidget = QWidget::createWindowContainer(&m_kanbanQuickView, this);
+    m_kanbanWidget = new QQuickWidget(this);
+    m_kanbanWidget->rootContext()->setContextProperty("noteEditorLogic", m_noteEditorLogic);
+    m_kanbanWidget->rootContext()->setContextProperty("mainWindow", this);
+    m_kanbanWidget->setSource(source);
+    m_kanbanWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_kanbanWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     m_kanbanWidget->hide();
     m_ui->verticalLayout_textEdit->insertWidget(m_ui->verticalLayout_textEdit->indexOf(m_textEdit), m_kanbanWidget);
@@ -1626,7 +1625,7 @@ void MainWindow::setupModelView()
     m_treeViewLogic = new TreeViewLogic(m_treeView, m_treeModel, m_dbManager, m_listView, this);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
     m_noteEditorLogic = new NoteEditorLogic(m_textEdit, m_editorDateLabel, m_searchEdit, m_kanbanWidget, m_ui->tagListView, m_tagPool, m_dbManager, this);
-    m_kanbanQuickView.rootContext()->setContextProperty("noteEditorLogic", m_noteEditorLogic);
+    m_kanbanWidget->rootContext()->setContextProperty("noteEditorLogic", m_noteEditorLogic);
 #else
     m_noteEditorLogic = new NoteEditorLogic(m_textEdit, m_editorDateLabel, m_searchEdit, m_ui->tagListView, m_tagPool, m_dbManager, this);
 #endif

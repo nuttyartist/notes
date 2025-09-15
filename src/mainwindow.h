@@ -26,6 +26,7 @@
 #include <QtGlobal>
 #include <QWidget>
 #include <QQuickView>
+#include <QQuickWidget>
 #include <QQmlContext>
 #include <QVariant>
 #include <QJsonObject>
@@ -168,8 +169,7 @@ private:
     NodeTreeModel *m_treeModel;
     TreeViewLogic *m_treeViewLogic;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-    QQuickView m_kanbanQuickView;
-    QWidget *m_kanbanWidget;
+    QQuickWidget *m_kanbanWidget;
 #endif
     QQuickView m_editorSettingsQuickView;
     QWidget *m_editorSettingsWidget;
