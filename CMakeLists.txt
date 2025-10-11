@@ -68,6 +68,11 @@ if(NOT DEFINED QT_VERSION_MAJOR OR QT_VERSION_MAJOR LESS 6)
   message(STATUS "Could not find Qt 6, aborting compilation.")
 endif()
 
+# https://doc.qt.io/qt-6/whatsnew610.html#build-system-changes
+if(QT_VERSION VERSION_GREATER_EQUAL 6.10)
+  list(APPEND QT_COMPONENTS CorePrivate GuiPrivate WidgetsPrivate)
+endif()
+
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS ${QT_COMPONENTS})
 
 message(STATUS "Success! Configuration details:")
