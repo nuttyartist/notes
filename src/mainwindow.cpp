@@ -357,6 +357,10 @@ void MainWindow::setupMainWindow()
     flags = Qt::Window; // cppcheck-suppress redundantInitialization // false positive
 #  endif
     setWindowFlags(flags);
+#else
+#  if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+    setAttribute(Qt::WA_ContentsMarginsRespectsSafeArea, false);
+#  endif
 #endif
 
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
