@@ -59,7 +59,8 @@ set(QT_COMPONENTS
     Sql
     Test
     Widgets
-    Quick)
+    Quick
+    QuickWidgets)
 
 message(STATUS "Trying to find Qt 6...")
 find_package(QT NAMES Qt6 QUIET)
@@ -367,7 +368,8 @@ target_link_libraries(
          Qt${QT_VERSION_MAJOR}::Sql
          Qt${QT_VERSION_MAJOR}::Widgets
          Qt${QT_VERSION_MAJOR}::WidgetsPrivate
-         Qt${QT_VERSION_MAJOR}::Quick)
+         Qt${QT_VERSION_MAJOR}::Quick
+         Qt${QT_VERSION_MAJOR}::QuickWidgets)
 
 if(APPLE)
   set(COPYRIGHT_TEXT
