@@ -143,6 +143,7 @@ private:
     bool m_bCloseBtnQuit;
     bool m_bNativeSystemBtn;
     bool m_bIsCloseBtnEnabled, m_bIsMinBtnEnabled, m_bIsZoomBtnEnabled;
+    bool m_bInitialized;
 
     //===============================================
     // TODO

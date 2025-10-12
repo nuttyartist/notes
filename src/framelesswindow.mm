@@ -13,9 +13,9 @@ CFramelessWindow::CFramelessWindow(QWidget *parent)
       m_bIsCloseBtnEnabled(true),
       m_bIsMinBtnEnabled(true),
       m_bIsZoomBtnEnabled(true),
-      m_bTitleBarVisible(false)
+      m_bTitleBarVisible(false),
+      m_bInitialized(false)
 {
-    initUI();
 }
 
 @interface AppObserver : NSObject
@@ -237,6 +237,12 @@ void CFramelessWindow::hideEvent(QHideEvent *event)
 
 void CFramelessWindow::showEvent(QShowEvent *event)
 {
+    // Initialize the window styling on first show, when the native window is fully created
+    if (!m_bInitialized) {
+        m_bInitialized = true;
+        initUI();
+    }
+
     // FIXME: Figure out why this fails to trigger our AppObserver listener sometimes. :/
     [NSApp unhide:nil];
     QMainWindow::showEvent(event);
@@ -308,7 +314,7 @@ void CFramelessWindow::setTitlebarVisible(bool bTitlebarVisible)
 
     m_bTitleBarVisible = bTitlebarVisible;
     if (bTitlebarVisible) {
-        window.styleMask ^= NSWindowStyleMaskFullSizeContentView; // MAC_10_10及以上版本支持
+        window.styleMask &= ~NSWindowStyleMaskFullSizeContentView; // MAC_10_10及以上版本支持
     } else {
         window.styleMask |= NSWindowStyleMaskFullSizeContentView; // MAC_10_10及以上版本支持
     }
