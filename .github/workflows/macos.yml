@@ -25,7 +25,7 @@ jobs:
 
       - name: Install Qt 6 (homebrew)
         run: |
-          brew install ninja qt@6 
+          brew install qt@6
 
       - name: Setup CLang problem matcher
         # Technically, this action only supports GCC, but it seems to work well for Clang too.
@@ -96,7 +96,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          brew install create-dmg ninja
+          brew install create-dmg
 
       - name: Build (${{ matrix.build-type }})
         env:
