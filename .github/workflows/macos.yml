@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-13
+          - os: macos-15-intel
             build-type: debug
     steps:
       - name: Checkout code
@@ -25,7 +25,7 @@ jobs:
 
       - name: Install Qt 6 (homebrew)
         run: |
-          brew install ninja qt@6 
+          brew install qt@6
 
       - name: Setup CLang problem matcher
         # Technically, this action only supports GCC, but it seems to work well for Clang too.
@@ -36,7 +36,6 @@ jobs:
         env:
           VERBOSE: 1
         run: |
-          export CMAKE_BUILD_PARALLEL_LEVEL=$(sysctl -n hw.logicalcpu)
           cmake . --warn-uninitialized --warn-unused-vars \
               -G Ninja -B build \
               -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
@@ -53,7 +52,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-13
+          - os: macos-15-intel
             qt-version: 6.5.2
             build-type: release
     steps:
@@ -96,14 +95,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          brew install create-dmg ninja
+          brew install create-dmg
 
       - name: Build (${{ matrix.build-type }})
         env:
-          TARGET_ARCH: x86_64;arm64
           VERBOSE: 1
         run: |
-          export CMAKE_BUILD_PARALLEL_LEVEL=$(sysctl -n hw.logicalcpu)
           cmake . --warn-uninitialized --warn-unused-vars \
               -B build -G Ninja \
               -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \

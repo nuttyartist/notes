@@ -161,9 +161,12 @@ jobs:
 
       - name: Install latest Inno Setup
         run: |
-          winget install --id JRSoftware.InnoSetup --exact --silent --source winget
-          # Add to PATH
-          Add-Content $env:GITHUB_PATH "$env:LOCALAPPDATA\Programs\Inno Setup 6"
+          # Only installs if Inno Setup's Compiler (ISCC.exe) is not already in the PATH environment variable.
+          if (-Not (Get-Command ISCC -ErrorAction SilentlyContinue)) {
+              winget install --id JRSoftware.InnoSetup --exact --silent --source winget
+              # Add to PATH
+              Add-Content $env:GITHUB_PATH "$env:LOCALAPPDATA\Programs\Inno Setup 6"
+          }
 
       - name: Create installer
         run: |

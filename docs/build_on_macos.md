@@ -26,12 +26,6 @@ git clone https://github.com/nuttyartist/notes.git --recurse-submodules
 cd notes
 ```
 
-Optionally, if you want to dedicate all cores of your CPU to build Notes much faster, set this environment variable:
-
-```shell
-export CMAKE_BUILD_PARALLEL_LEVEL=$(sysctl -n hw.logicalcpu)
-```
-
 After that, we're ready to build Notes!
 
 Invoke CMake to configure and build the project into a folder called `build`, in [`Release` mode](https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html):
