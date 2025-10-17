@@ -36,7 +36,6 @@ jobs:
         env:
           VERBOSE: 1
         run: |
-          export CMAKE_BUILD_PARALLEL_LEVEL=$(sysctl -n hw.logicalcpu)
           cmake . --warn-uninitialized --warn-unused-vars \
               -G Ninja -B build \
               -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
@@ -102,7 +101,6 @@ jobs:
         env:
           VERBOSE: 1
         run: |
-          export CMAKE_BUILD_PARALLEL_LEVEL=$(sysctl -n hw.logicalcpu)
           cmake . --warn-uninitialized --warn-unused-vars \
               -B build -G Ninja \
               -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
