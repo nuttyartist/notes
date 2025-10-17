@@ -100,7 +100,6 @@ jobs:
 
       - name: Build (${{ matrix.build-type }})
         env:
-          TARGET_ARCH: x86_64;arm64
           VERBOSE: 1
         run: |
           export CMAKE_BUILD_PARALLEL_LEVEL=$(sysctl -n hw.logicalcpu)
