@@ -294,11 +294,11 @@ QTimeLine::State NoteListDelegate::animationState()
 void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     auto bufferSize = bufferSizeHint(option, index);
-    QPixmap buffer{ bufferSize };
+    QPixmap buffer = utils::makeDevicePixelRatioPixmap(bufferSize, m_view);
     buffer.fill(Qt::transparent);
     QPainter bufferPainter{ &buffer };
     bufferPainter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-    QRect bufferRect = buffer.rect();
+    QRect bufferRect{ QPoint{}, bufferSize };
     auto isPinned = index.data(NoteListModel::NoteIsPinned).toBool();
     auto const *model = static_cast<NoteListModel *>(m_view->model());
     if (model->hasPinnedNote() && model->isFirstPinnedNote(index) && static_cast<NoteListView *>(m_view)->isPinnedNotesCollapsed()) {
@@ -419,7 +419,7 @@ void NoteListDelegate::paintLabels(QPainter *painter, const QStyleOptionViewItem
 {
     if (m_animatedIndexes.contains(index)) {
         auto bufferSize = bufferSizeHint(option, index);
-        QPixmap buffer{ bufferSize };
+        QPixmap buffer = utils::makeDevicePixelRatioPixmap(bufferSize, m_view);
         buffer.fill(Qt::transparent);
         QPainter bufferPainter{ &buffer };
         bufferPainter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
