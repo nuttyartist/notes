@@ -139,7 +139,7 @@ void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOpti
     buffer.fill(Qt::transparent);
     QPainter bufferPainter{ &buffer };
     bufferPainter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-    QRect bufferRect{ QPoint{}, bufferSize };
+    QRect bufferRect{ QPoint{ }, bufferSize };
     auto const *noteListModel = static_cast<NoteListModel *>(m_view->model());
     if (noteListModel->hasPinnedNote() && (noteListModel->isFirstPinnedNote(index) || noteListModel->isFirstUnpinnedNote(index))) {
         int fifthYOffset = 0;

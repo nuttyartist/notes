@@ -298,7 +298,7 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
     buffer.fill(Qt::transparent);
     QPainter bufferPainter{ &buffer };
     bufferPainter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-    QRect bufferRect{ QPoint{}, bufferSize };
+    QRect bufferRect{ QPoint{ }, bufferSize };
     auto isPinned = index.data(NoteListModel::NoteIsPinned).toBool();
     auto const *model = static_cast<NoteListModel *>(m_view->model());
     if (model->hasPinnedNote() && model->isFirstPinnedNote(index) && static_cast<NoteListView *>(m_view)->isPinnedNotesCollapsed()) {
