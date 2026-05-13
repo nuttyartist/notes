@@ -235,20 +235,20 @@ void NoteListDelegateEditor::paintLabels(QPainter *painter, const QStyleOptionVi
     QString title{ index.data(NoteListModel::NoteFullTitle).toString() };
     QFont titleFont = m_view->selectionModel()->isSelected(index) ? m_titleSelectedFont : m_titleFont;
     QFontMetrics fmTitle(titleFont);
-    QRect fmRectTitle = fmTitle.boundingRect(title);
+    const int titleLineHeight = fmTitle.height();
 
     QString date = utils::parseDateTime(index.data(NoteListModel::NoteLastModificationDateTime).toDateTime());
     QFontMetrics fmDate(m_dateFont);
-    QRect fmRectDate = fmDate.boundingRect(date);
+    const int dateLineHeight = fmDate.height();
 
     QString parentName{ index.data(NoteListModel::NoteParentName).toString() };
     QFontMetrics fmParentName(titleFont);
-    QRect fmRectParentName = fmParentName.boundingRect(parentName);
+    const int parentNameLineHeight = fmParentName.height();
 
     QString content{ index.data(NoteListModel::NoteContent).toString() };
     content = NoteEditorLogic::getSecondLine(content);
     QFontMetrics fmContent(titleFont);
-    QRect fmRectContent = fmContent.boundingRect(content);
+    const int contentLineHeight = fmContent.height();
 
     double rowPosX = rect().x();
     double rowPosY = rect().y();
@@ -311,17 +311,17 @@ void NoteListDelegateEditor::paintLabels(QPainter *painter, const QStyleOptionVi
     double titleRectPosX = rowPosX + note_list_constants::LEFT_OFFSET_X;
     double titleRectPosY = rowPosY;
     double titleRectWidth = rowWidth - (2.0 * note_list_constants::LEFT_OFFSET_X);
-    double titleRectHeight = fmRectTitle.height() + note_list_constants::TOP_OFFSET_Y + yOffsets;
+    double titleRectHeight = titleLineHeight + note_list_constants::TOP_OFFSET_Y + yOffsets;
 
     double dateRectPosX = rowPosX + note_list_constants::LEFT_OFFSET_X;
-    double dateRectPosY = rowPosY + fmRectTitle.height() + note_list_constants::TOP_OFFSET_Y + yOffsets;
+    double dateRectPosY = rowPosY + titleLineHeight + note_list_constants::TOP_OFFSET_Y + yOffsets;
     double dateRectWidth = rowWidth - (2.0 * note_list_constants::LEFT_OFFSET_X);
-    double dateRectHeight = fmRectDate.height() + note_list_constants::TITLE_DATE_SPACE;
+    double dateRectHeight = dateLineHeight + note_list_constants::TITLE_DATE_SPACE;
 
     double contentRectPosX = rowPosX + note_list_constants::LEFT_OFFSET_X;
-    double contentRectPosY = rowPosY + fmRectTitle.height() + fmRectDate.height() + note_list_constants::TOP_OFFSET_Y + yOffsets;
+    double contentRectPosY = rowPosY + titleLineHeight + dateLineHeight + note_list_constants::TOP_OFFSET_Y + yOffsets;
     double contentRectWidth = rowWidth - (2.0 * note_list_constants::LEFT_OFFSET_X);
-    double contentRectHeight = fmRectContent.height() + note_list_constants::DATE_DESC_SPACE;
+    double contentRectHeight = contentLineHeight + note_list_constants::DATE_DESC_SPACE;
 
     double folderNameRectPosX = 0;
     double folderNameRectPosY = 0;
@@ -330,9 +330,9 @@ void NoteListDelegateEditor::paintLabels(QPainter *painter, const QStyleOptionVi
 
     if (m_delegate->isInAllNotes()) {
         folderNameRectPosX = rowPosX + note_list_constants::LEFT_OFFSET_X + 20;
-        folderNameRectPosY = rowPosY + fmRectContent.height() + fmRectTitle.height() + fmRectDate.height() + note_list_constants::TOP_OFFSET_Y + yOffsets;
+        folderNameRectPosY = rowPosY + contentLineHeight + titleLineHeight + dateLineHeight + note_list_constants::TOP_OFFSET_Y + yOffsets;
         folderNameRectWidth = rowWidth - 2.0 * note_list_constants::LEFT_OFFSET_X;
-        folderNameRectHeight = fmRectParentName.height() + note_list_constants::DESC_FOLDER_SPACE;
+        folderNameRectHeight = parentNameLineHeight + note_list_constants::DESC_FOLDER_SPACE;
     }
     auto drawStr = [painter](double posX, double posY, double width, double height, QColor color, const QFont &font, const QString &str) {
         QRectF rect(posX, posY, width, height);
