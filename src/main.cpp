@@ -8,9 +8,12 @@
 #include "singleinstance.h"
 #include <QApplication>
 #include <QFontDatabase>
+#include <QGuiApplication>
 
 int main(int argc, char *argv[])
 {
+    QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+
     QApplication app(argc, argv);
     // Set application information
     QApplication::setApplicationName("Notes");
