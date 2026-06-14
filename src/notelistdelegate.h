@@ -54,7 +54,7 @@ signals:
 
 private:
     int minimumContentHeight() const;
-    int minimumRowHeight(bool isInAllNotes) const;
+    int minimumRowHeight() const;
     void paintBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     void paintLabels(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     void paintSeparator(QPainter *painter, QRect rect, const QModelIndex &index) const;

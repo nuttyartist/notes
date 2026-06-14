@@ -98,10 +98,10 @@ int NoteListDelegate::minimumContentHeight() const
     return note_list_constants::TOP_OFFSET_Y + titleHeight + dateHeight + contentHeight + note_list_constants::DATE_DESC_SPACE;
 }
 
-int NoteListDelegate::minimumRowHeight(bool isInAllNotes) const
+int NoteListDelegate::minimumRowHeight() const
 {
     int result = minimumContentHeight() + note_list_constants::LAST_EL_SEP_SPACE;
-    if (isInAllNotes) {
+    if (m_isInAllNotes) {
         const int folderLineHeight = qMax(QFontMetrics(m_titleFont).height(), 16) + note_list_constants::DESC_FOLDER_SPACE;
         result += folderLineHeight;
     }
@@ -243,7 +243,7 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
     }
 
     int yOffsets = secondYOffset + thirdYOffset + fourthYOffset + fifthYOffset;
-    const int minimumHeight = minimumRowHeight(m_isInAllNotes) + yOffsets;
+    const int minimumHeight = minimumRowHeight() + yOffsets;
     if (m_isInAllNotes) {
         result.setHeight(result.height() - 2 + note_list_constants::LAST_EL_SEP_SPACE + yOffsets);
     } else {
@@ -299,7 +299,7 @@ QSize NoteListDelegate::bufferSizeHint(const QStyleOptionViewItem &option, const
     }
 
     int yOffsets = secondYOffset + thirdYOffset + fourthYOffset;
-    const int minimumHeight = minimumRowHeight(m_isInAllNotes) + yOffsets;
+    const int minimumHeight = minimumRowHeight() + yOffsets;
     if (m_isInAllNotes) {
         result.setHeight(result.height() - 2 + note_list_constants::LAST_EL_SEP_SPACE + yOffsets);
     } else {
