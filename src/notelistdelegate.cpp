@@ -89,6 +89,25 @@ NoteListDelegate::NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject
     });
 }
 
+int NoteListDelegate::minimumContentHeight() const
+{
+    const int titleHeight = qMax(QFontMetrics(m_titleFont).height(), QFontMetrics(m_titleSelectedFont).height());
+    const int dateHeight = QFontMetrics(m_dateFont).height();
+    const int contentHeight = titleHeight;
+
+    return note_list_constants::TOP_OFFSET_Y + titleHeight + dateHeight + contentHeight + note_list_constants::DATE_DESC_SPACE;
+}
+
+int NoteListDelegate::minimumRowHeight(bool isInAllNotes) const
+{
+    int result = minimumContentHeight() + note_list_constants::LAST_EL_SEP_SPACE;
+    if (isInAllNotes) {
+        const int folderLineHeight = qMax(QFontMetrics(m_titleFont).height(), 16) + note_list_constants::DESC_FOLDER_SPACE;
+        result += folderLineHeight;
+    }
+    return result;
+}
+
 void NoteListDelegate::setState(NoteListState NewState, QModelIndexList indexes)
 {
     if (animationState() != QTimeLine::NotRunning) {
@@ -224,11 +243,13 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
     }
 
     int yOffsets = secondYOffset + thirdYOffset + fourthYOffset + fifthYOffset;
+    const int minimumHeight = minimumRowHeight(m_isInAllNotes) + yOffsets;
     if (m_isInAllNotes) {
         result.setHeight(result.height() - 2 + note_list_constants::LAST_EL_SEP_SPACE + yOffsets);
     } else {
         result.setHeight(result.height() - 10 + note_list_constants::LAST_EL_SEP_SPACE + yOffsets);
     }
+    result.setHeight(qMax(result.height(), minimumHeight));
     return result;
 }
 
@@ -278,11 +299,13 @@ QSize NoteListDelegate::bufferSizeHint(const QStyleOptionViewItem &option, const
     }
 
     int yOffsets = secondYOffset + thirdYOffset + fourthYOffset;
+    const int minimumHeight = minimumRowHeight(m_isInAllNotes) + yOffsets;
     if (m_isInAllNotes) {
         result.setHeight(result.height() - 2 + note_list_constants::LAST_EL_SEP_SPACE + yOffsets);
     } else {
         result.setHeight(result.height() - 10 + note_list_constants::LAST_EL_SEP_SPACE + yOffsets);
     }
+    result.setHeight(qMax(result.height(), minimumHeight));
     return result;
 }
 
