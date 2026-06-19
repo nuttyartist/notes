@@ -334,7 +334,16 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
     QRect bufferRect = buffer.rect();
     auto isPinned = index.data(NoteListModel::NoteIsPinned).toBool();
     auto const *model = static_cast<NoteListModel *>(m_view->model());
-    if (model->hasPinnedNote() && model->isFirstPinnedNote(index) && static_cast<NoteListView *>(m_view)->isPinnedNotesCollapsed()) {
+    const bool isCollapsedPinnedHeader = m_view->isPinnedNotesCollapsed() && model->isFirstPinnedNote(index);
+    const int headerOffset = sectionHeaderHeight(index, *model);
+    if (headerOffset > 0 && !isCollapsedPinnedHeader) {
+        int fifthYOffset = 0;
+        if (!m_view->isPinnedNotesCollapsed() && model->isFirstUnpinnedNote(index)) {
+            fifthYOffset = note_list_constants::LAST_PINNED_TO_UNPINNED_HEADER;
+        }
+        bufferRect.setY(bufferRect.y() + headerOffset + fifthYOffset);
+    }
+    if (model->hasPinnedNote() && isCollapsedPinnedHeader) {
         bufferPainter.fillRect(bufferRect, QBrush(m_defaultColor));
     } else if ((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
         if (qApp->applicationState() == Qt::ApplicationActive) {
