@@ -36,6 +36,7 @@ public:
     Theme::Value theme() const;
     void setIsInAllNotes(bool newIsInAllNotes);
     bool isInAllNotes() const;
+    static int sectionHeaderHeight(const QModelIndex &index, const NoteListModel &model);
     void clearSizeMap();
 
 public slots:
