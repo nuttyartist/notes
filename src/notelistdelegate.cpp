@@ -117,6 +117,17 @@ int NoteListDelegate::sectionHeaderHeight(const QModelIndex &index, const NoteLi
     return 0;
 }
 
+// Extra vertical gap inserted above the first unpinned note so it clears the
+// pinned section. Used by sizeHint() (row height) and paintLabels() (header/body
+// positions) so the row rect and the drawn content agree on where the body starts.
+int NoteListDelegate::firstUnpinnedGap(const QModelIndex &index, const NoteListModel &model) const
+{
+    if (model.hasPinnedNote() && !m_view->isPinnedNotesCollapsed() && model.isFirstUnpinnedNote(index)) {
+        return note_list_constants::LAST_PINNED_TO_UNPINNED_HEADER;
+    }
+    return 0;
+}
+
 void NoteListDelegate::setState(NoteListState NewState, QModelIndexList indexes)
 {
     if (animationState() != QTimeLine::NotRunning) {
@@ -245,10 +256,7 @@ QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
     if (noteListModel->isFirstUnpinnedNote(index)) {
         fourthYOffset = note_list_constants::UNPINNED_HEADER_TO_NOTE_SPACE;
     }
-    int fifthYOffset = 0;
-    if (noteListModel->hasPinnedNote() && !m_view->isPinnedNotesCollapsed() && noteListModel->isFirstUnpinnedNote(index)) {
-        fifthYOffset = note_list_constants::LAST_PINNED_TO_UNPINNED_HEADER;
-    }
+    int fifthYOffset = firstUnpinnedGap(index, *noteListModel);
 
     int yOffsets = secondYOffset + thirdYOffset + fourthYOffset + fifthYOffset;
     const int minimumHeight = minimumRowHeight() + sectionHeaderHeight(index, *noteListModel) + yOffsets;
@@ -308,8 +316,11 @@ QSize NoteListDelegate::bufferSizeHint(const QStyleOptionViewItem &option, const
         fourthYOffset = note_list_constants::UNPINNED_HEADER_TO_NOTE_SPACE;
     }
 
+    // The buffer is body-only: unlike sizeHint() it intentionally excludes the
+    // section header and the first-unpinned gap, because it is drawn bottom-aligned
+    // into the row. The floor is therefore the body minimum only (no header term).
     int yOffsets = secondYOffset + thirdYOffset + fourthYOffset;
-    const int minimumHeight = minimumRowHeight() + sectionHeaderHeight(index, *noteListModel) + yOffsets;
+    const int minimumHeight = minimumRowHeight() + yOffsets;
     if (m_isInAllNotes) {
         result.setHeight(result.height() - 2 + note_list_constants::LAST_EL_SEP_SPACE + yOffsets);
     } else {
@@ -334,15 +345,13 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
     QRect bufferRect = buffer.rect();
     auto isPinned = index.data(NoteListModel::NoteIsPinned).toBool();
     auto const *model = static_cast<NoteListModel *>(m_view->model());
+    // The buffer holds only the note body (bufferSizeHint() excludes the section
+    // header and the first-unpinned gap). It is drawn bottom-aligned into the row
+    // by the drawPixmap() calls below, so the header/gap space at the top of the
+    // row is reserved automatically. The buffer must NOT be shifted or grown here
+    // to make room for it, or the header offset is counted twice and the first
+    // unpinned row's background/body drifts down.
     const bool isCollapsedPinnedHeader = m_view->isPinnedNotesCollapsed() && model->isFirstPinnedNote(index);
-    const int headerOffset = sectionHeaderHeight(index, *model);
-    if (headerOffset > 0 && !isCollapsedPinnedHeader) {
-        int fifthYOffset = 0;
-        if (!m_view->isPinnedNotesCollapsed() && model->isFirstUnpinnedNote(index)) {
-            fifthYOffset = note_list_constants::LAST_PINNED_TO_UNPINNED_HEADER;
-        }
-        bufferRect.setY(bufferRect.y() + headerOffset + fifthYOffset);
-    }
     if (model->hasPinnedNote() && isCollapsedPinnedHeader) {
         bufferPainter.fillRect(bufferRect, QBrush(m_defaultColor));
     } else if ((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
@@ -507,10 +516,7 @@ void NoteListDelegate::paintLabels(QPainter *painter, const QStyleOptionViewItem
             fourthYOffset = note_list_constants::UNPINNED_HEADER_TO_NOTE_SPACE;
         }
 
-        int fifthYOffset = 0;
-        if (noteListModel->hasPinnedNote() && !m_view->isPinnedNotesCollapsed() && noteListModel->isFirstUnpinnedNote(index)) {
-            fifthYOffset = note_list_constants::LAST_PINNED_TO_UNPINNED_HEADER;
-        }
+        int fifthYOffset = firstUnpinnedGap(index, *noteListModel);
 
         int yOffsets = secondYOffset + thirdYOffset + fourthYOffset + fifthYOffset;
         double titleRectPosX = rowPosX + note_list_constants::LEFT_OFFSET_X;
@@ -639,10 +645,7 @@ void NoteListDelegate::paintLabels(QPainter *painter, const QStyleOptionViewItem
         double rowPosX = option.rect.x();
         double rowPosY = option.rect.y();
         auto const *noteListModel = static_cast<NoteListModel *>(m_view->model());
-        int fifthYOffset = 0;
-        if (noteListModel->hasPinnedNote() && !m_view->isPinnedNotesCollapsed() && noteListModel->isFirstUnpinnedNote(index)) {
-            fifthYOffset = note_list_constants::LAST_PINNED_TO_UNPINNED_HEADER;
-        }
+        int fifthYOffset = firstUnpinnedGap(index, *noteListModel);
 
         if (noteListModel->isFirstPinnedNote(index)) {
             QRect headerRect(rowPosX + (note_list_constants::LEFT_OFFSET_X / 2), rowPosY, option.rect.width() - (note_list_constants::LEFT_OFFSET_X / 2),
