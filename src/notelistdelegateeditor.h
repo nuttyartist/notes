@@ -18,6 +18,7 @@ auto constexpr TITLE_DATE_SPACE = 2; // space between title and date
 auto constexpr DATE_DESC_SPACE = 5; // space between date and description
 auto constexpr DESC_FOLDER_SPACE = 14; // space between description and folder name
 auto constexpr LAST_EL_SEP_SPACE = 12; // space between the last element and the separator
+auto constexpr SECTION_HEADER_HEIGHT = 25;
 auto constexpr NEXT_NOTE_OFFSET = 0; // space between the separator and the next note underneath it
 auto constexpr PINNED_HEADER_TO_NOTE_SPACE = 0; // space between Pinned label to the pinned list
 auto constexpr UNPINNED_HEADER_TO_NOTE_SPACE = 0; // space between Notes label and the normal notes list
@@ -47,6 +48,9 @@ signals:
     void nearDestroyed(int id, const QModelIndex &index);
 
 private:
+    int minimumContentHeight() const;
+    int minimumRowHeight() const;
+    int tagListTop(const QModelIndex &index) const;
     void paintBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     void paintLabels(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     void paintSeparator(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;

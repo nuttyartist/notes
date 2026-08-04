@@ -36,6 +36,7 @@ public:
     Theme::Value theme() const;
     void setIsInAllNotes(bool newIsInAllNotes);
     bool isInAllNotes() const;
+    static int sectionHeaderHeight(const QModelIndex &index, const NoteListModel &model);
     void clearSizeMap();
 
 public slots:
@@ -53,6 +54,9 @@ signals:
     void animationFinished(NoteListState animationState);
 
 private:
+    int minimumContentHeight() const;
+    int minimumRowHeight() const;
+    int firstUnpinnedGap(const QModelIndex &index, const NoteListModel &model) const;
     void paintBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     void paintLabels(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     void paintSeparator(QPainter *painter, QRect rect, const QModelIndex &index) const;

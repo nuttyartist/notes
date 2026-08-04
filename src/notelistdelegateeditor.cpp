@@ -71,49 +71,7 @@ NoteListDelegateEditor::NoteListDelegateEditor(const NoteListDelegate *delegate,
     m_tagListView->setItemDelegate(m_tagListDelegate);
     m_tagListModel->setTagPool(tagPool);
     m_tagListModel->setModelData(index.data(NoteListModel::NoteTagsList).value<QSet<int>>());
-    if (m_delegate->isInAllNotes()) {
-        int y = 90;
-        auto const *noteListModel = static_cast<NoteListModel *>(m_view->model());
-        if (noteListModel != nullptr) {
-            auto idx = noteListModel->getNoteIndex(m_id);
-            if (noteListModel->hasPinnedNote() && (noteListModel->isFirstPinnedNote(idx) || noteListModel->isFirstUnpinnedNote(idx))) {
-                y += 25;
-            }
-        }
-        int fourthYOffset = 0;
-        if ((noteListModel != nullptr) && noteListModel->isFirstUnpinnedNote(index)) {
-            fourthYOffset = note_list_constants::UNPINNED_HEADER_TO_NOTE_SPACE;
-        }
-        int fifthYOffset = 0;
-        if ((noteListModel != nullptr) && noteListModel->hasPinnedNote() && !m_view->isPinnedNotesCollapsed() && noteListModel->isFirstUnpinnedNote(index)) {
-            fifthYOffset = note_list_constants::LAST_PINNED_TO_UNPINNED_HEADER;
-        }
-        int yOffsets = fourthYOffset + fifthYOffset;
-
-        y += yOffsets;
-        m_tagListView->setGeometry(10, y - 5, rect().width() - 15, m_tagListView->height());
-    } else {
-        int y = 70;
-        auto const *noteListModel = static_cast<NoteListModel *>(m_view->model());
-        if (noteListModel != nullptr) {
-            auto idx = noteListModel->getNoteIndex(m_id);
-            if (noteListModel->hasPinnedNote() && (noteListModel->isFirstPinnedNote(idx) || noteListModel->isFirstUnpinnedNote(idx))) {
-                y += 25;
-            }
-        }
-        int fourthYOffset = 0;
-        if ((noteListModel != nullptr) && noteListModel->isFirstUnpinnedNote(index)) {
-            fourthYOffset = note_list_constants::UNPINNED_HEADER_TO_NOTE_SPACE;
-        }
-        int fifthYOffset = 0;
-        if ((noteListModel != nullptr) && noteListModel->hasPinnedNote() && !m_view->isPinnedNotesCollapsed() && noteListModel->isFirstUnpinnedNote(index)) {
-            fifthYOffset = note_list_constants::LAST_PINNED_TO_UNPINNED_HEADER;
-        }
-        int yOffsets = fourthYOffset + fifthYOffset;
-
-        y += yOffsets;
-        m_tagListView->setGeometry(10, y - 5, rect().width() - 15, m_tagListView->height());
-    }
+    m_tagListView->setGeometry(10, tagListTop(index) - 5, rect().width() - 15, m_tagListView->height());
     connect(m_tagListView->verticalScrollBar(), &QScrollBar::valueChanged, this, [this] {
         auto idx = static_cast<NoteListModel *>(m_view->model())->getNoteIndex(m_id);
         static_cast<NoteListModel *>(m_view->model())->setData(idx, getScrollBarPos(), NoteListModel::NoteTagListScrollbarPos);
@@ -125,6 +83,46 @@ NoteListDelegateEditor::NoteListDelegateEditor(const NoteListDelegate *delegate,
     m_view->setEditorWidget(m_id, this);
     setMouseTracking(true);
     setAcceptDrops(true);
+}
+
+int NoteListDelegateEditor::minimumContentHeight() const
+{
+    const int titleHeight = qMax(QFontMetrics(m_titleFont).height(), QFontMetrics(m_titleSelectedFont).height());
+    const int dateHeight = QFontMetrics(m_dateFont).height();
+    const int contentHeight = titleHeight;
+
+    return note_list_constants::TOP_OFFSET_Y + titleHeight + dateHeight + contentHeight + note_list_constants::DATE_DESC_SPACE;
+}
+
+int NoteListDelegateEditor::minimumRowHeight() const
+{
+    int result = minimumContentHeight() + note_list_constants::LAST_EL_SEP_SPACE;
+    if (m_delegate->isInAllNotes()) {
+        const int folderLineHeight = qMax(QFontMetrics(m_titleFont).height(), 16) + note_list_constants::DESC_FOLDER_SPACE;
+        result += folderLineHeight;
+    }
+    return result;
+}
+
+int NoteListDelegateEditor::tagListTop(const QModelIndex &index) const
+{
+    int top = minimumContentHeight();
+    if (m_delegate->isInAllNotes()) {
+        top += qMax(QFontMetrics(m_titleFont).height(), 16) + note_list_constants::DESC_FOLDER_SPACE;
+    }
+
+    auto const *noteListModel = static_cast<NoteListModel *>(m_view->model());
+    if (noteListModel != nullptr) {
+        top += NoteListDelegate::sectionHeaderHeight(index, *noteListModel);
+        if (noteListModel->isFirstUnpinnedNote(index)) {
+            top += note_list_constants::UNPINNED_HEADER_TO_NOTE_SPACE;
+        }
+        if (noteListModel->hasPinnedNote() && !m_view->isPinnedNotesCollapsed() && noteListModel->isFirstUnpinnedNote(index)) {
+            top += note_list_constants::LAST_PINNED_TO_UNPINNED_HEADER;
+        }
+    }
+
+    return top;
 }
 
 NoteListDelegateEditor::~NoteListDelegateEditor()
@@ -146,7 +144,7 @@ void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOpti
         if (!m_view->isPinnedNotesCollapsed() && noteListModel->isFirstUnpinnedNote(index)) {
             fifthYOffset = note_list_constants::LAST_PINNED_TO_UNPINNED_HEADER;
         }
-        bufferRect.setY(bufferRect.y() + 25 + fifthYOffset);
+        bufferRect.setY(bufferRect.y() + note_list_constants::SECTION_HEADER_HEIGHT + fifthYOffset);
     }
     auto isPinned = index.data(NoteListModel::NoteIsPinned).toBool();
     if (m_view->selectionModel()->isSelected(index)) {
@@ -260,7 +258,8 @@ void NoteListDelegateEditor::paintLabels(QPainter *painter, const QStyleOptionVi
     }
     if (noteListModel->hasPinnedNote()) {
         if (noteListModel->isFirstPinnedNote(index)) {
-            QRect headerRect(rowPosX + (note_list_constants::LEFT_OFFSET_X / 2), rowPosY, rowWidth - (note_list_constants::LEFT_OFFSET_X / 2), 25);
+            QRect headerRect(rowPosX + (note_list_constants::LEFT_OFFSET_X / 2), rowPosY, rowWidth - (note_list_constants::LEFT_OFFSET_X / 2),
+                             note_list_constants::SECTION_HEADER_HEIGHT);
 #ifdef __APPLE__
             int iconPointSizeOffset = 0;
 #else
@@ -278,14 +277,15 @@ void NoteListDelegateEditor::paintLabels(QPainter *painter, const QStyleOptionVi
             painter->setPen(m_contentColor);
             painter->setFont(m_headerFont);
             painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Pinned");
-            rowPosY += 25;
+            rowPosY += note_list_constants::SECTION_HEADER_HEIGHT;
         } else if (noteListModel->isFirstUnpinnedNote(index)) {
             rowPosY += fifthYOffset;
-            QRect headerRect(rowPosX + (note_list_constants::LEFT_OFFSET_X / 2), rowPosY, rowWidth - (note_list_constants::LEFT_OFFSET_X / 2), 25);
+            QRect headerRect(rowPosX + (note_list_constants::LEFT_OFFSET_X / 2), rowPosY, rowWidth - (note_list_constants::LEFT_OFFSET_X / 2),
+                             note_list_constants::SECTION_HEADER_HEIGHT);
             painter->setPen(m_contentColor);
             painter->setFont(m_headerFont);
             painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Notes");
-            rowPosY += 25;
+            rowPosY += note_list_constants::SECTION_HEADER_HEIGHT;
         }
     }
     if (m_view->isPinnedNotesCollapsed()) {
@@ -402,46 +402,9 @@ void NoteListDelegateEditor::paintEvent(QPaintEvent *event)
 void NoteListDelegateEditor::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
-    if (m_delegate->isInAllNotes()) {
-        int y = 90;
-        auto const *noteListModel = static_cast<NoteListModel *>(m_view->model());
-        auto const idx = noteListModel->getNoteIndex(m_id);
-        if (noteListModel->hasPinnedNote() && (noteListModel->isFirstPinnedNote(idx) || noteListModel->isFirstUnpinnedNote(idx))) {
-            y += 25;
-        }
-        int fourthYOffset = 0;
-        if (noteListModel->isFirstUnpinnedNote(idx)) {
-            fourthYOffset = note_list_constants::UNPINNED_HEADER_TO_NOTE_SPACE;
-        }
-        int fifthYOffset = 0;
-        if (noteListModel->hasPinnedNote() && !m_view->isPinnedNotesCollapsed() && noteListModel->isFirstUnpinnedNote(idx)) {
-            fifthYOffset = note_list_constants::LAST_PINNED_TO_UNPINNED_HEADER;
-        }
-        int yOffsets = fourthYOffset + fifthYOffset;
-        y += yOffsets;
-
-        m_tagListView->setGeometry(note_list_constants::LEFT_OFFSET_X - 5, y + 5, rect().width() - 15, m_tagListView->height());
-    } else {
-        int y = 70;
-        auto const *noteListModel = static_cast<NoteListModel *>(m_view->model());
-        auto const idx = noteListModel->getNoteIndex(m_id);
-        if (noteListModel->hasPinnedNote() && (noteListModel->isFirstPinnedNote(idx) || noteListModel->isFirstUnpinnedNote(idx))) {
-            y += 25;
-        }
-        int fourthYOffset = 0;
-        if (noteListModel->isFirstUnpinnedNote(idx)) {
-            fourthYOffset = note_list_constants::UNPINNED_HEADER_TO_NOTE_SPACE;
-        }
-        int fifthYOffset = 0;
-        if (noteListModel->hasPinnedNote() && !m_view->isPinnedNotesCollapsed() && noteListModel->isFirstUnpinnedNote(idx)) {
-            fifthYOffset = note_list_constants::LAST_PINNED_TO_UNPINNED_HEADER;
-        }
-        int yOffsets = fourthYOffset + fifthYOffset;
-
-        y += yOffsets;
-
-        m_tagListView->setGeometry(note_list_constants::LEFT_OFFSET_X - 5, y, rect().width() - 15, m_tagListView->height());
-    }
+    auto const *noteListModel = static_cast<NoteListModel *>(m_view->model());
+    auto const idx = noteListModel->getNoteIndex(m_id);
+    m_tagListView->setGeometry(note_list_constants::LEFT_OFFSET_X - 5, tagListTop(idx), rect().width() - 15, m_tagListView->height());
     recalculateSize();
 }
 
@@ -498,13 +461,13 @@ void NoteListDelegateEditor::recalculateSize()
     auto const *noteListModel = static_cast<NoteListModel *>(m_view->model());
     auto idx = noteListModel->getNoteIndex(m_id);
     if (noteListModel->hasPinnedNote() && (noteListModel->isFirstPinnedNote(idx) || noteListModel->isFirstUnpinnedNote(idx))) {
-        result.setHeight(result.height() + 25);
+        result.setHeight(result.height() + note_list_constants::SECTION_HEADER_HEIGHT);
     }
     if (noteListModel->hasPinnedNote() && m_view->isPinnedNotesCollapsed()) {
         auto isPinned = idx.data(NoteListModel::NoteIsPinned).value<bool>();
         if (isPinned) {
             if (noteListModel->isFirstPinnedNote(idx)) {
-                result.setHeight(25);
+                result.setHeight(note_list_constants::SECTION_HEADER_HEIGHT);
             } else {
                 result.setHeight(0);
             }
@@ -536,6 +499,8 @@ void NoteListDelegateEditor::recalculateSize()
     } else {
         result.setHeight(result.height() - 10 + note_list_constants::LAST_EL_SEP_SPACE + yOffsets);
     }
+    const int minimumHeight = minimumRowHeight() + NoteListDelegate::sectionHeaderHeight(idx, *noteListModel) + m_tagListView->height() + 2 + yOffsets;
+    result.setHeight(qMax(result.height(), minimumHeight));
     emit updateSizeHint(m_id, result, idx);
 }
 
