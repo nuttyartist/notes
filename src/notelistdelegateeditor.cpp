@@ -110,6 +110,7 @@ int NoteListDelegateEditor::tagListTop(const QModelIndex &index) const
     if (m_delegate->isInAllNotes()) {
         top += qMax(QFontMetrics(m_titleFont).height(), 16) + note_list_constants::DESC_FOLDER_SPACE;
     }
+    top += note_list_constants::DESC_TAGS_SPACE;
 
     auto const *noteListModel = static_cast<NoteListModel *>(m_view->model());
     if (noteListModel != nullptr) {
@@ -499,7 +500,8 @@ void NoteListDelegateEditor::recalculateSize()
     } else {
         result.setHeight(result.height() - 10 + note_list_constants::LAST_EL_SEP_SPACE + yOffsets);
     }
-    const int minimumHeight = minimumRowHeight() + NoteListDelegate::sectionHeaderHeight(idx, *noteListModel) + m_tagListView->height() + 2 + yOffsets;
+    const int minimumHeight = minimumRowHeight() + NoteListDelegate::sectionHeaderHeight(idx, *noteListModel) + note_list_constants::DESC_TAGS_SPACE
+            + m_tagListView->height() + 2 + yOffsets;
     result.setHeight(qMax(result.height(), minimumHeight));
     emit updateSizeHint(m_id, result, idx);
 }
