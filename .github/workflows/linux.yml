@@ -236,12 +236,14 @@ jobs:
       - name: (FIXME) Run qmllint
         run: docker run --rm -v "$(pwd):/src" --entrypoint '' -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' cmake --build build --target all_qmllint || true
 
-      - name: Upload AppImage artifact
+      - name: Upload AppImage and zsync artifacts
         uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
           name: ${{ steps.build.outputs.artifact_name }}-${{ runner.os }}-${{ matrix.build-type }}
-          path: ${{ steps.build.outputs.appimage_path }}
+          path: |
+            ${{ steps.build.outputs.appimage_path }}
+            ${{ steps.build.outputs.zsync_path }}
 
       - name: Login to GitHub Container Registry
         if: ${{ steps.docker_image.outputs.needs_rebuild == 'true' && github.repository == 'nuttyartist/notes' && github.event_name != 'pull_request' && github.ref_name == 'master' }}

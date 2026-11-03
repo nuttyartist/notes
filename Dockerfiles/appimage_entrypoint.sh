@@ -129,17 +129,42 @@ if [[ "${GIT_REVISION}" == 'ON' ]]; then
   app_version="${app_version}+g$(git rev-parse --short HEAD)"
 fi
 shopt -u nocasematch
-artifact_name="Notes_${app_version}-Qt${QT_VERSION}-$(arch)"
+appimage_arch="$(arch)"
+artifact_name="Notes_${app_version}-Qt${QT_VERSION}-${appimage_arch}"
 appimage_name="${artifact_name}.AppImage"
+appimage_path="${BUILD_DIR}/${appimage_name}"
+zsync_path="${appimage_path}.zsync"
+
+# Keep Qt variants and architectures on their own stable update channels.
+export LDAI_UPDATE_INFORMATION="${LDAI_UPDATE_INFORMATION:-${UPDATE_INFORMATION:-gh-releases-zsync|nuttyartist|notes|latest|Notes_*-Qt${QT_VERSION%%.*}.*-${appimage_arch}.AppImage.zsync}}"
+# Older versions of linuxdeploy's AppImage plugin use this variable instead.
+export UPDATE_INFORMATION="${LDAI_UPDATE_INFORMATION}"
+
+# A previous build must not hide a missing output from this packaging run.
+rm -f -- "${appimage_path}" "${zsync_path}"
 
 msg 'Running linuxdeploy (final run)...'
 export LINUXDEPLOY_OUTPUT_VERSION="${app_version}"
 export OUTPUT="${appimage_name}"
 (cd "${BUILD_DIR}" && linuxdeploy ${LINUXDEPLOY_FINAL_OPTIONS})
 
+for artifact_path in "${appimage_path}" "${zsync_path}"; do
+  if [ ! -s "${artifact_path}" ]; then
+    msg "Fatal: Packaging did not produce '${artifact_path}'."
+    exit 1
+  fi
+done
+
+msg 'Verifying embedded AppImage update information...'
+if ! readelf --string-dump=.upd_info "${appimage_path}" | sed -n 's/^ *\[[^]]*\] *//p' | grep -Fxq -- "${LDAI_UPDATE_INFORMATION}"; then
+  msg 'Fatal: AppImage update information is missing or does not match the configured update channel.'
+  exit 1
+fi
+
 # Needed for GitHub Actions.
 if [ -f /GITHUB_OUTPUT ]; then
   msg "Note: File '/GITHUB_OUTPUT' exists, assuming we're running on GitHub Actions."
   echo "artifact_name=${artifact_name}" >>'/GITHUB_OUTPUT'
-  echo "appimage_path=${BUILD_DIR}/${appimage_name}" >>'/GITHUB_OUTPUT'
+  echo "appimage_path=${appimage_path}" >>'/GITHUB_OUTPUT'
+  echo "zsync_path=${zsync_path}" >>'/GITHUB_OUTPUT'
 fi
