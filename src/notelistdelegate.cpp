@@ -84,9 +84,64 @@ NoteListDelegate::NoteListDelegate(NoteListView *view, TagPool *tagPool, QObject
             setStateI(a.second, indexes);
         } else {
             m_animatedIndexes.clear();
+            m_animationHeights.clear();
             m_state = NoteListState::Normal;
         }
     });
+}
+
+int NoteListDelegate::minimumContentHeight() const
+{
+    const int titleHeight = qMax(QFontMetrics(m_titleFont).height(), QFontMetrics(m_titleSelectedFont).height());
+    const int dateHeight = QFontMetrics(m_dateFont).height();
+    const int contentHeight = titleHeight;
+
+    return note_list_constants::TOP_OFFSET_Y + titleHeight + dateHeight + contentHeight + note_list_constants::DATE_DESC_SPACE;
+}
+
+int NoteListDelegate::folderLineHeight() const
+{
+    if (!m_isInAllNotes) {
+        return 0;
+    }
+    return qMax(QFontMetrics(m_titleFont).height(), 16) + note_list_constants::DESC_FOLDER_SPACE;
+}
+
+int NoteListDelegate::minimumRowHeight() const
+{
+    return minimumContentHeight() + folderLineHeight() + note_list_constants::LAST_EL_SEP_SPACE;
+}
+
+int NoteListDelegate::sectionHeaderHeight(const QModelIndex &index, const NoteListModel &model)
+{
+    if (model.hasPinnedNote() && (model.isFirstPinnedNote(index) || model.isFirstUnpinnedNote(index))) {
+        return note_list_constants::SECTION_HEADER_HEIGHT;
+    }
+
+    return 0;
+}
+
+// Extra vertical gap inserted above the first unpinned note so it clears the
+// pinned section. Used by sizeHint() (row height), paintLabels() (header/body
+// positions) and NoteListDelegateEditor so the row rect and the drawn content
+// agree on where the body starts.
+int NoteListDelegate::firstUnpinnedGap(const QModelIndex &index, const NoteListModel &model) const
+{
+    if (model.hasPinnedNote() && !m_view->isPinnedNotesCollapsed() && model.isFirstUnpinnedNote(index)) {
+        return note_list_constants::LAST_PINNED_TO_UNPINNED_HEADER;
+    }
+    return 0;
+}
+
+int NoteListDelegate::bodyTopOffset(const QModelIndex &index, const NoteListModel &model) const
+{
+    return sectionHeaderHeight(index, model) + firstUnpinnedGap(index, model);
+}
+
+int NoteListDelegate::animatedBodyHeight(int height) const
+{
+    const double rate = m_timeLine->currentFrame() / (m_maxFrame * 1.0);
+    return int(height * (m_state == NoteListState::MoveIn ? 1.0 - rate : rate));
 }
 
 void NoteListDelegate::setState(NoteListState NewState, QModelIndexList indexes)
@@ -132,103 +187,21 @@ void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     QStyleOptionViewItem opt = option;
     opt.rect.setWidth(option.rect.width() - m_rowRightOffset);
 
-    int currentFrame = m_timeLine->currentFrame();
-    double rate = (currentFrame / (m_maxFrame * 1.0));
-    double height = m_rowHeight * rate;
-
-    switch (m_state) {
-    case NoteListState::Insert:
-    case NoteListState::Remove:
-    case NoteListState::MoveOut:
-        if (m_animatedIndexes.contains(index)) {
-            opt.rect.setHeight(int(height));
-            opt.backgroundBrush.setColor(m_notActiveColor);
-        }
-        break;
-    case NoteListState::MoveIn:
-        break;
-    case NoteListState::Normal:
-        break;
-    }
-
     paintBackground(painter, opt, index);
     paintLabels(painter, option, index);
 }
 
 QSize NoteListDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    QSize result; // = QStyledItemDelegate::sizeHint(option, index);
-    result.setWidth(option.rect.width());
-    auto const *noteListModel = static_cast<NoteListModel *>(m_view->model());
-    const auto &note = noteListModel->getNote(index);
-
-    bool isHaveTags = !note.tagIds().empty();
-    if (m_view->isPersistentEditorOpen(index) && (!m_animatedIndexes.contains(index)) && isHaveTags) {
-        auto id = note.id();
-        if (m_sizeMap.contains(id)) {
-            result.setHeight(m_sizeMap[id].height());
-            return result;
-        }
+    QSize result = bufferSizeHint(option, index);
+    auto const *model = static_cast<NoteListModel *>(m_view->model());
+    if (m_view->isPinnedNotesCollapsed() && index.data(NoteListModel::NoteIsPinned).toBool()) {
+        return result;
     }
-    int rowHeight = 70;
-    if (isHaveTags) {
-        rowHeight = m_rowHeight;
+    if (m_animatedIndexes.contains(index) && m_state != NoteListState::MoveIn) {
+        result.setHeight(animatedBodyHeight(result.height()));
     }
-    if (m_animatedIndexes.contains(index)) {
-        if (m_state == NoteListState::MoveIn) {
-            result.setHeight(rowHeight);
-        } else {
-            double rate = m_timeLine->currentFrame() / (m_maxFrame * 1.0);
-            double height = rowHeight * rate;
-            result.setHeight(int(height));
-        }
-    } else {
-        result.setHeight(rowHeight);
-    }
-    if (m_isInAllNotes) {
-        result.setHeight(result.height() + 20);
-    }
-    if (m_view->isPinnedNotesCollapsed()) {
-        auto isPinned = note.isPinnedNote();
-        if (isPinned) {
-            if (noteListModel->isFirstPinnedNote(index)) {
-                result.setHeight(25);
-                return result;
-            }
-            result.setHeight(0);
-            return result;
-        }
-        if (noteListModel->hasPinnedNote() && noteListModel->isFirstUnpinnedNote(index)) {
-            result.setHeight(result.height() + 25);
-        }
-    } else {
-        if (noteListModel->hasPinnedNote() && (noteListModel->isFirstPinnedNote(index) || noteListModel->isFirstUnpinnedNote(index))) {
-            result.setHeight(result.height() + 25);
-        }
-    }
-    int secondYOffset = 0;
-    if (index.row() > 0) {
-        secondYOffset = note_list_constants::NEXT_NOTE_OFFSET;
-    }
-    int thirdYOffset = 0;
-    if (noteListModel->isFirstPinnedNote(index)) {
-        thirdYOffset = note_list_constants::PINNED_HEADER_TO_NOTE_SPACE;
-    }
-    int fourthYOffset = 0;
-    if (noteListModel->isFirstUnpinnedNote(index)) {
-        fourthYOffset = note_list_constants::UNPINNED_HEADER_TO_NOTE_SPACE;
-    }
-    int fifthYOffset = 0;
-    if (noteListModel->hasPinnedNote() && !m_view->isPinnedNotesCollapsed() && noteListModel->isFirstUnpinnedNote(index)) {
-        fifthYOffset = note_list_constants::LAST_PINNED_TO_UNPINNED_HEADER;
-    }
-
-    int yOffsets = secondYOffset + thirdYOffset + fourthYOffset + fifthYOffset;
-    if (m_isInAllNotes) {
-        result.setHeight(result.height() - 2 + note_list_constants::LAST_EL_SEP_SPACE + yOffsets);
-    } else {
-        result.setHeight(result.height() - 10 + note_list_constants::LAST_EL_SEP_SPACE + yOffsets);
-    }
+    result.setHeight(result.height() + bodyTopOffset(index, *model));
     return result;
 }
 
@@ -236,33 +209,24 @@ QSize NoteListDelegate::bufferSizeHint(const QStyleOptionViewItem &option, const
 {
     QSize result = QStyledItemDelegate::sizeHint(option, index);
     result.setWidth(option.rect.width());
-    auto id = index.data(NoteListModel::NoteID).toInt();
-    bool isHaveTags = !index.data(NoteListModel::NoteTagsList).value<QSet<int>>().empty();
-    if (m_view->isPersistentEditorOpen(index) && (!m_animatedIndexes.contains(index)) && isHaveTags) {
-        if (m_sizeMap.contains(id)) {
-            result.setHeight(m_sizeMap[id].height());
-            return result;
-        }
+    auto const *noteListModel = static_cast<NoteListModel *>(m_view->model());
+    if (m_view->isPinnedNotesCollapsed() && index.data(NoteListModel::NoteIsPinned).toBool()) {
+        result.setHeight(sectionHeaderHeight(index, *noteListModel));
+        return result;
     }
-    int rowHeight = 70;
-    if (isHaveTags) {
-        rowHeight = m_rowHeight;
+    const int id = index.data(NoteListModel::NoteID).toInt();
+    if (m_animatedIndexes.contains(index) && m_animationHeights.contains(id)) {
+        result.setHeight(m_animationHeights[id]);
+        return result;
     }
-    result.setHeight(rowHeight);
+    const bool isHaveTags = !index.data(NoteListModel::NoteTagsList).value<QSet<int>>().empty();
+    if (m_view->isPersistentEditorOpen(index) && isHaveTags && m_sizeMap.contains(id)) {
+        result.setHeight(m_sizeMap[id].height() - bodyTopOffset(index, *noteListModel));
+        return result;
+    }
+    result.setHeight(isHaveTags ? m_rowHeight : 70);
     if (m_isInAllNotes) {
         result.setHeight(result.height() + 20);
-    }
-    auto const *noteListModel = static_cast<NoteListModel *>(m_view->model());
-    if (m_view->isPinnedNotesCollapsed()) {
-        auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
-        if (isPinned) {
-            if (noteListModel->isFirstPinnedNote(index)) {
-                result.setHeight(25);
-                return result;
-            }
-            result.setHeight(0);
-            return result;
-        }
     }
     int secondYOffset = 0;
     if (index.row() > 0) {
@@ -277,12 +241,17 @@ QSize NoteListDelegate::bufferSizeHint(const QStyleOptionViewItem &option, const
         fourthYOffset = note_list_constants::UNPINNED_HEADER_TO_NOTE_SPACE;
     }
 
+    // The buffer is body-only: unlike sizeHint() it intentionally excludes the
+    // section header and the first-unpinned gap, because it is drawn bottom-aligned
+    // into the row. The floor is therefore the body minimum only (no header term).
     int yOffsets = secondYOffset + thirdYOffset + fourthYOffset;
+    const int minimumHeight = minimumRowHeight() + yOffsets;
     if (m_isInAllNotes) {
         result.setHeight(result.height() - 2 + note_list_constants::LAST_EL_SEP_SPACE + yOffsets);
     } else {
         result.setHeight(result.height() - 10 + note_list_constants::LAST_EL_SEP_SPACE + yOffsets);
     }
+    result.setHeight(qMax(result.height(), minimumHeight));
     return result;
 }
 
@@ -301,7 +270,14 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
     QRect bufferRect = buffer.rect();
     auto isPinned = index.data(NoteListModel::NoteIsPinned).toBool();
     auto const *model = static_cast<NoteListModel *>(m_view->model());
-    if (model->hasPinnedNote() && model->isFirstPinnedNote(index) && static_cast<NoteListView *>(m_view)->isPinnedNotesCollapsed()) {
+    // The buffer holds only the note body (bufferSizeHint() excludes the section
+    // header and the first-unpinned gap). It is drawn bottom-aligned into the row
+    // by the drawPixmap() calls below, so the header/gap space at the top of the
+    // row is reserved automatically. The buffer must NOT be shifted or grown here
+    // to make room for it, or the header offset is counted twice and the first
+    // unpinned row's background/body drifts down.
+    const bool isCollapsedPinnedHeader = m_view->isPinnedNotesCollapsed() && model->isFirstPinnedNote(index);
+    if (model->hasPinnedNote() && isCollapsedPinnedHeader) {
         bufferPainter.fillRect(bufferRect, QBrush(m_defaultColor));
     } else if ((option.state & QStyle::State_Selected) == QStyle::State_Selected) {
         if (qApp->applicationState() == Qt::ApplicationActive) {
@@ -379,39 +355,25 @@ void NoteListDelegate::paintBackground(QPainter *painter, const QStyleOptionView
     if (shouldPaintSeparator(index, *model)) {
         paintSeparator(&bufferPainter, bufferRect, index);
     }
-    int rowHeight;
-    if (m_animatedIndexes.contains(index)) {
-        if (m_state != NoteListState::MoveIn) {
-            double rowRate = m_timeLine->currentFrame() / (m_maxFrame * 1.0);
-            rowHeight = bufferSize.height() * rowRate;
-        } else {
-            double rowRate = 1.0 - (m_timeLine->currentFrame() / (m_maxFrame * 1.0));
-            rowHeight = bufferSize.height() * rowRate;
-        }
-    } else {
-        rowHeight = option.rect.height();
-    }
-    painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+    paintBody(painter, option, index, buffer);
+}
 
-    if (m_animatedIndexes.contains(index)) {
-        if (m_state == NoteListState::MoveIn) {
-            if (model->hasPinnedNote() && (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
-                painter->drawPixmap(QRect{ option.rect.x(), option.rect.y() + bufferSize.height() - rowHeight + 25, option.rect.width(), rowHeight }, buffer,
-                                    QRect{ 0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight });
-            } else {
-                painter->drawPixmap(QRect{ option.rect.x(), option.rect.y() + bufferSize.height() - rowHeight, option.rect.width(), rowHeight }, buffer,
-                                    QRect{ 0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight });
-            }
-        } else {
-            if (model->hasPinnedNote() && (model->isFirstPinnedNote(index) || model->isFirstUnpinnedNote(index))) {
-                painter->drawPixmap(QRect{ option.rect.x(), option.rect.y() + 25, option.rect.width(), option.rect.height() }, buffer,
-                                    QRect{ 0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight });
-            } else {
-                painter->drawPixmap(option.rect, buffer, QRect{ 0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight });
-            }
+void NoteListDelegate::paintBody(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index, const QPixmap &buffer) const
+{
+    auto const *model = static_cast<NoteListModel *>(m_view->model());
+    if (m_animatedIndexes.contains(index) && !(m_view->isPinnedNotesCollapsed() && index.data(NoteListModel::NoteIsPinned).toBool())) {
+        const int height = animatedBodyHeight(buffer.height());
+        if (height == 0) {
+            return;
         }
+        int top = option.rect.y() + bodyTopOffset(index, *model);
+        if (m_state == NoteListState::MoveIn) {
+            top += buffer.height() - height;
+        }
+        painter->drawPixmap(QRect{ option.rect.x(), top, option.rect.width(), height }, buffer,
+                            QRect{ 0, buffer.height() - height, option.rect.width(), height });
     } else {
-        painter->drawPixmap(option.rect, buffer, QRect{ 0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight });
+        painter->drawPixmap(option.rect, buffer, QRect{ 0, buffer.height() - option.rect.height(), option.rect.width(), option.rect.height() });
     }
 }
 
@@ -463,12 +425,9 @@ void NoteListDelegate::paintLabels(QPainter *painter, const QStyleOptionViewItem
             fourthYOffset = note_list_constants::UNPINNED_HEADER_TO_NOTE_SPACE;
         }
 
-        int fifthYOffset = 0;
-        if (noteListModel->hasPinnedNote() && !m_view->isPinnedNotesCollapsed() && noteListModel->isFirstUnpinnedNote(index)) {
-            fifthYOffset = note_list_constants::LAST_PINNED_TO_UNPINNED_HEADER;
-        }
+        int fifthYOffset = firstUnpinnedGap(index, *noteListModel);
 
-        int yOffsets = secondYOffset + thirdYOffset + fourthYOffset + fifthYOffset;
+        int yOffsets = secondYOffset + thirdYOffset + fourthYOffset;
         double titleRectPosX = rowPosX + note_list_constants::LEFT_OFFSET_X;
         double titleRectPosY = rowPosY;
         double titleRectWidth = rowWidth - (2.0 * note_list_constants::LEFT_OFFSET_X);
@@ -514,39 +473,11 @@ void NoteListDelegate::paintLabels(QPainter *painter, const QStyleOptionViewItem
         }
         drawStr(contentRectPosX, contentRectPosY, contentRectWidth, contentRectHeight, m_contentColor, titleFont, content);
         painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-        int rowHeight;
-        if (m_animatedIndexes.contains(index)) {
-            if (m_state != NoteListState::MoveIn) {
-                double rowRate = m_timeLine->currentFrame() / (m_maxFrame * 1.0);
-                rowHeight = bufferSize.height() * rowRate;
-            } else {
-                double rowRate = 1.0 - (m_timeLine->currentFrame() / (m_maxFrame * 1.0));
-                rowHeight = bufferSize.height() * rowRate;
-            }
-        } else {
-            rowHeight = option.rect.height();
-        }
-
-        if (m_state == NoteListState::MoveIn) {
-            if (noteListModel->hasPinnedNote() && (noteListModel->isFirstPinnedNote(index) || noteListModel->isFirstUnpinnedNote(index))) {
-                painter->drawPixmap(QRect{ option.rect.x(), option.rect.y() + bufferSize.height() - rowHeight + 25, option.rect.width(), rowHeight }, buffer,
-                                    QRect{ 0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight });
-            } else {
-                painter->drawPixmap(QRect{ option.rect.x(), option.rect.y() + bufferSize.height() - rowHeight, option.rect.width(), rowHeight }, buffer,
-                                    QRect{ 0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight });
-            }
-        } else {
-            if (noteListModel->hasPinnedNote() && (noteListModel->isFirstPinnedNote(index) || noteListModel->isFirstUnpinnedNote(index))) {
-                painter->drawPixmap(QRect{ option.rect.x(), option.rect.y() + 25, option.rect.width(), rowHeight }, buffer,
-                                    QRect{ 0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight });
-            } else {
-                painter->drawPixmap(option.rect, buffer, QRect{ 0, bufferSize.height() - rowHeight, option.rect.width(), rowHeight });
-            }
-        }
+        paintBody(painter, option, index, buffer);
         if (noteListModel->hasPinnedNote()) {
             if (noteListModel->isFirstPinnedNote(index)) {
                 QRect headerRect(option.rect.x() + (note_list_constants::LEFT_OFFSET_X / 2), option.rect.y(),
-                                 option.rect.width() - (note_list_constants::LEFT_OFFSET_X / 2), 25);
+                                 option.rect.width() - (note_list_constants::LEFT_OFFSET_X / 2), note_list_constants::SECTION_HEADER_HEIGHT);
 #ifdef __APPLE__
                 int iconPointSizeOffset = 0;
 #else
@@ -566,7 +497,7 @@ void NoteListDelegate::paintLabels(QPainter *painter, const QStyleOptionViewItem
                 painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Pinned");
             } else if (noteListModel->isFirstUnpinnedNote(index)) {
                 QRect headerRect(option.rect.x() + (note_list_constants::LEFT_OFFSET_X / 2), option.rect.y() + fifthYOffset,
-                                 option.rect.width() - (note_list_constants::LEFT_OFFSET_X / 2), 25);
+                                 option.rect.width() - (note_list_constants::LEFT_OFFSET_X / 2), note_list_constants::SECTION_HEADER_HEIGHT);
                 painter->setPen(m_contentColor);
                 painter->setFont(m_headerFont);
                 painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Notes");
@@ -594,13 +525,11 @@ void NoteListDelegate::paintLabels(QPainter *painter, const QStyleOptionViewItem
         double rowPosX = option.rect.x();
         double rowPosY = option.rect.y();
         auto const *noteListModel = static_cast<NoteListModel *>(m_view->model());
-        int fifthYOffset = 0;
-        if (noteListModel->hasPinnedNote() && !m_view->isPinnedNotesCollapsed() && noteListModel->isFirstUnpinnedNote(index)) {
-            fifthYOffset = note_list_constants::LAST_PINNED_TO_UNPINNED_HEADER;
-        }
+        int fifthYOffset = firstUnpinnedGap(index, *noteListModel);
 
         if (noteListModel->isFirstPinnedNote(index)) {
-            QRect headerRect(rowPosX + (note_list_constants::LEFT_OFFSET_X / 2), rowPosY, option.rect.width() - (note_list_constants::LEFT_OFFSET_X / 2), 25);
+            QRect headerRect(rowPosX + (note_list_constants::LEFT_OFFSET_X / 2), rowPosY, option.rect.width() - (note_list_constants::LEFT_OFFSET_X / 2),
+                             note_list_constants::SECTION_HEADER_HEIGHT);
 #ifdef __APPLE__
             int iconPointSizeOffset = 0;
 #else
@@ -618,14 +547,15 @@ void NoteListDelegate::paintLabels(QPainter *painter, const QStyleOptionViewItem
             painter->setPen(m_contentColor);
             painter->setFont(m_headerFont);
             painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Pinned");
-            rowPosY += 25;
+            rowPosY += note_list_constants::SECTION_HEADER_HEIGHT;
         } else if (noteListModel->hasPinnedNote() && noteListModel->isFirstUnpinnedNote(index)) {
             rowPosY += fifthYOffset;
-            QRect headerRect(rowPosX + (note_list_constants::LEFT_OFFSET_X / 2), rowPosY, option.rect.width() - (note_list_constants::LEFT_OFFSET_X / 2), 25);
+            QRect headerRect(rowPosX + (note_list_constants::LEFT_OFFSET_X / 2), rowPosY, option.rect.width() - (note_list_constants::LEFT_OFFSET_X / 2),
+                             note_list_constants::SECTION_HEADER_HEIGHT);
             painter->setPen(m_contentColor);
             painter->setFont(m_headerFont);
             painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignVCenter, "Notes");
-            rowPosY += 25;
+            rowPosY += note_list_constants::SECTION_HEADER_HEIGHT;
         }
         if (m_view->isPinnedNotesCollapsed()) {
             auto isPinned = index.data(NoteListModel::NoteIsPinned).value<bool>();
@@ -792,9 +722,16 @@ bool NoteListDelegate::shouldPaintSeparator(const QModelIndex &index, const Note
 void NoteListDelegate::setStateI(NoteListState NewState, const QModelIndexList &indexes)
 {
     m_animatedIndexes = indexes;
+    m_animationHeights.clear();
+    m_state = NewState;
 
     auto startAnimation = [this](QTimeLine::Direction diretion, int duration) {
+        QStyleOptionViewItem option;
+        option.initFrom(m_view);
+        option.rect = m_view->viewport()->rect();
         for (const auto &index : std::as_const(m_animatedIndexes)) {
+            // Keep the editor's measured body height after closing it for animation.
+            m_animationHeights[index.data(NoteListModel::NoteID).toInt()] = bufferSizeHint(option, index).height();
             m_view->closePersistentEditorC(index);
         }
         m_timeLine->setDirection(diretion);
@@ -819,8 +756,6 @@ void NoteListDelegate::setStateI(NoteListState NewState, const QModelIndexList &
         m_animatedIndexes.clear();
         break;
     }
-
-    m_state = NewState;
 }
 
 const QModelIndex &NoteListDelegate::hoveredIndex() const

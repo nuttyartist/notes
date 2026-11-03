@@ -36,6 +36,12 @@ public:
     Theme::Value theme() const;
     void setIsInAllNotes(bool newIsInAllNotes);
     bool isInAllNotes() const;
+    int minimumContentHeight() const;
+    int folderLineHeight() const;
+    int minimumRowHeight() const;
+    static int sectionHeaderHeight(const QModelIndex &index, const NoteListModel &model);
+    int firstUnpinnedGap(const QModelIndex &index, const NoteListModel &model) const;
+    int bodyTopOffset(const QModelIndex &index, const NoteListModel &model) const;
     void clearSizeMap();
 
 public slots:
@@ -53,6 +59,8 @@ signals:
     void animationFinished(NoteListState animationState);
 
 private:
+    int animatedBodyHeight(int height) const;
+    void paintBody(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index, const QPixmap &buffer) const;
     void paintBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     void paintLabels(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     void paintSeparator(QPainter *painter, QRect rect, const QModelIndex &index) const;
@@ -87,6 +95,7 @@ private:
     QModelIndexList m_animatedIndexes;
     QModelIndex m_hoveredIndex;
     QMap<int, QSize> m_sizeMap;
+    QMap<int, int> m_animationHeights;
     QQueue<QPair<QSet<int>, NoteListState>> m_animationQueue;
 };
 
