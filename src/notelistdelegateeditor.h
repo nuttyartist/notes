@@ -49,8 +49,6 @@ signals:
     void nearDestroyed(int id, const QModelIndex &index);
 
 private:
-    int minimumContentHeight() const;
-    int minimumRowHeight() const;
     int tagListTop(const QModelIndex &index) const;
     void paintBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     void paintLabels(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;

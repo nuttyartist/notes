@@ -99,14 +99,17 @@ int NoteListDelegate::minimumContentHeight() const
     return note_list_constants::TOP_OFFSET_Y + titleHeight + dateHeight + contentHeight + note_list_constants::DATE_DESC_SPACE;
 }
 
+int NoteListDelegate::folderLineHeight() const
+{
+    if (!m_isInAllNotes) {
+        return 0;
+    }
+    return qMax(QFontMetrics(m_titleFont).height(), 16) + note_list_constants::DESC_FOLDER_SPACE;
+}
+
 int NoteListDelegate::minimumRowHeight() const
 {
-    int result = minimumContentHeight() + note_list_constants::LAST_EL_SEP_SPACE;
-    if (m_isInAllNotes) {
-        const int folderLineHeight = qMax(QFontMetrics(m_titleFont).height(), 16) + note_list_constants::DESC_FOLDER_SPACE;
-        result += folderLineHeight;
-    }
-    return result;
+    return minimumContentHeight() + folderLineHeight() + note_list_constants::LAST_EL_SEP_SPACE;
 }
 
 int NoteListDelegate::sectionHeaderHeight(const QModelIndex &index, const NoteListModel &model)
@@ -119,8 +122,9 @@ int NoteListDelegate::sectionHeaderHeight(const QModelIndex &index, const NoteLi
 }
 
 // Extra vertical gap inserted above the first unpinned note so it clears the
-// pinned section. Used by sizeHint() (row height) and paintLabels() (header/body
-// positions) so the row rect and the drawn content agree on where the body starts.
+// pinned section. Used by sizeHint() (row height), paintLabels() (header/body
+// positions) and NoteListDelegateEditor so the row rect and the drawn content
+// agree on where the body starts.
 int NoteListDelegate::firstUnpinnedGap(const QModelIndex &index, const NoteListModel &model) const
 {
     if (model.hasPinnedNote() && !m_view->isPinnedNotesCollapsed() && model.isFirstUnpinnedNote(index)) {
