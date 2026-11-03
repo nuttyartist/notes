@@ -108,11 +108,11 @@ NoteListDelegateEditor::~NoteListDelegateEditor()
 void NoteListDelegateEditor::paintBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     auto bufferSize = rect().size();
-    QPixmap buffer{ bufferSize };
+    QPixmap buffer = utils::makeDevicePixelRatioPixmap(bufferSize, this);
     buffer.fill(Qt::transparent);
     QPainter bufferPainter{ &buffer };
     bufferPainter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-    QRect bufferRect = buffer.rect();
+    QRect bufferRect{ QPoint{ }, bufferSize };
     auto const *noteListModel = static_cast<NoteListModel *>(m_view->model());
     bufferRect.setY(bufferRect.y() + m_delegate->bodyTopOffset(index, *noteListModel));
     auto isPinned = index.data(NoteListModel::NoteIsPinned).toBool();
@@ -341,7 +341,7 @@ bool NoteListDelegateEditor::underMouseC() const
 
 QPixmap NoteListDelegateEditor::renderToPixmap()
 {
-    QPixmap result{ rect().size() };
+    QPixmap result = utils::makeDevicePixelRatioPixmap(rect().size(), this);
     result.fill(Qt::yellow);
     QPainter painter(&result);
     painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
