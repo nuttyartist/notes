@@ -193,13 +193,24 @@ void NoteListView::setEditorWidget(int noteId, QWidget *w)
 
 void NoteListView::unsetEditorWidget(int noteId, QWidget *w)
 {
-    if (m_openedEditor.contains(noteId)) {
-        m_openedEditor[noteId].removeAll(w);
+    // Skip if trying to remove nullptr - this is a no-op and can cause
+    // issues during destruction when the map state may be inconsistent
+    if (w == nullptr) {
+        return;
+    }
+    auto it = m_openedEditor.find(noteId);
+    if (it != m_openedEditor.end()) {
+        it.value().removeAll(w);
     }
 }
 
 void NoteListView::closeAllEditor()
 {
+    // Check if model is still valid before iterating
+    if (!model()) {
+        m_openedEditor.clear();
+        return;
+    }
     for (const auto &id : m_openedEditor.keys()) {
         auto index = static_cast<NoteListModel *>(model())->getNoteIndex(id);
         closePersistentEditor(index);
